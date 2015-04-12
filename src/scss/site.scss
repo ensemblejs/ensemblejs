@@ -1,0 +1,77 @@
+body {
+  background-color: #111;
+  margin: 0;
+  padding: 5px;
+}
+
+.framing-device {
+  height: 100%;
+  margin: 0 auto;
+  max-width: 1000px;
+}
+
+.option {
+  background-color: #333;
+  border-radius: 5px;
+  color: #fff;
+  display: inline-block;
+  float: left;
+  margin: 2px;
+  text-align: center;
+  width: 19%;
+
+  img {
+    height: 64px;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.header { min-height: 80px; padding: 4px; }
+.icons { min-height: 140px; }
+.buttons {min-height: 50px;}
+.qr {
+  margin: 0;
+  min-height: 250px;
+
+  img {
+    height: 128px;
+  }
+}
+
+p {
+  margin-top: 10px;
+  padding: 0 5px;
+}
+
+.btn {
+  background: #3498db;
+  background-image: linear-gradient(to bottom, #3498db, #2980b9);
+  color: #fff;
+  font-family: Arial;
+  margin: 4px;
+  padding: 10px 20px;
+  text-decoration: none;
+  text-shadow: 1px 1px 3px #666;
+}
+
+.btn:hover {
+  background: #3cb0fd;
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.desktop-display img { width: 64px; }
+.keyboard img { width: 64px; }
+.mobile img { width: 64px; }
+.controller img {width: 64px; }
+
+.qr-controller { margin-left: 32px; }
+.qr-mobile { margin-left: 32px; }
+
+.url { font-family: monospace; }

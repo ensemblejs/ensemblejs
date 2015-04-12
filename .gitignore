@@ -1,0 +1,10 @@
+node_modules/
+game/js/gen/
+.sass-cache/
+game/css/
+coverage/
+.node-version
+npm-debug.log
+vendor
+.DS_Store
+.bundle/
