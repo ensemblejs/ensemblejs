@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/distributedlife/ensemble",
   "bin": {
-    "start": "start-here.js"
+    "start": "ensemble.js"
   },
   "engines": {
     "node": "latest",
