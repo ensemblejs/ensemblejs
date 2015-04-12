@@ -1,6 +1,6 @@
 {
   "name": "ensemblejs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Ensemble server for the ensemble game framework",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/distributedlife/ensemble",
   "bin": {
-  "start": "ensemble.js"
+    "start": "ensemble.js"
   },
   "engines": {
     "node": "latest",
