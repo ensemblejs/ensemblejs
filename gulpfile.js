@@ -15,10 +15,10 @@ var istanbul = require('gulp-istanbul');
 var coveralls = require('gulp-coveralls');
 
 var paths = {
-  js: ['start-here.js', 'src/**/*.js'],
-  scss: ['src/**/src/scss/*.scss'],
-  css: ['src/**/public/*.css'],
-  tests: ['tests/**/*.js', 'src/**/tests/*.js']
+  js: ['ensemble.js', 'src/**/*.js'],
+  scss: ['src/scss/**/*.scss'],
+  css: ['public/css/*.css'],
+  tests: ['tests/**/*.js']
 };
 
 var onError = function (error) {
@@ -72,7 +72,7 @@ gulp.task('build-styles', function() {
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(flatten())
-        .pipe(gulp.dest('game/css'));
+        .pipe(gulp.dest('public/css'));
 });
 gulp.task('build', ['build-styles']);
 
