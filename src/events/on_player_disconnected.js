@@ -6,7 +6,7 @@ module.exports = {
   func: function (state) {
     return function () {
       return {
-        inch: {
+        ensemble: {
           paused: true,
           players: state().get('players') - 1
         }

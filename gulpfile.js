@@ -17,6 +17,7 @@ var coveralls = require('gulp-coveralls');
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
   scss: ['src/scss/**/*.scss'],
+  cssSrc: ['src/css/**/*.css'],
   css: ['public/css/*.css'],
   tests: ['tests/**/*.js']
 };
@@ -74,6 +75,11 @@ gulp.task('build-styles', function() {
         .pipe(flatten())
         .pipe(gulp.dest('public/css'));
 });
-gulp.task('build', ['build-styles']);
+gulp.task('copy-css', function () {
+    return gulp.src(paths.cssSrc)
+       .pipe(plumber({errorHandler: onError}))
+       .pipe(gulp.dest('public/css'));
+});
+gulp.task('build', ['build-styles', 'copy-css']);
 
 gulp.task('default', ['lint', 'test', 'build']);

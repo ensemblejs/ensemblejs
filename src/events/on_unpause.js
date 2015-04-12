@@ -5,7 +5,7 @@ module.exports = {
   func: function () {
     return function () {
       return {
-        inch: {
+        ensemble: {
           paused: false
         }
       };

@@ -6,4 +6,4 @@ if (path === undefined) {
   throw 'No game path specified';
 }
 
-require('./src/inch_framework.js').runGameAtPath(path);
+require('./src/facade').runGameAtPath(path);

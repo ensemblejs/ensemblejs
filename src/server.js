@@ -15,7 +15,7 @@ module.exports = {
       var app = express();
 
       app.use('/game', express.static(assetPath));
-      app.use('/inch', express.static(__dirname + '/../public/'));
+      app.use('/ensemble', express.static(__dirname + '/../public/'));
       app.use(require('morgan')('combined'));
       app.use(require('body-parser').urlencoded({extended: true }));
       app.use(require('body-parser').json());

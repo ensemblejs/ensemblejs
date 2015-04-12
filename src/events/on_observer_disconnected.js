@@ -6,7 +6,7 @@ module.exports = {
   func: function (state) {
     return function () {
       return {
-        inch: {
+        ensemble: {
           observers: state().get('observers') - 1
         }
       };
