@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var isArray = require('lodash').isArray;
+var isString = require('lodash').isString;
 var plugins = require('plug-n-play').configure(['ServerSideUpdate', 'StateSeed', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'OnInput', 'OnConnect', 'OnDisonnect']);
 
 plugins.load(require('./server.js'));
@@ -32,12 +32,12 @@ module.exports = {
     plugins.loadPath(path + '/js/logic');
 
     var modes = require(path + '/js/modes.js');
-    if (isArray(modes)) {
+    if (isString(modes)) {
+      modes = plugins.get(modes);
+    } else {
       each(modes, function (pluginName, modeName) {
         modes[modeName] = plugins.get(pluginName);
       });
-    } else {
-      modes = plugins.get(modes);
     }
 
     run(path, modes);
