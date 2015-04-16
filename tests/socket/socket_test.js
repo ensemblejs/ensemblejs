@@ -72,6 +72,32 @@ describe('setting up the socket', function () {
 	});
 });
 
+describe('setting up the socket with only one mode', function () {
+	beforeEach(function () {
+		var socketIo = require('socket.io');
+		socketIo.listen = function() { return io; };
+
+		sinon.spy(io, 'of');
+		sinon.spy(global, 'setInterval');
+		SocketSupport.start(server, sinon.spy());
+	});
+
+	afterEach(function () {
+		_.each(setInterval.returnValues, function(id) {
+			clearInterval(id);
+		});
+
+		setInterval.restore();
+		io.of.restore();
+	});
+
+	it('should listen on /game/primary', function () {
+		expect(io.of.calledOnce).toEqual(true);
+		expect(io.of.firstCall.args).toEqual(['/game/primary']);
+	});
+});
+
+
 describe('on connect', function () {
 	var updateClientFunc;
 

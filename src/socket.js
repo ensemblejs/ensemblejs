@@ -2,6 +2,7 @@
 
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
+var isFunction = require('lodash').isFunction;
 var cloneDeep = require('lodash').cloneDeep;
 var size = require('lodash').size;
 var sequence = require('distributedlife-sequence');
@@ -125,9 +126,13 @@ module.exports = {
       start: function (server, modeCallbacks) {
         io = require('socket.io').listen(server);
 
-        each(modeCallbacks, function(callback, mode) {
-          io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(callback));
-        });
+        if (isFunction(modeCallbacks)) {
+          io.of('/game/primary').on('connection', createSetupPlayableClientFunction(modeCallbacks));
+        } else {
+          each(modeCallbacks, function(callback, mode) {
+            io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(callback));
+          });
+        }
       },
       stop: function () {
         if (io !== undefined) {
