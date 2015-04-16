@@ -2,7 +2,7 @@
 
 var each = require('lodash').each;
 var isString = require('lodash').isString;
-var plugins = require('plug-n-play').configure(['ServerSideUpdate', 'StateSeed', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'OnInput', 'OnConnect', 'OnDisonnect']);
+var plugins = require('plug-n-play').configure(['ServerSideUpdate', 'StateSeed', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'OnInput', 'OnConnect', 'OnDisonnect', 'ActionMap', 'AcknowledgementMap']);
 
 plugins.load(require('./server.js'));
 plugins.load(require('./input/input_handler.js'));

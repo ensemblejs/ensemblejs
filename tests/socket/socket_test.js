@@ -38,9 +38,9 @@ var InitialiseState = {
 var server = {};
 
 var pendingAckCallback = sinon.spy();
-var ackMap = {
+var ackMap = [{
 	'first': [{target: pendingAckCallback, data: gameState}]
-};
+}];
 var modeCallbacks = {
 	'arcade': sinon.spy()
 };

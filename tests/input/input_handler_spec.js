@@ -19,7 +19,7 @@ var model = {
 	rightStickEvent: sinon.spy()
 };
 
-var actions = {};
+var actions = [];
 var rawData = {};
 var newUserInput;
 var update;
@@ -38,7 +38,7 @@ describe('Input Bindings', function() {
 		model.leftStickEvent.reset();
 		model.rightStickEvent.reset();
 
-		actions = {
+		actions = [{
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
 				{target: model.keyPressEvent, keypress: true, noEventKey: 'model'}
@@ -48,7 +48,7 @@ describe('Input Bindings', function() {
 			'nothing': [{target: model.noEvent, noEventKey: 'model'}],
 			'leftStick': [{target: model.leftStickEvent, noEventKey: 'model'}],
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
-		};
+		}];
 
 		newUserInput = require('../../src/input/input_handler.js').func(deferDep(actions), deferDep(definePlugin), deferDep(sinon.spy()));
 		update = getDefinedPlugin('ServerSideUpdate');

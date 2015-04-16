@@ -11,7 +11,7 @@ var sequence = require('distributedlife-sequence');
 module.exports = {
   type: 'SocketSupport',
   deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState'],
-  func: function(acknowledgementMap, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState) {
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState) {
 
     var io;
     var statistics = {};
@@ -53,10 +53,12 @@ module.exports = {
     var removeAcknowledgedPackets = function (socketId, pendingAcknowledgements) {
       each(pendingAcknowledgements, function (ack) {
         each(ack.names, function (name) {
-          if (acknowledgementMap()[name] === undefined) { return; }
+          each(acknowledgementMaps(), function(acknowledgementMap) {
+            if (acknowledgementMap[name] === undefined) { return; }
 
-          each(acknowledgementMap()[name], function (action) {
-            stateMutator()(action.target(ack, action.data));
+            each(acknowledgementMap[name], function (action) {
+              stateMutator()(action.target(ack, action.data));
+            });
           });
         });
 

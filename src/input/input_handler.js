@@ -5,54 +5,63 @@ var each = require('lodash').each;
 module.exports = {
 	type: 'OnInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function(actionMap, definePlugin, stateMutator) {
+	func: function(actionMaps, definePlugin, stateMutator) {
 		var userInput = [];
 
 		var parseKeysAndButtons = function(currentInput, callback) {
 			each(currentInput.rawData.keys, function(key) {
-				if (actionMap()[key] === undefined) { return; }
+				each(actionMaps(), function(actionMap) {
+					if (actionMap[key] === undefined) { return; }
 
-				each(actionMap()[key], function(action) {
-					if (!action.keypress) {
-						stateMutator()(
-							callback(action.target, action.noEventKey)
-						);
-					}
+					each(actionMap[key], function(action) {
+						if (!action.keypress) {
+							stateMutator()(
+								callback(action.target, action.noEventKey)
+							);
+						}
+					});
 				});
 			});
 
 			each(currentInput.rawData.singlePressKeys, function(key) {
-				if (actionMap()[key] === undefined) { return; }
+				each(actionMaps(), function(actionMap) {
+					if (actionMap[key] === undefined) { return; }
 
-				each(actionMap()[key], function(action) {
-					if (action.keypress) {
-						stateMutator()(
-							callback(action.target, action.noEventKey)
-						);
-					}
+					each(actionMap[key], function(action) {
+						if (action.keypress) {
+							stateMutator()(
+								callback(action.target, action.noEventKey)
+							);
+						}
+					});
 				});
 			});
 		};
 
 		var parseMouse = function(currentInput, callback) {
-			if (actionMap().cursor === undefined) { return; }
+			each(actionMaps(), function(actionMap) {
+				if (actionMap.cursor === undefined) { return; }
 
-			each(actionMap().cursor, function(action) {
-				stateMutator()(
-					callback(action.target, action.noEventKey, currentInput.rawData)
-				);
+				each(actionMap.cursor, function(action) {
+					stateMutator()(
+						callback(action.target, action.noEventKey, currentInput.rawData)
+					);
+				});
 			});
 		};
 
 		var parseTouches = function(currentInput, callback) {
 			each(currentInput.rawData.touches, function(touch) {
 				var key = 'touch' + touch.id;
-				if (actionMap()[key] === undefined) { return; }
 
-				each(actionMap()[key], function(action) {
-					stateMutator()(
-						callback(action.target, action.noEventKey, {x: touch.x, y: touch.y})
-					);
+				each(actionMaps(), function(actionMap) {
+					if (actionMap[key] === undefined) { return; }
+
+					each(actionMap[key], function(action) {
+						stateMutator()(
+							callback(action.target, action.noEventKey, {x: touch.x, y: touch.y})
+						);
+					});
 				});
 			});
 		};
@@ -60,13 +69,16 @@ module.exports = {
 		var parseSticks = function(currentInput, callback) {
 			each(['leftStick', 'rightStick'], function(key) {
 				if (currentInput.rawData[key] === undefined) {return;}
-				if (actionMap()[key] === undefined) { return; }
 
-				var data = currentInput.rawData[key];
-				each(actionMap()[key], function(action) {
-					stateMutator()(
-						callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force})
-					);
+				each(actionMaps(), function(actionMap) {
+					if (actionMap[key] === undefined) { return; }
+
+					var data = currentInput.rawData[key];
+					each(actionMap[key], function(action) {
+						stateMutator()(
+							callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force})
+						);
+					});
 				});
 			});
 		};
@@ -102,10 +114,12 @@ module.exports = {
 					return target(inputData.x, inputData.y, data);
 				});
 
-				each(actionMap().nothing, function(action) {
-					if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-						return action.target(data);
-					}
+				each(actionMaps(), function(actionMap) {
+					each(actionMap.nothing, function(action) {
+						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
+							return action.target(data);
+						}
+					});
 				});
 			};
 		});
