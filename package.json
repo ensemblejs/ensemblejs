@@ -1,6 +1,6 @@
 {
   "name": "ensemblejs",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Ensemble server for the ensemble game framework",
   "repository": {
     "type": "git",
