@@ -10,9 +10,7 @@ var paused = false;
 var state = {
 	get: function () { return function() { return paused; }; }
 };
-var mutator = {
-	mutate: sinon.spy()
-};
+var mutator = sinon.spy();
 
 describe('the engine', function() {
 	var engine;

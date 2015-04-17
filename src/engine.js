@@ -10,7 +10,7 @@ module.exports = {
 
     var update = function(dt) {
       each(serverSideUpdate(), function(callback) {
-        mutator().mutate(callback(dt));
+        mutator()(callback(dt));
       });
     };
 
