@@ -2,6 +2,7 @@
 
 var isObject = require('lodash').isObject;
 var isArray = require('lodash').isArray;
+var isEqual = require('lodash').isEqual;
 var merge = require('lodash').merge;
 
 
@@ -32,6 +33,13 @@ module.exports = {
     definePlugin()('RawStateAccess', function () { return root; });
 
     return function(result) {
+      if (result === undefined) {
+        return;
+      }
+      if (isEqual(result, {})) {
+        return;
+      }
+
       root = merge(root, result, function (a, b) {
         return isArray(a) ? b : undefined;
       });

@@ -10,6 +10,9 @@ var paused = false;
 var state = {
 	get: function () { return function() { return paused; }; }
 };
+var mutator = {
+	mutate: sinon.spy()
+};
 
 describe('the engine', function() {
 	var engine;
@@ -21,7 +24,7 @@ describe('the engine', function() {
 
 		clock = sinon.useFakeTimers();
 
-		engine = require('../../src/engine.js').func(deferDep([update]), deferDep(state));
+		engine = require('../../src/engine.js').func(deferDep([update]), deferDep(state), deferDep(mutator));
 	});
 
 	afterEach(function() {

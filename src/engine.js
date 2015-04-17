@@ -4,13 +4,13 @@ var each = require('lodash').each;
 
 module.exports = {
   type: 'ServerSideEngine',
-  deps: ['ServerSideUpdate', 'StateAccess'],
-  func: function (serverSideUpdate, state) {
+  deps: ['ServerSideUpdate', 'StateAccess', 'StateMutator'],
+  func: function (serverSideUpdate, state, mutator) {
     var priorStepTime = Date.now();
 
     var update = function(dt) {
       each(serverSideUpdate(), function(callback) {
-        callback(dt);
+        mutator().mutate(callback(dt));
       });
     };
 
