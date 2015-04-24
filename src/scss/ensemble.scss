@@ -72,12 +72,10 @@ html:full-screen {
 }
 
 .input {
-  height: 100%;
-  left: 0;
-  position: fixed;
-  top: 0;
-  width: 100%;
+  margin: 0 auto;
   z-index: 9999;
+  position: absolute;
+  vertical-align: baseline;
 }
 
 .start-hidden {
