@@ -198,8 +198,8 @@ describe('the client update loop', function () {
 		expect(socket.emit.secondCall.args[1].sentTimestamp).toNotEqual(undefined);
 	});
 
-	it('should send game state about every 45ms', function() {
-		expect(setInterval.firstCall.args[1]).toEqual(45);
+	it('should send game state about every 15ms', function() {
+		expect(setInterval.firstCall.args[1]).toEqual(15);
 	});
 });
 

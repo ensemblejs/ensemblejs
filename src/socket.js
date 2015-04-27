@@ -37,7 +37,7 @@ module.exports = {
         socket.emit('gameState/update', packet);
       };
 
-      setInterval(updateClient, 45);
+      setInterval(updateClient, 15);
     };
 
     var calculateLatency = function (socketId, pendingAcknowledgements) {
