@@ -132,7 +132,7 @@ describe('on connect', function () {
 	it('should start the update loop', function () {
 		updateClientFunc();
 
-		expect(socket.emit.secondCall.args[0]).toEqual('updateState', {'hi': 'there'});
+		expect(socket.emit.getCall(2).args[0]).toEqual('updateState', {'hi': 'there'});
 	});
 
 	it('should call the onPlayerConnect callback', function () {
@@ -163,7 +163,7 @@ describe('the client update loop', function () {
 		updateClientFunc();
 
 		expect(socket.emit.getCall(0).args[0]).toEqual('initialState');
-		expect(socket.emit.getCall(1).args[0]).toEqual('updateState');
+		expect(socket.emit.getCall(2).args[0]).toEqual('updateState');
 
 		socket.emit.reset();
 		updateClientFunc();
@@ -175,7 +175,7 @@ describe('the client update loop', function () {
 		updateClientFunc();
 
 		expect(socket.emit.getCall(0).args[0]).toEqual('initialState');
-		expect(socket.emit.getCall(1).args[0]).toEqual('updateState');
+		expect(socket.emit.getCall(2).args[0]).toEqual('updateState');
 
 		socket.emit.reset();
 		gameState.altered = true;
@@ -188,14 +188,14 @@ describe('the client update loop', function () {
 	it('should give each packet an id', function () {
 		updateClientFunc();
 
-		expect(socket.emit.secondCall.args[0]).toEqual('updateState');
-		expect(socket.emit.secondCall.args[1].id).toEqual(5);
+		expect(socket.emit.getCall(2).args[0]).toEqual('updateState');
+		expect(socket.emit.getCall(2).args[1].id).toEqual(5);
 	});
 
 	it('should record the sent time of each packet', function () {
 		updateClientFunc();
 
-		expect(socket.emit.secondCall.args[1].sentTimestamp).toNotEqual(undefined);
+		expect(socket.emit.getCall(2).args[1].sentTimestamp).toNotEqual(undefined);
 	});
 
 	it('should send game state about every 15ms', function() {
