@@ -16,6 +16,10 @@ module.exports = {
     var io;
     var statistics = {};
 
+    var packetHasNotChanged = function(current, prior) {
+      return isEqual(current.gameState, prior.gameState);
+    };
+
     var startUpdateClientLoop = function (socketId, socket) {
       var lastPacket = {};
 
@@ -24,7 +28,7 @@ module.exports = {
           gameState: rawStateAccess()
         };
 
-        if (isEqual(packet.gameState, lastPacket.gameState)) {
+        if (packetHasNotChanged(packet, lastPacket)) {
           return;
         }
 
