@@ -126,13 +126,13 @@ describe('on connect', function () {
 	});
 
 	it('should send the initial game state to the client', function () {
-		expect(socket.emit.firstCall.args).toEqual(['gameState/setup', {hi: 'there'}]);
+		expect(socket.emit.firstCall.args).toEqual(['initialState', {hi: 'there'}]);
 	});
 
 	it('should start the update loop', function () {
 		updateClientFunc();
 
-		expect(socket.emit.secondCall.args[0]).toEqual('gameState/update', {'hi': 'there'});
+		expect(socket.emit.secondCall.args[0]).toEqual('updateState', {'hi': 'there'});
 	});
 
 	it('should call the onPlayerConnect callback', function () {
@@ -162,8 +162,8 @@ describe('the client update loop', function () {
 	it('should not send the packet if the game state hasn\'t changed', function () {
 		updateClientFunc();
 
-		expect(socket.emit.getCall(0).args[0]).toEqual('gameState/setup');
-		expect(socket.emit.getCall(1).args[0]).toEqual('gameState/update');
+		expect(socket.emit.getCall(0).args[0]).toEqual('initialState');
+		expect(socket.emit.getCall(1).args[0]).toEqual('updateState');
 
 		socket.emit.reset();
 		updateClientFunc();
@@ -174,21 +174,21 @@ describe('the client update loop', function () {
 	it('should send the packet if the game state has changed', function () {
 		updateClientFunc();
 
-		expect(socket.emit.getCall(0).args[0]).toEqual('gameState/setup');
-		expect(socket.emit.getCall(1).args[0]).toEqual('gameState/update');
+		expect(socket.emit.getCall(0).args[0]).toEqual('initialState');
+		expect(socket.emit.getCall(1).args[0]).toEqual('updateState');
 
 		socket.emit.reset();
 		gameState.altered = true;
 		updateClientFunc();
 
 		expect(socket.emit.callCount).toEqual(1);
-		expect(socket.emit.firstCall.args[0]).toEqual('gameState/update');
+		expect(socket.emit.firstCall.args[0]).toEqual('updateState');
 	});
 
 	it('should give each packet an id', function () {
 		updateClientFunc();
 
-		expect(socket.emit.secondCall.args[0]).toEqual('gameState/update');
+		expect(socket.emit.secondCall.args[0]).toEqual('updateState');
 		expect(socket.emit.secondCall.args[1].id).toEqual(5);
 	});
 

@@ -38,7 +38,7 @@ module.exports = {
         packet.sentTimestamp = Date.now();
         statistics[socketId].packets.unacked[packet.id] = packet.sentTimestamp;
 
-        socket.emit('gameState/update', packet);
+        socket.emit('updateState', packet);
       };
 
       setInterval(updateClient, 15);
@@ -118,7 +118,10 @@ module.exports = {
         var onInput = createOnInputFunction(socket.id);
         socket.on('input', onInput);
 
-        socket.emit('gameState/setup', rawStateAccess());
+        socket.emit('initialState', rawStateAccess());
+
+        socket.playerId = sequence.next('playerId');
+        socket.emit('playerId', { id: socket.playerId } );
 
         startUpdateClientLoop(socket.id, socket);
 
