@@ -8,7 +8,7 @@ module.exports = {
 	func: function(actionMaps, definePlugin, stateMutator) {
 		var userInput = [];
 
-		var parseKeysAndButtons = function(currentInput, callback) {
+		var parseKeysAndKeypresses = function(currentInput, callback) {
 			each(currentInput.rawData.keys, function(key) {
 				each(actionMaps(), function(actionMap) {
 					if (actionMap[key] === undefined) { return; }
@@ -95,7 +95,7 @@ module.exports = {
 				};
 
 				var somethingHasReceivedInput = [];
-				parseKeysAndButtons(currentInput, function(target, noEventKey) {
+				parseKeysAndKeypresses(currentInput, function(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
 					return target(data);
 				});
