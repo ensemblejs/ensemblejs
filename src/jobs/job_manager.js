@@ -35,11 +35,11 @@ module.exports = {
         effects.push(Object.create(delayedEffect(key, duration, wrapOnCompleteWithStateMutation)));
       },
       cancelAll: function (key) {
-          each(effects, function (effect) {
-            if (effect.key === key || key === undefined) {
-              effect.cancel();
-            }
-          });
+        each(effects, function (effect) {
+          if (effect.key === key || key === undefined) {
+            effect.cancel();
+          }
+        });
       }
     };
   }
