@@ -50,12 +50,12 @@ gulp.task('lint', ['lint-code', 'lint-scss']);
 gulp.task('test', ['clean'], function (cb) {
     gulp.src(paths.js)
         .pipe(plumber({errorHandler: onError}))
-        .pipe(istanbul())
+        .pipe(istanbul({includeUntested: true}))
         .pipe(istanbul.hookRequire())
         .on('finish', function () {
             gulp.src(paths.tests)
                 .pipe(mocha({reporter: 'spec'}))
-                .pipe(istanbul.writeReports())
+                .pipe(istanbul.writeReports({reporters: ['json-summary', 'text', 'lcov', 'text-summary']}))
                 .on('end', cb);
         });
 });
