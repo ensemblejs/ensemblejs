@@ -1,6 +1,5 @@
 'use strict';
 
-var assert = require('assert');
 var sinon = require('sinon');
 var expect = require('expect');
 
@@ -23,6 +22,7 @@ var actions = [];
 var rawData = {};
 var newUserInput;
 var update;
+var mutator = sinon.spy();
 
 describe('Input Bindings', function() {
 	var clock;
@@ -38,6 +38,8 @@ describe('Input Bindings', function() {
 		model.leftStickEvent.reset();
 		model.rightStickEvent.reset();
 
+		mutator.reset();
+
 		actions = [{
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
@@ -50,7 +52,7 @@ describe('Input Bindings', function() {
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
 		}];
 
-		newUserInput = require('../../src/input/input_handler.js').func(deferDep(actions), deferDep(definePlugin), deferDep(sinon.spy()));
+		newUserInput = require('../../src/input/input_handler.js').func(deferDep(actions), deferDep(definePlugin), deferDep(mutator));
 		update = getDefinedPlugin('ServerSideUpdate');
 	});
 
@@ -66,7 +68,8 @@ describe('Input Bindings', function() {
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
 			update();
-			assert(model.noEvent.called);
+			expect(model.noEvent.called).toBe(true);
+			expect(mutator.called).toBe(true);
 		});
 
 		it('should pass in the standard event data', function () {
@@ -80,11 +83,14 @@ describe('Input Bindings', function() {
 			beforeEach(function() {
 				newUserInput = require('../../src/input/input_handler.js').func(deferDep({}), deferDep(definePlugin), deferDep(sinon.spy()));
 				update = getDefinedPlugin('ServerSideUpdate');
+
+				mutator.reset();
 			});
 
 			it ('should do nothing', function() {
 				update();
-				assert(!model.noEvent.called);
+				expect(model.noEvent.called).toBe(false);
+				expect(mutator.called).toBe(false);
 			});
 		});
 	});
@@ -97,13 +103,14 @@ describe('Input Bindings', function() {
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
 			update();
-			assert(!model.noEvent.called);
+			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update();
 			expect(model.keyEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
-			assert(!model.keyPressEvent.called);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
@@ -115,13 +122,14 @@ describe('Input Bindings', function() {
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
 			update();
-			assert(!model.noEvent.called);
+			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update();
 			expect(model.keyPressEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
-			assert(!model.keyEvent.called);
+			expect(model.keyEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
@@ -134,9 +142,9 @@ describe('Input Bindings', function() {
 		it('should do nothing if there are no events bound to that key', function () {
 			update();
 
-			assert(!model.keyEvent.called);
-			assert(!model.keyPressEvent.called);
-			assert(!model.noEvent.called);
+			expect(model.keyEvent.called).toBe(false);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(model.noEvent.called).toBe(false);
 		});
 	});
 
@@ -148,12 +156,13 @@ describe('Input Bindings', function() {
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
 			update();
-			assert(!model.noEvent.called);
+			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			update();
 			expect(model.touchEvent.firstCall.args).toEqual([4, 5, {rcvdTimestamp: undefined}]);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
@@ -163,23 +172,24 @@ describe('Input Bindings', function() {
 			newUserInput(rawData);
 		});
 
-		it('should do nothing if there are no events bound to that key', function () {
+		it('should do nothing if there are no events bound to touch', function () {
 			update();
 
-			assert(!model.touchEvent.called);
-			assert(!model.noEvent.called);
+			expect(model.touchEvent.called).toBe(false);
+			expect(model.noEvent.called).toBe(false);
 		});
 	});
 
 	describe('when mouse input is received', function() {
 		beforeEach(function() {
-			rawData = { x: 6, y: 7 };
+			rawData = { keys: [], mouse: {x: 6, y: 7 }};
 			newUserInput(rawData);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			update();
 			expect(model.cursorEvent.firstCall.args).toEqual([6,7, {rcvdTimestamp: undefined}]);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
@@ -193,6 +203,7 @@ describe('Input Bindings', function() {
 		it('should not call any matching functions with the touch coordinates', function() {
 			update();
 			expect(model.cursorEvent.called).toEqual(false);
+			expect(mutator.called).toBe(false);
 		});
 	});
 
@@ -209,6 +220,7 @@ describe('Input Bindings', function() {
 			update();
 			expect(model.leftStickEvent.firstCall.args).toEqual([0.1, 1.0, 0.5, {rcvdTimestamp: Date.now()}]);
 			expect(model.rightStickEvent.firstCall.args).toEqual([0.9, 0.3, 1.0, {rcvdTimestamp: Date.now()}]);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
@@ -222,10 +234,11 @@ describe('Input Bindings', function() {
 			newUserInput(rawData, Date.now());
 		});
 
-		it('should call any matching functions with direction vector and the fource', function () {
+		it('should not call any matching functions with direction vector and the fource', function () {
 			update();
 			expect(model.leftStickEvent.called).toEqual(false);
 			expect(model.rightStickEvent.called).toEqual(false);
+			expect(mutator.called).toBe(false);
 		});
 	});
 });

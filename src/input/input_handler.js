@@ -42,11 +42,13 @@ module.exports = {
 			each(actionMaps(), function(actionMap) {
 				if (actionMap.cursor === undefined) { return; }
 
-				each(actionMap.cursor, function(action) {
-					stateMutator()(
-						callback(action.target, action.noEventKey, currentInput.rawData)
-					);
-				});
+				if (currentInput.rawData.mouse) {
+					each(actionMap.cursor, function(action) {
+						stateMutator()(
+							callback(action.target, action.noEventKey, currentInput.rawData.mouse)
+						);
+					});
+				}
 			});
 		};
 
@@ -117,7 +119,7 @@ module.exports = {
 				each(actionMaps(), function(actionMap) {
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return action.target(data);
+							return stateMutator()(action.target(data));
 						}
 					});
 				});
