@@ -12,6 +12,8 @@ var model = {
 	noEvent: sinon.spy(),
 	keyEvent: sinon.spy(),
 	keyPressEvent: sinon.spy(),
+	mouseDownEvent: sinon.spy(),
+	mouseClickEvent: sinon.spy(),
 	touchEvent: sinon.spy(),
 	cursorEvent: sinon.spy(),
 	leftStickEvent: sinon.spy(),
@@ -33,6 +35,8 @@ describe('Input Bindings', function() {
 		model.noEvent.reset();
 		model.keyEvent.reset();
 		model.keyPressEvent.reset();
+		model.mouseDownEvent.reset();
+		model.mouseClickEvent.reset();
 		model.touchEvent.reset();
 		model.cursorEvent.reset();
 		model.leftStickEvent.reset();
@@ -44,6 +48,10 @@ describe('Input Bindings', function() {
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
 				{target: model.keyPressEvent, keypress: true, noEventKey: 'model'}
+			],
+			'button1': [
+				{target: model.mouseDownEvent, noEventKey: 'model'},
+				{target: model.mouseClickEvent, keypress: true, noEventKey: 'model'}
 			],
 			'touch0': [{target: model.touchEvent, noEventKey: 'model'}],
 			'cursor': [{target: model.cursorEvent, noEventKey: 'model'}],
@@ -204,6 +212,25 @@ describe('Input Bindings', function() {
 			update();
 			expect(model.cursorEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
+		});
+	});
+
+	describe('when mouse input is received as keypress', function() {
+		beforeEach(function() {
+			rawData = { singlePressKeys: ['button1'], touches: [] };
+			newUserInput(rawData);
+		});
+
+		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
+			update();
+			expect(model.noEvent.called).toBe(false);
+		});
+
+		it('should call any matching functions with a force of one, event data and supplied data', function() {
+			update();
+			expect(model.mouseClickEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
+			expect(model.mouseDownEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
 		});
 	});
 
