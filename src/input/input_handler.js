@@ -86,14 +86,15 @@ module.exports = {
 		};
 
 		definePlugin()('ServerSideUpdate', function () {
-			return function () {
+			return function (delta) {
 				var currentInput = userInput.shift();
 				if (currentInput === undefined) {
 					return;
 				}
 
 				var data = {
-					rcvdTimestamp: currentInput.timestamp
+					rcvdTimestamp: currentInput.timestamp,
+					delta: delta
 				};
 
 				var somethingHasReceivedInput = [];

@@ -75,14 +75,14 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
-			update();
+			update(16);
 			expect(model.noEvent.called).toBe(true);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should pass in the standard event data', function () {
-			update();
-			var expected = {rcvdTimestamp: undefined};
+			update(16);
+			var expected = {rcvdTimestamp: undefined, delta: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(expected);
 		});
@@ -96,7 +96,7 @@ describe('Input Bindings', function() {
 			});
 
 			it ('should do nothing', function() {
-				update();
+				update(16);
 				expect(model.noEvent.called).toBe(false);
 				expect(mutator.called).toBe(false);
 			});
@@ -110,13 +110,13 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update();
+			update(16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update();
-			expect(model.keyEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
+			update(16);
+			expect(model.keyEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -129,13 +129,13 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update();
+			update(16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update();
-			expect(model.keyPressEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
+			update(16);
+			expect(model.keyPressEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -148,7 +148,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should do nothing if there are no events bound to that key', function () {
-			update();
+			update(16);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -163,13 +163,13 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update();
+			update(16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			update();
-			expect(model.touchEvent.firstCall.args).toEqual([4, 5, {rcvdTimestamp: undefined}]);
+			update(16);
+			expect(model.touchEvent.firstCall.args).toEqual([4, 5, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -181,7 +181,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should do nothing if there are no events bound to touch', function () {
-			update();
+			update(16);
 
 			expect(model.touchEvent.called).toBe(false);
 			expect(model.noEvent.called).toBe(false);
@@ -195,8 +195,8 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			update();
-			expect(model.cursorEvent.firstCall.args).toEqual([6,7, {rcvdTimestamp: undefined}]);
+			update(16);
+			expect(model.cursorEvent.firstCall.args).toEqual([6,7, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -209,7 +209,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call any matching functions with the touch coordinates', function() {
-			update();
+			update(16);
 			expect(model.cursorEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
 		});
@@ -222,13 +222,13 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update();
+			update(16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update();
-			expect(model.mouseClickEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined}]);
+			update(16);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -244,9 +244,9 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
-			update();
-			expect(model.leftStickEvent.firstCall.args).toEqual([0.1, 1.0, 0.5, {rcvdTimestamp: Date.now()}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([0.9, 0.3, 1.0, {rcvdTimestamp: Date.now()}]);
+			update(16);
+			expect(model.leftStickEvent.firstCall.args).toEqual([0.1, 1.0, 0.5, {rcvdTimestamp: Date.now(), delta: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([0.9, 0.3, 1.0, {rcvdTimestamp: Date.now(), delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -262,7 +262,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call any matching functions with direction vector and the fource', function () {
-			update();
+			update(16);
 			expect(model.leftStickEvent.called).toEqual(false);
 			expect(model.rightStickEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
