@@ -47,11 +47,11 @@ describe('Input Bindings', function() {
 		actions = [{
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
-				{target: model.keyPressEvent, keypress: true, noEventKey: 'model'}
+				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model'}
 			],
 			'button1': [
 				{target: model.mouseDownEvent, noEventKey: 'model'},
-				{target: model.mouseClickEvent, keypress: true, noEventKey: 'model'}
+				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model'}
 			],
 			'touch0': [{target: model.touchEvent, noEventKey: 'model'}],
 			'cursor': [{target: model.cursorEvent, noEventKey: 'model'}],
@@ -122,7 +122,7 @@ describe('Input Bindings', function() {
 		});
 	});
 
-	describe('when key input is received as keypress', function() {
+	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: ['key'], touches: [] };
 			newUserInput(rawData);
@@ -215,7 +215,7 @@ describe('Input Bindings', function() {
 		});
 	});
 
-	describe('when mouse input is received as keypress', function() {
+	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: ['button1'], touches: [] };
 			newUserInput(rawData);

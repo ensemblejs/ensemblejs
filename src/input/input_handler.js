@@ -14,7 +14,7 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						if (!action.keypress) {
+						if (!action.onRelease) {
 							stateMutator()(
 								callback(action.target, action.noEventKey)
 							);
@@ -28,7 +28,7 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						if (action.keypress) {
+						if (action.onRelease) {
 							stateMutator()(
 								callback(action.target, action.noEventKey)
 							);
