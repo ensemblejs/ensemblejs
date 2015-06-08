@@ -75,8 +75,9 @@ module.exports = {
         var pendingAcks = inputData.pendingAcks;
         delete inputData.pendingAcks;
 
+        var receivedTime = Date.now();
         each(onInput(), function (onInputCallback) {
-            onInputCallback(inputData, Date.now());
+            onInputCallback(inputData, receivedTime);
         });
 
         calculateLatency(socketId, pendingAcks);

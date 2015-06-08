@@ -36,6 +36,26 @@ describe('the engine', function() {
 			interval = engine.run(0.5);
 			assert.deepEqual(update.firstCall.args, [5]);
 		});
+
+		it('should not increase the delta whilst the game is paused', function () {
+			paused = true;
+			interval = engine.run(1);
+			clearInterval(interval);
+
+			clock.tick(5000);
+			interval = engine.run(1);
+			clearInterval(interval);
+
+			clock.tick(5000);
+			interval = engine.run(1);
+			clearInterval(interval);
+
+			update.reset();
+			paused = false;
+			clock.tick(100);
+			interval = engine.run(1);
+			assert.deepEqual(update.firstCall.args, [0.1]);
+		});
 	});
 
 	describe('when paused', function() {

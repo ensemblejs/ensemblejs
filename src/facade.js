@@ -28,6 +28,8 @@ var run = function (pathToGame, modes) {
 
 module.exports = {
   runGameAtPath: function (path) {
+    console.log('ensemblejs@' + require('./version') + ' started.');
+
     plugins.loadPath(path + '/js/modes');
     plugins.loadPath(path + '/js/logic');
 

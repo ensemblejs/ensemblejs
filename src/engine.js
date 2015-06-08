@@ -18,7 +18,9 @@ module.exports = {
       var now = Date.now();
 
       if (state().get('ensemble')('paused')) {
-        return now;
+        priorStepTime = now;
+
+        return;
       }
 
       var dt = (now - priorStepTime) / 1000;
