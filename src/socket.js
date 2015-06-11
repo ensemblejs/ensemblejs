@@ -10,8 +10,8 @@ var sequence = require('distributedlife-sequence');
 //jshint maxparams:false
 module.exports = {
   type: 'SocketSupport',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList'],
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games) {
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess'],
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state) {
 
     var io;
     var statistics = {};
@@ -87,8 +87,10 @@ module.exports = {
 
     var mutateCallbackResponse = function (gameId, callbacks) {
       return function() {
+        var gameState = state().for(gameId);
+
         each(callbacks, function(callback) {
-          stateMutator()(gameId, callback(gameId));
+          stateMutator()(gameState, callback(gameId));
         });
       };
     };
@@ -110,7 +112,6 @@ module.exports = {
         statistics[socket.id] = seedSocketStatistics();
 
         var gameId = socket.id;
-        console.log(gameId);
 
         initialiseState().initialise(gameId);
 

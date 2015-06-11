@@ -34,10 +34,14 @@ module.exports = {
 
     definePlugin()('StateAccess', function () {
       return {
-        for: function(gameId, namespace) {
+        for: function(gameId) {
           return {
-            get: function(key) {
-              return provideReadAccessToState(root[gameId][namespace])(key);
+            for: function(namespace) {
+              return {
+                get: function(key) {
+                  return provideReadAccessToState(root[gameId][namespace])(key);
+                }
+              };
             }
           };
         }

@@ -11,12 +11,14 @@ module.exports = {
 
     var update = function(dt) {
       var runningGames = reject(games().all(), function(game) {
-        return state().for(game.id, 'ensemble').get('paused');
+        return state().for(game.id).for('ensemble').get('paused');
       });
 
       each(runningGames, function(game) {
+        var gameState = state().for(game.id);
+
         each(serverSideUpdate(), function(callback) {
-          mutator()(game.id, callback(game.id, dt));
+          mutator()(game.id, callback(gameState, dt));
         });
       });
     };

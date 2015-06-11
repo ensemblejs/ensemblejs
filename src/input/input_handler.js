@@ -4,8 +4,8 @@ var each = require('lodash').each;
 
 module.exports = {
 	type: 'OnInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function(actionMaps, definePlugin, stateMutator) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'StateAccess'],
+	func: function(actionMaps, definePlugin, stateMutator, state) {
 		var userInput = [];
 
 		var parseKeysAndKeypresses = function(currentInput, callback) {
@@ -84,34 +84,35 @@ module.exports = {
 
 				var data = {
 					rcvdTimestamp: currentInput.timestamp,
-					gameId: currentInput.gameId,
 					delta: delta
 				};
+
+				var gameState = state().for(currentInput.gameId);
 
 				var somethingHasReceivedInput = [];
 				parseKeysAndKeypresses(currentInput, function(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(data);
+					return target(gameState, data);
 				});
 
 				parseTouches(currentInput, function(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(inputData.x, inputData.y, data);
+					return target(gameState, inputData.x, inputData.y, data);
 				});
 
 				parseSticks(currentInput, function(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(inputData.x, inputData.y, inputData.force, data);
+					return target(gameState, inputData.x, inputData.y, inputData.force, data);
 				});
 
 				parseMouse(currentInput, function(target, noEventKey, inputData) {
-					return target(inputData.x, inputData.y, data);
+					return target(gameState, inputData.x, inputData.y, data);
 				});
 
 				each(actionMaps(), function(actionMap) {
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return stateMutator()(currentInput.gameId, action.target(data));
+							return stateMutator()(currentInput.gameId, action.target(gameState, data));
 						}
 					});
 				});
