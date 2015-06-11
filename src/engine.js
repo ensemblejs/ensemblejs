@@ -2,6 +2,10 @@
 
 var each = require('lodash').each;
 var reject = require('lodash').reject;
+var filter = require('lodash').filter;
+var contains = require('lodash').contains;
+var first = require('lodash').first;
+var last = require('lodash').last;
 
 module.exports = {
   type: 'ServerSideEngine',
@@ -17,8 +21,12 @@ module.exports = {
       each(runningGames, function(game) {
         var gameState = state().for(game.id);
 
-        each(serverSideUpdate(), function(callback) {
-          mutator()(game.id, callback(gameState, dt));
+        var applicableCallbacks = filter(serverSideUpdate(), function(callback) {
+          return contains(['*', game.mode], first(callback));
+        });
+
+        each(applicableCallbacks, function(callback) {
+          mutator()(game.id, last(callback)(gameState, dt, game.id));
         });
       });
     };

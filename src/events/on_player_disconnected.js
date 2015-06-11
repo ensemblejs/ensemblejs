@@ -4,7 +4,7 @@ module.exports = {
   type: 'OnPlayerDisconnected',
   deps: ['NewState'],
   func: function (newState) {
-    return function (state) {
+    return ['*', function (state) {
       var playerCount = state.for('ensemble').get('players');
 
       var data = {
@@ -13,6 +13,6 @@ module.exports = {
       };
 
       return newState.create('ensemble', data);
-    };
+    }];
   }
 };

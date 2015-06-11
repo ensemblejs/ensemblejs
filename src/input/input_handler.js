@@ -1,16 +1,26 @@
 'use strict';
 
 var each = require('lodash').each;
+var filter = require('lodash').filter;
+var contains = require('lodash').contains;
+var first = require('lodash').first;
+var last = require('lodash').last;
 
 module.exports = {
 	type: 'OnInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'StateAccess'],
-	func: function(actionMaps, definePlugin, stateMutator, state) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
+	func: function(actionMaps, definePlugin, stateMutator) {
 		var userInput = [];
 
 		var parseKeysAndKeypresses = function(currentInput, callback) {
+			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+        return contains(['*', currentInput.mode], first(actionMap));
+      });
+
 			each(currentInput.rawData.keys, function(key) {
-				each(actionMaps(), function(actionMap) {
+				each(applicableActionMaps, function(actionMapDefinition) {
+					var actionMap = last(actionMapDefinition);
+
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
@@ -22,7 +32,9 @@ module.exports = {
 			});
 
 			each(currentInput.rawData.singlePressKeys, function(key) {
-				each(actionMaps(), function(actionMap) {
+				each(applicableActionMaps, function(actionMapDefinition) {
+					var actionMap = last(actionMapDefinition);
+
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
@@ -35,7 +47,13 @@ module.exports = {
 		};
 
 		var parseMouse = function(currentInput, callback) {
-			each(actionMaps(), function(actionMap) {
+			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+        return contains(['*', currentInput.mode], first(actionMap));
+      });
+
+			each(applicableActionMaps, function(actionMapDefinition) {
+				var actionMap = last(actionMapDefinition);
+
 				if (actionMap.cursor === undefined) { return; }
 
 				if (currentInput.rawData.mouse) {
@@ -50,7 +68,13 @@ module.exports = {
 			each(currentInput.rawData.touches, function(touch) {
 				var key = 'touch' + touch.id;
 
-				each(actionMaps(), function(actionMap) {
+				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+	        return contains(['*', currentInput.mode], first(actionMap));
+	      });
+
+				each(applicableActionMaps, function(actionMapDefinition) {
+					var actionMap = last(actionMapDefinition);
+
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
@@ -64,7 +88,13 @@ module.exports = {
 			each(['leftStick', 'rightStick'], function(key) {
 				if (currentInput.rawData[key] === undefined) {return;}
 
-				each(actionMaps(), function(actionMap) {
+				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+	        return contains(['*', currentInput.mode], first(actionMap));
+	      });
+
+				each(applicableActionMaps, function(actionMapDefinition) {
+					var actionMap = last(actionMapDefinition);
+
 					if (actionMap[key] === undefined) { return; }
 
 					var data = currentInput.rawData[key];
@@ -76,7 +106,7 @@ module.exports = {
 		};
 
 		definePlugin()('ServerSideUpdate', function () {
-			return function (delta) {
+ 			return ['*', function (state, delta) {
 				var currentInput = userInput.shift();
 				if (currentInput === undefined) {
 					return;
@@ -87,40 +117,49 @@ module.exports = {
 					delta: delta
 				};
 
-				var gameState = state().for(currentInput.gameId);
+				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+          return contains(['*', currentInput.mode], first(actionMap));
+        });
 
 				var somethingHasReceivedInput = [];
 				parseKeysAndKeypresses(currentInput, function(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(gameState, data);
+					return target(state, data);
 				});
 
 				parseTouches(currentInput, function(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(gameState, inputData.x, inputData.y, data);
+					return target(state, inputData.x, inputData.y, data);
 				});
 
 				parseSticks(currentInput, function(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(gameState, inputData.x, inputData.y, inputData.force, data);
+					return target(state, inputData.x, inputData.y, inputData.force, data);
 				});
 
 				parseMouse(currentInput, function(target, noEventKey, inputData) {
-					return target(gameState, inputData.x, inputData.y, data);
+					return target(state, inputData.x, inputData.y, data);
 				});
 
-				each(actionMaps(), function(actionMap) {
+				each(applicableActionMaps, function(actionMapDefinition) {
+					var actionMap = last(actionMapDefinition);
+
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return stateMutator()(currentInput.gameId, action.target(gameState, data));
+							return stateMutator()(currentInput.gameId, action.target(state, data));
 						}
 					});
 				});
-			};
+			}];
 		});
 
-		return function(rawData, timestamp, gameId) {
-			userInput.push({ rawData: rawData, timestamp: timestamp, gameId: gameId });
+		return function(rawData, timestamp, gameId, mode) {
+			userInput.push({
+				rawData: rawData,
+				timestamp: timestamp,
+				gameId: gameId,
+				mode: mode
+			});
 		};
 	}
 };

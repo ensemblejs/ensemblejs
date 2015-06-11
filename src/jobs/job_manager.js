@@ -17,19 +17,19 @@ module.exports = {
     };
 
     definePlugin()('ServerSideUpdate', function() {
-      return function (dt) {
+      return ['*', function (state, dt, gameId) {
         each(effects, function (effect) {
-          effect.tick(dt);
+          effect.tick(state, dt, gameId);
         });
 
         prune();
-      };
+      }];
     });
 
     return {
       add: function (key, duration, onComplete) {
-        var wrapOnCompleteWithStateMutation = function () {
-          stateMutator()(onComplete());
+        var wrapOnCompleteWithStateMutation = function (state, gameId) {
+          stateMutator()(gameId, onComplete(state));
         };
 
         effects.push(Object.create(delayedEffect(key, duration, wrapOnCompleteWithStateMutation)));
