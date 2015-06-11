@@ -5,7 +5,6 @@ var isArray = require('lodash').isArray;
 var isEqual = require('lodash').isEqual;
 var merge = require('lodash').merge;
 
-
 var root = {};
 var provideReadAccessToState = function(stateHash) {
   return function(key) {
@@ -17,22 +16,46 @@ var provideReadAccessToState = function(stateHash) {
   };
 };
 
-var rootNodeAccess = provideReadAccessToState(root);
-
-var StateAccess = {
-  get: function(key) {
-    return rootNodeAccess(key);
-  }
-};
-
 module.exports = {
   type: 'StateMutator',
   deps: ['DefinePlugin'],
   func: function (definePlugin) {
-    definePlugin()('StateAccess', function () { return StateAccess; });
-    definePlugin()('RawStateAccess', function () { return root; });
 
-    return function(result) {
+    definePlugin()('RawStateAccess', function () {
+      return {
+        for: function(gameId) {
+          return root[gameId];
+        },
+        all: function() {
+          return root;
+        }
+      };
+    });
+
+    definePlugin()('StateAccess', function () {
+      return {
+        for: function(gameId, namespace) {
+          return {
+            get: function(key) {
+              return provideReadAccessToState(root[gameId][namespace])(key);
+            }
+          };
+        }
+      };
+    });
+
+    definePlugin()('NewState', function () {
+      return {
+        create: function(namespace, data) {
+          var state = {};
+          state[namespace] = data;
+
+          return state;
+        }
+      };
+    });
+
+    return function(gameId, result) {
       if (result === undefined) {
         return;
       }
@@ -40,7 +63,8 @@ module.exports = {
         return;
       }
 
-      root = merge(root, result, function (a, b) {
+      root[gameId] = root[gameId] || {};
+      root[gameId] = merge(root[gameId], result, function (a, b) {
         return isArray(a) ? b : undefined;
       });
     };

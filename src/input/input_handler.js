@@ -14,11 +14,9 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						if (!action.onRelease) {
-							stateMutator()(
-								callback(action.target, action.noEventKey)
-							);
-						}
+						if (action.onRelease) { return; }
+
+						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
 					});
 				});
 			});
@@ -28,11 +26,9 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						if (action.onRelease) {
-							stateMutator()(
-								callback(action.target, action.noEventKey)
-							);
-						}
+						if (!action.onRelease) { return; }
+
+						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
 					});
 				});
 			});
@@ -44,9 +40,7 @@ module.exports = {
 
 				if (currentInput.rawData.mouse) {
 					each(actionMap.cursor, function(action) {
-						stateMutator()(
-							callback(action.target, action.noEventKey, currentInput.rawData.mouse)
-						);
+						stateMutator()(currentInput.gameId,  callback(action.target, action.noEventKey, currentInput.rawData.mouse));
 					});
 				}
 			});
@@ -60,9 +54,7 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						stateMutator()(
-							callback(action.target, action.noEventKey, {x: touch.x, y: touch.y})
-						);
+						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
 					});
 				});
 			});
@@ -77,9 +69,7 @@ module.exports = {
 
 					var data = currentInput.rawData[key];
 					each(actionMap[key], function(action) {
-						stateMutator()(
-							callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force})
-						);
+						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
 					});
 				});
 			});
@@ -94,6 +84,7 @@ module.exports = {
 
 				var data = {
 					rcvdTimestamp: currentInput.timestamp,
+					gameId: currentInput.gameId,
 					delta: delta
 				};
 
@@ -120,15 +111,15 @@ module.exports = {
 				each(actionMaps(), function(actionMap) {
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return stateMutator()(action.target(data));
+							return stateMutator()(currentInput.gameId, action.target(data));
 						}
 					});
 				});
 			};
 		});
 
-		return function(rawData, timestamp) {
-			userInput.push({ rawData: rawData, timestamp: timestamp });
+		return function(rawData, timestamp, gameId) {
+			userInput.push({ rawData: rawData, timestamp: timestamp, gameId: gameId });
 		};
 	}
 };

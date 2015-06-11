@@ -7,9 +7,9 @@ module.exports = {
   deps: ['StateSeed', 'StateMutator'],
   func: function (stateSeed, stateMutator) {
     return {
-      initialise: function() {
+      initialise: function(gameId) {
         each(stateSeed(), function (state) {
-          stateMutator()(state);
+          stateMutator()(gameId, state);
         });
       }
     };

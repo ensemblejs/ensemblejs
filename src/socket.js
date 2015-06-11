@@ -10,8 +10,8 @@ var sequence = require('distributedlife-sequence');
 //jshint maxparams:false
 module.exports = {
   type: 'SocketSupport',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState'],
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState) {
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList'],
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games) {
 
     var io;
     var statistics = {};
@@ -20,12 +20,12 @@ module.exports = {
       return isEqual(current.gameState, prior.gameState);
     };
 
-    var startUpdateClientLoop = function (socketId, socket) {
+    var startUpdateClientLoop = function (gameId, socketId, socket) {
       var lastPacket = {};
 
       var updateClient = function () {
         var packet = {
-          gameState: rawStateAccess()
+          gameState: rawStateAccess().for(gameId)
         };
 
         if (packetHasNotChanged(packet, lastPacket)) {
@@ -70,14 +70,14 @@ module.exports = {
       });
     };
 
-    var createOnInputFunction = function (socketId) {
+    var createOnInputFunction = function (gameId, socketId) {
       return function (inputData) {
         var pendingAcks = inputData.pendingAcks;
         delete inputData.pendingAcks;
 
         var receivedTime = Date.now();
         each(onInput(), function (onInputCallback) {
-            onInputCallback(inputData, receivedTime);
+          onInputCallback(inputData, receivedTime, gameId);
         });
 
         calculateLatency(socketId, pendingAcks);
@@ -85,10 +85,10 @@ module.exports = {
       };
     };
 
-    var mutateCallbackResponse = function (callbacks) {
+    var mutateCallbackResponse = function (gameId, callbacks) {
       return function() {
         each(callbacks, function(callback) {
-          stateMutator()(callback());
+          stateMutator()(gameId, callback(gameId));
         });
       };
     };
@@ -105,44 +105,62 @@ module.exports = {
       };
     };
 
-    var createSetupPlayableClientFunction = function (modeCallback) {
+    var createSetupPlayableClientFunction = function () {
       return function (socket) {
         statistics[socket.id] = seedSocketStatistics();
 
-        modeCallback();
-        initialiseState().initialise();
+        var gameId = socket.id;
+        console.log(gameId);
 
-        socket.on('disconnect', mutateCallbackResponse(onPlayerDisconnect()));
-        socket.on('pause', mutateCallbackResponse(onPause()));
-        socket.on('unpause', mutateCallbackResponse(onUnpause()));
+        initialiseState().initialise(gameId);
 
-        var onInput = createOnInputFunction(socket.id);
+        socket.on('disconnect', mutateCallbackResponse(gameId, onPlayerDisconnect()));
+        //TODO: move to it's own event handler
+        socket.on('disconnect', function () {
+          console.log('removing game ' + gameId);
+          games().remove(gameId);
+        });
+
+        socket.on('pause', mutateCallbackResponse(gameId, onPause()));
+        socket.on('unpause', mutateCallbackResponse(gameId, onUnpause()));
+
+        socket.on('error', function (data) {
+          console.log(data);
+        });
+
+        var onInput = createOnInputFunction(gameId, socket.id);
         socket.on('input', onInput);
 
-        socket.emit('initialState', rawStateAccess());
+        socket.emit('initialState', rawStateAccess().for(gameId));
 
         socket.playerId = sequence.next('playerId');
         socket.emit('playerId', { id: socket.playerId } );
 
-        startUpdateClientLoop(socket.id, socket);
+        startUpdateClientLoop(gameId, socket.id, socket);
 
         each(onPlayerConnect(), function(callback) {
-          stateMutator()(callback());
+          stateMutator()(callback(gameId));
         });
+
+        //TODO: add this as a handler somewhere
+        games().add({id: gameId});
       };
     };
 
     return {
       start: function (server, modeCallbacks) {
-        io = require('socket.io').listen(server);
 
         if (isFunction(modeCallbacks)) {
-          io.of('/game/primary').on('connection', createSetupPlayableClientFunction(modeCallbacks));
+          modeCallbacks();
         } else {
-          each(modeCallbacks, function(callback, mode) {
-            io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(callback));
+          each(modeCallbacks, function(callback) {
+            callback();
           });
         }
+
+        io = require('socket.io').listen(server);
+        io.of('/game/primary').on('connection', createSetupPlayableClientFunction());
+
       },
       stop: function () {
         if (io !== undefined) {

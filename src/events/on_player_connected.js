@@ -2,14 +2,12 @@
 
 module.exports = {
   type: 'OnPlayerConnected',
-  deps: ['StateAccess'],
-  func: function (state) {
-    return function () {
-      return {
-        ensemble: {
-          players: state().get('players') + 1
-        }
-      };
+  deps: ['StateAccess', 'NewState'],
+  func: function (state, newState) {
+    return function (gameId) {
+      var playerCount = state().for(gameId, 'ensemble').get('players');
+
+      return newState.create('ensemble', { players: playerCount + 1 });
     };
   }
 };

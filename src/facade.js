@@ -1,8 +1,31 @@
 'use strict';
 
 var each = require('lodash').each;
+var filter = require('lodash').filter;
 var isString = require('lodash').isString;
 var plugins = require('plug-n-play').configure(['ServerSideUpdate', 'StateSeed', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'OnInput', 'OnConnect', 'OnDisonnect', 'ActionMap', 'AcknowledgementMap']);
+
+plugins.load({
+  type: 'GamesList',
+  func: function () {
+    var games = [];
+
+    return {
+      all: function () {
+        return games;
+      },
+      add: function (game) {
+        games.push(game);
+      },
+      remove: function(id) {
+        games = filter(games, function (game) { return game.id !== id; });
+      },
+      get: function (id) {
+        return filter(games, function (game) { return game.id === id; });
+      }
+    };
+  }
+});
 
 plugins.load(require('./server.js'));
 plugins.load(require('./input/input_handler.js'));
@@ -21,8 +44,6 @@ plugins.load(require('./state/seed.js'));
 
 var run = function (pathToGame, modes) {
   plugins.get('Server').start(pathToGame, modes);
-
-  plugins.get('InitialiseState').initialise();
   plugins.get('ServerSideEngine').run(120);
 };
 
