@@ -4,7 +4,7 @@ var expect = require('expect');
 var sinon = require('sinon');
 
 var deferDep = require('../helpers.js').deferDep;
-var socketSupport = {
+var socketServer = {
 	start: sinon.spy(),
 	stop: sinon.spy()
 };
@@ -28,7 +28,7 @@ describe('starting the server', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = require('../../src/server').func(deferDep(socketSupport));
+		server = require('../../src/server').func(deferDep(socketServer));
 		server.start('../game', modes);
 	});
 
@@ -64,7 +64,7 @@ describe('stopping the server', function () {
 		io.of = sinon.spy();
 		http.createServer = function() { return expressServer; };
 
-		server = require('../../src/server').func(deferDep(socketSupport));
+		server = require('../../src/server').func(deferDep(socketServer));
 		server.start('../game', modes);
 		server.stop();
 	});
