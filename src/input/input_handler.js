@@ -106,7 +106,7 @@ module.exports = {
 		};
 
 		definePlugin()('ServerSideUpdate', function () {
- 			return ['*', function (state, delta) {
+ 			return function (state, delta) {
 				var currentInput = userInput.shift();
 				if (currentInput === undefined) {
 					return;
@@ -150,7 +150,7 @@ module.exports = {
 						}
 					});
 				});
-			}];
+			};
 		});
 
 		return function(rawData, timestamp, gameId, mode) {

@@ -1,0 +1,12 @@
+[
+    "AcknowledgementMap",
+    "ActionMap",
+    "OnObserverConnect",
+    "OnObserverDisconnect",
+    "OnPause",
+    "OnPlayerConnect",
+    "OnPlayerDisconnect",
+    "OnUnpause",
+    "ServerSideUpdate",
+    "StateSeed"
+]

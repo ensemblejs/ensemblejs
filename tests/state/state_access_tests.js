@@ -11,9 +11,9 @@ var state = getDefinedPlugin('StateAccess');
 
 describe('state access', function () {
   beforeEach(function () {
-    stateMutator({
-      start: 0,
+    stateMutator(1, {
       controller: {
+        start: 0,
         child: {
           age: 5,
           siblings: {
@@ -25,35 +25,35 @@ describe('state access', function () {
   });
 
   it('should return the value you asked for', function () {
-    expect(state.get('start')).toEqual(0);
+    expect(state.for(1).for('controller').get('start')).toEqual(0);
   });
 
   it('should return a function if the requested key is an object', function () {
-    expect(state.get('controller') instanceof Function).toEqual(true);
+    expect(state.for(1).for('controller').get instanceof Function).toEqual(true);
   });
 
   it('should allow you to use the returned function to get nested objects', function () {
-    expect(state.get('controller')('child')('age')).toEqual(5);
+    expect(state.for(1).for('controller').get('child')('age')).toEqual(5);
   });
 
   it('should not allow state mutation through the access', function () {
     try {
       //jshint disable
-      state.get('controller')('start') = 999;
+      state.for(1).for('controller').get('start') = 999;
     } catch (Error) {}
 
-    expect(state.get('controller')('start')).toNotEqual(999);
+    expect(state.for(1).for('controller').get('start')).toNotEqual(999);
   });
 
   it('should not allow mutable state on nested objects', function () {
     try {
-      state.get('controller')('child').age = 21;
+      state.for(1).for('controller').get('child').age = 21;
     } catch (Error) {}
     try {
-      state.get('controller')('child')('siblings').name = 'Roger';
+      state.for(1).for('controller').get('child')('siblings').name = 'Roger';
     } catch (Error) {}
 
-    expect(state.get('controller')('age')).toNotEqual(21);
-    expect(state.get('controller')('child')('siblings')('name')).toNotEqual('Roger');
+    expect(state.for(1).for('controller').get('age')).toNotEqual(21);
+    expect(state.for(1).for('controller').get('child')('siblings')('name')).toNotEqual('Roger');
   });
 });

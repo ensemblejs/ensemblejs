@@ -2,10 +2,10 @@
 
 var each = require('lodash').each;
 var reject = require('lodash').reject;
-var filter = require('lodash').filter;
+var select = require('lodash').filter;
 var contains = require('lodash').contains;
-var first = require('lodash').first;
-var last = require('lodash').last;
+var getModeOf = require('lodash').first;
+var getFuncOf = require('lodash').last;
 
 module.exports = {
   type: 'ServerSideEngine',
@@ -13,20 +13,19 @@ module.exports = {
   func: function (serverSideUpdate, state, mutator, games) {
     var priorStepTime = Date.now();
 
+    var pausedGames = function(game) {
+      return state().for(game.id).for('ensemble').get('paused');
+    };
+
     var update = function(dt) {
-      var runningGames = reject(games().all(), function(game) {
-        return state().for(game.id).for('ensemble').get('paused');
-      });
-
-      each(runningGames, function(game) {
+      each(reject(games().all(), pausedGames), function(game) {
         var gameState = state().for(game.id);
-
-        var applicableCallbacks = filter(serverSideUpdate(), function(callback) {
-          return contains(['*', game.mode], first(callback));
+        var callbacksForGame = select(serverSideUpdate(), function(callback) {
+          return contains(['*', game.mode], getModeOf(callback));
         });
 
-        each(applicableCallbacks, function(callback) {
-          mutator()(game.id, last(callback)(gameState, dt, game.id));
+        each(callbacksForGame, function(callback) {
+          mutator()(game.id, getFuncOf(callback)(gameState, dt, game.id));
         });
       });
     };

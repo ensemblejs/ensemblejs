@@ -150,11 +150,18 @@ module.exports = {
 
         startUpdateClientLoop(gameId, socket.id, socket);
 
-
-        var applicableCallbacks = filter(onPlayerConnect(), function(callback) {
+        // var filterByMode = function(mode) {
+        //   return function(callback) {
+        //     return contains(['*', mode], first(callback));
+        //   };
+        // };
+        // each(filterByMode(mode)(onPlayerConnect()), function(callback) {
+        //   stateMutator()(gameId, last(callback)(state().for(gameId)));
+        // });
+        var callbacksForMode = filter(onPlayerConnect(), function(callback) {
           return contains(['*', mode], first(callback));
         });
-        each(applicableCallbacks, function(callback) {
+        each(callbacksForMode, function(callback) {
           stateMutator()(gameId, last(callback)(state().for(gameId)));
         });
 
@@ -167,7 +174,7 @@ module.exports = {
       start: function (server, modes) {
         io = require('socket.io').listen(server);
 
-        if (modes.length > 1) {
+        if (modes.length > 0) {
           each(modes, function(mode) {
             io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(mode));
           });

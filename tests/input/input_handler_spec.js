@@ -20,11 +20,15 @@ var model = {
 	rightStickEvent: sinon.spy()
 };
 
+var state = {a: 'b'};
+
 var actions = [];
 var rawData = {};
 var newUserInput;
 var update;
 var mutator = sinon.spy();
+var gameId = 1;
+var mode = 'arcade';
 
 describe('Input Bindings', function() {
 	var clock;
@@ -44,7 +48,7 @@ describe('Input Bindings', function() {
 
 		mutator.reset();
 
-		actions = [{
+		actions = ['*', {
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
 				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model'}
@@ -60,7 +64,7 @@ describe('Input Bindings', function() {
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
 		}];
 
-		newUserInput = require('../../src/input/input_handler.js').func(deferDep(actions), deferDep(definePlugin), deferDep(mutator));
+		newUserInput = require('../../src/input/input_handler.js').func(deferDep([actions]), deferDep(definePlugin), deferDep(mutator));
 		update = getDefinedPlugin('ServerSideUpdate');
 	});
 
@@ -71,32 +75,33 @@ describe('Input Bindings', function() {
 	describe('when no input has been received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], touches: [] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
-			update(16);
+			update(state, 16);
 			expect(model.noEvent.called).toBe(true);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should pass in the standard event data', function () {
-			update(16);
+			update(state, 16);
 			var expected = {rcvdTimestamp: undefined, delta: 16};
 
-			expect(model.noEvent.firstCall.args[0]).toEqual(expected);
+			expect(model.noEvent.firstCall.args[0]).toEqual(state);
+			expect(model.noEvent.firstCall.args[1]).toEqual(expected);
 		});
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				newUserInput = require('../../src/input/input_handler.js').func(deferDep({}), deferDep(definePlugin), deferDep(sinon.spy()));
+				newUserInput = require('../../src/input/input_handler.js').func(deferDep(['*', {}]), deferDep(definePlugin), deferDep(sinon.spy()));
 				update = getDefinedPlugin('ServerSideUpdate');
 
 				mutator.reset();
 			});
 
 			it ('should do nothing', function() {
-				update(16);
+				update(state, 16);
 				expect(model.noEvent.called).toBe(false);
 				expect(mutator.called).toBe(false);
 			});
@@ -106,17 +111,17 @@ describe('Input Bindings', function() {
 	describe('when key input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: ['key'], touches: [] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update(16);
+			update(state, 16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update(16);
-			expect(model.keyEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
+			update(state, 16);
+			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -125,17 +130,17 @@ describe('Input Bindings', function() {
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: ['key'], touches: [] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update(16);
+			update(state, 16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update(16);
-			expect(model.keyPressEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
+			update(state, 16);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -144,11 +149,11 @@ describe('Input Bindings', function() {
 	describe('when key input is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: ['notBound'], singlePressKeys: ['notBound'], touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should do nothing if there are no events bound to that key', function () {
-			update(16);
+			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -159,17 +164,17 @@ describe('Input Bindings', function() {
 	describe('when touch input is received', function() {
 		beforeEach(function() {
 			rawData = { touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update(16);
+			update(state, 16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			update(16);
-			expect(model.touchEvent.firstCall.args).toEqual([4, 5, {rcvdTimestamp: undefined, delta: 16}]);
+			update(state, 16);
+			expect(model.touchEvent.firstCall.args).toEqual([state, 4, 5, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -177,11 +182,11 @@ describe('Input Bindings', function() {
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: ['key'], touches: [{id: 1, x: 4, y: 5}] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should do nothing if there are no events bound to touch', function () {
-			update(16);
+			update(state, 16);
 
 			expect(model.touchEvent.called).toBe(false);
 			expect(model.noEvent.called).toBe(false);
@@ -191,12 +196,12 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], mouse: {x: 6, y: 7 }};
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			update(16);
-			expect(model.cursorEvent.firstCall.args).toEqual([6,7, {rcvdTimestamp: undefined, delta: 16}]);
+			update(state, 16);
+			expect(model.cursorEvent.firstCall.args).toEqual([state, 6,7, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -204,12 +209,12 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7 };
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep({}), deferDep(definePlugin), deferDep(sinon.spy()));
-			newUserInput(rawData);
+			newUserInput = require('../../src/input/input_handler.js').func(deferDep(['*', {}]), deferDep(definePlugin), deferDep(sinon.spy()));
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should not call any matching functions with the touch coordinates', function() {
-			update(16);
+			update(state, 16);
 			expect(model.cursorEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
 		});
@@ -218,17 +223,17 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: ['button1'], touches: [] };
-			newUserInput(rawData);
+			newUserInput(rawData, undefined, gameId, mode);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			update(16);
+			update(state, 16);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			update(16);
-			expect(model.mouseClickEvent.firstCall.args).toEqual([{rcvdTimestamp: undefined, delta: 16}]);
+			update(state, 16);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -244,16 +249,16 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
-			update(16);
-			expect(model.leftStickEvent.firstCall.args).toEqual([0.1, 1.0, 0.5, {rcvdTimestamp: Date.now(), delta: 16}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([0.9, 0.3, 1.0, {rcvdTimestamp: Date.now(), delta: 16}]);
+			update(state, 16);
+			expect(model.leftStickEvent.firstCall.args).toEqual([state, 0.1, 1.0, 0.5, {rcvdTimestamp: Date.now(), delta: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([state, 0.9, 0.3, 1.0, {rcvdTimestamp: Date.now(), delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
 
 	describe('when stick input is received but not bound', function () {
 		beforeEach(function() {
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep({}), deferDep(definePlugin), deferDep(sinon.spy()));
+			newUserInput = require('../../src/input/input_handler.js').func(deferDep(['*', {}]), deferDep(definePlugin), deferDep(sinon.spy()));
 			rawData = {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
@@ -262,7 +267,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call any matching functions with direction vector and the fource', function () {
-			update(16);
+			update(state, 16);
 			expect(model.leftStickEvent.called).toEqual(false);
 			expect(model.rightStickEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
