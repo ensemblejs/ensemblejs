@@ -22,7 +22,7 @@ plugins.load(require('./state/seed.js'));
 plugins.load(require('./state/games.js'));
 
 var run = function (pathToGame, modes) {
-  plugins.get('Server').start(pathToGame, modes);
+  plugins.get('HttpServer').start(pathToGame, modes);
   plugins.get('ServerSideEngine').run(120);
 };
 
