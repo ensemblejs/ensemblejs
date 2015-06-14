@@ -61,7 +61,7 @@ var ackMap = ['*', {
 }];
 var modes = ['arcade'];
 
-var SocketSupport = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess));
+var SocketServer = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess));
 
 describe('setting up the socket', function () {
 	beforeEach(function () {
@@ -70,7 +70,7 @@ describe('setting up the socket', function () {
 
 		sinon.spy(io, 'of');
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modes);
+		SocketServer.start(server, modes);
 	});
 
 	afterEach(function () {
@@ -95,7 +95,7 @@ describe('setting up the socket with only one mode', function () {
 
 		sinon.spy(io, 'of');
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, []);
+		SocketServer.start(server, []);
 	});
 
 	afterEach(function () {
@@ -120,7 +120,7 @@ describe('on connect', function () {
 	beforeEach(function () {
 		socket.emit.reset();
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modes);
+		SocketServer.start(server, modes);
 
 		updateClientFunc = setInterval.firstCall.args[0];
 	});
@@ -163,7 +163,7 @@ describe('the client update loop', function () {
 	beforeEach(function () {
 		socket.emit.reset();
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modes);
+		SocketServer.start(server, modes);
 
 		updateClientFunc = setInterval.firstCall.args[0];
 	});

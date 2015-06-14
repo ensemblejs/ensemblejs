@@ -12,7 +12,7 @@ var sequence = require('distributedlife-sequence');
 
 //jshint maxparams:false
 module.exports = {
-  type: 'SocketSupport',
+  type: 'SocketServer',
   deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess'],
   func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state) {
 

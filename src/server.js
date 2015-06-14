@@ -5,7 +5,7 @@ var favicon = require('serve-favicon');
 
 module.exports = {
   type: 'Server',
-  deps: ['SocketSupport'],
+  deps: ['SocketServer'],
   func: function (configureServerSockets) {
     var extension = '.jade';
     var server;
