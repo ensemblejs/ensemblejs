@@ -2,13 +2,10 @@
 
 module.exports = {
   type: 'OnPause',
-  func: function () {
+  deps: ['NewState'],
+  func: function (newState) {
     return function () {
-      return {
-        ensemble: {
-          paused: true
-        }
-      };
+      return newState().create('ensemble', {paused: true});
     };
   }
 };

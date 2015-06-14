@@ -2,11 +2,10 @@
 
 var express = require('express');
 var favicon = require('serve-favicon');
-var isFunction = require('lodash').isFunction;
 
 module.exports = {
-  type: 'Server',
-  deps: ['SocketSupport'],
+  type: 'HttpServer',
+  deps: ['SocketServer'],
   func: function (configureServerSockets) {
     var extension = '.jade';
     var server;
@@ -25,53 +24,49 @@ module.exports = {
 
       var pathToFavIcon = process.cwd() + '/game/favicon.ico';
       if (!require('fs').existsSync(pathToFavIcon)) {
-          pathToFavIcon = __dirname + '/../public/favicon.ico';
+        pathToFavIcon = __dirname + '/../public/favicon.ico';
       }
       app.use(favicon(pathToFavIcon));
 
       return app;
     };
 
-    var configureSingleModeGame = function (callback, app) {
+    var configureSingleModeGame = function (app) {
       app.get('/', function (req, res) {
         res.render('primary' + extension, { mode: 'game' });
       });
     };
 
-    var configureMultiModeGame = function (callbacks, app) {
+    var configureMultiModeGame = function (app) {
       app.get('/', function (req, res) {
         res.render('index' + extension);
       });
 
       app.get('/:mode/', function (req, res) {
         var mode = req.params.mode;
-
-        if (callbacks[mode] === undefined) {
-          res.redirect('/');
-          return;
-        }
-
         res.render('primary' + extension, { mode: mode });
       });
     };
 
-    var configureRoutes = function (callbacks, app) {
-      if (isFunction(callbacks)) {
-        configureSingleModeGame(callbacks, app);
+    var configureRoutes = function (app, modes) {
+      if (modes.length > 0 && (modes[0] !== 'game')) {
+        configureMultiModeGame(app);
       } else {
-        configureMultiModeGame(callbacks, app);
+        configureSingleModeGame(app);
       }
     };
 
     return {
-      start: function (assetPath, callbacks) {
+      start: function (assetPath, modes) {
+        modes = modes || [];
+
         var app = configureApp(assetPath);
-        configureRoutes(callbacks, app);
+        configureRoutes(app, modes);
 
         server = require('http').createServer(app);
         server.listen(process.env.PORT || 3000);
 
-        configureServerSockets().start(server, callbacks);
+        configureServerSockets().start(server, modes);
       },
       stop: function () {
         configureServerSockets().stop();

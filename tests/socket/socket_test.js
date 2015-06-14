@@ -7,6 +7,7 @@ var deferDep = require('../helpers.js').deferDep;
 
 //Stub out socket.io
 var socket = {
+	id: '1',
 	on: sinon.spy(),
 	emit: sinon.spy()
 };
@@ -23,29 +24,44 @@ var gameState = {
 	hi: 'there'
 };
 
+var rawStateAccess = {
+	for: function() {
+		return gameState;
+	}
+};
+
 var OnInput = sinon.spy();
-var OnPlayerConnect = sinon.spy();
-var OnPlayerDisconnect = sinon.spy();
-var OnObserverConnect = sinon.spy();
-var OnObserverDisconnect = sinon.spy();
-var OnPause = sinon.spy();
-var OnUnpause = sinon.spy();
+var OnPlayerConnect = ['*', sinon.spy()];
+var OnPlayerDisconnect = ['*', sinon.spy()];
+var OnObserverConnect = ['*', sinon.spy()];
+var OnObserverDisconnect = ['*', sinon.spy()];
+var OnPause = ['*', sinon.spy()];
+var OnUnpause = ['*', sinon.spy()];
 var StateMutator = sinon.spy();
 var InitialiseState = {
 	initialise: sinon.spy()
+};
+var game = {gameId: 1, mode: 'game'};
+var GamesList = {
+	get: function() { return game; },
+	remove: sinon.spy(),
+	add: sinon.spy()
+};
+var StateAccess = {
+	for: function() {
+		return gameState;
+	}
 };
 
 var server = {};
 
 var pendingAckCallback = sinon.spy();
-var ackMap = [{
+var ackMap = ['*', {
 	'first': [{target: pendingAckCallback, data: gameState}]
 }];
-var modeCallbacks = {
-	'arcade': sinon.spy()
-};
+var modes = ['arcade'];
 
-var SocketSupport = require('../../src/socket').func(deferDep(ackMap), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(gameState), deferDep(StateMutator), deferDep(InitialiseState));
+var SocketServer = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess));
 
 describe('setting up the socket', function () {
 	beforeEach(function () {
@@ -54,7 +70,7 @@ describe('setting up the socket', function () {
 
 		sinon.spy(io, 'of');
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modeCallbacks);
+		SocketServer.start(server, modes);
 	});
 
 	afterEach(function () {
@@ -79,7 +95,7 @@ describe('setting up the socket with only one mode', function () {
 
 		sinon.spy(io, 'of');
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, sinon.spy());
+		SocketServer.start(server, []);
 	});
 
 	afterEach(function () {
@@ -104,7 +120,7 @@ describe('on connect', function () {
 	beforeEach(function () {
 		socket.emit.reset();
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modeCallbacks);
+		SocketServer.start(server, modes);
 
 		updateClientFunc = setInterval.firstCall.args[0];
 	});
@@ -120,9 +136,10 @@ describe('on connect', function () {
 
 	it('should setup the socket events', function () {
 		expect(socket.on.getCall(0).args[0]).toEqual('disconnect');
-		expect(socket.on.getCall(1).args[0]).toEqual('pause');
-		expect(socket.on.getCall(2).args[0]).toEqual('unpause');
-		expect(socket.on.getCall(3).args[0]).toEqual('input');
+		expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
+		expect(socket.on.getCall(2).args[0]).toEqual('pause');
+		expect(socket.on.getCall(3).args[0]).toEqual('unpause');
+		expect(socket.on.getCall(5).args[0]).toEqual('input');
 	});
 
 	it('should send the initial game state to the client', function () {
@@ -136,7 +153,7 @@ describe('on connect', function () {
 	});
 
 	it('should call the onPlayerConnect callback', function () {
-		expect(OnPlayerConnect.called).toEqual(true);
+		expect(OnPlayerConnect[1].called).toEqual(true);
 	});
 });
 
@@ -146,7 +163,7 @@ describe('the client update loop', function () {
 	beforeEach(function () {
 		socket.emit.reset();
 		sinon.spy(global, 'setInterval');
-		SocketSupport.start(server, modeCallbacks);
+		SocketServer.start(server, modes);
 
 		updateClientFunc = setInterval.firstCall.args[0];
 	});
@@ -203,6 +220,45 @@ describe('the client update loop', function () {
 	});
 });
 
+describe('on disconnect', function () {
+	beforeEach(function () {
+		expect(socket.on.getCall(0).args[0]).toEqual('disconnect');
+		expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
+		socket.on.getCall(0).args[1]();
+		socket.on.getCall(1).args[1]();
+	});
+
+	it('should call the onPlayerDisonnect callback', function () {
+		expect(OnPlayerDisconnect[1].calledOnce).toEqual(true);
+	});
+
+	it('should remove the game', function () {
+		expect(GamesList.remove.firstCall.args).toEqual([1]);
+	});
+});
+
+describe('on pause', function () {
+	beforeEach(function () {
+		expect(socket.on.getCall(2).args[0]).toEqual('pause');
+		socket.on.getCall(2).args[1]();
+	});
+
+	it('should call the onPause callback', function() {
+		expect(OnPause[1].calledOnce).toEqual(true);
+	});
+});
+
+describe('on unpause', function () {
+	beforeEach(function () {
+		expect(socket.on.getCall(3).args[0]).toEqual('unpause');
+		socket.on.getCall(3).args[1]();
+	});
+
+	it('should call the onUnpause callback', function () {
+		expect(OnUnpause[1].calledOnce).toEqual(true);
+	});
+});
+
 describe('on input', function () {
 	var inputData;
 
@@ -213,8 +269,8 @@ describe('on input', function () {
 
 		pendingAckCallback.reset();
 
-		expect(socket.on.getCall(3).args[0]).toEqual('input');
-		socket.on.getCall(3).args[1](inputData);
+		expect(socket.on.getCall(5).args[0]).toEqual('input');
+		socket.on.getCall(5).args[1](inputData);
 	});
 
 	it('should remove pending acks from the input data', function () {
@@ -233,43 +289,10 @@ describe('on input', function () {
 	});
 
 	it('should pass the ack into the pendingAck target', function () {
-		expect(pendingAckCallback.firstCall.args[0]).toEqual({names: ['first'], id: 1});
+		expect(pendingAckCallback.firstCall.args[1]).toEqual({names: ['first'], id: 1});
 	});
 
 	it('should pass the data parameter into the pendingAck target', function () {
-		expect(pendingAckCallback.firstCall.args[1]).toEqual(gameState);
-	});
-});
-
-describe('on pause', function () {
-	beforeEach(function () {
-		expect(socket.on.getCall(1).args[0]).toEqual('pause');
-		socket.on.getCall(1).args[1]();
-	});
-
-	it('should call the onPause callback', function() {
-		expect(OnPause.calledOnce).toEqual(true);
-	});
-});
-
-describe('on unpause', function () {
-	beforeEach(function () {
-		expect(socket.on.getCall(2).args[0]).toEqual('unpause');
-		socket.on.getCall(2).args[1]();
-	});
-
-	it('should call the onUnpause callback', function () {
-		expect(OnUnpause.calledOnce).toEqual(true);
-	});
-});
-
-describe('on disconnect', function () {
-	beforeEach(function () {
-		expect(socket.on.getCall(0).args[0]).toEqual('disconnect');
-		socket.on.getCall(0).args[1]();
-	});
-
-	it('should call the onPlayerDisonnect callback', function () {
-		expect(OnPlayerDisconnect.calledOnce).toEqual(true);
+		expect(pendingAckCallback.firstCall.args[0]).toEqual(gameState);
 	});
 });

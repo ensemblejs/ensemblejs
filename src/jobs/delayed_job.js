@@ -10,7 +10,7 @@ module.exports = function (key, duration, onComplete) {
 
   return {
     key: key,
-    tick: function (dt) {
+    tick: function (state, dt, gameId) {
       if (done()) {
         return;
       }
@@ -18,7 +18,7 @@ module.exports = function (key, duration, onComplete) {
       age += dt;
 
       if (done()) {
-        onComplete();
+        onComplete(state, gameId);
       }
     },
     cancel: function () {

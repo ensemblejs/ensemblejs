@@ -1,8 +1,9 @@
 'use strict';
 
-var each = require('lodash').each;
-var isString = require('lodash').isString;
-var plugins = require('plug-n-play').configure(['ServerSideUpdate', 'StateSeed', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'OnInput', 'OnConnect', 'OnDisonnect', 'ActionMap', 'AcknowledgementMap']);
+var plugins = require('plug-n-play').configure(
+  require('./conf/array-plugins'),
+  require('./conf/default-mode-plugins')
+);
 
 plugins.load(require('./server.js'));
 plugins.load(require('./input/input_handler.js'));
@@ -18,11 +19,10 @@ plugins.load(require('./events/on_observer_connected.js'));
 plugins.load(require('./events/on_observer_disconnected.js'));
 plugins.load(require('./state/initialiser.js'));
 plugins.load(require('./state/seed.js'));
+plugins.load(require('./state/games.js'));
 
 var run = function (pathToGame, modes) {
-  plugins.get('Server').start(pathToGame, modes);
-
-  plugins.get('InitialiseState').initialise();
+  plugins.get('HttpServer').start(pathToGame, modes);
   plugins.get('ServerSideEngine').run(120);
 };
 
@@ -30,18 +30,15 @@ module.exports = {
   runGameAtPath: function (path) {
     console.log('ensemblejs@' + require('./version') + ' started.');
 
-    plugins.loadPath(path + '/js/modes');
     plugins.loadPath(path + '/js/logic');
+    plugins.loadPath(path + '/js/state');
+    plugins.loadPath(path + '/js/events');
+    plugins.loadPath(path + '/js/maps');
 
-    var modes = require(path + '/js/modes.js');
-    if (isString(modes)) {
-      modes = plugins.get(modes);
+    if (require('fs').existsSync(path + '/js/modes.json')) {
+      run(path, require(path + '/js/modes.json'));
     } else {
-      each(modes, function (pluginName, modeName) {
-        modes[modeName] = plugins.get(pluginName);
-      });
+      run(path, ['game']);
     }
-
-    run(path, modes);
   },
 };

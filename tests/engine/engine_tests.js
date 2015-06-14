@@ -1,16 +1,34 @@
 'use strict';
 
 var assert = require('assert');
+var expect = require('expect');
 var sinon = require('sinon');
 
 var deferDep = require('../helpers.js').deferDep;
 
-var update = sinon.spy();
+var update1 = ['*', sinon.spy()];
+var update2 = ['custom', sinon.spy()];
 var paused = false;
 var state = {
-	get: function () { return function() { return paused; }; }
+	for: function () {
+		return {
+			for: function () {
+				return {
+					get: function () { return paused; }
+				};
+			}
+		};
+	}
 };
-var mutator = sinon.spy();
+var gamesList = {
+	all: function () {
+		return [
+			{id: 1, mode: '*'},
+			{id: 2, mode: 'custom'},
+			{id: 3, mode: 'other'}
+		];
+	}
+};
 
 describe('the engine', function() {
 	var engine;
@@ -18,11 +36,12 @@ describe('the engine', function() {
 	var interval;
 
 	beforeEach(function() {
-		update.reset();
+		update1[1].reset();
+		update2[1].reset();
 
 		clock = sinon.useFakeTimers();
 
-		engine = require('../../src/engine.js').func(deferDep([update]), deferDep(state), deferDep(mutator));
+		engine = require('../../src/engine.js').func(deferDep([update1, update2]), deferDep(state), deferDep(sinon.spy()), deferDep(gamesList));
 	});
 
 	afterEach(function() {
@@ -34,7 +53,8 @@ describe('the engine', function() {
 		it('should call each function passed in with the delta in ms', function() {
 			clock.tick(5000);
 			interval = engine.run(0.5);
-			assert.deepEqual(update.firstCall.args, [5]);
+			assert.deepEqual(update1[1].firstCall.args[1], 5);
+			assert.deepEqual(update2[1].firstCall.args[1], 5);
 		});
 
 		it('should not increase the delta whilst the game is paused', function () {
@@ -50,11 +70,27 @@ describe('the engine', function() {
 			interval = engine.run(1);
 			clearInterval(interval);
 
-			update.reset();
+			update1[1].reset();
 			paused = false;
 			clock.tick(100);
 			interval = engine.run(1);
-			assert.deepEqual(update.firstCall.args, [0.1]);
+			assert.deepEqual(update1[1].firstCall.args[1], 0.1);
+		});
+
+		describe('update functions for all games', function() {
+			it('should only be for every game', function () {
+				interval = engine.run(0);
+
+				expect(update1[1].callCount).toEqual(3);
+			});
+		});
+
+		describe('update functions for specific modes', function() {
+			it('should only be called when the modes match', function() {
+				interval = engine.run(0);
+
+				expect(update2[1].callCount).toEqual(1);
+			});
 		});
 	});
 
@@ -62,7 +98,7 @@ describe('the engine', function() {
 		it('it should not call any update functions', function() {
 			paused = true;
 			interval = engine.run(1);
-			assert(!update.called);
+			assert(!update1[1].called);
 		});
 	});
 });

@@ -1,17 +1,20 @@
 'use strict';
 
 var each = require('lodash').each;
+var filter = require('lodash').filter;
 var isEqual = require('lodash').isEqual;
-var isFunction = require('lodash').isFunction;
 var cloneDeep = require('lodash').cloneDeep;
 var size = require('lodash').size;
+var contains = require('lodash').contains;
+var first = require('lodash').first;
+var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
 
 //jshint maxparams:false
 module.exports = {
-  type: 'SocketSupport',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState'],
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState) {
+  type: 'SocketServer',
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess'],
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state) {
 
     var io;
     var statistics = {};
@@ -20,12 +23,12 @@ module.exports = {
       return isEqual(current.gameState, prior.gameState);
     };
 
-    var startUpdateClientLoop = function (socketId, socket) {
+    var startUpdateClientLoop = function (gameId, socketId, socket) {
       var lastPacket = {};
 
       var updateClient = function () {
         var packet = {
-          gameState: rawStateAccess()
+          gameState: rawStateAccess().for(gameId)
         };
 
         if (packetHasNotChanged(packet, lastPacket)) {
@@ -54,14 +57,19 @@ module.exports = {
       statistics[socketId].packets.totalAcked += size(pendingAcknowledgements);
     };
 
-    var removeAcknowledgedPackets = function (socketId, pendingAcknowledgements) {
+    var removeAcknowledgedPackets = function (socketId, pendingAcknowledgements, gameId, mode) {
+
       each(pendingAcknowledgements, function (ack) {
         each(ack.names, function (name) {
-          each(acknowledgementMaps(), function(acknowledgementMap) {
-            if (acknowledgementMap[name] === undefined) { return; }
+          var applicableAckMaps = filter(acknowledgementMaps(), function(ackMap) {
+            return contains(['*', mode], first(ackMap));
+          });
 
-            each(acknowledgementMap[name], function (action) {
-              stateMutator()(action.target(ack, action.data));
+          each(applicableAckMaps, function(acknowledgementMap) {
+            if (last(acknowledgementMap)[name] === undefined) { return; }
+
+            each(last(acknowledgementMap)[name], function (action) {
+              stateMutator()(gameId, action.target(state().for(gameId), ack, action.data));
             });
           });
         });
@@ -70,25 +78,32 @@ module.exports = {
       });
     };
 
-    var createOnInputFunction = function (socketId) {
+    var createOnInputFunction = function (gameId, socketId, mode) {
       return function (inputData) {
         var pendingAcks = inputData.pendingAcks;
         delete inputData.pendingAcks;
 
         var receivedTime = Date.now();
         each(onInput(), function (onInputCallback) {
-            onInputCallback(inputData, receivedTime);
+          onInputCallback(inputData, receivedTime, gameId, mode);
         });
 
         calculateLatency(socketId, pendingAcks);
-        removeAcknowledgedPackets(socketId, pendingAcks);
+        removeAcknowledgedPackets(socketId, pendingAcks, gameId, mode);
       };
     };
 
-    var mutateCallbackResponse = function (callbacks) {
+    var mutateCallbackResponse = function (gameId, callbacks) {
       return function() {
-        each(callbacks, function(callback) {
-          stateMutator()(callback());
+        var mode = games().get(gameId).mode;
+        var gameState = state().for(gameId);
+
+        var applicableCallbacks = filter(callbacks, function(callback) {
+          return contains(['*', mode], first(callback));
+        });
+
+        each(applicableCallbacks, function(callback) {
+          stateMutator()(gameId, last(callback)(gameState));
         });
       };
     };
@@ -105,43 +120,66 @@ module.exports = {
       };
     };
 
-    var createSetupPlayableClientFunction = function (modeCallback) {
+    var createSetupPlayableClientFunction = function (mode) {
       return function (socket) {
         statistics[socket.id] = seedSocketStatistics();
 
-        modeCallback();
-        initialiseState().initialise();
+        var gameId = socket.id;
 
-        socket.on('disconnect', mutateCallbackResponse(onPlayerDisconnect()));
-        socket.on('pause', mutateCallbackResponse(onPause()));
-        socket.on('unpause', mutateCallbackResponse(onUnpause()));
+        initialiseState().initialise(gameId, mode);
 
-        var onInput = createOnInputFunction(socket.id);
+        socket.on('disconnect', mutateCallbackResponse(gameId, onPlayerDisconnect()));
+        socket.on('disconnect', function () {
+          games().remove(gameId);
+        });
+
+        socket.on('pause', mutateCallbackResponse(gameId, onPause()));
+        socket.on('unpause', mutateCallbackResponse(gameId, onUnpause()));
+
+        socket.on('error', function (data) {
+          console.log(data);
+        });
+
+        var onInput = createOnInputFunction(gameId, socket.id, mode);
         socket.on('input', onInput);
 
-        socket.emit('initialState', rawStateAccess());
+        socket.emit('initialState', rawStateAccess().for(gameId));
 
         socket.playerId = sequence.next('playerId');
         socket.emit('playerId', { id: socket.playerId } );
 
-        startUpdateClientLoop(socket.id, socket);
+        startUpdateClientLoop(gameId, socket.id, socket);
 
-        each(onPlayerConnect(), function(callback) {
-          stateMutator()(callback());
+        // var filterByMode = function(mode) {
+        //   return function(callback) {
+        //     return contains(['*', mode], first(callback));
+        //   };
+        // };
+        // each(filterByMode(mode)(onPlayerConnect()), function(callback) {
+        //   stateMutator()(gameId, last(callback)(state().for(gameId)));
+        // });
+        var callbacksForMode = filter(onPlayerConnect(), function(callback) {
+          return contains(['*', mode], first(callback));
         });
+        each(callbacksForMode, function(callback) {
+          stateMutator()(gameId, last(callback)(state().for(gameId)));
+        });
+
+
+        games().add({id: gameId, mode: mode});
       };
     };
 
     return {
-      start: function (server, modeCallbacks) {
+      start: function (server, modes) {
         io = require('socket.io').listen(server);
 
-        if (isFunction(modeCallbacks)) {
-          io.of('/game/primary').on('connection', createSetupPlayableClientFunction(modeCallbacks));
-        } else {
-          each(modeCallbacks, function(callback, mode) {
-            io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(callback));
+        if (modes.length > 0) {
+          each(modes, function(mode) {
+            io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(mode));
           });
+        } else {
+          io.of('/game/primary').on('connection', createSetupPlayableClientFunction('game'));
         }
       },
       stop: function () {

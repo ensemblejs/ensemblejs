@@ -1,7 +1,7 @@
 'use strict';
 
 var sinon = require('sinon');
-var assert = require('assert');
+var expect = require('expect');
 
 var deferDep = require('../helpers.js').deferDep;
 var definePlugin = require('../helpers.js').definePlugin;
@@ -23,48 +23,48 @@ describe('the delayed effect manager', function() {
 	it('should allow you to add multiple effects', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update(1);
-		assert(effect1.called);
-		assert(effect2.called);
+		update({} ,1);
+		expect(effect1.called).toEqual(true);
+		expect(effect2.called).toEqual(true);
 	});
 
 	it('should update each effect', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update(0.5);
-		assert(!effect1.called);
-		assert(!effect2.called);
-		update(1);
-		assert(effect1.called);
-		assert(effect2.called);
+		update({}, 0.5);
+		expect(effect1.called).toEqual(false);
+		expect(effect2.called).toEqual(false);
+		update({}, 1);
+		expect(effect1.called).toEqual(true);
+		expect(effect2.called).toEqual(true);
 	});
 
 	it('should not call dead effects', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update(1);
+		update({}, 1);
 		effect1.reset();
 		effect2.reset();
-		update(1);
-		assert(!effect1.called);
-		assert(!effect2.called);
+		update({}, 1);
+		expect(effect1.called).toEqual(false);
+		expect(effect2.called).toEqual(false);
 	});
 
 	it('should be possible to cancel all effects', function() {
 		manager.add('key1', 1, effect1);
 		manager.add('key2', 1, effect2);
 		manager.cancelAll();
-		update(1);
-		assert(!effect1.called);
-		assert(!effect2.called);
+		update({}, 1);
+		expect(effect1.called).toEqual(false);
+		expect(effect2.called).toEqual(false);
 	});
 
 	it('should be possible to cancel all effects of a certain key', function () {
 		manager.add('key1', 1, effect1);
 		manager.add('key2', 1, effect2);
 		manager.cancelAll('key1');
-		update(1);
-		assert(!effect1.called);
-		assert(effect2.called);
+		update({}, 1);
+		expect(effect1.called).toEqual(false);
+		expect(effect2.called).toEqual(true);
 	});
 });

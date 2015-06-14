@@ -22,11 +22,9 @@ describe('configuring the routes', function () {
 		server = require('../../src/server').func(deferDep(socketSupport));
 	});
 
-	describe('when the callbacks supplied is a single function', function () {
-		var callbacks = sinon.spy();
-
+	describe('when the modes are not supplied', function () {
 		before(function () {
-			server.start('../dummy', callbacks);
+			server.start('../dummy');
 		});
 
 		after(function () {
@@ -42,13 +40,11 @@ describe('configuring the routes', function () {
 		});
 	});
 
-	describe('when the modes object is a hash', function () {
-		var callbacks = {
-			arcade: sinon.spy()
-		};
+	describe('when the modes object has more than one element', function () {
+		var modes = ['arcade'];
 
 		before(function () {
-			server.start('../dummy', callbacks);
+			server.start('../dummy', modes);
 		});
 
 		after(function () {
@@ -62,7 +58,7 @@ describe('configuring the routes', function () {
 			}).end();
 		});
 
-		it('should redirect to the root page when the mode is not in the callbacks', function (done) {
+		it('should redirect to the root page when the mode is not in the modes', function (done) {
 			request({
 				followRedirect: function(res) {
 					expect(res.statusCode).toEqual(302);
@@ -74,7 +70,7 @@ describe('configuring the routes', function () {
 			}).end();
 		});
 
-		it.skip('should invoke the callback specified by the mode', function (done) {
+		it('should invoke the callback specified by the mode', function (done) {
 			request.get('http://localhost:3000/arcade', function (err, res) {
 				expect(res.statusCode).toEqual(200);
 				expect(res.body).toInclude('<script src="/game/js/gen/arcade.js">');
