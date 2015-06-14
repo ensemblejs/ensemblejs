@@ -49,7 +49,7 @@ module.exports = {
     };
 
     var configureRoutes = function (app, modes) {
-      if (modes.length > 0) {
+      if (modes.length > 0 && (modes[0] !== 'game')) {
         configureMultiModeGame(app);
       } else {
         configureSingleModeGame(app);
