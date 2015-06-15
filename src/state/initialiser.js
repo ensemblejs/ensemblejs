@@ -2,9 +2,13 @@
 
 var each = require('lodash').each;
 var filter = require('lodash').filter;
-var contains = require('lodash').contains;
+var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
+
+function isApplicable (mode, callback) {
+  return intersection(['*', mode], first(callback)).length > 0;
+}
 
 module.exports = {
   type: 'InitialiseState',
@@ -13,7 +17,7 @@ module.exports = {
     return {
       initialise: function(gameId, mode) {
         var applicableSeeds = filter(stateSeed(), function(stateSeed) {
-          return contains(['*', mode], first(stateSeed));
+          return isApplicable(mode, stateSeed);
         });
 
         each(applicableSeeds, function (state) {

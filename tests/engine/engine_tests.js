@@ -6,8 +6,8 @@ var sinon = require('sinon');
 
 var deferDep = require('../helpers.js').deferDep;
 
-var update1 = ['*', sinon.spy()];
-var update2 = ['custom', sinon.spy()];
+var update1 = [['*'], sinon.spy()];
+var update2 = [['custom'], sinon.spy()];
 var paused = false;
 var state = {
 	for: function () {

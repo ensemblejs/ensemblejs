@@ -2,9 +2,13 @@
 
 var each = require('lodash').each;
 var filter = require('lodash').filter;
-var contains = require('lodash').contains;
+var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
+
+function isApplicable (mode, callback) {
+  return intersection(['*', mode], first(callback)).length > 0;
+}
 
 module.exports = {
 	type: 'OnInput',
@@ -14,7 +18,7 @@ module.exports = {
 
 		var parseKeysAndKeypresses = function(currentInput, callback) {
 			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-        return contains(['*', currentInput.mode], first(actionMap));
+        return isApplicable(currentInput.mode, actionMap);
       });
 
 			each(currentInput.rawData.keys, function(key) {
@@ -48,7 +52,7 @@ module.exports = {
 
 		var parseMouse = function(currentInput, callback) {
 			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-        return contains(['*', currentInput.mode], first(actionMap));
+        return isApplicable(currentInput.mode, actionMap);
       });
 
 			each(applicableActionMaps, function(actionMapDefinition) {
@@ -69,7 +73,7 @@ module.exports = {
 				var key = 'touch' + touch.id;
 
 				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-	        return contains(['*', currentInput.mode], first(actionMap));
+	        return isApplicable(currentInput.mode, actionMap);
 	      });
 
 				each(applicableActionMaps, function(actionMapDefinition) {
@@ -89,7 +93,7 @@ module.exports = {
 				if (currentInput.rawData[key] === undefined) {return;}
 
 				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-	        return contains(['*', currentInput.mode], first(actionMap));
+	        return isApplicable(currentInput.mode, actionMap);
 	      });
 
 				each(applicableActionMaps, function(actionMapDefinition) {
@@ -118,7 +122,7 @@ module.exports = {
 				};
 
 				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-          return contains(['*', currentInput.mode], first(actionMap));
+          return isApplicable(currentInput.mode, actionMap);
         });
 
 				var somethingHasReceivedInput = [];

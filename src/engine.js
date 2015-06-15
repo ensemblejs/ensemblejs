@@ -3,9 +3,13 @@
 var each = require('lodash').each;
 var reject = require('lodash').reject;
 var select = require('lodash').filter;
-var contains = require('lodash').contains;
-var getModeOf = require('lodash').first;
+var intersection = require('lodash').intersection;
+var first = require('lodash').first;
 var getFuncOf = require('lodash').last;
+
+function isApplicable (mode, callback) {
+  return intersection(['*', mode], first(callback)).length > 0;
+}
 
 module.exports = {
   type: 'ServerSideEngine',
@@ -21,7 +25,7 @@ module.exports = {
       each(reject(games().all(), pausedGames), function(game) {
         var gameState = state().for(game.id);
         var callbacksForGame = select(serverSideUpdate(), function(callback) {
-          return contains(['*', game.mode], getModeOf(callback));
+          return isApplicable(game.mode, callback);
         });
 
         each(callbacksForGame, function(callback) {

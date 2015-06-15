@@ -31,12 +31,12 @@ var rawStateAccess = {
 };
 
 var OnInput = sinon.spy();
-var OnPlayerConnect = ['*', sinon.spy()];
-var OnPlayerDisconnect = ['*', sinon.spy()];
-var OnObserverConnect = ['*', sinon.spy()];
-var OnObserverDisconnect = ['*', sinon.spy()];
-var OnPause = ['*', sinon.spy()];
-var OnUnpause = ['*', sinon.spy()];
+var OnPlayerConnect = [['*'], sinon.spy()];
+var OnPlayerDisconnect = [['*'], sinon.spy()];
+var OnObserverConnect = [['*'], sinon.spy()];
+var OnObserverDisconnect = [['*'], sinon.spy()];
+var OnPause = [['*'], sinon.spy()];
+var OnUnpause = [['*'], sinon.spy()];
 var StateMutator = sinon.spy();
 var InitialiseState = {
 	initialise: sinon.spy()
@@ -56,7 +56,7 @@ var StateAccess = {
 var server = {};
 
 var pendingAckCallback = sinon.spy();
-var ackMap = ['*', {
+var ackMap = [['*'], {
 	'first': [{target: pendingAckCallback, data: gameState}]
 }];
 var modes = ['arcade'];

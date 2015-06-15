@@ -38,7 +38,7 @@ module.exports = {
     if (require('fs').existsSync(path + '/js/modes.json')) {
       run(path, require(path + '/js/modes.json'));
     } else {
-      run(path, ['game']);
+      run(path, []);
     }
   },
 };

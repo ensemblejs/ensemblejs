@@ -5,15 +5,19 @@ var filter = require('lodash').filter;
 var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var size = require('lodash').size;
-var contains = require('lodash').contains;
+var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
 
-//jshint maxparams:false
+function isApplicable (mode, callback) {
+  return intersection(['*', mode], first(callback)).length > 0;
+}
+
 module.exports = {
   type: 'SocketServer',
   deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess'],
+  //jshint maxparams: false
   func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state) {
 
     var io;
@@ -62,7 +66,7 @@ module.exports = {
       each(pendingAcknowledgements, function (ack) {
         each(ack.names, function (name) {
           var applicableAckMaps = filter(acknowledgementMaps(), function(ackMap) {
-            return contains(['*', mode], first(ackMap));
+            return isApplicable(mode, ackMap);
           });
 
           each(applicableAckMaps, function(acknowledgementMap) {
@@ -99,7 +103,7 @@ module.exports = {
         var gameState = state().for(gameId);
 
         var applicableCallbacks = filter(callbacks, function(callback) {
-          return contains(['*', mode], first(callback));
+          return isApplicable(mode, callback);
         });
 
         each(applicableCallbacks, function(callback) {
@@ -150,16 +154,8 @@ module.exports = {
 
         startUpdateClientLoop(gameId, socket.id, socket);
 
-        // var filterByMode = function(mode) {
-        //   return function(callback) {
-        //     return contains(['*', mode], first(callback));
-        //   };
-        // };
-        // each(filterByMode(mode)(onPlayerConnect()), function(callback) {
-        //   stateMutator()(gameId, last(callback)(state().for(gameId)));
-        // });
         var callbacksForMode = filter(onPlayerConnect(), function(callback) {
-          return contains(['*', mode], first(callback));
+          return isApplicable(mode, callback);
         });
         each(callbacksForMode, function(callback) {
           stateMutator()(gameId, last(callback)(state().for(gameId)));
