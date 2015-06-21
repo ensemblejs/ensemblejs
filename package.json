@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "body-parser": "^1.13.0",
+    "compression": "^1.5.0",
     "connect-gzip-static": "^1.0.0",
     "distributedlife-sequence": "^1.0.1",
     "express": "^4.12.4",
