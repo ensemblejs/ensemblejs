@@ -1,5 +1,6 @@
 'use strict';
 
+var compression = require('compression');
 var express = require('express');
 var favicon = require('serve-favicon');
 
@@ -13,6 +14,7 @@ module.exports = {
     var configureApp = function (assetPath) {
       var app = express();
 
+      app.use(compression());
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(__dirname + '/../public/'));
       app.use(require('morgan')('combined'));
