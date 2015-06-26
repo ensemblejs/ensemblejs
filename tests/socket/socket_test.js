@@ -9,7 +9,10 @@ var deferDep = require('../helpers.js').deferDep;
 var socket = {
 	id: '1',
 	on: sinon.spy(),
-	emit: sinon.spy()
+	emit: sinon.spy(),
+	handshake: {
+		address: '::1'
+	}
 };
 var io = {
 	of: function() {

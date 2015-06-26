@@ -9,6 +9,7 @@ var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
+var logger = require('./logging/logger.js').logger;
 
 function isApplicable (mode, callback) {
   return intersection(['*', mode], first(callback)).length > 0;
@@ -124,28 +125,40 @@ module.exports = {
       };
     };
 
+    function addLoggingToEventCallback (socketInfo, eventName, eventCallback) {
+      return function() {
+        logger.socket(socketInfo, eventName);
+        eventCallback.apply(this, arguments);
+      };
+    }
+
     var createSetupPlayableClientFunction = function (mode) {
       return function (socket) {
+        var socketInfo = {
+          socketId: socket.id,
+          address: socket.handshake.address
+        };
+        logger.socket(socketInfo, 'connected');
+
         statistics[socket.id] = seedSocketStatistics();
 
         var gameId = socket.id;
 
         initialiseState().initialise(gameId, mode);
-
-        socket.on('disconnect', mutateCallbackResponse(gameId, onPlayerDisconnect()));
-        socket.on('disconnect', function () {
+        socket.on('disconnect', addLoggingToEventCallback(socketInfo, 'disconnect', mutateCallbackResponse(gameId, onPlayerDisconnect())));
+        socket.on('disconnect', addLoggingToEventCallback(socketInfo, 'disconnect', function () {
           games().remove(gameId);
-        });
+        }));
 
-        socket.on('pause', mutateCallbackResponse(gameId, onPause()));
-        socket.on('unpause', mutateCallbackResponse(gameId, onUnpause()));
+        socket.on('pause', addLoggingToEventCallback(socketInfo, 'pause', mutateCallbackResponse(gameId, onPause())));
+        socket.on('unpause', addLoggingToEventCallback(socketInfo, 'unpause', mutateCallbackResponse(gameId, onUnpause())));
 
         socket.on('error', function (data) {
-          console.log(data);
+          logger.error(data);
         });
 
         var onInput = createOnInputFunction(gameId, socket.id, mode);
-        socket.on('input', onInput);
+        socket.on('input', addLoggingToEventCallback(socketInfo, 'input', onInput));
 
         socket.emit('initialState', rawStateAccess().for(gameId));
 
@@ -160,7 +173,6 @@ module.exports = {
         each(callbacksForMode, function(callback) {
           stateMutator()(gameId, last(callback)(state().for(gameId)));
         });
-
 
         games().add({id: gameId, mode: mode});
       };

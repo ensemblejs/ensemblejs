@@ -13,6 +13,12 @@ var logger = require('bunyan').createLogger({
   ]
 });
 
+function socket (socketInfo, eventName) {
+  logger.info(socketInfo, 'ensemblejs::socket:' + eventName);
+}
+
+logger.socket = socket;
+
 module.exports = {
   logger: logger
 };
