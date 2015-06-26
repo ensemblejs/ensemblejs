@@ -2,9 +2,10 @@
   "name": "ensemblejs",
   "version": "3.2.1",
   "description": "Ensemble server for the ensemble game framework",
+  "main": "src/facade.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/distributedlife/ensemble.git"
+    "url": "https://github.com/ensemblejs/ensemblejs.git"
   },
   "keywords": [
     "ensemble",
