@@ -9,7 +9,6 @@ var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
-var logger = require('./logging/logger.js').logger;
 
 function isApplicable (mode, callback) {
   return intersection(['*', mode], first(callback)).length > 0;
@@ -17,9 +16,9 @@ function isApplicable (mode, callback) {
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess'],
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger'],
   //jshint maxparams: false
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state) {
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state, logger) {
 
     var io;
     var statistics = {};
@@ -127,7 +126,7 @@ module.exports = {
 
     function addLoggingToEventCallback (socketInfo, eventName, eventCallback) {
       return function() {
-        logger.socket(socketInfo, eventName);
+        logger().socket(socketInfo, arguments, eventName);
         eventCallback.apply(this, arguments);
       };
     }
@@ -138,7 +137,7 @@ module.exports = {
           socketId: socket.id,
           address: socket.handshake.address
         };
-        logger.socket(socketInfo, 'connected');
+        logger().socket(socketInfo, 'connected');
 
         statistics[socket.id] = seedSocketStatistics();
 
@@ -154,7 +153,7 @@ module.exports = {
         socket.on('unpause', addLoggingToEventCallback(socketInfo, 'unpause', mutateCallbackResponse(gameId, onUnpause())));
 
         socket.on('error', function (data) {
-          logger.error(data);
+          logger().error(data);
         });
 
         var onInput = createOnInputFunction(gameId, socket.id, mode);

@@ -13,7 +13,8 @@ var logger = require('bunyan').createLogger({
   ]
 });
 
-function socket (socketInfo, eventName) {
+function socket (socketInfo, eventData, eventName) {
+  logger.debug([socketInfo, eventData], 'ensemblejs::socket:' + eventName);
   logger.info(socketInfo, 'ensemblejs::socket:' + eventName);
 }
 
