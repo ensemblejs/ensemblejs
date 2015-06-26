@@ -3,6 +3,8 @@
 var compression = require('compression');
 var express = require('express');
 var favicon = require('serve-favicon');
+var logger = require('./logging/logger.js').logger;
+var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'HttpServer',
@@ -11,9 +13,26 @@ module.exports = {
     var extension = '.jade';
     var server;
 
-    var configureApp = function (assetPath) {
+    function configureApp (assetPath) {
       var app = express();
 
+      app.use(expressBunyanLogger({
+        logger: logger,
+        excludes: [
+          'req',
+          'res',
+          'res-headers',
+          'response-hrtime',
+          'short-body',
+          'req-headers',
+          'incoming',
+          'req_id',
+          'body'
+        ]
+      }));
+      app.use(expressBunyanLogger.errorLogger({
+        logger: logger
+      }));
       app.use(compression());
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(__dirname + '/../public/'));
@@ -31,15 +50,15 @@ module.exports = {
       app.use(favicon(pathToFavIcon));
 
       return app;
-    };
+    }
 
-    var configureSingleModeGame = function (app) {
+    function configureSingleModeGame (app) {
       app.get('/', function (req, res) {
         res.render('primary' + extension, { mode: 'game' });
       });
-    };
+    }
 
-    var configureMultiModeGame = function (app) {
+    function configureMultiModeGame (app) {
       app.get('/', function (req, res) {
         res.render('index' + extension);
       });
@@ -48,35 +67,39 @@ module.exports = {
         var mode = req.params.mode;
         res.render('primary' + extension, { mode: mode });
       });
-    };
+    }
 
-    var configureRoutes = function (app, modes) {
+    function configureRoutes (app, modes) {
       if (modes.length > 0) {
         configureMultiModeGame(app);
       } else {
         configureSingleModeGame(app);
       }
-    };
+    }
+
+    function start (assetPath, modes) {
+      modes = modes || [];
+
+      var app = configureApp(assetPath);
+      configureRoutes(app, modes);
+
+      server = require('http').createServer(app);
+      server.listen(process.env.PORT || 3000);
+
+      configureServerSockets().start(server, modes);
+    }
+
+    function stop () {
+      configureServerSockets().stop();
+
+      if (server !== undefined) {
+        server.close();
+      }
+    }
 
     return {
-      start: function (assetPath, modes) {
-        modes = modes || [];
-
-        var app = configureApp(assetPath);
-        configureRoutes(app, modes);
-
-        server = require('http').createServer(app);
-        server.listen(process.env.PORT || 3000);
-
-        configureServerSockets().start(server, modes);
-      },
-      stop: function () {
-        configureServerSockets().stop();
-
-        if (server !== undefined) {
-          server.close();
-        }
-      }
+      start: start,
+      stop: stop
     };
   }
 };

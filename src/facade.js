@@ -1,8 +1,14 @@
 'use strict';
 
+var appRoot = require('app-root-path');
+var packageInfo = require(appRoot + '/package.json');
+var logger = require('./logging/logger.js').logger;
+
 var plugins = require('plug-n-play').configure(
+  logger,
   require('./conf/array-plugins'),
-  require('./conf/default-mode-plugins')
+  require('./conf/default-mode-plugins'),
+  require('./conf/silence-logging-from-these-plugins')
 );
 
 plugins.load(require('./server.js'));
@@ -21,24 +27,26 @@ plugins.load(require('./state/initialiser.js'));
 plugins.load(require('./state/seed.js'));
 plugins.load(require('./state/games.js'));
 
-var run = function (pathToGame, modes) {
+function run (pathToGame, modes) {
   plugins.get('HttpServer').start(pathToGame, modes);
   plugins.get('ServerSideEngine').run(120);
-};
+}
+
+function runGameAtPath (path) {
+  logger.info('ensemblejs@' + packageInfo.version + ' started.');
+
+  plugins.loadPath(path + '/js/logic');
+  plugins.loadPath(path + '/js/state');
+  plugins.loadPath(path + '/js/events');
+  plugins.loadPath(path + '/js/maps');
+
+  if (require('fs').existsSync(path + '/js/modes.json')) {
+    run(path, require(path + '/js/modes.json'));
+  } else {
+    run(path, []);
+  }
+}
 
 module.exports = {
-  runGameAtPath: function (path) {
-    console.log('ensemblejs@' + require('../package.json').version + ' started.');
-
-    plugins.loadPath(path + '/js/logic');
-    plugins.loadPath(path + '/js/state');
-    plugins.loadPath(path + '/js/events');
-    plugins.loadPath(path + '/js/maps');
-
-    if (require('fs').existsSync(path + '/js/modes.json')) {
-      run(path, require(path + '/js/modes.json'));
-    } else {
-      run(path, []);
-    }
-  },
+  runGameAtPath: runGameAtPath
 };
