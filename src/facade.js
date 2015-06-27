@@ -3,12 +3,28 @@
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
 var logger = require('./logging/logger.js').logger;
+var defaults = {
+  logLevel: 'info',
+  silencedPlugins: require('./conf/silence-logging-from-these-plugins')
+};
+
+var logSilence;
+try {
+  var config = require(appRoot + '/config.json');
+  logSilence = config.silencedPlugins || defaults.silencedPlugins;
+  logger.logLevel = config.logLevel || defaults.logLevel;
+} catch (error) {
+  logger.info('Loading default plugins to silence.');
+  logger.logLevel = defaults.logLevel;
+  logSilence = defaults.silencedPlugins;
+}
+logger.info('Log level to be set to: ' + logger.logLevel);
 
 var plugins = require('plug-n-play').configure(
   logger,
   require('./conf/array-plugins'),
   require('./conf/default-mode-plugins'),
-  require('./conf/silence-logging-from-these-plugins')
+  logSilence
 );
 
 plugins.load(require('./server.js'));
