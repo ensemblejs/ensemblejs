@@ -30,6 +30,11 @@ var mutator = sinon.spy();
 var gameId = 1;
 var mode = 'arcade';
 
+var logger = {
+	info: sinon.spy(),
+	warn: sinon.spy()
+};
+
 describe('Input Bindings', function() {
 	var clock;
 
@@ -64,7 +69,7 @@ describe('Input Bindings', function() {
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
 		}];
 
-		newUserInput = require('../../src/input/input_handler.js').func(deferDep([actions]), deferDep(definePlugin), deferDep(mutator));
+		newUserInput = require('../../src/input/input_handler.js').func(deferDep([actions]), deferDep(definePlugin), deferDep(mutator), deferDep(logger));
 		update = getDefinedPlugin('ServerSideUpdate');
 	});
 
@@ -94,7 +99,7 @@ describe('Input Bindings', function() {
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()));
+				newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
 				update = getDefinedPlugin('ServerSideUpdate');
 
 				mutator.reset();
@@ -209,7 +214,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7 };
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()));
+			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 
@@ -258,7 +263,7 @@ describe('Input Bindings', function() {
 
 	describe('when stick input is received but not bound', function () {
 		beforeEach(function() {
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()));
+			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
 			rawData = {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}

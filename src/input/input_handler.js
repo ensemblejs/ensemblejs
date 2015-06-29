@@ -12,8 +12,8 @@ function isApplicable (mode, callback) {
 
 module.exports = {
 	type: 'OnInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function(actionMaps, definePlugin, stateMutator) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
+	func: function(actionMaps, definePlugin, stateMutator, logger) {
 		var userInput = [];
 
 		var parseKeysAndKeypresses = function(currentInput, callback) {
@@ -110,42 +110,35 @@ module.exports = {
 		};
 
 		definePlugin()('ServerSideUpdate', function () {
-			function ServerSideUpdate (state, delta) {
-				var currentInput = userInput.shift();
-				if (currentInput === undefined) {
-					return;
+			function ProcessPendingInput (state, delta) {
+				var currentInput;
+				var somethingHasReceivedInput;
+				var data;
+
+				function isActionMapApplicable(actionMap) {
+					return isApplicable(currentInput.mode, actionMap);
 				}
 
-				var data = {
-					rcvdTimestamp: currentInput.timestamp,
-					delta: delta
-				};
-
-				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-          return isApplicable(currentInput.mode, actionMap);
-        });
-
-				var somethingHasReceivedInput = [];
-				parseKeysAndKeypresses(currentInput, function(target, noEventKey) {
+				function keyAndKeypressCallback(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
 					return target(state, data);
-				});
+				}
 
-				parseTouches(currentInput, function(target, noEventKey, inputData) {
+				function touchCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
 					return target(state, inputData.x, inputData.y, data);
-				});
+				}
 
-				parseSticks(currentInput, function(target, noEventKey, inputData) {
+				function stickCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
 					return target(state, inputData.x, inputData.y, inputData.force, data);
-				});
+				}
 
-				parseMouse(currentInput, function(target, noEventKey, inputData) {
+				function mouseCallback(target, noEventKey, inputData) {
 					return target(state, inputData.x, inputData.y, data);
-				});
+				}
 
-				each(applicableActionMaps, function(actionMapDefinition) {
+				function doSomethingWithActionMaps(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
 					each(actionMap.nothing, function(action) {
@@ -153,10 +146,43 @@ module.exports = {
 							return stateMutator()(currentInput.gameId, action.target(state, data));
 						}
 					});
-				});
+				}
+
+				var lengthOfInputStackAtStart = userInput.length;
+				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
+					currentInput = userInput.shift();
+					if (currentInput === undefined) {
+						return;
+					}
+
+					somethingHasReceivedInput = [];
+					data = {
+						rcvdTimestamp: currentInput.timestamp,
+						delta: delta
+					};
+
+					parseKeysAndKeypresses(currentInput, keyAndKeypressCallback);
+					parseTouches(currentInput, touchCallback);
+					parseSticks(currentInput, stickCallback);
+					parseMouse(currentInput, mouseCallback);
+
+					var applicableActionMaps = filter(actionMaps(), isActionMapApplicable);
+					each(applicableActionMaps, doSomethingWithActionMaps);
+				}
+
+				var logData = {
+					processed: lengthOfInputStackAtStart,
+					newInput: userInput.length - lengthOfInputStackAtStart
+				};
+
+				logger().info(logData, 'ServerSideUpdate::ProcessPendingInput - done');
+
+				if (logData.newInput < logData.processed) {
+					logger().warn('More input was received than we processed.');
+				}
 			}
 
- 			return ServerSideUpdate;
+ 			return ProcessPendingInput;
 		});
 
 		return function(rawData, timestamp, gameId, mode) {
