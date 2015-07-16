@@ -117,6 +117,10 @@ describe('Input Bindings', function() {
 		beforeEach(function() {
 			rawData = { keys: ['key'], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
+
+			model.keyEvent.reset();
+			model.keyPressEvent.reset();
+			mutator.reset();
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -126,6 +130,21 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
+			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
+		});
+
+		it('should ignore the key case', function () {
+			update(state, 16);
+			model.keyEvent.reset();
+			model.keyPressEvent.reset();
+			mutator.reset();
+
+			rawData = { keys: ['KEY'], touches: [] };
+			newUserInput(rawData, undefined, gameId, mode);
+			update(state, 16);
+
 			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -145,6 +164,21 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
+		});
+
+		it('should ignore the key case', function () {
+			update(state, 16);
+			model.keyEvent.reset();
+			model.keyPressEvent.reset();
+			mutator.reset();
+
+			rawData = { singlePressKeys: ['KEY'], touches: [] };
+			newUserInput(rawData, undefined, gameId, mode);
+			update(state, 16);
+
 			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);

@@ -3,29 +3,41 @@
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
 var logger = require('./logging/logger.js').logger;
-var defaults = {
-  logLevel: 'info',
-  silencedPlugins: require('./conf/silence-logging-from-these-plugins')
-};
+var defaults = require('lodash').defaults;
+var defaultConfig = require('../config/defaults.json');
 
-var logSilence;
-try {
-  var config = require(appRoot + '/config.json');
-  logSilence = config.silencedPlugins || defaults.silencedPlugins;
-  logger.logLevel = config.logLevel || defaults.logLevel;
-} catch (error) {
-  logger.info('Loading default plugins to silence.');
-  logger.logLevel = defaults.logLevel;
-  logSilence = defaults.silencedPlugins;
+function getConfig() {
+  var config = {};
+
+  try {
+    config = require(appRoot + '/config.json');
+    logger.info('Using custom config.');
+  } catch (error) {
+    logger.info('Not using custom config.');
+  }
+
+  config = defaults(config, defaultConfig);
+  logger.info(config, 'Initial Configuration');
+
+  return config;
 }
-logger.info('Log level to be set to: ' + logger.logLevel);
+
+var config = getConfig();
+logger.logLevel = config.logging.logLevel;
 
 var plugins = require('plug-n-play').configure(
   logger,
   require('./conf/array-plugins'),
   require('./conf/default-mode-plugins'),
-  logSilence
+  config.logging.silencedPlugins
 );
+
+plugins.load({
+  type: 'Config',
+  func: function() {
+    return config;
+  }
+});
 
 plugins.load(require('./server.js'));
 plugins.load(require('./input/input_handler.js'));
@@ -42,6 +54,10 @@ plugins.load(require('./events/on_observer_disconnected.js'));
 plugins.load(require('./state/initialiser.js'));
 plugins.load(require('./state/seed.js'));
 plugins.load(require('./state/games.js'));
+plugins.load(require('./debug/input_state.js'));
+plugins.load(require('./debug/mouse_action_map.js'));
+plugins.load(require('./debug/key_action_map.js'));
+plugins.load(require('./debug/touch_action_map.js'));
 
 function run (pathToGame, modes) {
   plugins.get('HttpServer').start(pathToGame, modes);

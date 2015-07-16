@@ -157,7 +157,7 @@ module.exports = {
         });
 
         var onInput = createOnInputFunction(gameId, socket.id, mode);
-        socket.on('input', addLoggingToEventCallback(socketInfo, 'input', onInput));
+        socket.on('input', onInput);
 
         socket.emit('initialState', rawStateAccess().for(gameId));
 

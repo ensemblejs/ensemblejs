@@ -1,0 +1,30 @@
+{
+  "logging": {
+    "logLevel": "warn",
+    "silencedPlugins": [
+      "GamesList",
+      "ServerSideUpdate",
+      "StateAccess",
+      "RawStateAccess",
+      "StateMutator",
+      "OnInput",
+      "NewState"
+    ],
+    "expressBunyanLogger": {
+      "excludes": [
+        "req",
+        "res",
+        "res-headers",
+        "response-hrtime",
+        "short-body",
+        "req-headers",
+        "incoming",
+        "req_id",
+        "body"
+      ]
+    }
+  },
+  "debug": {
+    "inputOverlay": true
+  }
+}

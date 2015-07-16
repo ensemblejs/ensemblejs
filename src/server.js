@@ -8,8 +8,8 @@ var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'HttpServer',
-  deps: ['SocketServer'],
-  func: function (configureServerSockets) {
+  deps: ['SocketServer', 'Config'],
+  func: function (configureServerSockets, config) {
     var extension = '.jade';
     var server;
 
@@ -18,17 +18,7 @@ module.exports = {
 
       app.use(expressBunyanLogger({
         logger: logger,
-        excludes: [
-          'req',
-          'res',
-          'res-headers',
-          'response-hrtime',
-          'short-body',
-          'req-headers',
-          'incoming',
-          'req_id',
-          'body'
-        ]
+        excludes: config().logging.expressBunyanLogger.excludes
       }));
       app.use(expressBunyanLogger.errorLogger({
         logger: logger
@@ -70,6 +60,10 @@ module.exports = {
     }
 
     function configureRoutes (app, modes) {
+      app.get('/config', function (req, res) {
+        res.json(config());
+      });
+
       if (modes.length > 0) {
         configureMultiModeGame(app);
       } else {

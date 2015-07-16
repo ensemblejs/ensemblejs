@@ -9,6 +9,15 @@ var socketSupport = {
 	start: sinon.spy(),
 	stop: sinon.spy()
 };
+var config = {
+	logging: {
+		logLevel: 'info',
+		expressBunyanLogger: {
+			excludes: []
+		}
+	}
+};
+
 
 describe('configuring the routes', function () {
 	var io;
@@ -19,7 +28,7 @@ describe('configuring the routes', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = require('../../src/server').func(deferDep(socketSupport));
+		server = require('../../src/server').func(deferDep(socketSupport), deferDep(config));
 	});
 
 	describe('when the modes are not supplied', function () {

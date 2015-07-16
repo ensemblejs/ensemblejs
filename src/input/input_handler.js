@@ -25,9 +25,11 @@ module.exports = {
 				each(applicableActionMaps, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					if (actionMap[key] === undefined) { return; }
+					var ignoreCaseKey = key.toLowerCase();
 
-					each(actionMap[key], function(action) {
+					if (actionMap[ignoreCaseKey] === undefined) { return; }
+
+					each(actionMap[ignoreCaseKey], function(action) {
 						if (action.onRelease) { return; }
 
 						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
@@ -39,9 +41,11 @@ module.exports = {
 				each(applicableActionMaps, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					if (actionMap[key] === undefined) { return; }
+					var ignoreCaseKey = key.toLowerCase();
 
-					each(actionMap[key], function(action) {
+					if (actionMap[ignoreCaseKey] === undefined) { return; }
+
+					each(actionMap[ignoreCaseKey], function(action) {
 						if (!action.onRelease) { return; }
 
 						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
@@ -172,12 +176,12 @@ module.exports = {
 
 				var logData = {
 					processed: lengthOfInputStackAtStart,
-					newInput: userInput.length - lengthOfInputStackAtStart
+					newInput: userInput.length
 				};
 
 				logger().info(logData, 'ServerSideUpdate::ProcessPendingInput - done');
 
-				if (logData.newInput < logData.processed) {
+				if (logData.newInput > logData.processed) {
 					logger().warn('More input was received than we processed.');
 				}
 			}

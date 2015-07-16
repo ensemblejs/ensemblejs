@@ -18,6 +18,14 @@ var expressServer = {
 };
 var server;
 var favicon = sinon.spy();
+var config = {
+	logging: {
+		logLevel: 'info',
+		expressBunyanLogger: {
+			excludes: []
+		}
+	}
+};
 
 describe('starting the server', function () {
 	beforeEach(function () {
@@ -28,7 +36,7 @@ describe('starting the server', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = require('../../src/server').func(deferDep(socketServer));
+		server = require('../../src/server').func(deferDep(socketServer), deferDep(config));
 		server.start('../game', modes);
 	});
 
@@ -64,7 +72,7 @@ describe('stopping the server', function () {
 		io.of = sinon.spy();
 		http.createServer = function() { return expressServer; };
 
-		server = require('../../src/server').func(deferDep(socketServer));
+		server = require('../../src/server').func(deferDep(socketServer), deferDep(config));
 		server.start('../game', modes);
 		server.stop();
 	});
