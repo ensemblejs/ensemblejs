@@ -1,6 +1,6 @@
 {
   "name": "ensemblejs",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "Ensemble server for the ensemble game framework",
   "main": "src/facade.js",
   "repository": {
