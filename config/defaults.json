@@ -25,6 +25,6 @@
     }
   },
   "debug": {
-    "inputOverlay": true
+    "inputOverlay": false
   }
 }
