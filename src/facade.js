@@ -57,6 +57,7 @@ plugins.load(require('./state/games.js'));
 plugins.load(require('./debug/input_state.js'));
 plugins.load(require('./debug/mouse_action_map.js'));
 plugins.load(require('./debug/key_action_map.js'));
+plugins.load(require('./debug/anchor_action_map.js'));
 plugins.load(require('./debug/touch_action_map.js'));
 
 function run (pathToGame, modes) {
