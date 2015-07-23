@@ -12,6 +12,8 @@ var model = {
 	noEvent: sinon.spy(),
 	keyEvent: sinon.spy(),
 	keyPressEvent: sinon.spy(),
+	keyModCtrl: sinon.spy(),
+	keyPressModCtrl: sinon.spy(),
 	mouseDownEvent: sinon.spy(),
 	mouseClickEvent: sinon.spy(),
 	touchEvent: sinon.spy(),
@@ -44,6 +46,8 @@ describe('Input Bindings', function() {
 		model.noEvent.reset();
 		model.keyEvent.reset();
 		model.keyPressEvent.reset();
+		model.keyModCtrl.reset();
+		model.keyPressModCtrl.reset();
 		model.mouseDownEvent.reset();
 		model.mouseClickEvent.reset();
 		model.touchEvent.reset();
@@ -56,7 +60,9 @@ describe('Input Bindings', function() {
 		actions = [['*'], {
 			'key': [
 				{target: model.keyEvent, noEventKey: 'model'},
-				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model'}
+				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model'},
+				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl']},
+				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl']},
 			],
 			'button1': [
 				{target: model.mouseDownEvent, noEventKey: 'model'},
@@ -115,11 +121,13 @@ describe('Input Bindings', function() {
 
 	describe('when key input is received', function() {
 		beforeEach(function() {
-			rawData = { keys: ['key'], touches: [] };
+			rawData = { keys: [{key: 'key'}], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
 
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
+			model.keyModCtrl.reset();
+			model.keyPressModCtrl.reset();
 			mutator.reset();
 		});
 
@@ -141,19 +149,48 @@ describe('Input Bindings', function() {
 			model.keyPressEvent.reset();
 			mutator.reset();
 
-			rawData = { keys: ['KEY'], touches: [] };
+			rawData = { keys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
 			update(state, 16);
 
 			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
+			expect(mutator.called).toBe(true);
+		});
+
+		it('should not call bindings w/ modifiers if no modifier pressed', function () {
+
+			update(state, 16);
+
+			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(model.keyModCtrl.called).toBe(false);
+			expect(model.keyPressModCtrl.called).toBe(false);
+			expect(mutator.called).toBe(true);
+		});
+
+		it('should only call bindings w/ modifiers if modifier pressed', function () {
+			update(state, 16);
+			model.keyEvent.reset();
+			model.keyPressEvent.reset();
+			model.keyModCtrl.reset();
+			mutator.reset();
+
+			rawData = { keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
+			newUserInput(rawData, undefined, gameId, mode);
+			update(state, 16);
+
+			expect(model.keyEvent.called).toBe(false);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(model.keyModCtrl.called).toBe(true);
+			expect(model.keyPressModCtrl.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
 	});
 
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
-			rawData = { singlePressKeys: ['key'], touches: [] };
+			rawData = { singlePressKeys: [{key: 'key'}], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 
@@ -175,7 +212,7 @@ describe('Input Bindings', function() {
 			model.keyPressEvent.reset();
 			mutator.reset();
 
-			rawData = { singlePressKeys: ['KEY'], touches: [] };
+			rawData = { singlePressKeys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
 			update(state, 16);
 
@@ -183,11 +220,40 @@ describe('Input Bindings', function() {
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
+
+		it('should not call bindings w/ modifiers if no modifier pressed', function () {
+			update(state, 16);
+
+			expect(model.keyEvent.called).toBe(false);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyModCtrl.called).toBe(false);
+			expect(model.keyPressModCtrl.called).toBe(false);
+			expect(mutator.called).toBe(true);
+		});
+
+		it('should only call bindings w/ modifiers if modifier pressed', function () {
+			update(state, 16);
+			model.keyEvent.reset();
+			model.keyPressEvent.reset();
+			model.keyModCtrl.reset();
+			model.keyPressModCtrl.reset();
+			mutator.reset();
+
+			rawData = { singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
+			newUserInput(rawData, undefined, gameId, mode);
+			update(state, 16);
+
+			expect(model.keyEvent.called).toBe(false);
+			expect(model.keyPressEvent.called).toBe(false);
+			expect(model.keyModCtrl.called).toBe(false);
+			expect(model.keyPressModCtrl.called).toBe(true);
+			expect(mutator.called).toBe(true);
+		});
 	});
 
 	describe('when key input is recieved but not bound', function () {
 		beforeEach(function() {
-			rawData = { keys: ['notBound'], singlePressKeys: ['notBound'], touches: [{id: 0, x: 4, y: 5}] };
+			rawData = { keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 
@@ -220,7 +286,7 @@ describe('Input Bindings', function() {
 
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
-			rawData = { keys: ['key'], touches: [{id: 1, x: 4, y: 5}] };
+			rawData = { keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 
@@ -261,7 +327,7 @@ describe('Input Bindings', function() {
 
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
-			rawData = { singlePressKeys: ['button1'], touches: [] };
+			rawData = { singlePressKeys: [{key: 'button1'}], touches: [] };
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 

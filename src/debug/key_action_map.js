@@ -1,4 +1,4 @@
-  'use strict';
+'use strict';
 
 var each = require('lodash').each;
 var reject = require('lodash').reject;
@@ -40,14 +40,35 @@ function MapAllKeys (config) {
     return {};
   }
 
-  var keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'delete', 'tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', ',', 'enter', 'left-shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'right-shift', 'control', 'alt/option', 'command', 'space', 'left', 'right', 'up', 'down', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12'];
+  var keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'delete', 'tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', ',', 'enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'command', 'space', 'left', 'right', 'up', 'down', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12', 'escape', 'caps'];
+
+  var modifiers = [
+    ['ctrl'], ['alt'], ['shift'],
+    ['ctrl', 'alt'], ['ctrl', 'shift'], ['alt', 'shift'],
+    ['ctrl', 'alt', 'shift']
+  ];
 
   var actionMap = {
     nothing: []
   };
+
   each(keys, function(key) {
     actionMap[key] = [{target: createKeyDownFunc(key), noEventKey: key}];
     actionMap.nothing.push({target: createKeyUpFunc(key), noEventKey: key});
+
+    each(modifiers, function(modifier) {
+      var modifiedKey = modifier.join('_') + '_' + key;
+
+      actionMap[key].push({
+        target: createKeyDownFunc(modifiedKey),
+        noEventKey: modifiedKey,
+        modifiers: modifier
+      });
+      actionMap.nothing.push({
+        target: createKeyUpFunc(modifiedKey),
+        noEventKey: modifiedKey
+      });
+    })
   });
 
   return actionMap;

@@ -5,6 +5,7 @@ var filter = require('lodash').filter;
 var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
+var xor = require('lodash').xor;
 
 function isApplicable (mode, callback) {
   return intersection(['*', mode], first(callback)).length > 0;
@@ -21,32 +22,53 @@ module.exports = {
         return isApplicable(currentInput.mode, actionMap);
       });
 
-			each(currentInput.rawData.keys, function(key) {
+			each(currentInput.rawData.keys, function(keyInfo) {
+				var ignoreCaseKey = keyInfo.key.toLowerCase();
+
+				//TODO: replace with select
 				each(applicableActionMaps, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					var ignoreCaseKey = key.toLowerCase();
+					if (actionMap[ignoreCaseKey] === undefined) {
+						return;
+					}
 
-					if (actionMap[ignoreCaseKey] === undefined) { return; }
-
+					//TODO: replace with select
 					each(actionMap[ignoreCaseKey], function(action) {
-						if (action.onRelease) { return; }
+						if (action.onRelease) {
+							return;
+						}
 
-						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
+						action.modifiers = action.modifiers || [];
+						if (xor(action.modifiers, keyInfo.modifiers).length > 0) {
+							return;
+						}
+
+						stateMutator()(
+							currentInput.gameId,
+							callback(action.target, action.noEventKey)
+						);
 					});
 				});
 			});
 
-			each(currentInput.rawData.singlePressKeys, function(key) {
+			each(currentInput.rawData.singlePressKeys, function(keyInfo) {
 				each(applicableActionMaps, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					var ignoreCaseKey = key.toLowerCase();
+					var ignoreCaseKey = keyInfo.key.toLowerCase();
 
 					if (actionMap[ignoreCaseKey] === undefined) { return; }
 
 					each(actionMap[ignoreCaseKey], function(action) {
-						if (!action.onRelease) { return; }
+						if (!action.onRelease) {
+							return;
+						}
+
+						action.modifiers = action.modifiers || [];
+						if (xor(action.modifiers, keyInfo.modifiers).length > 0) {
+							return;
+						}
 
 						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
 					});
