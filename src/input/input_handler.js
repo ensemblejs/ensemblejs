@@ -2,10 +2,12 @@
 
 var each = require('lodash').each;
 var filter = require('lodash').filter;
+var reject = require('lodash').reject;
 var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
 var xor = require('lodash').xor;
+var map = require('lodash').map;
 
 function isApplicable (mode, callback) {
   return intersection(['*', mode], first(callback)).length > 0;
@@ -22,58 +24,39 @@ module.exports = {
         return isApplicable(currentInput.mode, actionMap);
       });
 
-			each(currentInput.rawData.keys, function(keyInfo) {
-				var ignoreCaseKey = keyInfo.key.toLowerCase();
+      function callKeyAction(action) {
+				stateMutator()(
+					currentInput.gameId,
+					callback(action.target, action.noEventKey)
+				);
+			}
 
-				//TODO: replace with select
-				each(applicableActionMaps, function(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
-
-					if (actionMap[ignoreCaseKey] === undefined) {
-						return;
-					}
-
-					//TODO: replace with select
-					each(actionMap[ignoreCaseKey], function(action) {
-						if (action.onRelease) {
-							return;
-						}
-
-						action.modifiers = action.modifiers || [];
-						if (xor(action.modifiers, keyInfo.modifiers).length > 0) {
-							return;
-						}
-
-						stateMutator()(
-							currentInput.gameId,
-							callback(action.target, action.noEventKey)
-						);
-					});
-				});
-			});
-
-			each(currentInput.rawData.singlePressKeys, function(keyInfo) {
-				each(applicableActionMaps, function(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
-
+			function processKeys (keyData, rejectOrSelect) {
+				each(keyData, function(keyInfo) {
 					var ignoreCaseKey = keyInfo.key.toLowerCase();
 
-					if (actionMap[ignoreCaseKey] === undefined) { return; }
-
-					each(actionMap[ignoreCaseKey], function(action) {
-						if (!action.onRelease) {
+					each(applicableActionMaps, function(actionMapDefinition) {
+						var actionMap = last(actionMapDefinition);
+						if (actionMap[ignoreCaseKey] === undefined) {
 							return;
 						}
 
-						action.modifiers = action.modifiers || [];
-						if (xor(action.modifiers, keyInfo.modifiers).length > 0) {
-							return;
-						}
+						var suitableActions = rejectOrSelect(actionMap[ignoreCaseKey], 'onRelease');
+						suitableActions = map(suitableActions, function (action) {
+							action.modifiers = action.modifiers || [];
+							return action;
+						});
+						var matchingModifiers = reject(suitableActions, function(action) {
+							return (xor(action.modifiers, keyInfo.modifiers).length > 0);
+						});
 
-						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey));
+						each(matchingModifiers, callKeyAction);
 					});
 				});
-			});
+			}
+
+			processKeys(currentInput.rawData.keys, reject);
+			processKeys(currentInput.rawData.singlePressKeys, filter);
 		};
 
 		var parseMouse = function(currentInput, callback) {
@@ -209,6 +192,14 @@ module.exports = {
 			}
 
  			return ProcessPendingInput;
+		});
+
+		definePlugin()('InternalState', function () {
+			return {
+				OnInput: {
+					queueLength: function () { return userInput.length; }
+				}
+			};
 		});
 
 		return function(rawData, timestamp, gameId, mode) {

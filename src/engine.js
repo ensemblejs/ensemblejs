@@ -23,11 +23,11 @@ module.exports = {
 
     var update = function(dt) {
       each(reject(games().all(), pausedGames), function(game) {
-        var gameState = state().for(game.id);
         var callbacksForGame = select(serverSideUpdate(), function(callback) {
           return isApplicable(game.mode, callback);
         });
 
+        var gameState = state().for(game.id);
         each(callbacksForGame, function(callback) {
           mutator()(game.id, getFuncOf(callback)(gameState, dt, game.id));
         });

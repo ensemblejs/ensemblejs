@@ -59,6 +59,10 @@ function MapAllKeys (config) {
     each(modifiers, function(modifier) {
       var modifiedKey = modifier.join('_') + '_' + key;
 
+      if (modifiedKey === 'ctrl_tab' || modifiedKey === 'ctrl_shift_tab') {
+        return;
+      }
+
       actionMap[key].push({
         target: createKeyDownFunc(modifiedKey),
         noEventKey: modifiedKey,
@@ -68,7 +72,7 @@ function MapAllKeys (config) {
         target: createKeyUpFunc(modifiedKey),
         noEventKey: modifiedKey
       });
-    })
+    });
   });
 
   return actionMap;

@@ -1,6 +1,7 @@
 [
     "AcknowledgementMap",
     "ActionMap",
+    "InternalState",
     "OnConnect",
     "OnDisonnect",
     "OnInput",
@@ -11,5 +12,6 @@
     "OnPlayerDisconnect",
     "OnUnpause",
     "ServerSideUpdate",
-    "StateSeed"
+    "StateSeed",
+    "Validator"
 ]
