@@ -28,6 +28,9 @@
     "node": "latest",
     "npm": "latest"
   },
+  "peerDependencies": {
+    "ensemblejs-client": ">= 2.2.0"
+  },
   "dependencies": {
     "app-root-path": "^1.0.0",
     "body-parser": "^1.13.2",
