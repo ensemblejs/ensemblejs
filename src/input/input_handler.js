@@ -25,6 +25,7 @@ module.exports = {
 		var filename = logger().filename(__filename, __dirname);
 
 		var userInput = [];
+		var lowestInputProcessed = {};
 
 		function parseKeysAndKeypresses (currentInput, callback) {
 			logger().called(arguments, filename, parseKeysAndKeypresses);
@@ -191,6 +192,8 @@ module.exports = {
 
 					var applicableActionMaps = select(actionMaps(), isActionMapApplicable);
 					each(applicableActionMaps, doSomethingWithActionMaps);
+
+					lowestInputProcessed[currentInput.gameId] = currentInput.rawData.id;
 				}
 
 				var logData = {
@@ -208,10 +211,16 @@ module.exports = {
  			return ProcessPendingInput;
 		});
 
+		definePlugin()('LowestInputProcessed', function LowestInputProcessed () {
+			return function getFor (gameId) {
+				return lowestInputProcessed[gameId];
+			};
+		});
+
 		definePlugin()('InternalState', function () {
 			return {
 				OnInput: {
-					queueLength: function () { return userInput.length; }
+					queueLength: function () { return userInput.length; },
 				}
 			};
 		});

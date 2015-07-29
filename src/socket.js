@@ -16,9 +16,9 @@ function isApplicable (mode, callback) {
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger', 'Config'],
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed'],
   //jshint maxparams: false
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state, logger, config) {
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state, logger, config, lowestInputProcessed) {
 
     var io;
     var statistics = {};
@@ -42,6 +42,7 @@ module.exports = {
         lastPacket = cloneDeep(packet);
 
         packet.id = sequence.next('server-origin-messages');
+        packet.highestProcessedMessage = lowestInputProcessed()(gameId);
         packet.sentTimestamp = Date.now();
         statistics[socketId].packets.unacked[packet.id] = packet.sentTimestamp;
 
