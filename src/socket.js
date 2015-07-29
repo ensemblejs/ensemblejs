@@ -16,9 +16,9 @@ function isApplicable (mode, callback) {
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger'],
+  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'OnPause', 'OnUnpause', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger', 'Config'],
   //jshint maxparams: false
-  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state, logger) {
+  func: function(acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, onPause, onUnpause, rawStateAccess, stateMutator, initialiseState, games, state, logger, config) {
 
     var io;
     var statistics = {};
@@ -48,7 +48,7 @@ module.exports = {
         socket.emit('updateState', packet);
       };
 
-      setInterval(updateClient, 15);
+      setInterval(updateClient, config().server.pushUpdateFrequency);
     };
 
     var calculateLatency = function (socketId, pendingAcknowledgements) {

@@ -55,6 +55,11 @@ var StateAccess = {
 		return gameState;
 	}
 };
+var config = {
+	server: {
+		pushUpdateFrequency: 33
+	}
+};
 
 var server = {};
 
@@ -67,7 +72,7 @@ var logger = {
 	socket: sinon.spy()
 };
 
-var SocketServer = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess), deferDep(logger));
+var SocketServer = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess), deferDep(logger), deferDep(config));
 
 describe('setting up the socket', function () {
 	beforeEach(function () {
@@ -221,8 +226,8 @@ describe('the client update loop', function () {
 		expect(socket.emit.getCall(2).args[1].sentTimestamp).toNotEqual(undefined);
 	});
 
-	it('should send game state about every 15ms', function() {
-		expect(setInterval.firstCall.args[1]).toEqual(15);
+	it('should send game state based on the configured frequency', function() {
+		expect(setInterval.firstCall.args[1]).toEqual(33);
 	});
 });
 

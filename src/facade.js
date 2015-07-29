@@ -52,7 +52,7 @@ plugins.loadPath(__dirname + '/debug');
 function run (pathToGame, modes) {
   plugins.get('HttpServer').start(pathToGame, modes);
   plugins.get('RunValidations').execute();
-  plugins.get('ServerSideEngine').run(120);
+  plugins.get('ServerSideEngine').run();
 }
 
 function runGameAtPath (path) {

@@ -29,6 +29,9 @@ var gamesList = {
 		];
 	}
 };
+var config = {
+	server: {}
+};
 
 describe('the engine', function() {
 	var engine;
@@ -41,7 +44,7 @@ describe('the engine', function() {
 
 		clock = sinon.useFakeTimers();
 
-		engine = require('../../src/engine.js').func(deferDep([update1, update2]), deferDep(state), deferDep(sinon.spy()), deferDep(gamesList));
+		engine = require('../../src/engine.js').func(deferDep([update1, update2]), deferDep(state), deferDep(sinon.spy()), deferDep(gamesList), deferDep(config));
 	});
 
 	afterEach(function() {

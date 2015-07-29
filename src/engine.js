@@ -13,8 +13,8 @@ function isApplicable (mode, callback) {
 
 module.exports = {
   type: 'ServerSideEngine',
-  deps: ['ServerSideUpdate', 'StateAccess', 'StateMutator', 'GamesList'],
-  func: function (serverSideUpdate, state, mutator, games) {
+  deps: ['ServerSideUpdate', 'StateAccess', 'StateMutator', 'GamesList', 'Config'],
+  func: function (serverSideUpdate, state, mutator, games, config) {
     var priorStepTime = Date.now();
 
     var pausedGames = function(game) {
@@ -44,9 +44,9 @@ module.exports = {
     };
 
     return {
-      run: function(frequency) {
+      run: function() {
         step();
-        return setInterval(step, 1000 / frequency);
+        return setInterval(step, config().server.physicsUpdateLoop);
       }
     };
   }

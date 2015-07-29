@@ -1,4 +1,8 @@
 {
+  "server": {
+    "physicsUpdateLoop": 15,
+    "pushUpdateFrequencyMs": 45
+  },
   "logging": {
     "logLevel": "warn",
     "silencedPlugins": [
