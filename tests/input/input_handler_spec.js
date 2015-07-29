@@ -33,8 +33,11 @@ var gameId = 1;
 var mode = 'arcade';
 
 var logger = {
+	filename: sinon.spy(),
+	debug: sinon.spy(),
 	info: sinon.spy(),
-	warn: sinon.spy()
+	warn: sinon.spy(),
+	called: sinon.spy()
 };
 
 describe('Input Bindings', function() {

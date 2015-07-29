@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var filter = require('lodash').filter;
+var select = require('lodash').select;
 var reject = require('lodash').reject;
 var intersection = require('lodash').intersection;
 var first = require('lodash').first;
@@ -13,54 +13,68 @@ function isApplicable (mode, callback) {
   return intersection(['*', mode], first(callback)).length > 0;
 }
 
+function ensureMapHasModifiers(action) {
+	action.modifiers = action.modifiers || [];
+	return action;
+}
+
 module.exports = {
 	type: 'OnInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
 	func: function(actionMaps, definePlugin, stateMutator, logger) {
+		var filename = logger().filename(__filename, __dirname);
+
 		var userInput = [];
 
-		var parseKeysAndKeypresses = function(currentInput, callback) {
-			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
-        return isApplicable(currentInput.mode, actionMap);
-      });
+		function parseKeysAndKeypresses (currentInput, callback) {
+			logger().called(arguments, filename, parseKeysAndKeypresses);
 
-      function callKeyAction(action) {
+			function withMode (actionMap) {
+				return isApplicable(currentInput.mode, actionMap);
+			}
+
+      function invokeCallback(action) {
+      	logger().called(arguments, filename, invokeCallback);
+
 				stateMutator()(
 					currentInput.gameId,
 					callback(action.target, action.noEventKey)
 				);
 			}
 
+			var amWithMode = select(actionMaps(), withMode);
+
 			function processKeys (keyData, rejectOrSelect) {
-				each(keyData, function(keyInfo) {
+				logger().called(arguments, filename, processKeys);
+
+				each(keyData, function processKey(keyInfo) {
+					function whereModifiersDoNotMatch(action) {
+						return (xor(action.modifiers, keyInfo.modifiers).length > 0);
+					}
+
 					var ignoreCaseKey = keyInfo.key.toLowerCase();
 
-					each(applicableActionMaps, function(actionMapDefinition) {
-						var actionMap = last(actionMapDefinition);
-						if (actionMap[ignoreCaseKey] === undefined) {
+					each(amWithMode, function (actionMap) {
+						var keyMap = last(actionMap)[ignoreCaseKey];
+						if (keyMap === undefined) {
 							return;
 						}
 
-						var suitableActions = rejectOrSelect(actionMap[ignoreCaseKey], 'onRelease');
-						suitableActions = map(suitableActions, function (action) {
-							action.modifiers = action.modifiers || [];
-							return action;
-						});
-						var matchingModifiers = reject(suitableActions, function(action) {
-							return (xor(action.modifiers, keyInfo.modifiers).length > 0);
-						});
+						var suitableActions = rejectOrSelect(keyMap, 'onRelease');
+						suitableActions = map(suitableActions, ensureMapHasModifiers);
+						var matching = reject(suitableActions, whereModifiersDoNotMatch);
 
-						each(matchingModifiers, callKeyAction);
+						each(matching, invokeCallback);
 					});
 				});
 			}
 
 			processKeys(currentInput.rawData.keys, reject);
-			processKeys(currentInput.rawData.singlePressKeys, filter);
-		};
+			processKeys(currentInput.rawData.singlePressKeys, select);
+		}
 
 		var parseMouse = function(currentInput, callback) {
-			var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+			var applicableActionMaps = select(actionMaps(), function(actionMap) {
         return isApplicable(currentInput.mode, actionMap);
       });
 
@@ -81,7 +95,7 @@ module.exports = {
 			each(currentInput.rawData.touches, function(touch) {
 				var key = 'touch' + touch.id;
 
-				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+				var applicableActionMaps = select(actionMaps(), function(actionMap) {
 	        return isApplicable(currentInput.mode, actionMap);
 	      });
 
@@ -101,7 +115,7 @@ module.exports = {
 			each(['leftStick', 'rightStick'], function(key) {
 				if (currentInput.rawData[key] === undefined) {return;}
 
-				var applicableActionMaps = filter(actionMaps(), function(actionMap) {
+				var applicableActionMaps = select(actionMaps(), function(actionMap) {
 	        return isApplicable(currentInput.mode, actionMap);
 	      });
 
@@ -175,7 +189,7 @@ module.exports = {
 					parseSticks(currentInput, stickCallback);
 					parseMouse(currentInput, mouseCallback);
 
-					var applicableActionMaps = filter(actionMaps(), isActionMapApplicable);
+					var applicableActionMaps = select(actionMaps(), isActionMapApplicable);
 					each(applicableActionMaps, doSomethingWithActionMaps);
 				}
 
@@ -184,7 +198,7 @@ module.exports = {
 					newInput: userInput.length
 				};
 
-				logger().info(logData, 'ServerSideUpdate::ProcessPendingInput - done');
+				logger().debug(logData, 'ServerSideUpdate::ProcessPendingInput - done');
 
 				if (logData.newInput > logData.processed) {
 					logger().warn('More input was received than we processed.');
@@ -202,7 +216,9 @@ module.exports = {
 			};
 		});
 
-		return function(rawData, timestamp, gameId, mode) {
+		return function handle(rawData, timestamp, gameId, mode) {
+			logger().called(arguments, filename, handle);
+
 			userInput.push({
 				rawData: rawData,
 				timestamp: timestamp,

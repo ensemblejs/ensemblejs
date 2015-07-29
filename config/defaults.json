@@ -7,8 +7,9 @@
       "StateAccess",
       "RawStateAccess",
       "StateMutator",
-      "OnInput",
-      "NewState"
+      "NewState",
+      "CurrentState",
+      "OnInput"
     ],
     "expressBunyanLogger": {
       "excludes": [
@@ -20,7 +21,9 @@
         "req-headers",
         "incoming",
         "req_id",
-        "body"
+        "body",
+        "user-agent",
+        "os"
       ]
     }
   },
