@@ -3,7 +3,7 @@
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
 var logger = require('./logging/logger.js').logger;
-var defaults = require('lodash').defaults;
+var defaultsDeep = require('lodash').defaultsDeep;
 var defaultConfig = require('../config/defaults.json');
 
 function getConfig() {
@@ -16,7 +16,7 @@ function getConfig() {
     logger.info('Not using custom config.');
   }
 
-  config = defaults(config, defaultConfig);
+  config = defaultsDeep(config, defaultConfig);
   logger.info(config, 'Initial Configuration');
 
   return config;
