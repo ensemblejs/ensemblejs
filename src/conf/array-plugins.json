@@ -11,7 +11,7 @@
     "OnPlayerConnect",
     "OnPlayerDisconnect",
     "OnUnpause",
-    "ServerSideUpdate",
+    "OnPhysicsFrame",
     "StateSeed",
     "Validator"
 ]

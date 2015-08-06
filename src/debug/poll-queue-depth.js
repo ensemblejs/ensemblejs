@@ -6,7 +6,7 @@ var reduce = require('lodash').reduce;
 var map = require('lodash').map;
 
 module.exports = {
-  type: 'ServerSideUpdate',
+  type: 'OnPhysicsFrame',
   deps: ['InternalState'],
   func: function PollQueueDepth (internalState) {
     function update () {

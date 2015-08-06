@@ -48,6 +48,7 @@ module.exports = {
       };
     });
 
+    //TODO: move this out as it could be it's own plugin
     definePlugin()('NewState', function () {
       return {
         create: function(namespace, data) {

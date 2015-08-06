@@ -16,7 +16,7 @@ module.exports = {
       });
     };
 
-    definePlugin()('ServerSideUpdate', function() {
+    definePlugin()('OnPhysicsFrame', function() {
       return function (state, dt, gameId) {
         each(effects, function (effect) {
           effect.tick(state, dt, gameId);

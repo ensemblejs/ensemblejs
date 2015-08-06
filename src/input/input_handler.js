@@ -133,7 +133,7 @@ module.exports = {
 			});
 		};
 
-		definePlugin()('ServerSideUpdate', function () {
+		definePlugin()('OnPhysicsFrame', function () {
 			function ProcessPendingInput (state, delta) {
 				var currentInput;
 				var somethingHasReceivedInput;
@@ -201,7 +201,7 @@ module.exports = {
 					newInput: userInput.length
 				};
 
-				logger().debug(logData, 'ServerSideUpdate::ProcessPendingInput - done');
+				logger().debug(logData, 'OnPhysicsFrame::ProcessPendingInput - done');
 
 				if (logData.newInput > logData.processed) {
 					logger().warn('More input was received than we processed.');

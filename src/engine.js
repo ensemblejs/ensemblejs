@@ -13,8 +13,8 @@ function isApplicable (mode, callback) {
 
 module.exports = {
   type: 'ServerSideEngine',
-  deps: ['ServerSideUpdate', 'StateAccess', 'StateMutator', 'GamesList', 'Config'],
-  func: function (serverSideUpdate, state, mutator, games, config) {
+  deps: ['OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config'],
+  func: function (onPhysicsFrame, state, mutator, games, config) {
     var priorStepTime = Date.now();
 
     var pausedGames = function(game) {
@@ -23,7 +23,7 @@ module.exports = {
 
     var update = function(dt) {
       each(reject(games().all(), pausedGames), function(game) {
-        var callbacksForGame = select(serverSideUpdate(), function(callback) {
+        var callbacksForGame = select(onPhysicsFrame(), function(callback) {
           return isApplicable(game.mode, callback);
         });
 

@@ -1,8 +1,9 @@
 'use strict';
 
+//TODO: move to common library
 module.exports = {
-  type: 'IntervalServerSideUpdate',
-  func: function IntervalServerSideUpdate () {
+  type: 'Interval',
+  func: function Interval () {
     var millisPerSecond = 1000;
     var secondsPerMinute = 60;
     var minutesPerHour = 60;
@@ -13,8 +14,6 @@ module.exports = {
 
       return function (state, delta) {
         timeSinceLast += delta;
-
-        console.log(timeSinceLast, delta, frequency);
 
         if (timeSinceLast >= frequency) {
           callback(state, delta);
