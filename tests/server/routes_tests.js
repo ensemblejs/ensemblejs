@@ -4,7 +4,7 @@ var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
 
-var deferDep = require('../helpers.js').deferDep;
+var defer = require('../support').defer;
 var socketSupport = {
 	start: sinon.spy(),
 	stop: sinon.spy()
@@ -28,7 +28,7 @@ describe('configuring the routes', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = require('../../src/server').func(deferDep(socketSupport), deferDep(config));
+		server = require('../../src/core/server/web-server').func(defer(socketSupport), defer(config));
 	});
 
 	describe('when the modes are not supplied', function () {

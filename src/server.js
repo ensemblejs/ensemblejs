@@ -1,99 +1,81 @@
 'use strict';
 
-var compression = require('compression');
-var express = require('express');
-var favicon = require('serve-favicon');
-var logger = require('./logging/logger.js').logger;
-var expressBunyanLogger = require('express-bunyan-logger');
+var appRoot = require('app-root-path');
+var defaultsDeep = require('lodash').defaultsDeep;
+var packageInfo = require(appRoot + '/package.json');
+var logger = require('./logging/server/logger.js').logger;
+
+function getConfig() {
+  var config = {};
+
+  try {
+    config = require(appRoot + '/config.json');
+    logger.info('Using custom config.');
+  } catch (error) {
+    logger.info('Not using custom config.');
+  }
+
+  config = defaultsDeep(config, require('../config/defaults.json'));
+  logger.info(config, 'Initial Configuration');
+
+  return config;
+}
+
+var config = getConfig();
+logger.logLevel = config.logging.logLevel;
+
+//TODO: pull this stuff from the config files
+var plugins = require('./plugins/plug-n-play').configure(
+  logger,
+  require('./conf/array-plugins'),
+  require('./conf/default-mode-plugins'),
+  config.logging.silencedPlugins
+);
+
+plugins.load({ type: 'Config', func: function Config () { return config; }});
+
+//TODO: solve the ordering problem
+plugins.load(require('./metrics/profiler'));
+
+plugins.load(require('./jobs/job_manager.js'));
+plugins.load(require('./socket/server.js'));
+plugins.loadPath(__dirname + '/loops/shared');
+plugins.loadPath(__dirname + '/loops/server');
+plugins.loadPath(__dirname + '/core/shared');
+plugins.loadPath(__dirname + '/core/server');
+plugins.loadPath(__dirname + '/input/shared');
+plugins.loadPath(__dirname + '/input/server');
+plugins.loadPath(__dirname + '/events/shared');
+plugins.loadPath(__dirname + '/events/server');
+plugins.loadPath(__dirname + '/state/shared');
+plugins.loadPath(__dirname + '/state/server');
+plugins.loadPath(__dirname + '/validators');
+plugins.loadPath(__dirname + '/debug/shared');
+plugins.loadPath(__dirname + '/debug/server');
+
+function run (pathToGame, modes) {
+  plugins.get('HttpServer').start(pathToGame, modes);
+  plugins.get('RunValidations').execute();
+  plugins.get('ServerSideEngine').run();
+}
+
+function runGameAtPath (path) {
+  logger.info('ensemblejs@' + packageInfo.version + ' started.');
+
+  plugins.loadPath(path + '/js/logic');
+  plugins.loadPath(path + '/js/state');
+  plugins.loadPath(path + '/js/events');
+  plugins.loadPath(path + '/js/maps');
+
+  require('fs').exists(path + '/js/modes.json', function (exists) {
+    if (exists) {
+      run(path, require(path + '/js/modes.json'));
+    } else {
+      run(path, []);
+    }
+  });
+}
 
 module.exports = {
-  type: 'HttpServer',
-  deps: ['SocketServer', 'Config'],
-  func: function (configureServerSockets, config) {
-    var extension = '.jade';
-    var server;
-
-    function configureApp (assetPath) {
-      var app = express();
-
-      app.use(expressBunyanLogger({
-        logger: logger,
-        excludes: config().logging.expressBunyanLogger.excludes
-      }));
-      app.use(expressBunyanLogger.errorLogger({
-        logger: logger
-      }));
-      app.use(compression());
-      app.use('/game', express.static(assetPath));
-      app.use('/ensemble', express.static(__dirname + '/../public/'));
-      app.use(require('morgan')('combined'));
-      app.use(require('body-parser').urlencoded({extended: true }));
-      app.use(require('body-parser').json());
-      app.set('views', ['game/views/pages', __dirname + '/../public/views']);
-      app.set('view options', {layout: false});
-      app.engine('jade', require('jade').__express);
-
-      var pathToFavIcon = process.cwd() + '/game/favicon.ico';
-      if (!require('fs').existsSync(pathToFavIcon)) {
-        pathToFavIcon = __dirname + '/../public/favicon.ico';
-      }
-      app.use(favicon(pathToFavIcon));
-
-      return app;
-    }
-
-    function configureSingleModeGame (app) {
-      app.get('/', function (req, res) {
-        res.render('primary' + extension, { mode: 'game' });
-      });
-    }
-
-    function configureMultiModeGame (app) {
-      app.get('/', function (req, res) {
-        res.render('index' + extension);
-      });
-
-      app.get('/:mode/', function (req, res) {
-        var mode = req.params.mode;
-        res.render('primary' + extension, { mode: mode });
-      });
-    }
-
-    function configureRoutes (app, modes) {
-      app.get('/config', function (req, res) {
-        res.json(config());
-      });
-
-      if (modes.length > 0) {
-        configureMultiModeGame(app);
-      } else {
-        configureSingleModeGame(app);
-      }
-    }
-
-    function start (assetPath, modes) {
-      modes = modes || [];
-
-      var app = configureApp(assetPath);
-      configureRoutes(app, modes);
-
-      server = require('http').createServer(app);
-      server.listen(process.env.PORT || 3000);
-
-      configureServerSockets().start(server, modes);
-    }
-
-    function stop () {
-      configureServerSockets().stop();
-
-      if (server !== undefined) {
-        server.close();
-      }
-    }
-
-    return {
-      start: start,
-      stop: stop
-    };
-  }
+  runGameAtPath: runGameAtPath
 };

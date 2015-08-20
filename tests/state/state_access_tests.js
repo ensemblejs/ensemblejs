@@ -2,12 +2,11 @@
 
 var expect = require('expect');
 
-var deferDep = require('../helpers.js').deferDep;
-var definePlugin = require('../helpers.js').definePlugin;
-var getDefinedPlugin = require('../helpers.js').getDefinedPlugin;
+var defer = require('../support').defer;
+var plugin = require('../support').plugin();
 
-var stateMutator = require('../../src/state/mutator.js').func(deferDep(definePlugin));
-var state = getDefinedPlugin('StateAccess');
+var stateMutator = require('../../src/state/server/mutator').func(defer(plugin.define));
+var state = plugin.deps().StateAccess();
 
 describe('state access', function () {
   beforeEach(function () {
@@ -38,7 +37,7 @@ describe('state access', function () {
 
   it('should not allow state mutation through the access', function () {
     try {
-      //jshint disable
+      //jshint: disable
       state.for(1).for('controller').get('start') = 999;
     } catch (Error) {}
 

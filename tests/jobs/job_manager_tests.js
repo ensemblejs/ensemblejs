@@ -3,13 +3,12 @@
 var sinon = require('sinon');
 var expect = require('expect');
 
-var deferDep = require('../helpers.js').deferDep;
-var definePlugin = require('../helpers.js').definePlugin;
-var getDefinedPlugin = require('../helpers.js').getDefinedPlugin;
+var defer = require('../support.js').defer;
+var plugin = require('../support.js').plugin();
 
 var stateMutator = sinon.spy();
-var manager = require('../../src/jobs/job_manager.js').func(deferDep(definePlugin), deferDep(stateMutator));
-var update = getDefinedPlugin('ServerSideUpdate');
+var manager = require('../../src/jobs/job_manager.js').func(defer(plugin.define), defer(stateMutator));
+var onPhysicsFrame = plugin.deps().OnPhysicsFrame();
 
 describe('the delayed effect manager', function() {
 	var effect1 = sinon.spy();
@@ -23,18 +22,18 @@ describe('the delayed effect manager', function() {
 	it('should allow you to add multiple effects', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update({} ,1);
+		onPhysicsFrame({} ,1);
 		expect(effect1.called).toEqual(true);
 		expect(effect2.called).toEqual(true);
 	});
 
-	it('should update each effect', function() {
+	it('should onPhysicsFrame each effect', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update({}, 0.5);
+		onPhysicsFrame({}, 0.5);
 		expect(effect1.called).toEqual(false);
 		expect(effect2.called).toEqual(false);
-		update({}, 1);
+		onPhysicsFrame({}, 1);
 		expect(effect1.called).toEqual(true);
 		expect(effect2.called).toEqual(true);
 	});
@@ -42,10 +41,10 @@ describe('the delayed effect manager', function() {
 	it('should not call dead effects', function() {
 		manager.add('key', 1, effect1);
 		manager.add('key', 1, effect2);
-		update({}, 1);
+		onPhysicsFrame({}, 1);
 		effect1.reset();
 		effect2.reset();
-		update({}, 1);
+		onPhysicsFrame({}, 1);
 		expect(effect1.called).toEqual(false);
 		expect(effect2.called).toEqual(false);
 	});
@@ -54,7 +53,7 @@ describe('the delayed effect manager', function() {
 		manager.add('key1', 1, effect1);
 		manager.add('key2', 1, effect2);
 		manager.cancelAll();
-		update({}, 1);
+		onPhysicsFrame({}, 1);
 		expect(effect1.called).toEqual(false);
 		expect(effect2.called).toEqual(false);
 	});
@@ -63,7 +62,7 @@ describe('the delayed effect manager', function() {
 		manager.add('key1', 1, effect1);
 		manager.add('key2', 1, effect2);
 		manager.cancelAll('key1');
-		update({}, 1);
+		onPhysicsFrame({}, 1);
 		expect(effect1.called).toEqual(false);
 		expect(effect2.called).toEqual(true);
 	});

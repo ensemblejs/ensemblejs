@@ -5,7 +5,7 @@ var sinon = require('sinon');
 
 var callback = sinon.spy();
 
-var plugin = require('../../src/events/interval-server-side-update').func();
+var plugin = require('../../src/events/shared/interval-server-side-update').func();
 
 describe('callbacks every interval', function () {
   beforeEach(function () {

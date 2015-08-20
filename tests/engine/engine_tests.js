@@ -4,7 +4,7 @@ var assert = require('assert');
 var expect = require('expect');
 var sinon = require('sinon');
 
-var deferDep = require('../helpers.js').deferDep;
+var defer = require('../support.js').defer;
 
 var update1 = [['*'], sinon.spy()];
 var update2 = [['custom'], sinon.spy()];
@@ -44,7 +44,7 @@ describe('the engine', function() {
 
 		clock = sinon.useFakeTimers();
 
-		engine = require('../../src/engine.js').func(deferDep([update1, update2]), deferDep(state), deferDep(sinon.spy()), deferDep(gamesList), deferDep(config));
+		engine = require('../../src/loops/engine.js').func(defer([update1, update2]), defer(state), defer(sinon.spy()), defer(gamesList), defer(config));
 	});
 
 	afterEach(function() {

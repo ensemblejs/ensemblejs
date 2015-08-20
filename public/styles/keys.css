@@ -1,0 +1,33 @@
+@-webkit-keyframes colorPulse {
+  0% { color: white; }
+  50% { color: red; }
+  100% { color: white; }
+}
+
+@-moz-keyframes colorPulse {
+  0% { color: white; }
+  50% { color: red; }
+  100% { color: white; }
+}
+
+@-keyframes colorPulse {
+  0% { color: white; }
+  50% { color: red; }
+  100% { color: white; }
+}
+
+.pre-pulse {
+  color: white;
+}
+
+.pulse {
+  -webkit-animation: colorPulse 1s 1;
+  -moz-animation: colorPulse 1s 1;
+  animation: colorPulse 1s 1;
+}
+
+.keys span {
+  border: 1px solid white;
+  padding: 4px;
+  border-radius: 2px;
+}

@@ -3,10 +3,8 @@
 var sinon = require('sinon');
 var expect = require('expect');
 
-var deferDep = require('../helpers.js').deferDep;
-var definePlugin = require('../helpers.js').definePlugin;
-var getDefinedPlugin = require('../helpers.js').getDefinedPlugin;
-
+var defer = require('../support.js').defer;
+var plugin = require('../support.js').plugin();
 
 var model = {
 	noEvent: sinon.spy(),
@@ -78,8 +76,8 @@ describe('Input Bindings', function() {
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
 		}];
 
-		newUserInput = require('../../src/input/input_handler.js').func(deferDep([actions]), deferDep(definePlugin), deferDep(mutator), deferDep(logger));
-		update = getDefinedPlugin('ServerSideUpdate');
+		newUserInput = require('../../src/input/server/input_handler.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
+		update = plugin.deps().OnPhysicsFrame();
 	});
 
 	afterEach(function () {
@@ -108,8 +106,9 @@ describe('Input Bindings', function() {
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
-				update = getDefinedPlugin('ServerSideUpdate');
+				newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+
+				update = plugin.deps().OnPhysicsFrame();
 
 				mutator.reset();
 			});
@@ -317,7 +316,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7 };
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
+			newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 			newUserInput(rawData, undefined, gameId, mode);
 		});
 
@@ -366,7 +365,7 @@ describe('Input Bindings', function() {
 
 	describe('when stick input is received but not bound', function () {
 		beforeEach(function() {
-			newUserInput = require('../../src/input/input_handler.js').func(deferDep([['*'], {}]), deferDep(definePlugin), deferDep(sinon.spy()), deferDep(logger));
+			newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 			rawData = {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}

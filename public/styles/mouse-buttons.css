@@ -1,0 +1,12 @@
+.mouse-icon {
+  display: inline-block;
+  width: 32px;
+}
+.mouse-button {
+  fill: white;
+  transition: fill 2s ease;
+}
+.pressed {
+  fill: orange;
+  transition: fill 0.5s easy;
+}

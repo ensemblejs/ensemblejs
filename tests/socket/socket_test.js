@@ -3,7 +3,7 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var _ = require('lodash');
-var deferDep = require('../helpers.js').deferDep;
+var deferDep = require('../support.js').defer;
 
 //Stub out socket.io
 var socket = {
@@ -72,7 +72,7 @@ var logger = {
 	socket: sinon.spy()
 };
 
-var SocketServer = require('../../src/socket').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess), deferDep(logger), deferDep(config));
+var SocketServer = require('../../src/socket/server').func(deferDep([ackMap]), deferDep([OnInput]), deferDep([OnPlayerConnect]), deferDep([OnPlayerDisconnect]), deferDep([OnObserverConnect]), deferDep([OnObserverDisconnect]), deferDep([OnPause]), deferDep([OnUnpause]), deferDep(rawStateAccess), deferDep(StateMutator), deferDep(InitialiseState), deferDep(GamesList), deferDep(StateAccess), deferDep(logger), deferDep(config));
 
 describe('setting up the socket', function () {
 	beforeEach(function () {
