@@ -1,35 +1,35 @@
 'use strict';
 
 var clone = require('lodash').clone;
-var present = require('present');
 
 module.exports = {
   type: 'PacketAcknowledgements',
-  func: function PacketAcknowledgements () {
+  deps: ['Time'],
+  func: function PacketAcknowledgements (time) {
     var acks = [];
 
     function reset () {
       acks = [];
     }
 
+    function flush () {
+      var pending = clone(acks);
+
+      reset();
+
+      return pending;
+    }
+
+    function ack (name) {
+      acks.push({
+        timestamp: time().present(),
+        name: name
+      });
+    }
+
     return {
-      flush: function flush () {
-        var pending = clone(acks);
-
-        reset();
-
-        return pending;
-      },
-      add: function add (packetId) {
-        acks.push({
-          id: packetId,
-          rcvdTimestamp: present(),
-          names: []
-        });
-      },
-      ackLast: function ackLast (name) {
-        acks[acks.length - 1].names.push(name);
-      }
+      flush: flush,
+      ack: ack
     };
   }
 };

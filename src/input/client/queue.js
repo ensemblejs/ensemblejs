@@ -6,8 +6,8 @@ var contains = require('lodash').contains;
 
 module.exports = {
   type: 'InputQueue',
-  deps: ['DefinePlugin', 'GameMode'],
-  func: function InputQueue (define, mode) {
+  deps: ['DefinePlugin', 'GameMode', 'Time'],
+  func: function InputQueue (define, mode, time) {
     var inputQueue = [];
     var highestProcessedMessage = 0;
 
@@ -40,7 +40,7 @@ module.exports = {
         inputQueue.push({
           id: packet.id,
           rawData: packet,
-          timestamp: Date.now(),
+          timestamp: time().present(),
           mode: mode()
         });
       };

@@ -12,14 +12,17 @@
   "logging": {
     "logLevel": "warn",
     "silencedPlugins": [
-      "GamesList",
-      "OnPhysicsFrame",
-      "StateAccess",
-      "RawStateAccess",
-      "StateMutator",
-      "NewState",
       "CurrentState",
-      "OnInput"
+      "GamesList",
+      "LowestInputProcessed",
+      "NewState",
+      "OnInput",
+      "OnPhysicsFrame",
+      "RawStateAccess",
+      "StateAccess",
+      "StateMutator",
+      "Time",
+      "Config"
     ],
     "expressBunyanLogger": {
       "excludes": [
@@ -38,7 +41,9 @@
     }
   },
   "debug": {
-    "inputOverlay": false
+    "inputOverlay": false,
+    "network": false,
+    "time": false
   },
   "measure": {
     "timers": []

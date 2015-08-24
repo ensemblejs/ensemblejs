@@ -1,25 +1,31 @@
 'use strict';
 
-var present = require('present');
+var paused = require('../../util/state').paused;
 
 module.exports = {
-  deps: ['Window', 'On', 'CurrentState', 'CurrentServerState'],
+  deps: ['Window', 'On', 'CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time'],
   type: 'PhysicsLoop',
-  func: function PhysicsLoop (window, on, clientState, serverState) {
-    var priorStep = present();
+  func: function PhysicsLoop (window, on, clientState, serverState, define, time) {
+    var priorStep = time().present();
 
-    function paused (state) { return state.ensemble.paused; }
+    define()('InternalState', function PhysicsLoop () {
+      return {
+        PhysicsLoop: {
+          now: function () { return time().present(); }
+        }
+      };
+    });
 
     return {
       run: function run () {
         if (clientState().get(paused) && serverState().get(paused)) {
-          priorStep = present();
+          priorStep = time().present();
         } else {
-          var now = present();
+          var now = time().present();
           var delta = (now - priorStep) / 1000;
-          priorStep = present();
+          priorStep = now;
 
-          on().physicsFrame('ignored-on-client', delta);
+          on().physicsFrame('client', delta);
         }
 
         setTimeout(run, 15);

@@ -16,7 +16,7 @@
 	"undef": true,
 	"unused": true,
 	"strict": true,
-	"maxparams": 5,
+	"maxparams": false,
 	"maxdepth": 2,
 	"maxcomplexity": 5,
 	"node": true,

@@ -179,7 +179,7 @@ module.exports = {
 
 					somethingHasReceivedInput = [];
 					data = {
-						rcvdTimestamp: currentInput.timestamp,
+						timestamp: currentInput.timestamp,
 						delta: delta
 					};
 

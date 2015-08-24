@@ -16,6 +16,7 @@ function getConfig() {
   }
 
   config = defaultsDeep(config, require('../config/defaults.json'));
+  config.nothing = function nothing () {};
   logger.info(config, 'Initial Configuration');
 
   return config;
@@ -24,7 +25,7 @@ function getConfig() {
 var config = getConfig();
 logger.logLevel = config.logging.logLevel;
 
-//TODO: pull this stuff from the config files
+//TODO: pull this stuff from the config files (requires a client soln)
 var plugins = require('./plugins/plug-n-play').configure(
   logger,
   require('./conf/array-plugins'),
@@ -34,21 +35,23 @@ var plugins = require('./plugins/plug-n-play').configure(
 
 plugins.load({ type: 'Config', func: function Config () { return config; }});
 
+plugins.set('Local', 'server');
+
 //TODO: solve the ordering problem
 plugins.load(require('./metrics/profiler'));
 
-plugins.load(require('./jobs/job_manager.js'));
 plugins.load(require('./socket/server.js'));
-plugins.loadPath(__dirname + '/loops/shared');
-plugins.loadPath(__dirname + '/loops/server');
 plugins.loadPath(__dirname + '/core/shared');
 plugins.loadPath(__dirname + '/core/server');
+plugins.loadPath(__dirname + '/loops/shared');
+plugins.loadPath(__dirname + '/loops/server');
 plugins.loadPath(__dirname + '/input/shared');
 plugins.loadPath(__dirname + '/input/server');
 plugins.loadPath(__dirname + '/events/shared');
 plugins.loadPath(__dirname + '/events/server');
 plugins.loadPath(__dirname + '/state/shared');
 plugins.loadPath(__dirname + '/state/server');
+plugins.loadPath(__dirname + '/jobs/shared');
 plugins.loadPath(__dirname + '/validators');
 plugins.loadPath(__dirname + '/debug/shared');
 plugins.loadPath(__dirname + '/debug/server');

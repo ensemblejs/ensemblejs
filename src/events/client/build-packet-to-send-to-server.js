@@ -6,15 +6,14 @@ var isEqual = require('lodash').isEqual;
 var isArray = require('lodash').isArray;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
+var paused = require('../../util/state').paused;
 
 module.exports = {
   type: 'OnPhysicsFrame',
-  deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState'],
-  func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState) {
+  deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time'],
+  func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time) {
     var interval = require('../../loops/interval');
     var lastPacket = {};
-
-    function paused (state) { return state.ensemble.paused; }
 
     function packetHasNotChanged (current, prior) {
       return isEqual(current, prior);
@@ -45,7 +44,7 @@ module.exports = {
 
       lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');
-      packet.sentTimestamp = Date.now();
+      packet.timestamp = time().present();
 
       return packet;
     }

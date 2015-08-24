@@ -2,7 +2,7 @@
 
 var reject = require('lodash').reject;
 var each = require('lodash').each;
-var delayedEffect = require('./delayed_job');
+var delayedEffect = require('../delayed_job');
 
 module.exports = {
   type: 'DelayedJobs',

@@ -57,15 +57,15 @@ module.exports = {
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
 
-      var callbacks = createCallAll(onServerPacket);
-
       return function onServerPacketCallback (packet) {
         if (packet.id <= lastReceivedId) {
           return;
         }
 
         lastReceivedId = packet.id;
-        callbacks(packet);
+        each(onServerPacket(), function (callback) {
+          callback(packet);
+        });
       };
     }
 

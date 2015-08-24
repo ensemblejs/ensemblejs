@@ -1,11 +1,21 @@
 'use strict';
 
 var filter = require('lodash').filter;
+var reject = require('lodash').reject;
 
 module.exports = {
   type: 'GamesList',
-  func: function () {
+  deps: ['DefinePlugin'],
+  func: function (define) {
     var games = [];
+
+    define()('InternalState', function GamesList () {
+      return {
+        GamesList: {
+          count: function count () { return games.length; }
+        }
+      };
+    });
 
     return {
       all: function () {
@@ -15,7 +25,7 @@ module.exports = {
         games.push(game);
       },
       remove: function(id) {
-        games = filter(games, function (game) { return game.id !== id; });
+        games = reject(games, function (game) { return game.id === id; });
       },
       get: function (id) {
         return filter(games, function (game) { return game.id === id; });

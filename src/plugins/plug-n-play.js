@@ -61,6 +61,10 @@ function load (module, prefix) {
     }
   }
 
+  function isNotProfileExclusion(type) {
+    return type !== 'Time';
+  }
+
   function wrapOriginalFunction (original, key) {
     var timer = createTimer(prefix, module.type, key);
 
@@ -71,7 +75,7 @@ function load (module, prefix) {
         log.plugin(arguments, prefix, module.type, original.toString());
       }
 
-      if (timer) {
+      if (timer && isNotProfileExclusion(module.type)) {
         timer.fromHere();
         var result = original.apply(this, arguments);
         timer.toHere();
@@ -103,8 +107,7 @@ function load (module, prefix) {
   }
 
   function addLoggingToPlugin (func) {
-    //TODO: can we replace this with undefined?
-    var plugin = func.apply(this, args);
+    var plugin = func.apply(undefined, args);
 
     if (plugin instanceof Function) {
       return wrapOriginalFunction(plugin);

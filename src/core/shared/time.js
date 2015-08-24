@@ -1,12 +1,19 @@
 'use strict';
 
-var present = require('present');
+var now = require('present');
 
 module.exports = {
   type: 'Time',
   func: function Time () {
+    var timeOffset = 0;
+
     return {
-      present: present
+      setOffset: function setOffset (offset) {
+        timeOffset = offset;
+      },
+      present: function present () {
+        return now() + timeOffset;
+      }
     };
   }
 };

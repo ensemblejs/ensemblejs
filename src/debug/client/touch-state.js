@@ -2,8 +2,12 @@
 
 module.exports = {
   type: 'View',
-  deps: ['StateTracker', 'Dimensions'],
-  func: function View (tracker, dimensions) {
+  deps: ['Config', 'StateTracker', 'Dimensions'],
+  func: function View (config, tracker, dimensions) {
+    if (!config().debug.input) {
+      return config().nothing;
+    }
+
     var $ = require('zepto-browserify').$;
     var isArray = require('lodash').isArray;
 

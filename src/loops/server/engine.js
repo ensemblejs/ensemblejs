@@ -3,45 +3,52 @@
 var each = require('lodash').each;
 var reject = require('lodash').reject;
 var select = require('lodash').filter;
-var intersection = require('lodash').intersection;
-var first = require('lodash').first;
 var getFuncOf = require('lodash').last;
-
-function isApplicable (mode, callback) {
-  return intersection(['*', mode], first(callback)).length > 0;
-}
+var isApplicable = require('../../util/modes').isApplicable;
 
 module.exports = {
   type: 'ServerSideEngine',
-  deps: ['OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config'],
-  func: function (onPhysicsFrame, state, mutator, games, config) {
-    var priorStepTime = Date.now();
+  deps: ['OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time'],
+  func: function (onPhysicsFrame, state, mutator, games, config, define, time) {
+    var priorStepTime = time().present();
 
     var pausedGames = function(game) {
       return state().for(game.id).for('ensemble').get('paused');
     };
 
-    var update = function(dt) {
-      each(reject(games().all(), pausedGames), function(game) {
-        var callbacksForGame = select(onPhysicsFrame(), function(callback) {
+    var update = function(delta) {
+      var running = reject(games().all(), pausedGames);
+
+      each(running, function(game) {
+        var callbacks = select(onPhysicsFrame(), function(callback) {
           return isApplicable(game.mode, callback);
         });
 
+        //TODO: replace with event-router
+        // on().physicsFrame(game.id, delta);
         var gameState = state().for(game.id);
-        each(callbacksForGame, function(callback) {
-          mutator()(game.id, getFuncOf(callback)(gameState, dt, game.id));
+        each(callbacks, function(callback) {
+          mutator()(game.id, getFuncOf(callback)(gameState, delta, game.id));
         });
       });
     };
 
     var step = function() {
-      var now = Date.now();
+      var now = time().present();
       var dt = (now - priorStepTime) / 1000;
 
       update(dt);
 
       priorStepTime = now;
     };
+
+    define()('InternalState', function ServerSideEngine () {
+      return {
+        ServerSideEngine: {
+          now: function () { return time().present(); }
+        }
+      };
+    });
 
     return {
       run: function() {

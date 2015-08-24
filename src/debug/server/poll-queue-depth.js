@@ -1,24 +1,23 @@
 'use strict';
 
-var select = require('lodash').select;
 var pluck = require('lodash').pluck;
 var reduce = require('lodash').reduce;
-var map = require('lodash').map;
+var sumCallback = require('../../util/collections').sumCallback;
+var filterInternalState = require('../../util/internal-state').filter;
 
 module.exports = {
   type: 'OnPhysicsFrame',
-  deps: ['InternalState'],
-  func: function PollQueueDepth (internalState) {
-    function update () {
-      var onInput = map(select(internalState(), 'OnInput'), function (obj) {
-        return obj.OnInput;
-      });
+  deps: ['Config', 'InternalState'],
+  func: function OnPhysicsFrame (config, internalState) {
+    if (!config().debug.inputOverlay) {
+      return function () {};
+    }
 
-      var depth = pluck(onInput, 'queueLength');
+    function updateQueueDepth () {
+      var onInput = filterInternalState(internalState, 'OnInput');
 
-      var combinedQueueDepth = reduce(depth, function(total, queueLength) {
-        return total + queueLength();
-      }, 0);
+      var queueLengths = pluck(onInput, 'queueLength');
+      var combinedQueueDepth = reduce(queueLengths, sumCallback, 0);
 
       return {
         ensembleDebug: {
@@ -27,6 +26,6 @@ module.exports = {
       };
     }
 
-    return update;
+    return updateQueueDepth;
   }
 };

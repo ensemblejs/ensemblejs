@@ -2,8 +2,12 @@
 
 module.exports = {
   type: 'View',
-  deps: ['StateTracker', 'StateTrackerHelpers'],
-  func: function View (tracker, trackerHelpers) {
+  deps: ['Config', 'StateTracker', 'StateTrackerHelpers'],
+  func: function View (config, tracker, trackerHelpers) {
+    if (!config().debug.input) {
+      return config().nothing;
+    }
+
     var $ = require('zepto-browserify').$;
     var equals = trackerHelpers().equals;
 

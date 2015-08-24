@@ -2,8 +2,12 @@
 
 module.exports = {
   type: 'View',
-  deps: ['StateTracker'],
-  func: function View (tracker) {
+  deps: ['Config', 'StateTracker'],
+  func: function View (config, tracker) {
+    if (!config().debug.input) {
+      return config().nothing;
+    }
+
     var $ = require('zepto-browserify').$;
 
     function theMousePosition (state) {

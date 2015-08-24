@@ -1,6 +1,5 @@
 'use strict';
 
-var present = require('present');
 var sortBy = require('lodash').sortBy;
 var first = require('lodash').first;
 var last = require('lodash').last;
@@ -11,8 +10,8 @@ var startsWith = require('lodash').startsWith;
 
 module.exports = {
   type: 'Profiler',
-  deps: ['DefinePlugin', 'Config'],
-  func: function Profiler (define, config) {
+  deps: ['DefinePlugin', 'Config', 'Time'],
+  func: function Profiler (define, config, time) {
     var timers = {};
 
     function removeTimersNotConfigured () {
@@ -56,11 +55,11 @@ module.exports = {
 
       var startTime;
       function start () {
-        startTime = present();
+        startTime = time().present();
       }
 
       function stop () {
-        var duration = present() - startTime;
+        var duration = time().present() - startTime;
 
         if (counter === frequency) {
           samples.push(duration);

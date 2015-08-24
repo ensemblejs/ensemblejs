@@ -19,7 +19,10 @@ function getConfig (response, body) {
   plugins.load({
     type: 'Config',
     func: function Config () {
-      return JSON.parse(body);
+      var config = JSON.parse(body);
+      config.nothing = function nothing () {};
+
+      return config;
     }
   });
 }
@@ -30,20 +33,10 @@ function setLogLevel () {
   logging.setLogLevel(config.logging.logLevel);
 }
 
-function loadFolderOfModules (folder, namespace) {
+function loadFolder (folder, namespace) {
   namespace = namespace || 'ensemblejs';
 
   folders.push({items: folder, namespace: namespace});
-}
-
-function loadExtras () {
-    var config = plugins.get('Config');
-
-    if (config.debug.inputOverlay) {
-      console.info('Enable input debug overlay');
-      loadFolderOfModules(require('./src/debug/shared/**/*.js', {mode: 'hash'} ));
-      loadFolderOfModules(require('./src/debug/client/**/*.js', {mode: 'hash'} ));
-    }
 }
 
 function removeTimers () {
@@ -79,29 +72,35 @@ module.exports = {
     request(plugins.get('ServerUrl') + '/config').spread(getConfig)
       .then(setLogLevel)
       .then(loadModules)
-      .then(loadExtras)
       .then(removeTimers)
       .then(runTheClient)
       .error(logErrors);
   },
   loadClientFolder: function loadClientFolder (folder) {
-    loadFolderOfModules(folder, 'Game');
+    loadFolder(folder, 'Game');
   },
   loadDefaults: function loadDefaults () {
     plugins.set('ServerUrl', plugins.get('Window').location.origin);
+    plugins.set('Local', 'client');
 
-    loadFolderOfModules(require('./src/metrics/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/core/shared/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/state/shared/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/input/shared/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/core/client/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/state/client/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/input/client/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/ui/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/views/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/loops/client/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/socket/client/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/events/shared/**/*.js', {mode: 'hash'} ));
-    loadFolderOfModules(require('./src/events/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/metrics/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/core/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/core/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/state/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/state/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/input/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/input/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/ui/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/views/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/loops/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/loops/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/socket/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/socket/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/jobs/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/jobs/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/events/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/events/client/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/debug/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/debug/client/**/*.js', {mode: 'hash'} ));
   }
 };
