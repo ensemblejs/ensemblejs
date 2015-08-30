@@ -15,7 +15,6 @@
       "CurrentState",
       "GamesList",
       "LowestInputProcessed",
-      "NewState",
       "OnInput",
       "OnPhysicsFrame",
       "RawStateAccess",

@@ -81,7 +81,6 @@ module.exports = {
   },
   loadDefaults: function loadDefaults () {
     plugins.set('ServerUrl', plugins.get('Window').location.origin);
-    plugins.set('Local', 'client');
 
     loadFolder(require('./src/metrics/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/core/shared/**/*.js', {mode: 'hash'} ));

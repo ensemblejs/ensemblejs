@@ -2,8 +2,11 @@
 
 module.exports = {
   type: 'OnError',
-  func: function OnError () {
+  deps: ['Logger'],
+  func: function OnError (logger) {
     return function formaliseError (data) {
+      logger().error(data);
+
       throw new Error(data);
     };
   }

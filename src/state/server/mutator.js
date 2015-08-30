@@ -48,18 +48,6 @@ module.exports = {
       };
     });
 
-    //TODO: remove
-    definePlugin()('NewState', function NewState () {
-      return {
-        create: function create (namespace, data) {
-          var state = {};
-          state[namespace] = data;
-
-          return state;
-        }
-      };
-    });
-
     return function mutate (gameId, result) {
       if (result === undefined) {
         return;
@@ -69,7 +57,7 @@ module.exports = {
       }
 
       root[gameId] = root[gameId] || {};
-      root[gameId] = merge(root[gameId], result, function (a, b) {
+      root[gameId] = merge(root[gameId], result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
     };

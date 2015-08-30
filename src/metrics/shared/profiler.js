@@ -61,6 +61,10 @@ module.exports = {
       function stop () {
         var duration = time().present() - startTime;
 
+        add(duration);
+      }
+
+      function add (duration) {
         if (counter === frequency) {
           samples.push(duration);
           totalDuration += duration;
@@ -90,6 +94,7 @@ module.exports = {
       var timerObject = {
         fromHere: start,
         toHere: stop,
+        manual: add,
         results: results
       };
 

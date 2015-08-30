@@ -7,7 +7,7 @@ var defer = require('../support.js').defer;
 var plugin = require('../support.js').plugin();
 
 var stateMutator = sinon.spy();
-var manager = require('../../src/jobs/job_manager.js').func(defer(plugin.define), defer(stateMutator));
+var manager = require('../../src/jobs/shared/job_manager.js').func(defer(plugin.define), defer(stateMutator));
 var onPhysicsFrame = plugin.deps().OnPhysicsFrame();
 
 describe('the delayed effect manager', function() {

@@ -1,29 +1,28 @@
 'use strict';
 
+var rekuire = require('rekuire');
 var each = require('lodash').each;
 var filter = require('lodash').filter;
-var intersection = require('lodash').intersection;
-var first = require('lodash').first;
 var last = require('lodash').last;
-
-function isApplicable (mode, callback) {
-  return intersection(['*', mode], first(callback)).length > 0;
-}
+var isApplicable = rekuire('src/util/modes').isApplicable;
 
 module.exports = {
   type: 'InitialiseState',
   deps: ['StateSeed', 'StateMutator'],
-  func: function (stateSeed, stateMutator) {
-    return {
-      initialise: function(gameId, mode) {
-        var applicableSeeds = filter(stateSeed(), function(stateSeed) {
-          return isApplicable(mode, stateSeed);
-        });
+  func: function (stateSeed, mutate) {
 
-        each(applicableSeeds, function (state) {
-          stateMutator()(gameId, last(state));
-        });
-      }
+    function initialise (game) {
+      var applicableSeeds = filter(stateSeed(), function(seed) {
+        return isApplicable(game.mode, seed);
+      });
+
+      each(applicableSeeds, function (state) {
+        mutate()(game.id, last(state));
+      });
+    }
+
+    return {
+      initialise: initialise
     };
   }
 };

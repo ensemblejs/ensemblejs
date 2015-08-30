@@ -194,6 +194,15 @@ function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
     }
   });
 
+  load({
+    type: 'DynamicPluginLoader',
+    func: function DynamicPluginLoader () {
+      return {
+        get: get
+      };
+    }
+  });
+
   return {
     load: load,
     loadPath: loadGameDevCode,

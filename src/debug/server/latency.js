@@ -8,16 +8,16 @@ module.exports = {
   type: 'OnPhysicsFrame',
   deps: ['Config', 'InternalState'],
   func: function OnPhysicsFrame (config, internalState) {
-    if (!config().debug.time) {
+    if (!config().debug.network) {
       return config().nothing;
     }
 
     function updateServerTime () {
-      var clientPhysics = filterInternalState(internalState, 'PhysicsLoop');
+      var SocketServer = filterInternalState(internalState, 'SocketServer');
 
       return {
         ensembleDebug: {
-          clientTime: Math.round(first(pluck(clientPhysics, 'now'))())
+          latency: first(pluck(SocketServer, 'latency'))()
         }
       };
     }

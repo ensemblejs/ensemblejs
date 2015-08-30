@@ -12,7 +12,7 @@ module.exports = {
   type: 'OnPhysicsFrame',
   deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time'],
   func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time) {
-    var interval = require('../../loops/interval');
+    var interval = require('../../util/interval');
     var lastPacket = {};
 
     function packetHasNotChanged (current, prior) {

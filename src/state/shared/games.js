@@ -9,6 +9,22 @@ module.exports = {
   func: function (define) {
     var games = [];
 
+    function all () {
+      return games;
+    }
+
+    function add (game) {
+      games.push(game);
+    }
+
+    function remove (id) {
+      games = reject(games, function (game) { return game.id === id; });
+    }
+
+    function get (id) {
+      return filter(games, function (game) { return game.id === id; });
+    }
+
     define()('InternalState', function GamesList () {
       return {
         GamesList: {
@@ -17,19 +33,23 @@ module.exports = {
       };
     });
 
+    define()('OnClientConnect', function GamesList () {
+      return function addGame (state, socket, game) {
+        add(game);
+      };
+    });
+
+    define()('OnClientDisconnect', function GamesList () {
+      return function removeGame (state, socket, game) {
+        remove(game.id);
+      };
+    });
+
     return {
-      all: function () {
-        return games;
-      },
-      add: function (game) {
-        games.push(game);
-      },
-      remove: function(id) {
-        games = reject(games, function (game) { return game.id === id; });
-      },
-      get: function (id) {
-        return filter(games, function (game) { return game.id === id; });
-      }
+      all: all,
+      add: add,
+      remove: remove,
+      get: get
     };
   }
 };

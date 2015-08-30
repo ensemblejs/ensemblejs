@@ -60,6 +60,12 @@ function unsupported (method, message) {
   log.error(method + ' is no longer supported. ' + message);
 }
 
+function ensureNotNull (param, message) {
+  if (!param) {
+    log.error(message);
+  }
+}
+
 function setupLogger (logger) {
   log = logger;
 
@@ -71,6 +77,7 @@ function setupLogger (logger) {
   log.deprecate = deprecate;
   log.unsupported = unsupported;
   log.logLevel = logger.logLevel || 'trace';
+  log.ensureNotNull = ensureNotNull;
 
   switch(log.logLevel) {
     case 'debug':

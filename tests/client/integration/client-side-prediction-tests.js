@@ -30,7 +30,7 @@ var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueu
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().OnPhysicsFrame(defer(inputQueue));
 
-var on = require('../../../src/events/client/on').func(defer(mutator), defer(stateAccess), defer(empty), defer(empty), defer(empty), defer(onServerPacket), defer(onSetup), defer(empty), defer(empty), defer(empty), defer(onPhysicsFrame), defer(onPhysicsFrameComplete), defer(onClientPacket));
+var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(empty), defer(empty), defer(empty), defer(onServerPacket), defer(onSetup), defer(empty), defer(empty), defer(empty), defer(onPhysicsFrame), defer(onPhysicsFrameComplete), defer(onClientPacket));
 
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var currentState = trackerPlugins.deps().CurrentState();

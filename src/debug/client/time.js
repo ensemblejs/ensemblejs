@@ -18,11 +18,31 @@ module.exports = {
       return state.ensembleDebug.clientTime;
     }
 
+    var lastKnownServerTime;
+    var lastKnownClientTime;
+    var largest = 0;
+
+    function updateDifference () {
+      var difference = Math.abs(lastKnownServerTime - lastKnownClientTime);
+      if (difference > largest) {
+        largest = difference;
+      }
+
+      $('#server-client-time-difference').text(difference);
+      $('#largest-server-client-time-difference').text(largest);
+    }
+
     function updateServerTime (time) {
+      lastKnownServerTime = time;
+      updateDifference();
+
       $('#server-time').text(time);
     }
 
     function updateClientTime (time) {
+      lastKnownClientTime = time;
+      updateDifference();
+
       $('#client-time').text(time);
     }
 

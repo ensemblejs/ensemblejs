@@ -6,9 +6,9 @@ module.exports = {
   func: function (time) {
     return {
       ensemble: {
-        players: 0,
-        observers: 0,
+        jobs: [],
         paused: false,
+        randomSeed: 0,
         started: time().present()
       }
     };

@@ -6,11 +6,10 @@ var first = require('lodash').first;
 var intersection = require('lodash').intersection;
 var getFuncOf = require('lodash').last;
 
-//jshint maxparams: false
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnSetupComplete', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onSetupComplete, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnSetupComplete', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onSetupComplete, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect) {
 
     function createCallAll (deferredFuncArray) {
       return function callAll () {
@@ -42,7 +41,6 @@ module.exports = {
       };
     }
 
-    //TODO: factor in modes here!
     function createOnPhysicsFrameChain () {
       var onFrame = createCallAllWithStateMutation(onPhysicsFrame);
       var onFrameComplete = createCallAll(onPhysicsFrameComplete);
@@ -75,12 +73,6 @@ module.exports = {
       });
     }
 
-    function connect () {
-      each(onConnect(), function (callback) {
-        callback();
-      });
-    }
-
     function error (data) {
       each(onError(), function (callback) {
         callback(data);
@@ -99,29 +91,65 @@ module.exports = {
       });
     }
 
-    function callAllWithMatchingModeAndMutation (gameId, mode, callbacks) {
-      var gameState = state().for(gameId);
+    function callAllWithMatchingModeAndMutation (game, callbacks, data) {
+      var args = data || [];
+      args.unshift(state().for(game.id));
 
       function hasMatchingMode(callback) {
-        return intersection(['*', mode], first(callback)).length > 0;
+        return intersection(['*', game.mode], first(callback)).length > 0;
       }
 
       var applicableCallbacks = filter(callbacks(), hasMatchingMode);
       each(applicableCallbacks, function (callback) {
-        mutator()(gameId, getFuncOf(callback)(gameState));
+        mutator()(
+          game.id,
+          getFuncOf(callback).apply(undefined, args)
+        );
       });
     }
 
-    function disconnect (gameId, mode) {
-      callAllWithMatchingModeAndMutation(gameId, mode, onDisconnect);
+    function callAllWithMutation (gameId, callbacks, data) {
+      var args = data || [];
+      args.unshift(state().for(gameId));
+
+      each(callbacks(), function (callback) {
+        mutator()(
+          gameId,
+          getFuncOf(callback).apply(undefined, args)
+        );
+      });
     }
 
-    function pause (gameId, mode) {
-      callAllWithMatchingModeAndMutation(gameId, mode, onPause);
+    function connect (game) {
+      callAllWithMutation(game.id, onConnect);
     }
 
-    function resume (gameId, mode) {
-      callAllWithMatchingModeAndMutation(gameId, mode, onResume);
+    function disconnect (game) {
+      callAllWithMutation(game.id, onDisconnect);
+    }
+
+    function clientConnect (game, socket) {
+      callAllWithMutation(game.id, onClientConnect, [socket, game]);
+    }
+
+    function clientDisconnect (game, socket) {
+      callAllWithMutation(game.id, onClientDisconnect, [socket, game]);
+    }
+
+    function pause (game) {
+      if (state().for(game.id).for('ensemble').get('paused')) {
+        return;
+      }
+
+      callAllWithMatchingModeAndMutation(game, onPause);
+    }
+
+    function resume (game) {
+      if (!state().for(game.id).for('ensemble').get('paused')) {
+        return;
+      }
+
+      callAllWithMatchingModeAndMutation(game, onResume);
     }
 
     function setup (state) {
@@ -134,18 +162,45 @@ module.exports = {
       });
     }
 
+    function start (path, modes) {
+      each(onStart(), function (callback) {
+        callback(path, modes);
+      });
+
+      each(onReady(), function (callback) {
+        callback();
+      });
+    }
+
+    function stop (path, modes) {
+      each(onStop(), function (callback) {
+        callback(path, modes);
+      });
+    }
+
+    function outgoingServerPacket(socketId, packet) {
+      each(onOutgoingServerPacket(), function (callback) {
+        callback(socketId, packet);
+      });
+    }
+
     return {
-      clientPacket: clientPacket,
+      start: start,
+      stop: stop,
+      setup: setup,
       connect: connect,
       disconnect: disconnect,
-      error: error,
+      clientConnect: clientConnect,
+      clientDisconnect: clientDisconnect,
+      clientPacket: clientPacket,
       input: input,
-      pause: pause,
-      physicsFrame: createOnPhysicsFrameChain(),
-      resume: resume,
-      renderFrame: renderFrame,
+      outgoingServerPacket: outgoingServerPacket,
       serverPacket: createOnServerPacketCallback(),
-      setup: setup
+      error: error,
+      pause: pause,
+      resume: resume,
+      renderFrame: renderFrame,   //TODO: move
+      physicsFrame: createOnPhysicsFrameChain() //TODO: move
     };
   }
 };

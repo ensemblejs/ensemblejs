@@ -19,8 +19,10 @@ module.exports = {
         var currentClientTime = time().present();
         time().setOffset(serverOffset - currentClientTime);
       });
-      socket.on('connect', on().connect);
-      socket.on('disconnect', function () {
+      socket.on('connect', function connect () {
+        on().connect('client', gameMode());
+      });
+      socket.on('disconnect', function disconnect () {
         on().disconnect('client', gameMode());
       });
 
@@ -41,6 +43,12 @@ module.exports = {
       define()('OnClientPacket', function SocketClient () {
         return function sendPacketToServer (packet) {
           socket.emit('input', packet);
+        };
+      });
+
+      define()('OnServerPacket', function SocketClient () {
+        return function ackPacket (packet) {
+          socket.emit('ack', packet.id);
         };
       });
     }

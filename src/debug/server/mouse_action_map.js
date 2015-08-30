@@ -1,37 +1,41 @@
 'use strict';
 
-function RouteAllInput (config, newState) {
+function RouteAllInput (config) {
   function mouseUp(key) {
     return function() {
-      var ensembleDebug = {
-        mouseButtons: {}
-      };
-      ensembleDebug.mouseButtons[key] = false;
+      var mouseButtons = {};
+      mouseButtons[key] = false;
 
-      return newState().create('ensembleDebug', ensembleDebug);
+      return {
+        ensembleDebug: {
+          mouseButtons: mouseButtons
+        }
+      };
     };
   }
 
   function mouseDown(key) {
     return function() {
-      var ensembleDebug = {
-        mouseButtons: {}
-      };
-      ensembleDebug.mouseButtons[key] = true;
+      var mouseButtons = {};
+      mouseButtons[key] = true;
 
-      return newState().create('ensembleDebug', ensembleDebug);
+      return {
+        ensembleDebug: {
+          mouseButtons: mouseButtons
+        }
+      };
     };
   }
 
   function updateState (state, x, y) {
-    var ensembleDebug = {
-      mouse: {
-        x: x,
-        y: y
+    return {
+      ensembleDebug: {
+        mouse: {
+          x: x,
+          y: y
+        }
       }
     };
-
-    return newState().create('ensembleDebug', ensembleDebug);
   }
 
   if (!config().debug.inputOverlay) {
@@ -57,6 +61,6 @@ function RouteAllInput (config, newState) {
 
 module.exports = {
   type: 'ActionMap',
-  deps: ['Config', 'NewState'],
+  deps: ['Config'],
   func: RouteAllInput
 };

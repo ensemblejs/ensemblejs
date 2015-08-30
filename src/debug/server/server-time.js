@@ -17,7 +17,7 @@ module.exports = {
 
       return {
         ensembleDebug: {
-          serverTime: first(pluck(serverPhysics, 'now'))()
+          serverTime: Math.round(first(pluck(serverPhysics, 'now'))())
         }
       };
     }

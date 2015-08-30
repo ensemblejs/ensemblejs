@@ -1,7 +1,7 @@
 'use strict';
 
 var expect = require('expect');
-var PacketAcks = require('../../../src/socket/packet-acknowledgements.js').func();
+var PacketAcks = require('../../../src/socket/client/packet-acknowledgements.js').func();
 
 describe('packet acknowledgements', function() {
 	it('should allow me to add each packet as it arrives', function() {
