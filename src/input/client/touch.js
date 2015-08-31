@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  deps: ['Window', 'Config'],
   type: 'InputCapture',
-  func: function InputCapture (window, config) {
+  deps: ['Window', 'Config', 'DefinePlugin'],
+  func: function InputCapture (window, config, define) {
     var pluck = require('lodash').pluck;
     var reject = require('lodash').reject;
     var each = require('lodash').each;
@@ -53,7 +53,11 @@ module.exports = {
       $(elementId).on('touchcancel', endTouch);
     }
 
-    bindToWindowEvents();
+    define()('OnSetup', function () {
+      return function TouchInputCapture () {
+        bindToWindowEvents();
+      };
+    });
 
     return function getCurrentState () {
       var inputData = {

@@ -82,23 +82,23 @@ module.exports = {
   loadDefaults: function loadDefaults () {
     plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
-    loadFolder(require('./src/metrics/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/metrics/shared/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/metrics/client/*.js', {mode: 'hash'} ));
+
     loadFolder(require('./src/core/shared/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/core/client/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/state/shared/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/state/client/**/*.js', {mode: 'hash'} ));
+
     loadFolder(require('./src/input/shared/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/input/client/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/ui/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/views/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/loops/shared/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/loops/client/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/socket/shared/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/socket/client/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/jobs/shared/**/*.js', {mode: 'hash'} ));
-    loadFolder(require('./src/jobs/client/**/*.js', {mode: 'hash'} ));
+
     loadFolder(require('./src/events/shared/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/events/client/**/*.js', {mode: 'hash'} ));
+
+    loadFolder(require('./src/state/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/state/client/**/*.js', {mode: 'hash'} ));
+
+    loadFolder(require('./src/ui/**/*.js', {mode: 'hash'} ));
+
     loadFolder(require('./src/debug/shared/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/debug/client/**/*.js', {mode: 'hash'} ));
   }

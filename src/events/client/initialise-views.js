@@ -3,7 +3,7 @@
 var callForMode = require('../../util/modes').callForMode;
 
 module.exports = {
-  type: 'OnSetup',
+  type: 'OnSetupComplete',
   deps: ['View', 'Dimensions', 'GameMode'],
   func: function OnSetup (views, dimensions, mode) {
     return function initialiseViews () {

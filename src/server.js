@@ -3,6 +3,7 @@
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
 var logger = require('./logging/server/logger').logger;
+var each = require('lodash').each;
 
 var config = require('./util/config')(logger);
 logger.logLevel = config.logging.logLevel;
@@ -16,22 +17,20 @@ var plugins = require('./plugins/plug-n-play').configure(
 
 plugins.load({ type: 'Config', func: function Config () { return config; }});
 
-plugins.loadFrameworkPath(__dirname + '/metrics/shared');
-plugins.loadFrameworkPath(__dirname + '/metrics/server');
-plugins.loadFrameworkPath(__dirname + '/core/shared');
-plugins.loadFrameworkPath(__dirname + '/core/server');
-plugins.loadFrameworkPath(__dirname + '/socket/shared');
-plugins.loadFrameworkPath(__dirname + '/socket/server');
-plugins.loadFrameworkPath(__dirname + '/input/shared');
-plugins.loadFrameworkPath(__dirname + '/input/server');
-plugins.loadFrameworkPath(__dirname + '/events/shared');
-plugins.loadFrameworkPath(__dirname + '/events/server');
-plugins.loadFrameworkPath(__dirname + '/state/shared');
-plugins.loadFrameworkPath(__dirname + '/state/server');
-plugins.loadFrameworkPath(__dirname + '/validators/shared');
-plugins.loadFrameworkPath(__dirname + '/validators/server');
-plugins.loadFrameworkPath(__dirname + '/debug/shared');
-plugins.loadFrameworkPath(__dirname + '/debug/server');
+var foldersToLoad = [
+  'metrics',
+  'core',
+  'input',
+  'events',
+  'state',
+  'validators',
+  'debug'
+];
+
+each(foldersToLoad, function loadFolder (folder) {
+  plugins.loadFrameworkPath(__dirname + '/' + folder + '/shared');
+  plugins.loadFrameworkPath(__dirname + '/' + folder + '/server');
+});
 
 function runGameAtPath (path) {
   logger.info('ensemblejs@' + packageInfo.version + ' started.');

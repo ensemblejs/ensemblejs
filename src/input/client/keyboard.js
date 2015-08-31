@@ -1,11 +1,12 @@
 'use strict';
 
+var each = require('lodash').each;
+var include = require('lodash').include;
+
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window'],
-  func: function InputCapture (window) {
-    var each = require('lodash').each;
-    var include = require('lodash').include;
+  deps: ['Window', 'DefinePlugin'],
+  func: function InputCapture (window, define) {
     var $ = require('zepto-browserify').$;
 
     var keys = {};
@@ -150,7 +151,11 @@ module.exports = {
       });
     }
 
-    bindToWindowEvents();
+    define()('OnSetup', function () {
+      return function KeyboardInputCapture () {
+        bindToWindowEvents();
+      };
+    });
 
     return function getCurrentState () {
       var inputData = {};

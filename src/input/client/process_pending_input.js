@@ -6,7 +6,6 @@ var reject = require('lodash').reject;
 var last = require('lodash').last;
 var xor = require('lodash').xor;
 var map = require('lodash').map;
-var isApplicable = require('../../util/modes').isApplicable;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 function ensureMapHasModifiers(action) {
@@ -16,32 +15,21 @@ function ensureMapHasModifiers(action) {
 
 module.exports = {
 	type: 'OnInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
-	func: function OnInput (actionMaps, define, stateMutator, logger) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
+	func: function OnInput (actionMaps, define, mutate) {
 		function parseKeysAndKeypresses (currentInput, callback) {
-			logger().called(arguments, 'ensemblejs', 'OnInput', parseKeysAndKeypresses);
-
 			var mode = currentInput.mode;
-			// function withMode (actionMap) {
-			// 	return isApplicable(currentInput.game.mode, actionMap);
-			// }
 
       function invokeCallback(action) {
-      	logger().called(arguments, 'ensemblejs', 'OnInput', invokeCallback);
-
-				stateMutator()(
+				mutate()(
 					currentInput.game.id,
 					callback(action.target, action.noEventKey)
 				);
 			}
 
-
-			// var amWithMode = select(actionMaps(), withMode);
 			var amWithMode = filterPluginsByMode(actionMaps(), mode);
 
 			function processKeys (keyData, rejectOrSelect) {
-				logger().called(arguments, 'ensemblejs', 'OnInput', processKeys);
-
 				each(keyData, function processKey(keyInfo) {
 					function whereModifiersDoNotMatch(action) {
 						return (xor(action.modifiers, keyInfo.modifiers).length > 0);
@@ -69,59 +57,57 @@ module.exports = {
 		}
 
 		function parseMouse (currentInput, callback) {
-			var applicableActionMaps = select(actionMaps(), function(actionMap) {
-        return isApplicable(currentInput.game.mode, actionMap);
-      });
+			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
 
-			each(applicableActionMaps, function(actionMapDefinition) {
+			each(forMode, function(actionMapDefinition) {
 				var actionMap = last(actionMapDefinition);
 
 				if (actionMap.cursor === undefined) { return; }
 
 				if (currentInput.rawData.mouse) {
 					each(actionMap.cursor, function(action) {
-						stateMutator()(currentInput.game.id,  callback(action.target, action.noEventKey, currentInput.rawData.mouse));
+						mutate()(currentInput.game.id,  callback(
+							action.target,
+							action.noEventKey,
+							currentInput.rawData.mouse
+						));
 					});
 				}
 			});
 		}
 
 		function parseTouches (currentInput, callback) {
+			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
+
 			each(currentInput.rawData.touches, function(touch) {
 				var key = 'touch' + touch.id;
 
-				var applicableActionMaps = select(actionMaps(), function(actionMap) {
-	        return isApplicable(currentInput.game.mode, actionMap);
-	      });
-
-				each(applicableActionMaps, function(actionMapDefinition) {
+				each(forMode, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						stateMutator()(currentInput.game.id, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
+						mutate()(currentInput.game.id, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
 					});
 				});
 			});
 		}
 
 		function parseSticks (currentInput, callback) {
+			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
+
 			each(['leftStick', 'rightStick'], function(key) {
 				if (currentInput.rawData[key] === undefined) {return;}
 
-				var applicableActionMaps = select(actionMaps(), function(actionMap) {
-	        return isApplicable(currentInput.game.mode, actionMap);
-	      });
-
-				each(applicableActionMaps, function(actionMapDefinition) {
+				each(forMode, function(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
 					if (actionMap[key] === undefined) { return; }
 
 					var data = currentInput.rawData[key];
 					each(actionMap[key], function(action) {
-						stateMutator()(currentInput.game.id, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
+						mutate()(currentInput.game.id, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
 					});
 				});
 			});
@@ -133,10 +119,6 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-
-				function isActionMapApplicable(actionMap) {
-					return isApplicable(currentInput.game.mode, actionMap);
-				}
 
 				function keyAndKeypressCallback(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -162,7 +144,10 @@ module.exports = {
 
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return stateMutator()(currentInput.game.id, action.target(state, data));
+							return mutate()(
+								currentInput.game.id,
+								action.target(state, data
+							));
 						}
 					});
 				}
@@ -185,8 +170,8 @@ module.exports = {
 					parseSticks(currentInput, stickCallback);
 					parseMouse(currentInput, mouseCallback);
 
-					var applicableActionMaps = select(actionMaps(), isActionMapApplicable);
-					each(applicableActionMaps, doSomethingWithActionMaps);
+					var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
+					each(forMode, doSomethingWithActionMaps);
 				}
 			};
 		});

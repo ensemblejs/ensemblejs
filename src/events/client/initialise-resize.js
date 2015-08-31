@@ -3,15 +3,15 @@
 module.exports = {
   type: 'OnSetup',
   deps: ['OnResize', 'Dimensions', 'Window'],
-  func: function OnSetup (resizeCallbacks, dimensions, window) {
+  func: function OnSetup (onResize, dimensions, window) {
     var each = require('lodash').each;
     var $ = require('zepto-browserify').$;
 
     function resizeCanvas () {
       var dims = dimensions().get();
 
-      each(resizeCallbacks(), function(resizeCallback) {
-        resizeCallback(dims);
+      each(onResize(), function(callback) {
+        callback(dims);
       });
     }
 

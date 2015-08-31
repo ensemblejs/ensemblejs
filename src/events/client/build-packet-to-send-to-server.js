@@ -7,12 +7,12 @@ var isArray = require('lodash').isArray;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
 var paused = require('../../util/state').paused;
+var interval = require('../../util/interval');
 
 module.exports = {
   type: 'OnPhysicsFrame',
   deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time'],
   func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time) {
-    var interval = require('../../util/interval');
     var lastPacket = {};
 
     function packetHasNotChanged (current, prior) {
