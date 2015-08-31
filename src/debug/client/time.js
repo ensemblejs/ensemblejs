@@ -2,13 +2,11 @@
 
 module.exports = {
   type: 'View',
-  deps: ['Config', 'StateTracker'],
-  func: function View (config, tracker) {
+  deps: ['Config', 'StateTracker', '$'],
+  func: function View (config, tracker, $) {
     if (!config().debug.time) {
       return config().nothing;
     }
-
-    var $ = require('zepto-browserify').$;
 
     function theServerTime (state) {
       return state.ensembleDebug.serverTime;
@@ -28,28 +26,28 @@ module.exports = {
         largest = difference;
       }
 
-      $('#server-client-time-difference').text(difference);
-      $('#largest-server-client-time-difference').text(largest);
+      $()('#server-client-time-difference').text(difference);
+      $()('#largest-server-client-time-difference').text(largest);
     }
 
     function updateServerTime (time) {
       lastKnownServerTime = time;
       updateDifference();
 
-      $('#server-time').text(time);
+      $()('#server-time').text(time);
     }
 
     function updateClientTime (time) {
       lastKnownClientTime = time;
       updateDifference();
 
-      $('#client-time').text(time);
+      $()('#client-time').text(time);
     }
 
     var time = require('../../../public/partials/time.jade');
 
     return function setupDebugTimeDisplay () {
-      $('#debug').append(time());
+      $()('#debug').append(time());
 
       tracker().onChangeOf(theServerTime, updateServerTime);
       tracker().onChangeOf(theClientTime, updateClientTime);

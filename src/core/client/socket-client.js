@@ -1,11 +1,9 @@
 'use strict';
 
-var $ = require('zepto-browserify').$;
-
 module.exports = {
-  deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time'],
+  deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
   type: 'SocketClient',
-  func: function SocketClient (window, gameMode, host, on, define, time) {
+  func: function SocketClient (window, gameMode, host, on, define, time, $) {
 
     function url () {
       return host() + '/' + gameMode() + '/primary';
@@ -35,10 +33,10 @@ module.exports = {
       socket.on('error', on().error);
 
       if (window().document.hasFocus()) { socket.emit('unpause'); }
-      $(window()).on('blur', function () { socket.emit('pause'); });
-      $(window()).on('focus', function () { socket.emit('unpause'); });
-      $(window()).on('mousedown', function () { socket.emit('unpause'); });
-      $(window()).on('mouseup', function () { socket.emit('unpause'); });
+      $()(window()).on('blur', function () { socket.emit('pause'); });
+      $()(window()).on('focus', function () { socket.emit('unpause'); });
+      $()(window()).on('mousedown', function () { socket.emit('unpause'); });
+      $()(window()).on('mouseup', function () { socket.emit('unpause'); });
 
       define()('OnClientPacket', function SocketClient () {
         return function sendPacketToServer (packet) {

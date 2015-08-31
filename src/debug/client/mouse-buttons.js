@@ -2,13 +2,12 @@
 
 module.exports = {
   type: 'View',
-  deps: ['Config', 'StateTracker', 'StateTrackerHelpers'],
-  func: function View (config, tracker, trackerHelpers) {
+  deps: ['Config', 'StateTracker', 'StateTrackerHelpers', '$'],
+  func: function View (config, tracker, trackerHelpers, $) {
     if (!config().debug.input) {
       return config().nothing;
     }
 
-    var $ = require('zepto-browserify').$;
     var equals = trackerHelpers().equals;
 
     function primary (state) {
@@ -23,17 +22,17 @@ module.exports = {
       return state.ensembleDebug.mouseButtons.tertiary;
     }
 
-    function showPrimaryButton () { $('#primary').addClass('pressed'); }
-    function hidePrimaryButton () { $('#primary').removeClass('pressed'); }
-    function showSecondaryButton () { $('#secondary').addClass('pressed'); }
-    function hideSecondaryButton () { $('#secondary').removeClass('pressed'); }
-    function showTertiaryButton () { $('#tertiary').addClass('pressed'); }
-    function hideTertiaryButton () { $('#tertiary').removeClass('pressed'); }
+    function showPrimaryButton () { $()('#primary').addClass('pressed'); }
+    function hidePrimaryButton () { $()('#primary').removeClass('pressed'); }
+    function showSecondaryButton () { $()('#secondary').addClass('pressed'); }
+    function hideSecondaryButton () { $()('#secondary').removeClass('pressed'); }
+    function showTertiaryButton () { $()('#tertiary').addClass('pressed'); }
+    function hideTertiaryButton () { $()('#tertiary').removeClass('pressed'); }
 
     var mouseIcon = require('../../../public/partials/mouse-buttons.jade');
 
     return function setupMouseIconDebugView () {
-      $('#debug').append(mouseIcon());
+      $()('#debug').append(mouseIcon());
 
       tracker().onChangeTo(primary, equals(true), showPrimaryButton);
       tracker().onChangeTo(primary, equals(false), hidePrimaryButton);

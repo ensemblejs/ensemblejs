@@ -2,10 +2,9 @@
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'Config', 'DefinePlugin'],
-  func: function InputCapture (window, config, define) {
+  deps: ['Window', 'Config', 'DefinePlugin', '$'],
+  func: function InputCapture (window, config, define, $) {
     var each = require('lodash').each;
-    var $ = require('zepto-browserify').$;
 
     var x = 0;
     var y = 0;
@@ -41,22 +40,22 @@ module.exports = {
     }
 
     function bindToWindowEvents () {
-      $(window()).on('click', function click (e) {
+      $()(window()).on('click', function click (e) {
         singlePress(mouseMap()[e.which], e.altKey, e.ctrlKey, e.shiftKey);
       });
 
-      $(window()).on('mousedown', function mousedown (e) {
+      $()(window()).on('mousedown', function mousedown (e) {
         press(mouseMap()[e.which], e.altKey, e.ctrlKey, e.shiftKey);
         e.preventDefault();
       });
 
-      $(window()).on('mouseup', function mouseup (e) {
+      $()(window()).on('mouseup', function mouseup (e) {
         release(mouseMap()[e.which]);
         e.preventDefault();
       });
 
       var elementId = '#' + config().client.element;
-      $(elementId).on('mousemove', function mousemove (e) {
+      $()(elementId).on('mousemove', function mousemove (e) {
         x = e.layerX;
         y = e.layerY;
       });

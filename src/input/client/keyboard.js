@@ -5,10 +5,8 @@ var include = require('lodash').include;
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'DefinePlugin'],
-  func: function InputCapture (window, define) {
-    var $ = require('zepto-browserify').$;
-
+  deps: ['Window', 'DefinePlugin', '$'],
+  func: function InputCapture (window, define, $) {
     var keys = {};
     var singlePressKeys = {};
 
@@ -106,7 +104,7 @@ module.exports = {
       var singlePressState = {};
       var releasedByBlur = {};
 
-      $(window()).on('blur', function fireReleaseEventForPressedKeys () {
+      $()(window()).on('blur', function fireReleaseEventForPressedKeys () {
         each(singlePressState, function(value, key) {
           if (!value) {
             return;
@@ -123,7 +121,7 @@ module.exports = {
         return key ? key : reverseMap[e.keyIdentifier];
       }
 
-      $(window().document).keydown(function keydown (e) {
+      $()(window().document).keydown(function keydown (e) {
         if (include(ignore, e.keyIdentifier)) { return; }
 
         var key = resolveKey(e);
@@ -139,7 +137,7 @@ module.exports = {
         }
       });
 
-      $(window().document).keyup(function keyup (e) {
+      $()(window().document).keyup(function keyup (e) {
         if (include(ignore, e.keyIdentifier)) { return; }
 
         var key = resolveKey(e);

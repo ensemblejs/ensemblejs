@@ -2,11 +2,10 @@
 
 module.exports = {
   type: 'OnDisconnect',
-  func: function OnDisconnect () {
-    var $ = require('zepto-browserify').$;
-
+  deps: ['$'],
+  func: function OnDisconnect ($) {
     return function showDisconnectIcon () {
-      $('.disconnected').show();
+      $()('.disconnected').show();
     };
   }
 };

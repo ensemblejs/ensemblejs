@@ -1,11 +1,10 @@
 'use strict';
 
 var iconSize = 32;
-var position = function position (slot) { return slot * iconSize; };
-var iconTop = function iconTop () { return 0; };
-var textTop = function textTop () { return +6; };
+function position (slot) { return slot * iconSize; }
+function iconTop () { return 0; }
 
-var landscape = function landscape ($) {
+function landscape ($) {
   var pos = 0;
   $('.fullscreen').css('top', position(pos) - iconTop() + 'px').css('right', '0');
   pos += 1;
@@ -16,17 +15,9 @@ var landscape = function landscape ($) {
   pos += 1;
   $('.paused').css('top', position(pos) - iconTop() + 'px').css('right', '0');
   pos += 1;
-  $('.players').css('top', position(pos) - iconTop() + 'px').css('right', '0');
-  pos += 1;
-  $('.player-count').css('top', position(pos) - textTop() + 'px').css('right', '0');
-  pos += 1;
-  $('.observers').css('top', position(pos) - iconTop() + 'px').css('right', '0');
-  pos += 1;
-  $('.observer-count').css('top', position(pos) - textTop() + 'px').css('right', '0');
-  pos += 1;
-};
+}
 
-var portrait = function portrait ($) {
+function portrait ($) {
   var pos = 0;
   $('.fullscreen').css('right', position(pos) + 'px').css('top', iconTop() + 'px');
   pos += 1;
@@ -37,27 +28,20 @@ var portrait = function portrait ($) {
   pos += 1;
   $('.paused').css('right', position(pos) + 'px').css('top', iconTop() + 'px');
   pos += 1;
-  $('.players').css('right', position(pos) + 'px').css('top', iconTop() + 'px');
-  pos += 1;
-  $('.player-count').css('right', position(pos) + 'px').css('top', textTop() + 'px');
-  pos += 1;
-  $('.observers').css('right', position(pos) + 'px').css('top', iconTop() + 'px');
-  pos += 1;
-  $('.observer-count').css('right', position(pos) + 'px').css('top', textTop() + 'px');
-  pos += 1;
-};
+}
 
 module.exports = {
   type: 'OnResize',
-  func: function OnResize () {
-    var $ = require('zepto-browserify').$;
+  deps: ['$'],
+  func: function OnResize ($) {
 
     return function layoutIcons (dims) {
       if (dims.orientation === 'landscape') {
-        landscape($);
+        landscape($());
       } else {
-        portrait($);
+        portrait($());
       }
     };
+
   }
 };

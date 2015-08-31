@@ -1,17 +1,19 @@
 'use strict';
 
 var screenfull = require('screenfull');
-var $ = require('zepto-browserify').$;
 
 module.exports = {
   type: 'View',
-  func: function View () {
+  deps: ['$'],
+  func: function View ($) {
+
     return function setupOnFullscreen () {
-      $('.fullscreen').on('click', function () {
+      $()('.fullscreen').on('click', function click () {
         if (screenfull.enabled) {
           screenfull.toggle();
         }
       });
     };
+
   }
 };

@@ -2,19 +2,18 @@
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'Config', 'DefinePlugin'],
-  func: function InputCapture (window, config, define) {
+  deps: ['Window', 'Config', 'DefinePlugin', '$'],
+  func: function InputCapture (window, config, define, $) {
     var pluck = require('lodash').pluck;
     var reject = require('lodash').reject;
     var each = require('lodash').each;
-    var $ = require('zepto-browserify').$;
 
     var touches = [];
 
     function bindToWindowEvents () {
       var elementId = '#' + config().client.inputElement;
 
-      $(elementId).on('touchstart', function (e) {
+      $()(elementId).on('touchstart', function (e) {
         each(e.touches, function (touch) {
           var x = touch.clientX - touch.target.offsetLeft;
           var y = touch.clientY - touch.target.offsetTop;
@@ -27,7 +26,7 @@ module.exports = {
         });
       });
 
-      $(elementId).on('touchmove', function (e) {
+      $()(elementId).on('touchmove', function (e) {
         each(e.touches, function (touch) {
           var x = touch.clientX - touch.target.offsetLeft;
           var y = touch.clientY - touch.target.offsetTop;
@@ -48,9 +47,9 @@ module.exports = {
         });
       }
 
-      $(elementId).on('touchend', endTouch);
-      $(elementId).on('touchleave', endTouch);
-      $(elementId).on('touchcancel', endTouch);
+      $()(elementId).on('touchend', endTouch);
+      $()(elementId).on('touchleave', endTouch);
+      $()(elementId).on('touchcancel', endTouch);
     }
 
     define()('OnSetup', function () {

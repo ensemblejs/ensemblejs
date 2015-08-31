@@ -1,12 +1,11 @@
 'use strict';
 
+var each = require('lodash').each;
+
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'DefinePlugin'],
-  func: function InputCapture (window, define) {
-    var each = require('lodash').each;
-    var $ = require('zepto-browserify').$;
-
+  deps: ['Window', 'DefinePlugin', '$'],
+  func: function InputCapture (window, define, $) {
     var keys = {};
     var singlePressKeys = {};
 
@@ -61,10 +60,10 @@ module.exports = {
 
     function addBindings() {
       if (window().ontouchstart !== undefined) {
-        addTouchBindings($(this));
+        addTouchBindings($()(this));
       }
 
-      addMouseBindings($(this));
+      addMouseBindings($()(this));
     }
 
     function bindToElement (element) {
