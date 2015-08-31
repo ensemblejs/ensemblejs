@@ -1,9 +1,12 @@
 'use strict';
 
+var each = require('lodash').each;
+
 module.exports = {
-  deps: ['Window', 'On', 'CurrentState', 'Time'],
+  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time'],
   type: 'RenderLoop',
-  func: function RenderLoop (window, on, currentState, time) {
+  func: function RenderLoop (window, onRenderFrame, currentState, time) {
+
     var priorStep = time().present();
 
     function paused (state) { return state.ensemble.paused; }
@@ -17,7 +20,9 @@ module.exports = {
           var delta = (now - priorStep) / 1000;
           priorStep = time().present();
 
-          on().renderFrame(delta);
+          each(onRenderFrame(), function (callback) {
+            callback(delta);
+          });
         }
 
         window().requestAnimationFrame(this.run.bind(this));

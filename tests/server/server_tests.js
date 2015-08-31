@@ -1,6 +1,5 @@
 'use strict';
 
-var rekuire = require('rekuire');
 var expect = require('expect');
 var sinon = require('sinon');
 
@@ -37,7 +36,7 @@ describe('starting the server', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = rekuire('src/core/server/web-server').func(defer(socketServer), defer(config));
+		server = require('../../src/core/server/web-server').func(defer(socketServer), defer(config));
 		server.start('../game', modes);
 	});
 
@@ -73,7 +72,7 @@ describe('stopping the server', function () {
 		io.of = sinon.spy();
 		http.createServer = function() { return expressServer; };
 
-		server = rekuire('src/core/server/web-server').func(defer(socketServer), defer(config));
+		server = require('../../src/core/server/web-server').func(defer(socketServer), defer(config));
 		server.start('../game', modes);
 		server.stop();
 	});

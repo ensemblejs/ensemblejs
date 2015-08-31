@@ -41,7 +41,10 @@ module.exports = {
           id: packet.id,
           rawData: packet,
           timestamp: time().present(),
-          mode: mode()
+          game: {
+            id: 'client',
+            mode: mode()
+          }
         });
       };
     });

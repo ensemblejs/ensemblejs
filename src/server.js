@@ -16,22 +16,22 @@ var plugins = require('./plugins/plug-n-play').configure(
 
 plugins.load({ type: 'Config', func: function Config () { return config; }});
 
-plugins.loadPath(__dirname + '/metrics/shared');
-plugins.loadPath(__dirname + '/metrics/server');
-plugins.loadPath(__dirname + '/core/shared');
-plugins.loadPath(__dirname + '/core/server');
-plugins.loadPath(__dirname + '/socket/shared');
-plugins.loadPath(__dirname + '/socket/server');
-plugins.loadPath(__dirname + '/input/shared');
-plugins.loadPath(__dirname + '/input/server');
-plugins.loadPath(__dirname + '/events/shared');
-plugins.loadPath(__dirname + '/events/server');
-plugins.loadPath(__dirname + '/state/shared');
-plugins.loadPath(__dirname + '/state/server');
-plugins.loadPath(__dirname + '/validators/shared');
-plugins.loadPath(__dirname + '/validators/server');
-plugins.loadPath(__dirname + '/debug/shared');
-plugins.loadPath(__dirname + '/debug/server');
+plugins.loadFrameworkPath(__dirname + '/metrics/shared');
+plugins.loadFrameworkPath(__dirname + '/metrics/server');
+plugins.loadFrameworkPath(__dirname + '/core/shared');
+plugins.loadFrameworkPath(__dirname + '/core/server');
+plugins.loadFrameworkPath(__dirname + '/socket/shared');
+plugins.loadFrameworkPath(__dirname + '/socket/server');
+plugins.loadFrameworkPath(__dirname + '/input/shared');
+plugins.loadFrameworkPath(__dirname + '/input/server');
+plugins.loadFrameworkPath(__dirname + '/events/shared');
+plugins.loadFrameworkPath(__dirname + '/events/server');
+plugins.loadFrameworkPath(__dirname + '/state/shared');
+plugins.loadFrameworkPath(__dirname + '/state/server');
+plugins.loadFrameworkPath(__dirname + '/validators/shared');
+plugins.loadFrameworkPath(__dirname + '/validators/server');
+plugins.loadFrameworkPath(__dirname + '/debug/shared');
+plugins.loadFrameworkPath(__dirname + '/debug/server');
 
 function runGameAtPath (path) {
   logger.info('ensemblejs@' + packageInfo.version + ' started.');

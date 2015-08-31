@@ -60,6 +60,7 @@
     "rekuire": "^0.1.9",
     "request": "^2.60.0",
     "require-globify": "^1.2.1",
+    "requirish": "^0.3.0",
     "screenfull": "^2.0.0",
     "seedrandom": "^2.4.2",
     "serve-favicon": "^2.3.0",

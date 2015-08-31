@@ -12,16 +12,18 @@
   "logging": {
     "logLevel": "warn",
     "silencedPlugins": [
+      "Config",
       "CurrentState",
       "GamesList",
       "LowestInputProcessed",
+      "On",
       "OnInput",
+      "OnOutgoingServerPacket",
       "OnPhysicsFrame",
       "RawStateAccess",
       "StateAccess",
       "StateMutator",
-      "Time",
-      "Config"
+      "Time"
     ],
     "expressBunyanLogger": {
       "excludes": [

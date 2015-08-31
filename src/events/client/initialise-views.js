@@ -1,10 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var first = require('lodash').first;
-var filter = require('lodash').filter;
-var intersection = require('lodash').intersection;
-var last = require('lodash').last;
+var callForMode = require('../../util/modes').callForMode;
 
 module.exports = {
   type: 'OnSetup',
@@ -13,14 +9,7 @@ module.exports = {
     return function initialiseViews () {
       var dims = dimensions().get();
 
-      function hasMatchingMode(callback) {
-        return intersection(['*', mode()], first(callback)).length > 0;
-      }
-
-      var applicableCallbacks = filter(views(), hasMatchingMode);
-      each(applicableCallbacks, function(view) {
-        last(view)(dims);
-      });
+      callForMode(views(), mode(), [dims]);
     };
   }
 };

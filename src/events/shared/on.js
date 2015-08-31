@@ -1,56 +1,13 @@
 'use strict';
 
-var each = require('lodash').each;
-var filter = require('lodash').filter;
-var first = require('lodash').first;
-var intersection = require('lodash').intersection;
-var getFuncOf = require('lodash').last;
+var callEachPlugin = require('../../util/modes').callEachPlugin;
+var callEachWithMutation = require('../../util/modes').callEachWithMutation;
+var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnSetupComplete', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onSetupComplete, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect) {
-
-    function createCallAll (deferredFuncArray) {
-      return function callAll () {
-        var args = arguments;
-
-        function invokeWithArguments (callback) {
-          callback.apply(undefined, args);
-        }
-
-        each(deferredFuncArray(), invokeWithArguments);
-      };
-    }
-
-    function createCallAllWithStateMutation (deferredFuncArray) {
-      return function callAllWithStateMutation () {
-        var args = Array.prototype.slice.call(arguments);
-
-        var gameId = args[0];
-        args[0] = state().for(gameId);
-
-        function invokeWithArgumentsAndMutation (callback) {
-          mutator()(
-            gameId,
-            getFuncOf(callback).apply(undefined, args)
-          );
-        }
-
-        each(deferredFuncArray(), invokeWithArgumentsAndMutation);
-      };
-    }
-
-    function createOnPhysicsFrameChain () {
-      var onFrame = createCallAllWithStateMutation(onPhysicsFrame);
-      var onFrameComplete = createCallAll(onPhysicsFrameComplete);
-
-      return function onPhysicsFrameChain (gameId, delta) {
-        onFrame(gameId, delta);
-        onFrameComplete();
-      };
-    }
-
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnSetupComplete', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onSetupComplete, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -61,127 +18,76 @@ module.exports = {
         }
 
         lastReceivedId = packet.id;
-        each(onServerPacket(), function (callback) {
-          callback(packet);
-        });
+        callEachPlugin(onServerPacket(), [packet]);
       };
     }
 
     function clientPacket (packet) {
-      each(onClientPacket(), function (callback) {
-        callback(packet);
-      });
+      callEachPlugin(onClientPacket(), [packet]);
     }
 
     function error (data) {
-      each(onError(), function (callback) {
-        callback(data);
-      });
+      callEachPlugin(onError(), [data]);
     }
 
     function input () {
-      each(onInput(), function (callback) {
-        callback();
-      });
+      callEachPlugin(onInput());
     }
 
-    function renderFrame (delta) {
-      each(onRenderFrame(), function (callback) {
-        callback(delta);
-      });
-    }
-
-    function callAllWithMatchingModeAndMutation (game, callbacks, data) {
-      var args = data || [];
-      args.unshift(state().for(game.id));
-
-      function hasMatchingMode(callback) {
-        return intersection(['*', game.mode], first(callback)).length > 0;
-      }
-
-      var applicableCallbacks = filter(callbacks(), hasMatchingMode);
-      each(applicableCallbacks, function (callback) {
-        mutator()(
-          game.id,
-          getFuncOf(callback).apply(undefined, args)
-        );
-      });
-    }
-
-    function callAllWithMutation (gameId, callbacks, data) {
-      var args = data || [];
-      args.unshift(state().for(gameId));
-
-      each(callbacks(), function (callback) {
-        mutator()(
-          gameId,
-          getFuncOf(callback).apply(undefined, args)
-        );
-      });
+    function getState (gameId) {
+      return state().for(gameId);
     }
 
     function connect (game) {
-      callAllWithMutation(game.id, onConnect);
+      var params = [getState(game.id)];
+      callForModeWithMutation(onConnect(), mutator, game, params);
     }
 
     function disconnect (game) {
-      callAllWithMutation(game.id, onDisconnect);
+      var params = [getState(game.id)];
+      callForModeWithMutation(onDisconnect(), mutator, game, params);
+    }
+
+    function newGame (game) {
+      callEachWithMutation(onNewGame(), mutator, game.id, [game]);
     }
 
     function clientConnect (game, socket) {
-      callAllWithMutation(game.id, onClientConnect, [socket, game]);
+      var params = [getState(game.id), socket, game];
+      callForModeWithMutation(onClientConnect(), mutator, game, params);
     }
 
     function clientDisconnect (game, socket) {
-      callAllWithMutation(game.id, onClientDisconnect, [socket, game]);
+      var params = [getState(game.id), socket, game];
+      callForModeWithMutation(onClientDisconnect(), mutator, game, params);
     }
 
     function pause (game) {
-      if (state().for(game.id).for('ensemble').get('paused')) {
-        return;
-      }
-
-      callAllWithMatchingModeAndMutation(game, onPause);
+      var params = [getState(game.id)];
+      callForModeWithMutation(onPause(), mutator, game, params);
     }
 
     function resume (game) {
-      if (!state().for(game.id).for('ensemble').get('paused')) {
-        return;
-      }
-
-      callAllWithMatchingModeAndMutation(game, onResume);
+      var params = [getState(game.id)];
+      callForModeWithMutation(onResume(), mutator, game, params);
     }
 
     function setup (state) {
-      each(onSetup(), function (callback) {
-        callback(state);
-      });
-
-      each(onSetupComplete(), function (callback) {
-        callback();
-      });
+      callEachPlugin(onSetup(), [state]);
+      callEachPlugin(onSetupComplete());
     }
 
     function start (path, modes) {
-      each(onStart(), function (callback) {
-        callback(path, modes);
-      });
-
-      each(onReady(), function (callback) {
-        callback();
-      });
+      callEachPlugin(onStart(), [path, modes]);
+      callEachPlugin(onReady());
     }
 
-    function stop (path, modes) {
-      each(onStop(), function (callback) {
-        callback(path, modes);
-      });
+    function stop () {
+      callEachPlugin(onStop());
     }
 
     function outgoingServerPacket(socketId, packet) {
-      each(onOutgoingServerPacket(), function (callback) {
-        callback(socketId, packet);
-      });
+      callEachPlugin(onOutgoingServerPacket(), [socketId, packet]);
     }
 
     return {
@@ -193,14 +99,13 @@ module.exports = {
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
       clientPacket: clientPacket,
+      newGame: newGame,
       input: input,
       outgoingServerPacket: outgoingServerPacket,
       serverPacket: createOnServerPacketCallback(),
       error: error,
       pause: pause,
-      resume: resume,
-      renderFrame: renderFrame,   //TODO: move
-      physicsFrame: createOnPhysicsFrameChain() //TODO: move
+      resume: resume
     };
   }
 };

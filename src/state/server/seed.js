@@ -8,7 +8,6 @@ module.exports = {
       ensemble: {
         jobs: [],
         paused: false,
-        randomSeed: 0,
         started: time().present()
       }
     };

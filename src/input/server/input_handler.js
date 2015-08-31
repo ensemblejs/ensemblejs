@@ -29,14 +29,14 @@ module.exports = {
 			logger().called(arguments, 'ensemblejs', 'OnInput', parseKeysAndKeypresses);
 
 			function withMode (actionMap) {
-				return isApplicable(currentInput.mode, actionMap);
+				return isApplicable(currentInput.game.mode, actionMap);
 			}
 
       function invokeCallback(action) {
       	logger().called(arguments, 'ensemblejs', 'OnInput', invokeCallback);
 
 				stateMutator()(
-					currentInput.gameId,
+					currentInput.game.id,
 					callback(action.target, action.noEventKey)
 				);
 			}
@@ -74,7 +74,7 @@ module.exports = {
 
 		var parseMouse = function(currentInput, callback) {
 			var applicableActionMaps = select(actionMaps(), function(actionMap) {
-        return isApplicable(currentInput.mode, actionMap);
+        return isApplicable(currentInput.game.mode, actionMap);
       });
 
 			each(applicableActionMaps, function(actionMapDefinition) {
@@ -84,7 +84,7 @@ module.exports = {
 
 				if (currentInput.rawData.mouse) {
 					each(actionMap.cursor, function(action) {
-						stateMutator()(currentInput.gameId,  callback(action.target, action.noEventKey, currentInput.rawData.mouse));
+						stateMutator()(currentInput.game.id,  callback(action.target, action.noEventKey, currentInput.rawData.mouse));
 					});
 				}
 			});
@@ -95,7 +95,7 @@ module.exports = {
 				var key = 'touch' + touch.id;
 
 				var applicableActionMaps = select(actionMaps(), function(actionMap) {
-	        return isApplicable(currentInput.mode, actionMap);
+	        return isApplicable(currentInput.game.mode, actionMap);
 	      });
 
 				each(applicableActionMaps, function(actionMapDefinition) {
@@ -104,7 +104,7 @@ module.exports = {
 					if (actionMap[key] === undefined) { return; }
 
 					each(actionMap[key], function(action) {
-						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
+						stateMutator()(currentInput.game.id, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
 					});
 				});
 			});
@@ -115,7 +115,7 @@ module.exports = {
 				if (currentInput.rawData[key] === undefined) {return;}
 
 				var applicableActionMaps = select(actionMaps(), function(actionMap) {
-	        return isApplicable(currentInput.mode, actionMap);
+	        return isApplicable(currentInput.game.mode, actionMap);
 	      });
 
 				each(applicableActionMaps, function(actionMapDefinition) {
@@ -125,7 +125,7 @@ module.exports = {
 
 					var data = currentInput.rawData[key];
 					each(actionMap[key], function(action) {
-						stateMutator()(currentInput.gameId, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
+						stateMutator()(currentInput.game.id, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
 					});
 				});
 			});
@@ -138,7 +138,7 @@ module.exports = {
 				var data;
 
 				function isActionMapApplicable(actionMap) {
-					return isApplicable(currentInput.mode, actionMap);
+					return isApplicable(currentInput.game.mode, actionMap);
 				}
 
 				function keyAndKeypressCallback(target, noEventKey) {
@@ -165,7 +165,7 @@ module.exports = {
 
 					each(actionMap.nothing, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return stateMutator()(currentInput.gameId, action.target(state, data));
+							return stateMutator()(currentInput.game.id, action.target(state, data));
 						}
 					});
 				}
@@ -191,7 +191,7 @@ module.exports = {
 					var applicableActionMaps = select(actionMaps(), isActionMapApplicable);
 					each(applicableActionMaps, doSomethingWithActionMaps);
 
-					lowestInputProcessed[currentInput.gameId] = currentInput.rawData.id;
+					lowestInputProcessed[currentInput.game.id] = currentInput.rawData.id;
 				}
 
 				var logData = {
@@ -223,14 +223,13 @@ module.exports = {
 			};
 		});
 
-		return function handle(rawData, timestamp, gameId, mode) {
+		return function handle(rawData, timestamp, game) {
 			logger().called(arguments, 'ensemblejs', 'OnInput', handle);
 
 			userInput.push({
 				rawData: rawData,
 				timestamp: timestamp,
-				gameId: gameId,
-				mode: mode
+				game: game
 			});
 		};
 	}

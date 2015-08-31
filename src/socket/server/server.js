@@ -1,17 +1,15 @@
 'use strict';
-
-var rekuire = require('rekuire');
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
-var filterPluginsByMode = rekuire('src/util/modes').filterPluginsByMode;
+var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'OnPlayerConnect', 'OnPlayerDisconnect', 'OnObserverConnect', 'OnObserverDisconnect', 'RawStateAccess', 'StateMutator', 'InitialiseState', 'GamesList', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time'],
-  func: function SocketServer (acknowledgementMaps, onInput, onPlayerConnect, onPlayerDisconnect, onObserverConnect, onObserverDisconnect, rawStateAccess, stateMutator, initialiseState, games, state, logger, config, lowestInputProcessed, on, define, time) {
+  deps: ['AcknowledgementMap', 'OnInput', 'RawStateAccess', 'StateMutator', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time'],
+  func: function SocketServer (acknowledgementMaps, onInput, rawStateAccess, stateMutator, state, logger, config, lowestInputProcessed, on, define, time) {
 
     var io;
     var sockets = {};
@@ -46,7 +44,7 @@ module.exports = {
 
     function handleAcknowledgements (socketId, acks, game) {
       each(acks, function (ack) {
-        var applicable = filterPluginsByMode(acknowledgementMaps, game.mode);
+        var applicable = filterPluginsByMode(acknowledgementMaps(), game.mode);
 
         each(applicable, function(acknowledgementMap) {
           if (!last(acknowledgementMap)[ack.name]) { return; }
@@ -95,7 +93,7 @@ module.exports = {
           mode: mode
         };
 
-        initialiseState().initialise(game);
+        on().newGame(game);
 
         function addLogging (eventName, eventCallback) {
           return function withLogging () {

@@ -146,7 +146,11 @@ function load (module, prefix) {
 }
 
 function loadGameDevCode (path) {
-  loader.loadFromPath(path, load);
+  loader.loadFromPath(path, load, 'Game');
+}
+
+function loadFrameworkPath (path) {
+  loader.loadFromPath(path, load, 'ensemblejs');
 }
 
 function set (name, thing) {
@@ -205,6 +209,7 @@ function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
 
   return {
     load: load,
+    loadFrameworkPath: loadFrameworkPath,
     loadPath: loadGameDevCode,
     set: set,
     get: get

@@ -16,7 +16,6 @@ module.exports = {
 
     function number(state) {
       var seed = state.for('ensemble').get('randomSeed');
-
       var n = generators[seed]();
 
       return n;

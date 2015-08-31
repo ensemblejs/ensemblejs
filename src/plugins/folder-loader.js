@@ -8,7 +8,8 @@ function normaliseRelativePath (path) {
 	return path.substr(0, 1) === '/' ? path : require('path').join(__dirname, path);
 }
 
-function loadFromPath (pathToEntites, callback) {
+function loadFromPath (pathToEntites, callback, prefix) {
+	prefix = prefix || 'Game';
 	var absolutePath = normaliseRelativePath(addTrailingSlash(pathToEntites));
 
 	var exports = {};
@@ -21,7 +22,7 @@ function loadFromPath (pathToEntites, callback) {
 		var name = file.replace('.js', '');
 
 		if (callback) {
-			callback(require(absolutePath + file), 'Game');
+			callback(require(absolutePath + file), prefix);
 		} else {
 			exports[name] = require(absolutePath + file);
 		}

@@ -1,7 +1,7 @@
 'use strict';
 
+require('requirish')._(module);
 var appRoot = require('app-root-path');
-var rekuire = require('rekuire');
 var defaultsDeep = require('lodash').defaultsDeep;
 
 function getConfig (logger) {
@@ -14,7 +14,7 @@ function getConfig (logger) {
     logger.info('Not using custom config.');
   }
 
-  config = defaultsDeep(config, rekuire('config/defaults.json'));
+  config = defaultsDeep(config, require('../../config/defaults.json'));
   config.nothing = function nothing () {};
   logger.info(config, 'Initial Configuration');
 
