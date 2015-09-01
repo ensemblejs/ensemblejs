@@ -28,7 +28,9 @@ module.exports = {
         socket.playerId = playerId;
       });
 
-      socket.on('initialState', on().setup);
+      socket.on('initialState', function initialState (packet) {
+        on().setup(packet, gameMode());
+      });
       socket.on('updateState', on().serverPacket);
       socket.on('error', on().error);
 

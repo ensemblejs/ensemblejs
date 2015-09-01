@@ -12,6 +12,7 @@
   "logging": {
     "logLevel": "warn",
     "silencedPlugins": [
+      "$",
       "Config",
       "CurrentState",
       "GamesList",

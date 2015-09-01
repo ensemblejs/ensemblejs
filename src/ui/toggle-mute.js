@@ -3,9 +3,9 @@
 var callEachPlugin = require('../util/modes').callEachPlugin;
 
 module.exports = {
-  type: 'View',
+  type: 'OnReady',
   deps: ['OnMute', 'OnUnmute', '$'],
-  func: function View (onMute, onUnmute, $) {
+  func: function ToggleMute (onMute, onUnmute, $) {
 
     return function toggleMuteUnmute () {
       $()('.sound-off').hide();

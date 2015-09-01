@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  type: 'View',
+  type: 'OnReady',
   deps: ['Config', 'StateTracker', 'StateTrackerHelpers', '$'],
-  func: function View (config, tracker, trackerHelpers, $) {
+  func: function DebugMouseButtons (config, tracker, trackerHelpers, $) {
     if (!config().debug.input) {
       return config().nothing;
     }

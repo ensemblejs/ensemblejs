@@ -1,13 +1,14 @@
 'use strict';
 
 var callEachPlugin = require('../../util/modes').callEachPlugin;
+var callForMode = require('../../util/modes').callForMode;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnSetupComplete', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onSetupComplete, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -72,9 +73,9 @@ module.exports = {
       callForModeWithMutation(onResume(), mutator, game, params);
     }
 
-    function setup (state) {
+    function setup (state, mode) {
       callEachPlugin(onSetup(), [state]);
-      callEachPlugin(onSetupComplete());
+      callForMode(onReady(), mode, [dimensions().get()]);
     }
 
     function start (path, modes) {

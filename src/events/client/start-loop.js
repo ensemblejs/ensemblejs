@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  type: 'OnSetupComplete',
+  type: 'OnReady',
   deps: ['RenderLoop', 'PhysicsLoop'],
-  func: function OnSetupComplete (renderLoop, physicsLoop) {
+  func: function OnReady (renderLoop, physicsLoop) {
     return function startLoops () {
       renderLoop().run();
       physicsLoop().run();

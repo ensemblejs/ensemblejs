@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
+  type: 'OnReady',
   deps: ['On', 'StateTrackerHelpers', 'StateTracker', 'GameMode', '$'],
-  type: 'View',
-  func: function View (on, trackerHelpers, tracker, mode, $) {
+  func: function PauseResume (on, trackerHelpers, tracker, mode, $) {
     var equals = trackerHelpers().equals;
 
     function pause () {

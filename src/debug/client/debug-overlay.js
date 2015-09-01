@@ -3,9 +3,9 @@
 var overlay = require('../../../public/partials/debug-overlay.jade');
 
 module.exports = {
-  type: 'View',
+  type: 'OnReady',
   deps: ['$'],
-  func: function View ($) {
+  func: function DebugOverlay ($) {
     return function addDebugOverlayToBody () {
       $()('body').append(overlay());
     };

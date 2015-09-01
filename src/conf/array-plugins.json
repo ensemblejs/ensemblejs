@@ -22,11 +22,9 @@
     "OnResume",
     "OnServerPacket",
     "OnSetup",
-    "OnSetupComplete",
     "OnStart",
     "OnStop",
     "OnUnmute",
     "StateSeed",
-    "Validator",
-    "View"
+    "Validator"
 ]

@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  type: 'View',
+  type: 'OnReady',
   deps: ['Config', 'StateTracker', 'AnchorAction', '$'],
-  func: function View (config, tracker, anchorAction, $) {
+  func: function DebugKeyState (config, tracker, anchorAction, $) {
     if (!config().debug.input) {
       return config().nothing;
     }

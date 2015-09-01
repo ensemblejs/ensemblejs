@@ -3,9 +3,9 @@
 var screenfull = require('screenfull');
 
 module.exports = {
-  type: 'View',
+  type: 'OnReady',
   deps: ['$'],
-  func: function View ($) {
+  func: function Fullscreen ($) {
 
     return function setupOnFullscreen () {
       $()('.fullscreen').on('click', function click () {
