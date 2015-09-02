@@ -51,7 +51,7 @@ describe('desktop socket client', function () {
 
 	      $ = require('zepto-browserify').$;
 
-				socketClient = require('../../../src/socket/client').func(defer(window), defer(GameMode), defer(serverUrl), defer(on), defer(plugin.define));
+				socketClient = require('../../../src/core/client/socket-client').func(defer(window), defer(GameMode), defer(serverUrl), defer(on), defer(plugin.define));
 
 	      done();
     }});

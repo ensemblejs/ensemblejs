@@ -2,10 +2,10 @@
 
 var expect = require('expect');
 
-var defer = require('../support').defer;
-var plugin = require('../support').plugin();
+var defer = require('../../support').defer;
+var plugin = require('../../support').plugin();
 
-var stateMutator = require('../../src/state/server/mutator.js').func(defer(plugin.define));
+var stateMutator = require('../../../src/state/server/mutator.js').func(defer(plugin.define));
 var state = plugin.deps().StateAccess();
 
 describe('as before but return new objects with only the changed state', function () {

@@ -4,7 +4,7 @@ var assert = require('assert');
 var expect = require('expect');
 var sinon = require('sinon');
 
-var defer = require('../support.js').defer;
+var defer = require('../../support').defer;
 
 var update1 = [['*'], sinon.spy()];
 var update2 = [['custom'], sinon.spy()];

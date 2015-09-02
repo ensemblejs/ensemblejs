@@ -12,7 +12,7 @@ var defer = function(x) {
 	};
 };
 
-var dimensions = require('../../../src/ui/dimensions').func(defer(2.6), defer(32), defer(window)).get;
+var dimensions = require('../../src/ui/dimensions').func(defer(2.6), defer(32), defer(window)).get;
 
 describe('dimensions', function() {
 	it('should get the screen width', function() {

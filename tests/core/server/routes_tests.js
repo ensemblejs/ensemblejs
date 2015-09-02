@@ -4,7 +4,7 @@ var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
 
-var defer = require('../support').defer;
+var defer = require('../../support').defer;
 var socketSupport = {
 	start: sinon.spy(),
 	stop: sinon.spy()

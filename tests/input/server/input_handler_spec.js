@@ -3,8 +3,8 @@
 var sinon = require('sinon');
 var expect = require('expect');
 
-var defer = require('../support.js').defer;
-var plugin = require('../support.js').plugin();
+var defer = require('../../support').defer;
+var plugin = require('../../support').plugin();
 
 var model = {
 	noEvent: sinon.spy(),
@@ -76,7 +76,7 @@ describe('Input Bindings', function() {
 			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
 		}];
 
-		newUserInput = require('../../src/input/server/input_handler.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
+		newUserInput = require('../../../src/input/server/input_handler.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
 		update = plugin.deps().OnPhysicsFrame();
 	});
 
