@@ -1,7 +1,7 @@
 'use strict';
 
 var expect = require('expect');
-// var sinon = require('sinon');
+var sinon = require('sinon');
 var each = require('lodash').each;
 var jsdom = require('jsdom').jsdom;
 
@@ -78,46 +78,48 @@ describe('the plugin manager', function() {
 		};
 	};
 	var pluginManager;
-	var logging = require('../support').logger;
+	var logger = require('../fake/logger');
 
 	describe('using a plugin', function() {
 		beforeEach(function () {
-			pluginManager = require('../../src/plugins/plug-n-play').configure(logging, ['InputMode'], ['HasDefaultMode', 'InputMode', 'AlsoADefaultMode']);
+			pluginManager = require('../../src/plugins/plug-n-play').configure(logger, ['InputMode'], ['HasDefaultMode', 'InputMode', 'AlsoADefaultMode']);
 
-			console.log(logging);
-			logging.loaded.reset();
-			logging.plugin.reset();
+			sinon.spy(logger, 'loaded');
+			sinon.spy(logger, 'plugin');
+			logger.loaded.reset();
+			logger.plugin.reset();
 		});
 
-		it('should a plugin being loaded', function () {
+		it('should log a plugin being loaded', function () {
 			pluginManager.load(myModuleReturnFunction);
 
-			expect(logging.loaded.firstCall.args).toEqual(['ensemblejs::RetFunction']);
+			expect(logger.loaded.firstCall.args[0]).toEqual('ensemblejs');
+			expect(logger.loaded.firstCall.args[1]).toEqual('RetFunction');
 		});
 
 		it('should report when a plugin\'s functions are executed', function () {
 			pluginManager.load(myModuleReturnFunction);
 			pluginManager.get('RetFunction')();
-			expect(logging.plugin.firstCall.args[1]).toEqual('ensemblejs:RetFunction');
-			expect(logging.plugin.firstCall.args[2]).toEqual('function retFunction() {\n\t\t\t\treturn 54;\n\t\t\t}');
+			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[2]).toEqual('RetFunction');
 
-			logging.plugin.reset();
+			logger.plugin.reset();
 			pluginManager.load(myModuleReturnsObject);
 			pluginManager.get('RetObject').f();
-			expect(logging.plugin.firstCall.args[1]).toEqual('ensemblejs:RetObject');
-			expect(logging.plugin.firstCall.args[2]).toEqual('function f() {\n\t\t\t\treturn 234;\n\t\t\t}');
+			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[2]).toEqual('RetObject');
 
-			logging.plugin.reset();
+			logger.plugin.reset();
 			pluginManager.load(myModuleReturnAnonymousFunction);
 			pluginManager.get('RetAnonymousFunction')();
-			expect(logging.plugin.firstCall.args[1]).toEqual('ensemblejs:RetAnonymousFunction');
-			expect(logging.plugin.firstCall.args[2]).toEqual('function () {\n\t\t\t\treturn 55;\n\t\t\t}');
+			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[2]).toEqual('RetAnonymousFunction');
 
-			logging.plugin.reset();
+			logger.plugin.reset();
 			pluginManager.load(myModuleReturnModedFunction);
 			pluginManager.get('RetModedFunction')[1]();
-			expect(logging.plugin.firstCall.args[1]).toEqual('ensemblejs:RetModedFunction');
-			expect(logging.plugin.firstCall.args[2]).toEqual('function () {\n\t\t\t\treturn 57;\n\t\t\t}');
+			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[2]).toEqual('RetModedFunction');
 		});
 
 		it('should have it\'s dependencies injected as parameters', function() {
@@ -222,7 +224,7 @@ describe('the plugin manager', function() {
 		});
 
 		it('should not care if no default plugin types are supplied', function() {
-			require('../src/plug-n-play').configure('name', 'version');
+			require('../../src/plugins/plug-n-play').configure(logger, 'name', 'version');
 		});
 
 		it('should defer all modules', function () {
@@ -252,7 +254,7 @@ describe('the plugin manager', function() {
 
 		it('should work for the seeded logger', function () {
 			pluginManager.load(createAModuleToExecuteTest(['Logger'], function(logger) {
-				expect(logger()).toEqual(logging);
+				expect(logger()).toNotEqual(undefined);
 			}));
 		});
 

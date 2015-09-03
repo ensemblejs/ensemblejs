@@ -58,17 +58,6 @@ function makeTestible(pathToModule, explicitDeps) {
   return [requiredPlugin.func.apply(undefined, deps), support.deps()];
 }
 
-var logger = {
-  loaded: sinon.spy(),
-  plugin: sinon.spy(),
-  subdue: sinon.spy(),
-  called: sinon.spy(),
-  debug: sinon.spy(),
-  filename: sinon.spy(),
-  info: sinon.spy(),
-  warn: sinon.spy()
-};
-
 function gameScopedState (stateCallback) {
   return {
     for: function (namespace) {
@@ -93,7 +82,6 @@ module.exports = {
   makeTestible: makeTestible,
   defer: defer,
   plugin: plugin,
-  logger: logger,
   gameScopedState: gameScopedState,
   DynamicPluginLoader: DynamicPluginLoader
 };
