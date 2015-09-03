@@ -7,6 +7,14 @@ var fake$ = {
   on: function(name, f) {
     savedEvents[name] = savedEvents[name] || [];
     savedEvents[name].push(f);
+  },
+  keydown: function (f) {
+    savedEvents.keydown = savedEvents.keydown || [];
+    savedEvents.keydown.push(f);
+  },
+  keyup: function (f) {
+    savedEvents.keyup = savedEvents.keyup || [];
+    savedEvents.keyup.push(f);
   }
 };
 
