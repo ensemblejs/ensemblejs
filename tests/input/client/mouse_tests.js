@@ -2,109 +2,106 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var jsdom = require('jsdom').jsdom;
-var _ = require('lodash');
+var makeTestible = require('../../support').makeTestible;
+var createFakeDom = require('../../fake/dom');
 
-describe('the keyboard input capture plugin', function () {
-	var InputCapture;
-	var inputCapture;
-	var socket = {
-		emit: sinon.spy()
-	};
-	var $;
+var fake$ = require('../../fake/jquery').$;
+var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 
-	var document = function() {
-		return global.window.document;
-	};
+var sut;
+var onSetup;
 
-	var makeFakeEvent = function(klass, type, options) {
-		var event = document().createEvent(klass);
-		event.initEvent(type, true, true);
-    event = _.defaults(event, options);
+describe('the mouse input capture plugin', function () {
+	var mouse;
 
-    return event;
-	};
-
-	var defer = function(dep) {
-		return function() {
-			return dep;
-		};
-	};
+	before(function () {
+		sinon.spy(fake$, 'on');
+	});
 
 	beforeEach(function (done) {
-		jsdom.env(
-			{
-				html: '<html><body><canvas id="element"></canvas></body></html>',
-				done: function (err, window) {
-					global.window = window;
-					global.document = window.document;
-					global.getComputedStyle = function() {};
+		var html = '<html><body><canvas id="element"></canvas></body></html>';
 
-					socket.emit.reset();
+		createFakeDom(html, function (window) {
+	  	sut = makeTestible('input/client/mouse', {
+				Window: window,
+				Config: {
+					client: {
+						element: 'element'
+					}
+				},
+				$: fake$wrapper
+			});
+			mouse = sut[0];
+			onSetup = sut[1].OnSetup();
+	  }, done);
 
-					$ = require('zepto-browserify').$;
-
-					InputCapture = require('../../../src/input/client/mouse.js').func(defer(global.window), defer('element'));
-					inputCapture = new InputCapture(socket);
-
-					done();
-				}
-			}
-		);
+		fake$.reset();
 	});
 
-	describe('when the mouse moves', function() {
-		it('should update the current x and y values', function () {
-			var event = new global.window.document.createEvent('MouseEvent');
-			event.initEvent('mousemove', true, true);
-	    event = _.defaults(event, {
-				layerX: 45,
-				layerY: 67
+	after(function () {
+		fake$.on.restore();
+	});
+
+	describe('after setup', function () {
+		beforeEach(function () {
+			onSetup();
+		});
+
+		describe('when the mouse moves', function() {
+			it('should update the current x and y values', function () {
+		    fake$.savedEvents().mousemove[0]({
+					layerX: 45,
+					layerY: 67
+				});
+
+				expect(mouse().mouse.x).toEqual(45);
+				expect(mouse().mouse.y).toEqual(67);
+			});
+		});
+
+		describe('when a mouse button is clicked', function() {
+			it('should register the key as a single press key', function () {
+				fake$.savedEvents().click[0]({which: 1 });
+
+				expect(mouse().singlePressKeys).toEqual([{key: 'primary', modifiers: []}]);
 			});
 
-	    $('#element')[0].dispatchEvent(event);
+			it('should remove the single press key after get the current state', function () {
+				fake$.savedEvents().click[0]({which: 1});
 
-			expect(inputCapture.getCurrentState().mouse.x).toEqual(45);
-			expect(inputCapture.getCurrentState().mouse.y).toEqual(67);
-		});
-	});
-
-	describe('when a mouse button is clicked', function() {
-		it('should register the key as a single press key', function () {
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'click', {which: 1 }));
-
-			expect(inputCapture.getCurrentState().singlePressKeys).toEqual([{key: 'primary', modifiers: []}]);
+				expect(mouse().singlePressKeys).toEqual([{key: 'primary', modifiers: []}]);
+				expect(mouse().singlePressKeys).toEqual([]);
+			});
 		});
 
-		it('should remove the single press key after get the current state', function () {
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'click', {which: 1 }));
+		describe('when a mouse button is pressed', function() {
+			it('should register the mouse click as a key', function () {
+				fake$.savedEvents().mousedown[0]({which: 1, preventDefault: sinon.spy() });
 
-			expect(inputCapture.getCurrentState().singlePressKeys).toEqual([{key: 'primary', modifiers: []}]);
-			expect(inputCapture.getCurrentState().singlePressKeys).toEqual([]);
+				expect(mouse().keys).toEqual([{key: 'primary', modifiers: []}]);
+			});
+
+			it('should continue to register the mouse click on subsequent calls to getCurrentState', function () {
+				fake$.savedEvents().mousedown[0]({which: 1, preventDefault: sinon.spy() });
+
+				expect(mouse().keys).toEqual([{key: 'primary', modifiers: []}]);
+				expect(mouse().keys).toEqual([{key: 'primary', modifiers: []}]);
+			});
 		});
-	});
 
-	describe('when a mouse button is pressed', function() {
-		it('should register the mouse click as a key', function () {
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'mousedown', {which: 1}));
+		describe('when a mouse button is released', function() {
+			it('should remove the mouse click from the current state', function () {
+				fake$.savedEvents().mousedown[0]({
+					which: 1,
+					preventDefault: sinon.spy()
+				});
+				fake$.savedEvents().mouseup[0]({
+					which: 1,
+					preventDefault: sinon.spy()
+				});
 
-			expect(inputCapture.getCurrentState().keys).toEqual([{key: 'primary', modifiers: []}]);
-		});
-
-		it('should continue to register the mouse click on subsequent calls to getCurrentState', function () {
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'mousedown', {which: 1}));
-
-			expect(inputCapture.getCurrentState().keys).toEqual([{key: 'primary', modifiers: []}]);
-			expect(inputCapture.getCurrentState().keys).toEqual([{key: 'primary', modifiers: []}]);
-		});
-	});
-
-	describe('when a mouse button is released', function() {
-		it('should remove the mouse click from the current state', function () {
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'mousedown', {which: 1}));
-			document().dispatchEvent(makeFakeEvent('MouseEvent', 'mouseup', {which: 1}));
-
-			expect(inputCapture.getCurrentState().keys).toNotEqual([{key: 'primary', modifiers: []}]);
+				expect(mouse().keys).toNotEqual([{key: 'primary', modifiers: []}]);
+			});
 		});
 	});
 });
