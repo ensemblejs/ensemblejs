@@ -27,8 +27,10 @@ var rawData = {};
 var newUserInput;
 var update;
 var mutator = sinon.spy();
-var gameId = 1;
-var mode = 'arcade';
+var game = {
+	id: 1,
+	arcade: 'arcade'
+};
 
 var logger = {
 	filename: sinon.spy(),
@@ -87,7 +89,7 @@ describe('Input Bindings', function() {
 	describe('when no input has been received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -98,7 +100,7 @@ describe('Input Bindings', function() {
 
 		it('should pass in the standard event data', function () {
 			update(state, 16);
-			var expected = {rcvdTimestamp: undefined, delta: 16};
+			var expected = {timestamp: undefined, delta: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(state);
 			expect(model.noEvent.firstCall.args[1]).toEqual(expected);
@@ -106,7 +108,7 @@ describe('Input Bindings', function() {
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+				newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
 				update = plugin.deps().OnPhysicsFrame();
 
@@ -124,7 +126,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
@@ -140,7 +142,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -152,10 +154,10 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { keys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 			update(state, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -164,7 +166,7 @@ describe('Input Bindings', function() {
 
 			update(state, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
@@ -179,7 +181,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -193,7 +195,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -203,7 +205,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -215,10 +217,10 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { singlePressKeys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 			update(state, 16);
 
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -227,7 +229,7 @@ describe('Input Bindings', function() {
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -242,7 +244,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -256,7 +258,7 @@ describe('Input Bindings', function() {
 	describe('when key input is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should do nothing if there are no events bound to that key', function () {
@@ -271,7 +273,7 @@ describe('Input Bindings', function() {
 	describe('when touch input is received', function() {
 		beforeEach(function() {
 			rawData = { touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -281,7 +283,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.touchEvent.firstCall.args).toEqual([state, 4, 5, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.touchEvent.firstCall.args).toEqual([state, 4, 5, {timestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -289,7 +291,7 @@ describe('Input Bindings', function() {
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should do nothing if there are no events bound to touch', function () {
@@ -303,12 +305,12 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], mouse: {x: 6, y: 7 }};
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.cursorEvent.firstCall.args).toEqual([state, 6,7, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.cursorEvent.firstCall.args).toEqual([state, 6,7, {timestamp: undefined, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -316,8 +318,8 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7 };
-			newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should not call any matching functions with the touch coordinates', function() {
@@ -330,7 +332,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: [{key: 'button1'}], touches: [] };
-			newUserInput(rawData, undefined, gameId, mode);
+			newUserInput(rawData, undefined, game);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -340,7 +342,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.mouseClickEvent.firstCall.args).toEqual([state, {rcvdTimestamp: undefined, delta: 16}]);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([state, {timestamp: undefined, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -352,25 +354,25 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now());
+			newUserInput(rawData, Date.now(), game);
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
 			update(state, 16);
-			expect(model.leftStickEvent.firstCall.args).toEqual([state, 0.1, 1.0, 0.5, {rcvdTimestamp: Date.now(), delta: 16}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([state, 0.9, 0.3, 1.0, {rcvdTimestamp: Date.now(), delta: 16}]);
+			expect(model.leftStickEvent.firstCall.args).toEqual([state, 0.1, 1.0, 0.5, {timestamp: Date.now(), delta: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([state, 0.9, 0.3, 1.0, {timestamp: Date.now(), delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
 
 	describe('when stick input is received but not bound', function () {
 		beforeEach(function() {
-			newUserInput = require('../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+			newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 			rawData = {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now());
+			newUserInput(rawData, Date.now(), game);
 		});
 
 		it('should not call any matching functions with direction vector and the fource', function () {
