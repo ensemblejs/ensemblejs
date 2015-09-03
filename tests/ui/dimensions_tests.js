@@ -6,13 +6,16 @@ var window = {
 	innerHeight: 400
 };
 
-var defer = function(x) {
-	return function() {
-		return x;
-	};
+var config = {
+	client: {
+		aspectRatio: 2.6,
+		widescreenMinimumMargin: 32
+	}
 };
 
-var dimensions = require('../../src/ui/dimensions').func(defer(2.6), defer(32), defer(window)).get;
+var defer = require('../support').defer;
+
+var dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
 
 describe('dimensions', function() {
 	it('should get the screen width', function() {
