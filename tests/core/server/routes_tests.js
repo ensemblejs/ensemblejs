@@ -28,7 +28,7 @@ describe('configuring the routes', function () {
 		io.listen = sinon.spy();
 		io.of = sinon.spy();
 
-		server = require('../../src/core/server/web-server').func(defer(socketSupport), defer(config));
+		server = require('../../../src/core/server/web-server').func(defer(socketSupport), defer(config));
 	});
 
 	describe('when the modes are not supplied', function () {

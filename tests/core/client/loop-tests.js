@@ -29,7 +29,7 @@ var time = {
 describe('the update loop', function () {
   describe('when paused', function () {
     beforeEach(function () {
-      updateLoop = require('../../../src/loops/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
+      updateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
       updateLoop.run();
     });
 
@@ -44,7 +44,7 @@ describe('the update loop', function () {
 
       on.renderFrame.reset();
 
-      updateLoop = require('../../../src/loops/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
+      updateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
       updateLoop.run();
     });
 

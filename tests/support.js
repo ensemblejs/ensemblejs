@@ -44,7 +44,7 @@ function makeTestible(pathToModule, explicitDeps) {
 
   each(requiredPlugin.deps, function (dep) {
     if (explicitDeps[dep]) {
-      deps.push(explicitDeps[dep]);
+      deps.push(defer(explicitDeps[dep]));
       return;
     }
 

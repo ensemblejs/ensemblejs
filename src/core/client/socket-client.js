@@ -1,5 +1,7 @@
 'use strict';
 
+var io = require('socket.io-client');
+
 module.exports = {
   deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
   type: 'SocketClient',
@@ -10,7 +12,6 @@ module.exports = {
     }
 
     function connect () {
-      var io = require('socket.io-client');
       var socket = io.connect(url(), { reconnection: false });
 
       socket.on('startTime', function (serverOffset) {

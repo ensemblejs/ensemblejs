@@ -44,7 +44,7 @@ describe('the engine', function() {
 
 		clock = sinon.useFakeTimers();
 
-		engine = require('../../src/loops/engine.js').func(defer([update1, update2]), defer(state), defer(sinon.spy()), defer(gamesList), defer(config));
+		engine = require('../../../src/core/server/engine.js').func(defer([update1, update2]), defer(state), defer(sinon.spy()), defer(gamesList), defer(config));
 	});
 
 	afterEach(function() {
