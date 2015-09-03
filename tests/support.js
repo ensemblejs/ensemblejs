@@ -71,10 +71,8 @@ function gameScopedState (stateCallback) {
 }
 
 function DynamicPluginLoader (plugins) {
-  return function getter () {
-    return {
-      get: function (name) { return plugins[name]; }
-    };
+  return {
+    get: function (name) { return plugins[name]; }
   };
 }
 
