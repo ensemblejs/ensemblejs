@@ -13,6 +13,7 @@ module.exports = {
 
     var io;
     var sockets = {};
+    var intervals = [];
 
     function packetHasNotChanged (current, prior) {
       return isEqual(current.gameState, prior.gameState);
@@ -39,7 +40,8 @@ module.exports = {
         on().outgoingServerPacket(socketId, packet);
       }
 
-      setInterval(updateClient, config().server.pushUpdateFrequency);
+      var id = setInterval(updateClient, config().server.pushUpdateFrequency);
+      intervals.push(id);
     }
 
     function handleAcknowledgements (socketId, acks, game) {
@@ -147,6 +149,10 @@ module.exports = {
     }
 
     function stop () {
+      each(intervals, function(interval) {
+        clearInterval(interval);
+      });
+
       if (io !== undefined) {
         io.close();
       }

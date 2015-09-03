@@ -49,7 +49,7 @@ module.exports = {
 
     return function run () {
       step();
-      setInterval(step, config().server.physicsUpdateLoop);
+      return setInterval(step, config().server.physicsUpdateLoop);
     };
   }
 };

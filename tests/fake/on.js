@@ -7,5 +7,11 @@ module.exports = {
   disconnect: sinon.spy(),
   setup: sinon.spy(),
   serverPacket: sinon.spy(),
-  error: sinon.spy()
+  error: sinon.spy(),
+  newGame: sinon.spy(),
+  clientConnect: sinon.spy(),
+  clientDisconnect: sinon.spy(),
+  outgoingServerPacket: sinon.spy(),
+  pause: sinon.spy(),
+  resume: sinon.spy()
 };

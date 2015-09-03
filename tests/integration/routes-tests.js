@@ -3,41 +3,41 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
-
-var defer = require('../../support').defer;
-var socketSupport = {
-	start: sinon.spy(),
-	stop: sinon.spy()
-};
-var config = {
-	logging: {
-		logLevel: 'info',
-		expressBunyanLogger: {
-			excludes: []
-		}
-	}
-};
-
+var makeTestible = require('../support').makeTestible;
 
 describe('configuring the routes', function () {
-	var io;
-	var server;
+	var onStart;
+	var onStop;
 
 	before(function() {
-		io = require('socket.io');
-		io.listen = sinon.spy();
-		io.of = sinon.spy();
+		var routes = makeTestible('core/server/routes', {});
+		var sut = makeTestible('core/server/web-server', {
+			SocketServer: {
+				start: sinon.spy(),
+				stop: sinon.spy()
+			},
+			Config:  {
+				logging: {
+					logLevel: 'info',
+					expressBunyanLogger: {
+						excludes: []
+					}
+				}
+			},
+			Routes: routes[0]
+		});
 
-		server = require('../../../src/core/server/web-server').func(defer(socketSupport), defer(config));
+		onStart = sut[0];
+		onStop = sut[1].OnStop();
 	});
 
 	describe('when the modes are not supplied', function () {
 		before(function () {
-			server.start('../dummy');
+			onStart('../dummy');
 		});
 
 		after(function () {
-			server.stop();
+			onStop();
 		});
 
 		it('should map /index to the single game mode', function (done) {
@@ -53,11 +53,11 @@ describe('configuring the routes', function () {
 		var modes = ['arcade'];
 
 		before(function () {
-			server.start('../dummy', modes);
+			onStart('../dummy', modes);
 		});
 
 		after(function () {
-			server.stop();
+			onStop();
 		});
 
 		it('should provide a route to the index, to be supplied by the gamedev', function (done) {

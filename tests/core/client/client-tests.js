@@ -45,6 +45,7 @@ describe('the socket client', function () {
 	});
 
 	after(function () {
+		fake$.on.restore();
 		io.connect.restore();
 	});
 
