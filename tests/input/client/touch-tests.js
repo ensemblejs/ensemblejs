@@ -38,6 +38,10 @@ describe('the touch input capture plugin', function () {
 		fake$.reset();
 	});
 
+	after(function () {
+		fake$.on.restore();
+	});
+
 	describe('after setup', function () {
 		beforeEach(function () {
 			onSetup();

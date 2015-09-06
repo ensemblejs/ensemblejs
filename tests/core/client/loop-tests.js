@@ -6,7 +6,6 @@ var defer = require('../../support').defer;
 var plugins = require('../../support').plugin();
 
 var window = {
-  clearAnimationFrame: sinon.spy(),
   requestAnimationFrame: sinon.spy()
 };
 var on = {
@@ -52,17 +51,16 @@ describe('the update loop', function () {
 
   describe('on OnDisconnect', function () {
     beforeEach(function () {
-      window.clearAnimationFrame.reset();
-
       startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
 
       stopUpdateLoop = plugins.deps().OnDisconnect();
-      startUpdateLoop();
       stopUpdateLoop();
+      window.requestAnimationFrame.reset();
+      startUpdateLoop();
     });
 
-    it('should clear the animation frame', function () {
-      expect(window.clearAnimationFrame.called).toBe(true);
+    it('should stop calling request animation frame', function () {
+      expect(window.requestAnimationFrame.called).toBe(false);
     });
   });
 

@@ -6,16 +6,14 @@ module.exports = {
   type: 'OnReady',
   deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
   func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
-    var id;
+    var disconnected = false;
     var priorStep = time().present();
 
     function paused (state) { return state.ensemble.paused; }
 
     define()('OnDisconnect', function () {
       return function stopRenderLoop () {
-        console.log(window());
-        window().clearAnimationFrame(id);
-        id = null;
+        disconnected = true;
       };
     });
 
@@ -40,12 +38,13 @@ module.exports = {
         doRunning();
       }
 
-      id = window().requestAnimationFrame(step);
+      if (!disconnected){
+        window().requestAnimationFrame(step);
+      }
     }
 
     return function run () {
       step();
-      id = window().requestAnimationFrame(step);
     };
   }
 };
