@@ -5,9 +5,9 @@ var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 
 module.exports = {
-  deps: ['Window', 'CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode'],
-  type: 'PhysicsLoop',
-  func: function PhysicsLoop (window, clientState, serverState, define, time, onFrame, onFrameComplete, mutator, state, mode) {
+  type: 'OnReady',
+  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode'],
+  func: function PhysicsLoop (clientState, serverState, define, time, onFrame, onFrameComplete, mutator, state, mode) {
     var priorStep = time().present();
 
     var game = {
@@ -33,7 +33,7 @@ module.exports = {
 
       var gameState = state().for(game.id);
 
-      callForModeWithMutation(onFrame, mutator(), game, [gameState, delta]);
+      callForModeWithMutation(onFrame(), mutator, game, [gameState, delta]);
       callEachPlugin(onFrameComplete());
     }
 
@@ -51,11 +51,17 @@ module.exports = {
       }
     }
 
-    return {
-      run: function run () {
-        step();
-        setInterval(step, 15);
-      }
+    define()('OnDisconnect', function PhysicsLoop () {
+      return function stopPhysicsLoop () {
+        clearInterval(id);
+        id = null;
+      };
+    });
+
+    var id;
+    return function run () {
+      step();
+      id = setInterval(step, 15);
     };
   }
 };

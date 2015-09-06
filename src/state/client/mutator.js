@@ -51,7 +51,6 @@ module.exports = {
       if (isEqual(result, {})) {
         return;
       }
-
       root = merge(root, result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });

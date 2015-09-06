@@ -3,30 +3,47 @@
 var each = require('lodash').each;
 
 module.exports = {
-  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time'],
-  type: 'RenderLoop',
-  func: function RenderLoop (window, onRenderFrame, currentState, time) {
+  type: 'OnReady',
+  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
+  func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
 
     var priorStep = time().present();
 
     function paused (state) { return state.ensemble.paused; }
 
-    return {
-      run: function run () {
-        if (currentState().get(paused)) {
-          priorStep = time();
-        } else {
-          var now = time().present();
-          var delta = (now - priorStep) / 1000;
-          priorStep = time().present();
+    define()('OnDisconnect', function () {
+      return function stopRenderLoop () {
+        window().clearAnimationFrame(id);
+        id = null;
+      };
+    });
 
-          each(onRenderFrame(), function (callback) {
-            callback(delta);
-          });
-        }
+    function doPaused () {
+      priorStep = time();
+    }
 
-        window().requestAnimationFrame(this.run.bind(this));
+    function doRunning () {
+      var now = time().present();
+      var delta = (now - priorStep) / 1000;
+      priorStep = time().present();
+
+      each(onRenderFrame(), function (callback) {
+        callback(delta);
+      });
+    }
+
+    function step () {
+      if (currentState().get(paused)) {
+        doPaused();
+      } else {
+        doRunning();
       }
+    }
+
+    var id;
+    return function run () {
+      step();
+      id = window().requestAnimationFrame(step.bind(this));
     };
   }
 };

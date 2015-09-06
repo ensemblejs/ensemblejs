@@ -56,6 +56,10 @@ describe('the engine', function() {
 	});
 
 	describe('when unpaused', function() {
+		afterEach(function () {
+			clearInterval(interval);
+		});
+
 		it('should call each function passed in with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
 			interval = onStart();
@@ -89,6 +93,10 @@ describe('the engine', function() {
 				clearInterval(interval);
 			});
 
+			afterEach(function () {
+				clearInterval(interval);
+			});
+
 			it('should only be for every game', function () {
 				interval = onStart();
 
@@ -102,6 +110,10 @@ describe('the engine', function() {
 				clearInterval(interval);
 			});
 
+			afterEach(function () {
+				clearInterval(interval);
+			});
+
 			it('should only be called when the modes match', function() {
 				interval = onStart();
 
@@ -111,6 +123,10 @@ describe('the engine', function() {
 	});
 
 	describe('when paused', function() {
+		afterEach(function () {
+			clearInterval(interval);
+		});
+
 		it('it should not call any update functions', function() {
 			paused = true;
 			interval = onStart(1);

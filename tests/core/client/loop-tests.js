@@ -3,8 +3,10 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var defer = require('../../support').defer;
+var plugins = require('../../support').plugin();
 
 var window = {
+  clearAnimationFrame: sinon.spy(),
   requestAnimationFrame: sinon.spy()
 };
 var on = {
@@ -13,8 +15,6 @@ var on = {
 var currentState = {
   get: function () { return true; }
 };
-var updateLoop;
-var clock;
 
 function unpauseGame () {
   currentState.get = function () { return false; };
@@ -27,14 +27,42 @@ var time = {
  function advanceTime (by) { ms += by; }
 
 describe('the update loop', function () {
+  var startUpdateLoop;
+  var stopUpdateLoop;
+
   describe('when paused', function () {
     beforeEach(function () {
-      updateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
-      updateLoop.run();
+      window.requestAnimationFrame.reset();
+
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+
+      stopUpdateLoop = plugins.deps().OnDisconnect();
+
+      startUpdateLoop();
+    });
+
+    afterEach(function () {
+      stopUpdateLoop();
     });
 
     it('it should reschedule itself', function () {
       expect(window.requestAnimationFrame.called).toBe(true);
+    });
+  });
+
+  describe('on OnDisconnect', function () {
+    beforeEach(function () {
+      window.clearAnimationFrame.reset();
+
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+
+      stopUpdateLoop = plugins.deps().OnDisconnect();
+      startUpdateLoop();
+      stopUpdateLoop();
+    });
+
+    it('should clear the animation frame', function () {
+      expect(window.clearAnimationFrame.called).toBe(true);
     });
   });
 
@@ -44,8 +72,14 @@ describe('the update loop', function () {
 
       on.renderFrame.reset();
 
-      updateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time));
-      updateLoop.run();
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+      stopUpdateLoop = plugins.deps().OnDisconnect();
+
+      startUpdateLoop();
+    });
+
+    afterEach(function () {
+      stopUpdateLoop();
     });
 
     it('should reschedule itself', function () {
@@ -54,17 +88,20 @@ describe('the update loop', function () {
 
     it('should pass frame delta to OnRenderFrame handlers', function () {
       advanceTime(43);
-      updateLoop.run();
+      startUpdateLoop();
+      stopUpdateLoop();
       expect(on.renderFrame.lastCall.args).toEqual([0.043]);
     });
 
     it('should consider paused frames when calculating the time since last frame', function() {
 
       advanceTime(43);
-      updateLoop.run();
+      startUpdateLoop();
+      stopUpdateLoop();
       unpauseGame();
       advanceTime(23);
-      updateLoop.run();
+      startUpdateLoop();
+      stopUpdateLoop();
 
       expect(on.renderFrame.lastCall.args).toEqual([0.023]);
     });

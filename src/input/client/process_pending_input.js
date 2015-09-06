@@ -151,7 +151,6 @@ module.exports = {
 						}
 					});
 				}
-
 				var lengthOfInputStackAtStart = inputQueue().length();
 				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
 					currentInput = inputQueue().get(i);

@@ -3,8 +3,8 @@
 var io = require('socket.io-client');
 
 module.exports = {
-  deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
   type: 'SocketClient',
+  deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
   func: function SocketClient (window, gameMode, host, on, define, time, $) {
 
     function url () {

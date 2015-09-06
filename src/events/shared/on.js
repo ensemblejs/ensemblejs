@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnError', 'OnRenderFrame', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onError, onRenderFrame, onPhysicsFrame, onPhysicsFrameComplete, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnError', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onError, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
