@@ -25,6 +25,8 @@ module.exports = {
     return function togglePausedOverlay () {
       tracker().onChangeTo(paused, equals(true), pause);
       tracker().onChangeTo(paused, equals(false), resume);
+
+      resume();
     };
   }
 };

@@ -6,13 +6,14 @@ module.exports = {
   type: 'OnReady',
   deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
   func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
-
+    var id;
     var priorStep = time().present();
 
     function paused (state) { return state.ensemble.paused; }
 
     define()('OnDisconnect', function () {
       return function stopRenderLoop () {
+        console.log(window());
         window().clearAnimationFrame(id);
         id = null;
       };
@@ -38,12 +39,13 @@ module.exports = {
       } else {
         doRunning();
       }
+
+      id = window().requestAnimationFrame(step);
     }
 
-    var id;
     return function run () {
       step();
-      id = window().requestAnimationFrame(step.bind(this));
+      id = window().requestAnimationFrame(step);
     };
   }
 };
