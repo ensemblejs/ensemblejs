@@ -72,7 +72,7 @@ module.exports = {
       };
     }
 
-    define()('OnOutgoingServerPacket', function OnServerPacket () {
+    define()('OnOutgoingServerPacket', function OnOutgoingServerPacket () {
       return function emitPacket (socketId, packet) {
         sockets[socketId].emit('updateState', packet);
       };

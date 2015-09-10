@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Config', 'StateTracker', '$'],
   func: function DebugQueueDepth (config, tracker, $) {
     if (!config().debug.input) {

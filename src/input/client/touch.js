@@ -52,7 +52,7 @@ module.exports = {
       $()(elementId).on('touchcancel', endTouch);
     }
 
-    define()('OnSetup', function () {
+    define()('OnClientStart', function () {
       return function TouchInputCapture () {
         bindToWindowEvents();
       };

@@ -3,7 +3,7 @@
 var each = require('lodash').each;
 
 module.exports = {
-  type: 'OnStart',
+  type: 'OnServerStart',
   deps: ['Validator'],
   func: function (validators) {
     return function runValidations () {

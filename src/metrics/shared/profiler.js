@@ -12,30 +12,34 @@ module.exports = {
   type: 'Profiler',
   deps: ['DefinePlugin', 'Config', 'Time'],
   func: function Profiler (define, config, time) {
-    var timers = {};
+    var timers = [];
+    var exact = [];
+    var wildcard = [
+      'ensemblejs:',
+      'Game:',
+    ];
+
+    function shouldMeasureKey (key) {
+      return includes(exact, key) || select(wildcard, function(timer) {
+          return startsWith(key, timer);
+        }).length > 0;
+    }
 
     function removeTimersNotConfigured () {
       var configuredTimers = config().measure.timers;
-      var exact = select(configuredTimers, function(timer) {
+
+      exact = select(configuredTimers, function(timer) {
         return !includes(timer, '*');
       });
-      var wildcard = select(configuredTimers, function(timer) {
+      wildcard = select(configuredTimers, function(timer) {
         return includes(timer, '*');
       }).map(function(timer) {
         return timer.replace('*', '');
       });
 
-      var exactTimers = select(timers, function(timerData, key) {
-        return includes(exact, key);
+      timers = select(timers, function(timerData) {
+        return shouldMeasureKey(timerData.key);
       });
-
-      var wildcardTimers = select(timers, function(timerData, key) {
-        return select(wildcard, function(timer) {
-          return startsWith(key, timer);
-        }).length > 0;
-      });
-
-      timers = exactTimers.concat(wildcardTimers);
     }
 
     function getPercentile(percentile, values) {
@@ -49,11 +53,12 @@ module.exports = {
     }
 
     function timer (namespace, plugin, name, frequency) {
+      var key = [namespace, plugin, name].join(':');
       var samples = [];
       var totalDuration = 0;
       var counter = 0;
-
       var startTime;
+
       function start () {
         startTime = time().present();
       }
@@ -92,20 +97,39 @@ module.exports = {
       }
 
       var timerObject = {
+        key: key,
         fromHere: start,
         toHere: stop,
         manual: add,
         results: results
       };
 
-      timers[[namespace, plugin, name].join(':')] = timerObject;
+      if (shouldMeasureKey(key)) {
+        timers.push(timerObject);
+      }
 
       return timerObject;
     }
 
-    define()('OnDisconnect', function OnDisconnect () {
+    define()('OnServerStart', function Profiler () {
+      return removeTimersNotConfigured;
+    });
+
+    define()('OnClientStart', function Profiler () {
+      return removeTimersNotConfigured;
+    });
+
+    define()('OnDisconnect', function Profiler () {
       return function printTimingResults () {
-        each(timers, function (timingData) {
+        each(timers, function print (timingData) {
+          console.log(timingData.results());
+        });
+      };
+    });
+
+    define()('OnServerStop', function Profiler () {
+      return function printTimingResults () {
+        each(timers, function print (timingData) {
           console.log(timingData.results());
         });
       };

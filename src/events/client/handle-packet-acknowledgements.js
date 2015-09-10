@@ -6,9 +6,9 @@ var last = require('lodash').last;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
-  type: 'OnClientPacket',
+  type: 'OnOutgoingClientPacket',
   deps: ['AcknowledgementMap', 'GameMode', 'StateMutator', 'StateAccess'],
-  func: function OnClientPacket (acknowledgementMaps, mode, mutate, state) {
+  func: function OnOutgoingClientPacket (acknowledgementMaps, mode, mutate, state) {
 
     function filterUndefinedAckName (acknowledgementMaps, ack) {
       filter(acknowledgementMaps, function (map) {

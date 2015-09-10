@@ -17,8 +17,8 @@ var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 describe('the socket client', function () {
 	var sut;
 	var client;
-	var onClientPacket;
-	var onServerPacket;
+	var onOutgoingClientPacket;
+	var onIncomingServerPacket;
 
 	before(function () {
 		sinon.spy(fake$, 'on');
@@ -86,8 +86,8 @@ describe('the socket client', function () {
 		beforeEach(function () {
 			client.connect();
 
-			onClientPacket = sut[1].OnClientPacket();
-			onServerPacket = sut[1].OnServerPacket();
+			onOutgoingClientPacket = sut[1].OnOutgoingClientPacket();
+			onIncomingServerPacket = sut[1].OnIncomingServerPacket();
 		});
 
 		describe('on startTime', function () {
@@ -159,9 +159,9 @@ describe('the socket client', function () {
 				});
 			});
 
-			it('should call all OnServerPacket plugins', function () {
-				expect(fakeOn.serverPacket.callCount).toEqual(1);
-				expect(fakeOn.serverPacket.firstCall.args).toEqual([{
+			it('should call all OnIncomingServerPacket plugins', function () {
+				expect(fakeOn.incomingServerPacket.callCount).toEqual(1);
+				expect(fakeOn.incomingServerPacket.firstCall.args).toEqual([{
 					newPacket: true
 				}]);
 			});
@@ -181,7 +181,7 @@ describe('the socket client', function () {
 		describe('on outgoing client packet', function () {
 
 			beforeEach(function () {
-				onClientPacket({
+				onOutgoingClientPacket({
 					outgoingPacket: true
 				});
 			});
@@ -200,7 +200,7 @@ describe('the socket client', function () {
 		describe('on incoming server packet', function () {
 
 			beforeEach(function () {
-				onServerPacket({
+				onIncomingServerPacket({
 					id: 50
 				});
 			});

@@ -1,11 +1,9 @@
 'use strict';
 
-var callEachPlugin = require('../util/modes').callEachPlugin;
-
 module.exports = {
-  type: 'OnReady',
-  deps: ['OnMute', 'OnUnmute', '$'],
-  func: function ToggleMute (onMute, onUnmute, $) {
+  type: 'OnClientReady',
+  deps: ['On', '$'],
+  func: function ToggleMute (on, $) {
 
     return function toggleMuteUnmute () {
       $()('.sound-off').hide();
@@ -14,14 +12,14 @@ module.exports = {
         $()('.sound-on').hide();
         $()('.sound-off').show();
 
-        callEachPlugin(onMute());
+        on().mute();
       });
 
       $()('.sound-off').on('click', function () {
         $()('.sound-off').hide();
         $()('.sound-on').show();
 
-        callEachPlugin(onUnmute());
+        on().unmute();
       });
 
     };

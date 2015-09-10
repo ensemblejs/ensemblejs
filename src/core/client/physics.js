@@ -5,9 +5,9 @@ var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 
 module.exports = {
-  type: 'OnReady',
-  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode'],
-  func: function PhysicsLoop (clientState, serverState, define, time, onFrame, onFrameComplete, mutator, state, mode) {
+  type: 'OnClientReady',
+  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode', 'Config'],
+  func: function PhysicsLoop (clientState, serverState, define, time, onFrame, onFrameComplete, mutator, state, mode, config) {
     var priorStep = time().present();
 
     var game = {
@@ -51,6 +51,7 @@ module.exports = {
       }
     }
 
+    var id;
     define()('OnDisconnect', function PhysicsLoop () {
       return function stopPhysicsLoop () {
         clearInterval(id);
@@ -58,10 +59,9 @@ module.exports = {
       };
     });
 
-    var id;
     return function run () {
       step();
-      id = setInterval(step, 15);
+      id = setInterval(step, config().client.physicsUpdateLoop);
     };
   }
 };

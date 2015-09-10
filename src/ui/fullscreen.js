@@ -3,7 +3,7 @@
 var screenfull = require('screenfull');
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['$'],
   func: function Fullscreen ($) {
 

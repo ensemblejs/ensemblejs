@@ -15,7 +15,7 @@ module.exports = {
       return input.id > highestProcessedMessage;
     }
 
-    define()('OnServerPacket', function OnServerPacket () {
+    define()('OnIncomingServerPacket', function OnIncomingServerPacket () {
       return function handle (packet) {
         highestProcessedMessage = packet.highestProcessedMessage;
       };
@@ -27,7 +27,7 @@ module.exports = {
       };
     });
 
-    define()('OnClientPacket', function OnClientPacket () {
+    define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
       function packetAlreadyOnQueue (packet) {
         return contains(pluck(inputQueue, 'id'), packet.id);
       }

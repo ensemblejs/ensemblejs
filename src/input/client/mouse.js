@@ -1,23 +1,23 @@
 'use strict';
 
+var each = require('lodash').each;
+
+function mouseMap () {
+  return {
+    '1': 'primary',
+    '2': 'tertiary',
+    '3': 'secondary'
+  };
+}
+
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$'],
   func: function InputCapture (window, config, define, $) {
-    var each = require('lodash').each;
-
     var x = 0;
     var y = 0;
     var keys = {};
     var singlePressKeys = {};
-
-    function mouseMap () {
-      return {
-        '1': 'primary',
-        '2': 'tertiary',
-        '3': 'secondary'
-      };
-    }
 
     function singlePress (key, alt, ctrl, shift) {
       singlePressKeys[key] = [];
@@ -61,7 +61,7 @@ module.exports = {
       });
     }
 
-    define()('OnSetup', function () {
+    define()('OnClientStart', function () {
       return function MouseInputCapture () {
         bindToWindowEvents();
       };

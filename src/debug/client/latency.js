@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Config', 'StateTracker', '$'],
   func: function DebugLatency (config, tracker, $) {
     if (!config().debug.network) {

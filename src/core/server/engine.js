@@ -5,11 +5,12 @@ var reject = require('lodash').reject;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 
 module.exports = {
-  type: 'OnStart',
+  type: 'OnServerStart',
   deps: ['OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time'],
-  func: function OnStart (onPhysicsFrame, state, mutator, games, config, define, time) {
+  func: function ServerPhysicsEngine (onPhysicsFrame, state, mutator, games, config, define, time) {
 
     var priorStepTime = time().present();
+    var interval;
 
     function pausedGames (game) {
       return state().for(game.id).for('ensemble').get('paused');
@@ -39,7 +40,16 @@ module.exports = {
       priorStepTime = now;
     }
 
-    define()('InternalState', function ServerSideEngine () {
+    define()('OnServerStop', function ServerPhysicsEngine () {
+      return function stopEngine () {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      };
+    });
+
+    define()('InternalState', function ServerPhysicsEngine () {
       return {
         ServerSideEngine: {
           now: function () { return time().present(); }
@@ -49,7 +59,7 @@ module.exports = {
 
     return function run () {
       step();
-      return setInterval(step, config().server.physicsUpdateLoop);
+      interval = setInterval(step, config().server.physicsUpdateLoop);
     };
   }
 };

@@ -11,11 +11,10 @@ var expressServer = {
 	listen: sinon.spy(),
 	close: sinon.spy()
 };
-var favicon = sinon.spy();
 
 describe('starting the server', function () {
-	var onStart;
-	var onStop;
+	var onServerStart;
+	var onServerStop;
 
 	beforeEach(function () {
 		var http = require('http');
@@ -39,15 +38,15 @@ describe('starting the server', function () {
 			}
 		});
 
-		onStart = sut[0];
-		onStop = sut[1].OnStop();
+		onServerStart = sut[0];
+		onServerStop = sut[1].OnServerStop();
 
-		onStart('../game', modes);
-		onStop();
+		onServerStart('../game', modes);
+		onServerStop();
 	});
 
 	afterEach(function() {
-		onStop();
+		onServerStop();
 	});
 
 	it('should tell express to listen on port 3000', function () {
@@ -56,8 +55,8 @@ describe('starting the server', function () {
 });
 
 describe('stopping the server', function () {
-	var onStart;
-	var onStop;
+	var onServerStart;
+	var onServerStop;
 
 	beforeEach(function() {
 		var http = require('http');
@@ -81,11 +80,11 @@ describe('stopping the server', function () {
 			}
 		});
 
-		onStart = sut[0];
-		onStop = sut[1].OnStop();
+		onServerStart = sut[0];
+		onServerStop = sut[1].OnServerStop();
 
-		onStart('../game', modes);
-		onStop();
+		onServerStart('../game', modes);
+		onServerStop();
 	});
 
 	it('it should stop the server', function () {

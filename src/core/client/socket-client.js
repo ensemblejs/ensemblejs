@@ -32,7 +32,7 @@ module.exports = {
       socket.on('initialState', function initialState (packet) {
         on().setup(packet, gameMode());
       });
-      socket.on('updateState', on().serverPacket);
+      socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);
 
       if (window().document.hasFocus()) { socket.emit('unpause'); }
@@ -41,13 +41,13 @@ module.exports = {
       $()(window()).on('mousedown', function () { socket.emit('unpause'); });
       $()(window()).on('mouseup', function () { socket.emit('unpause'); });
 
-      define()('OnClientPacket', function SocketClient () {
+      define()('OnOutgoingClientPacket', function SocketClient () {
         return function sendPacketToServer (packet) {
           socket.emit('input', packet);
         };
       });
 
-      define()('OnServerPacket', function SocketClient () {
+      define()('OnIncomingServerPacket', function SocketClient () {
         return function ackPacket (packet) {
           socket.emit('ack', packet.id);
         };

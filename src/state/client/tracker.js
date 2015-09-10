@@ -166,7 +166,7 @@ module.exports = {
       rawState.resetTo(clone(latestServerState, true));
     }
 
-    define()('OnSetup', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
       return function storeInitialServerState (state) {
         saveLatestServerState(state);
         resetRawStateBackToLatestServer(rawState());
@@ -183,7 +183,7 @@ module.exports = {
       };
     });
 
-    define()('OnServerPacket', function StateTracker () {
+    define()('OnIncomingServerPacket', function StateTracker () {
       return function storeLatestServerState (packet) {
         saveLatestServerState(packet.gameState);
       };

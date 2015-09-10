@@ -3,7 +3,7 @@
 var each = require('lodash').each;
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
   func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
     var disconnected = false;

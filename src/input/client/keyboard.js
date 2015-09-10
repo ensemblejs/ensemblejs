@@ -149,7 +149,7 @@ module.exports = {
       });
     }
 
-    define()('OnSetup', function () {
+    define()('OnClientStart', function () {
       return function KeyboardInputCapture () {
         bindToWindowEvents();
       };

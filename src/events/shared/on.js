@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnServerPacket', 'OnSetup', 'OnError', 'OnClientPacket', 'OnPause', 'OnResume', 'OnStart', 'OnReady', 'OnStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onServerPacket, onSetup, onError, onClientPacket, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -19,12 +19,12 @@ module.exports = {
         }
 
         lastReceivedId = packet.id;
-        callEachPlugin(onServerPacket(), [packet]);
+        callEachPlugin(onIncomingServerPacket(), [packet]);
       };
     }
 
-    function clientPacket (packet) {
-      callEachPlugin(onClientPacket(), [packet]);
+    function outgoingClientPacket (packet) {
+      callEachPlugin(onOutgoingClientPacket(), [packet]);
     }
 
     function error (data) {
@@ -41,12 +41,12 @@ module.exports = {
 
     function connect (game) {
       var params = [getState(game.id)];
-      callForModeWithMutation(onConnect(), mutator, game, params);
+      callForMode(onConnect(), game.mode, params);
     }
 
     function disconnect (game) {
       var params = [getState(game.id)];
-      callForModeWithMutation(onDisconnect(), mutator, game, params);
+      callForMode(onDisconnect(), game.mode, params);
     }
 
     function newGame (game) {
@@ -73,40 +73,50 @@ module.exports = {
       callForModeWithMutation(onResume(), mutator, game, params);
     }
 
-    function setup (state, mode) {
-      callEachPlugin(onSetup(), [state]);
-      callForMode(onReady(), mode, [dimensions().get()]);
+    function clientStart (state, mode) {
+      callEachPlugin(onClientStart(), [state]);
+      callForMode(onClientReady(), mode, [dimensions().get()]);
     }
 
-    function start (path, modes) {
-      callEachPlugin(onStart(), [path, modes]);
-      callEachPlugin(onReady());
+    function serverStart (path, modes) {
+      callEachPlugin(onServerStart(), [path, modes]);
+      callEachPlugin(onServerReady());
     }
 
-    function stop () {
-      callEachPlugin(onStop());
+    function serverStop () {
+      callEachPlugin(onServerStop());
     }
 
     function outgoingServerPacket(socketId, packet) {
       callEachPlugin(onOutgoingServerPacket(), [socketId, packet]);
     }
 
+    function mute () {
+      callEachPlugin(onMute());
+    }
+
+    function unmute () {
+      callEachPlugin(onUnmute());
+    }
+
     return {
-      start: start,
-      stop: stop,
-      setup: setup,
-      connect: connect,
-      disconnect: disconnect,
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
-      clientPacket: clientPacket,
-      newGame: newGame,
-      input: input,
-      outgoingServerPacket: outgoingServerPacket,
-      serverPacket: createOnServerPacketCallback(),
+      clientStart: clientStart,
+      connect: connect,
+      disconnect: disconnect,
       error: error,
+      incomingServerPacket: createOnServerPacketCallback(),
+      input: input,
+      mute: mute,
+      newGame: newGame,
+      outgoingClientPacket: outgoingClientPacket,
+      outgoingServerPacket: outgoingServerPacket,
       pause: pause,
-      resume: resume
+      resume: resume,
+      serverStart: serverStart,
+      serverStop: serverStop,
+      unmute: unmute
     };
   }
 };

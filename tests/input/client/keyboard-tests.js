@@ -9,7 +9,7 @@ var fake$ = require('../../fake/jquery').$;
 var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 
 var sut;
-var onSetup;
+var onClientStart;
 
 describe('the keyboard input capture plugin', function () {
 	var keyboard;
@@ -27,7 +27,7 @@ describe('the keyboard input capture plugin', function () {
 				$: fake$wrapper
 			});
 			keyboard = sut[0];
-			onSetup = sut[1].OnSetup();
+			onClientStart = sut[1].OnClientStart();
 	  }, done);
 
 		fake$.reset();
@@ -39,7 +39,7 @@ describe('the keyboard input capture plugin', function () {
 
 	describe('after setup', function () {
 		beforeEach(function () {
-			onSetup();
+			onClientStart();
 		});
 
 		describe('when a key is pressed', function() {

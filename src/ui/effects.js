@@ -4,9 +4,9 @@ var each = require('lodash').each;
 var reject = require('lodash').reject;
 
 module.exports = {
-  type: 'OnSetup',
+  type: 'OnClientStart',
   deps: ['DefinePlugin'],
-  func: function OnSetup (define) {
+  func: function OnClientStart (define) {
     var effects = [];
 
     return function initialiseEffects () {

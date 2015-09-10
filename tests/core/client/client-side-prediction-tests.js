@@ -13,13 +13,13 @@ var inputQueuePlugins = require('../../support').plugin();
 var logger = require('../../support').logger;
 var fakeTime = require('../../fake/time').at(2000);
 
-var onSetup = [];
-var onClientPacket = [];
-var onServerPacket = [];
+var onClientStart = [];
+var onOutgoingClientPacket = [];
+var onIncomingServerPacket = [];
 var onPhysicsFrame = [];
 var onPhysicsFrameComplete = [];
 var actionMap = [];
-var onInput, onConnect, onDisconnect, onError, onPause, onResume, onStart, onReady, onStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
+var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
 var dimensions = {};
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
@@ -33,14 +33,14 @@ var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueu
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().OnPhysicsFrame(defer(inputQueue));
 
-var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onServerPacket), defer(onSetup), defer(onError), defer(onClientPacket), defer(onPause), defer(onResume), defer(onStart), defer(onReady), defer(onStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
+var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var currentState = trackerPlugins.deps().CurrentState();
-onSetup.push(trackerPlugins.deps().OnSetup(defer(rawStateAccess)));
-onClientPacket.push(inputQueuePlugins.deps().OnClientPacket());
-onServerPacket.push(trackerPlugins.deps().OnServerPacket());
-onServerPacket.push(inputQueuePlugins.deps().OnServerPacket());
+onClientStart.push(trackerPlugins.deps().OnClientStart(defer(rawStateAccess)));
+onOutgoingClientPacket.push(inputQueuePlugins.deps().OnOutgoingClientPacket());
+onIncomingServerPacket.push(trackerPlugins.deps().OnIncomingServerPacket());
+onIncomingServerPacket.push(inputQueuePlugins.deps().OnIncomingServerPacket());
 onPhysicsFrame.push(['*', processPendingInput]);
 onPhysicsFrameComplete.push(trackerPlugins.deps().OnPhysicsFrameComplete(defer(rawStateAccess)));
 onPhysicsFrameComplete.push(inputQueuePlugins.deps().OnPhysicsFrameComplete());
@@ -53,7 +53,13 @@ var serverState = {
   get: function () {return false;}
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(onPhysicsFrame), defer(onPhysicsFrameComplete), defer(mutator), defer(stateAccess), defer(mode));
+var config = {
+  client: {
+    physicsUpdateLoop: 15
+  }
+};
+
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(onPhysicsFrame), defer(onPhysicsFrameComplete), defer(mutator), defer(stateAccess), defer(mode), defer(config));
 var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
 
 function tracking (state) { return state.namespace.tracking; }
@@ -87,7 +93,7 @@ describe('after on OnPhysicsFrameComplete', function () {
       }
     };
 
-    each(onSetup, function (callback) {
+    each(onClientStart, function (callback) {
       callback(initialState);
     });
   });
@@ -143,7 +149,7 @@ describe('after on OnPhysicsFrameComplete', function () {
 
   describe('when user input exists', function () {
     beforeEach(function () {
-      on.clientPacket({
+      on.outgoingClientPacket({
         id: 1,
         keys: [{key: 'space'}]
       });
@@ -182,7 +188,7 @@ describe('after on OnPhysicsFrameComplete', function () {
     };
 
     beforeEach(function () {
-      on.serverPacket(laterState);
+      on.incomingServerPacket(laterState);
 
       startPhysicsEngine();
     });
@@ -196,7 +202,7 @@ describe('after on OnPhysicsFrameComplete', function () {
     });
 
     it('should remove input now processed by the server', function () {
-      on.clientPacket({
+      on.outgoingClientPacket({
         id: 2,
         keys: [{key: 'space'}]
       });

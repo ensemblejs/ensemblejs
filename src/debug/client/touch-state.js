@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Config', 'StateTracker', 'Dimensions', '$'],
   func: function DebugTouchState (config, tracker, dimensions, $) {
     if (!config().debug.input) {

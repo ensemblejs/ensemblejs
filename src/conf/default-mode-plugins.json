@@ -6,7 +6,7 @@
     "OnDisconnect",
     "OnClientDisconnect",
     "OnPause",
-    "OnReady",
+    "OnClientReady",
     "OnResume",
     "OnPhysicsFrame",
     "StateSeed"

@@ -6,8 +6,8 @@ var request = require('request');
 var makeTestible = require('../support').makeTestible;
 
 describe('configuring the routes', function () {
-	var onStart;
-	var onStop;
+	var onServerStart;
+	var onServerStop;
 
 	before(function() {
 		var routes = makeTestible('core/server/routes', {});
@@ -27,17 +27,17 @@ describe('configuring the routes', function () {
 			Routes: routes[0]
 		});
 
-		onStart = sut[0];
-		onStop = sut[1].OnStop();
+		onServerStart = sut[0];
+		onServerStop = sut[1].OnServerStop();
 	});
 
 	describe('when the modes are not supplied', function () {
 		before(function () {
-			onStart('../dummy');
+			onServerStart('../dummy');
 		});
 
 		after(function () {
-			onStop();
+			onServerStop();
 		});
 
 		it('should map /index to the single game mode', function (done) {
@@ -53,11 +53,11 @@ describe('configuring the routes', function () {
 		var modes = ['arcade'];
 
 		before(function () {
-			onStart('../dummy', modes);
+			onServerStart('../dummy', modes);
 		});
 
 		after(function () {
-			onStop();
+			onServerStop();
 		});
 
 		it('should provide a route to the index, to be supplied by the gamedev', function (done) {

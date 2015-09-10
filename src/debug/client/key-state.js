@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Config', 'StateTracker', 'AnchorAction', '$'],
   func: function DebugKeyState (config, tracker, anchorAction, $) {
     if (!config().debug.input) {

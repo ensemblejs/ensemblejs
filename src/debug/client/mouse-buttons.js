@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  type: 'OnReady',
+  type: 'OnClientReady',
   deps: ['Config', 'StateTracker', 'StateTrackerHelpers', '$'],
   func: function DebugMouseButtons (config, tracker, trackerHelpers, $) {
     if (!config().debug.input) {

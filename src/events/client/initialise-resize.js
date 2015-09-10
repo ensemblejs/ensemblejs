@@ -1,9 +1,9 @@
 'use strict';
 
 module.exports = {
-  type: 'OnSetup',
+  type: 'OnClientStart',
   deps: ['OnResize', 'Dimensions', 'Window', '$'],
-  func: function OnSetup (onResize, dimensions, window, $) {
+  func: function OnClientStart (onResize, dimensions, window, $) {
     var each = require('lodash').each;
 
     function resizeCanvas () {

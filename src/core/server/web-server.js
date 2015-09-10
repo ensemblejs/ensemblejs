@@ -8,7 +8,7 @@ var fs = require('fs');
 var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
-  type: 'OnStart',
+  type: 'OnServerStart',
   deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes'],
   func: function (socket, config, logger, define, routes) {
     var server;
@@ -56,7 +56,7 @@ module.exports = {
       socket().start(server, modes);
     }
 
-    define()('OnStop', function () {
+    define()('OnServerStop', function () {
       return function stop () {
         socket().stop();
 

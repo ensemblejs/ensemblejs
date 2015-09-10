@@ -3,7 +3,8 @@
     "aspectRatio": 2.6,
     "widescreenMinimumMargin": 32,
     "element": "canvas",
-    "inputElement": "input"
+    "inputElement": "input",
+    "physicsUpdateLoop": 15
   },
   "server": {
     "physicsUpdateLoop": 15,

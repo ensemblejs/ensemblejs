@@ -9,7 +9,7 @@ var fake$ = require('../../fake/jquery').$;
 var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 
 var sut;
-var onSetup;
+var onClientStart;
 
 describe('the mouse input capture plugin', function () {
 	var mouse;
@@ -32,7 +32,7 @@ describe('the mouse input capture plugin', function () {
 				$: fake$wrapper
 			});
 			mouse = sut[0];
-			onSetup = sut[1].OnSetup();
+			onClientStart = sut[1].OnClientStart();
 	  }, done);
 
 		fake$.reset();
@@ -44,7 +44,7 @@ describe('the mouse input capture plugin', function () {
 
 	describe('after setup', function () {
 		beforeEach(function () {
-			onSetup();
+			onClientStart();
 		});
 
 		describe('when the mouse moves', function() {

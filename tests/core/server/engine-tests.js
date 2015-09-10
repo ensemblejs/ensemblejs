@@ -29,12 +29,15 @@ var gamesList = {
 	}
 };
 var config = {
-	server: {}
+	server: {
+		physicsUpdateLoop: 15
+	}
 };
 var fakeTime = require('../../fake/time').at(0);
 
 describe('the engine', function() {
-	var onStart;
+	var onServerStart;
+	var onServerStop;
 	var interval;
 
 	beforeEach(function() {
@@ -48,57 +51,58 @@ describe('the engine', function() {
 			Time: fakeTime,
 			StateAccess: state
 		});
-		onStart = sut[0];
+		onServerStart = sut[0];
+		onServerStop = sut[1].OnServerStop;
 	});
 
 	afterEach(function() {
-		clearInterval(interval);
+		onServerStop();
 	});
 
 	describe('when unpaused', function() {
 		afterEach(function () {
-			clearInterval(interval);
+			onServerStop();
 		});
 
 		it('should call each function passed in with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
-			interval = onStart();
+			interval = onServerStart();
 			assert.deepEqual(update1[1].firstCall.args[1], 5);
 			assert.deepEqual(update2[1].firstCall.args[1], 5);
 		});
 
 		it('should not increase the delta whilst the game is paused', function () {
 			paused = true;
-			interval = onStart();
-			clearInterval(interval);
+			interval = onServerStart();
+			onServerStop();
 
 			fakeTime.present = function () { return 5000; };
-			interval = onStart();
-			clearInterval(interval);
+			interval = onServerStart();
+			onServerStop();
 
 			fakeTime.present = function () { return 10000; };
-			interval = onStart();
-			clearInterval(interval);
+			interval = onServerStart();
+			onServerStop();
 
 			update1[1].reset();
 			paused = false;
 			fakeTime.present = function () { return 10100; };
-			onStart();
+			onServerStart();
 			assert.deepEqual(update1[1].firstCall.args[1], 0.1);
 		});
 
 		describe('update functions for all games', function() {
 			beforeEach(function() {
 				update1[1].reset();
-				clearInterval(interval);
+				onServerStop();
 			});
 
 			afterEach(function () {
-				clearInterval(interval);
+				onServerStop();
 			});
 
 			it('should only be for every game', function () {
-				interval = onStart();
+				interval = onServerStart();
 
 				expect(update1[1].callCount).toEqual(3);
 			});
@@ -107,15 +111,15 @@ describe('the engine', function() {
 		describe('update functions for specific modes', function() {
 			beforeEach(function() {
 				update2[1].reset();
-				clearInterval(interval);
+				onServerStop();
 			});
 
 			afterEach(function () {
-				clearInterval(interval);
+				onServerStop();
 			});
 
 			it('should only be called when the modes match', function() {
-				interval = onStart();
+				interval = onServerStart();
 
 				expect(update2[1].callCount).toEqual(1);
 			});
@@ -124,12 +128,12 @@ describe('the engine', function() {
 
 	describe('when paused', function() {
 		afterEach(function () {
-			clearInterval(interval);
+			onServerStop();
 		});
 
 		it('it should not call any update functions', function() {
 			paused = true;
-			interval = onStart(1);
+			interval = onServerStart(1);
 			assert(!update1[1].called);
 		});
 	});

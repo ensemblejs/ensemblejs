@@ -14,9 +14,9 @@ function ensureMapHasModifiers(action) {
 }
 
 module.exports = {
-	type: 'OnInput',
+	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function OnInput (actionMaps, define, mutate) {
+	func: function ProcessPendingInput (actionMaps, define, mutate) {
 		function parseKeysAndKeypresses (currentInput, callback) {
 			var mode = currentInput.mode;
 
