@@ -43,15 +43,14 @@ function runGameAtPath (path) {
   function modesJsonExists (exists) {
     var modes = exists ? require(path + '/js/modes.json') : [];
 
-    plugins.get('Profiler').removeTimersNotConfigured();
-    plugins.get('On').start(path, modes);
+    plugins.get('On').serverStart(path, modes);
   }
 
   require('fs').exists(path + '/js/modes.json', modesJsonExists);
 }
 
 function shutdownHandler() {
-  plugins.get('On').stop();
+  plugins.get('On').serverStop();
   process.exit();
 }
 

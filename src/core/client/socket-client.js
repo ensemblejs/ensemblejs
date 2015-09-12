@@ -30,7 +30,7 @@ module.exports = {
       });
 
       socket.on('initialState', function initialState (packet) {
-        on().setup(packet, gameMode());
+        on().clientStart(packet, gameMode());
       });
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);

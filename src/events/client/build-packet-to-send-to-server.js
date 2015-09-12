@@ -52,7 +52,7 @@ module.exports = {
     function buildPacketToSendToServer () {
       var packet = buildPacket();
       if (packet) {
-        on().clientPacket(packet);
+        on().outgoingClientPacket(packet);
       }
     }
 

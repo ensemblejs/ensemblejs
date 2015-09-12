@@ -1,7 +1,7 @@
 {
   "name": "ensemblejs",
-  "version": "5.0.0-beta-rc2",
-  "description": "Ensemble server for the ensemble game framework",
+  "version": "5.0.0",
+  "description": "The ensemble game framework",
   "main": "src/index.js",
   "repository": {
     "type": "git",

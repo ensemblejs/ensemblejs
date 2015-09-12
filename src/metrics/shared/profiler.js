@@ -136,7 +136,6 @@ module.exports = {
     });
 
     return {
-      removeTimersNotConfigured: removeTimersNotConfigured,
       timer: timer
     };
   }

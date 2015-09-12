@@ -39,10 +39,6 @@ function loadFolder (folder, namespace) {
   folders.push({items: folder, namespace: namespace});
 }
 
-function removeTimers () {
-  plugins.get('Profiler').removeTimersNotConfigured();
-}
-
 function logErrors (error) {
   logging.logger.error(error);
 }
@@ -72,7 +68,6 @@ module.exports = {
     request(plugins.get('ServerUrl') + '/config').spread(getConfig)
       .then(setLogLevel)
       .then(loadModules)
-      .then(removeTimers)
       .then(runTheClient)
       .error(logErrors);
   },
