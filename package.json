@@ -51,6 +51,7 @@
     "distributedlife-sequence": "^1.0.1",
     "express": "^4.13.1",
     "express-bunyan-logger": "^1.1.1",
+    "factor-bundle": "^2.5.0",
     "jade": "^1.11.0",
     "lodash": "^3.10.0",
     "morgan": "^1.6.1",
