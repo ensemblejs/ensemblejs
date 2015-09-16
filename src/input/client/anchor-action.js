@@ -82,7 +82,7 @@ module.exports = {
       var keysToSend = [];
       each(keys, function (value, key) {
         if (value) {
-          keysToSend.push(key);
+          keysToSend.push({key: key, modifiers: []});
         }
       });
       inputData.keys = keysToSend;
@@ -90,7 +90,7 @@ module.exports = {
       var singlePressKeysToSend = [];
       each(singlePressKeys, function (value, key) {
         if (value) {
-          singlePressKeysToSend.push(key);
+          singlePressKeysToSend.push({key: key, modifiers: []});
         }
         singlePressKeys[key] = false;
       });
