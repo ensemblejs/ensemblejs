@@ -1,6 +1,6 @@
 {
   "name": "ensemblejs",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "The ensemble game framework",
   "main": "src/index.js",
   "repository": {
