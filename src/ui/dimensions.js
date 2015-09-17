@@ -47,7 +47,13 @@ module.exports = {
           orientation: orientation,
           screenWidth: actualWidth,
           screenHeight: actualHeight,
-          ratio: config().client.aspectRatio
+          ratio: config().client.aspectRatio,
+          landscape: function landscape () {
+            return orientation === 'landscape';
+          },
+          portrait: function portrait () {
+            return orientation === 'portrait';
+          }
         };
       }
     };

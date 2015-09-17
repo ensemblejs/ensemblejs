@@ -23,10 +23,19 @@ module.exports = {
       on().resume('client', mode());
     }
 
+    function reposition (dims) {
+      if (dims.orientation === 'landscape') {
+        $()('.paused').css('top', '96px').css('right', '0');
+      } else {
+        $()('.paused').css('right', '96px').css('top', '0');
+      }
+    }
+
     define()('OnClientReady', ['StateTrackerHelpers', 'StateTracker'], function ConnectDisconnect (trackerHelpers, tracker) {
 
-      return function setup () {
+      return function setup (dims) {
         $()('.icons').append(icon());
+        reposition(dims);
 
         var equals = trackerHelpers().equals;
 
@@ -38,13 +47,7 @@ module.exports = {
     });
 
     define()('OnResize', function ConnectDisconnect () {
-      return function layoutIcons (dims) {
-        if (dims.orientation === 'landscape') {
-          $()('.paused').css('top', '96px').css('right', '0');
-        } else {
-          $()('.paused').css('right', '96px').css('top', '0');
-        }
-      };
+      return reposition;
     });
   }
 };

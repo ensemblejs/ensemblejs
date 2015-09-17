@@ -4,12 +4,23 @@ var icon = require('../../public/partials/sound-icons.jade');
 
 module.exports = {
   type: 'SoundIcon',
-  deps: ['On', 'DefinePlugin'],
-  func: function SoundIcon (on, define) {
+  deps: ['On', 'DefinePlugin', '$'],
+  func: function SoundIcon (on, define, $) {
 
-    define()('OnClientReady', ['$'], function SoundIcon ($) {
-      return function setup () {
+    function reposition (dims) {
+      if (dims.orientation === 'landscape') {
+        $()('.sound-on').css('top', '32px').css('right', '0');
+        $()('.sound-off').css('top', '32px').css('right', '0');
+      } else {
+        $()('.sound-on').css('right', '32px').css('top', '0');
+        $()('.sound-off').css('right', '32px').css('top', '0');
+      }
+    }
+
+    define()('OnClientReady', function SoundIcon () {
+      return function setup (dims) {
         $()('.icons').append(icon());
+        reposition(dims);
 
         $()('.sound-off').hide();
 
@@ -29,16 +40,8 @@ module.exports = {
       };
     });
 
-    define()('OnResize', ['$'], function SoundIcon ($) {
-      return function layoutIcons (dims) {
-        if (dims.orientation === 'landscape') {
-          $()('.sound-on').css('top', '32px').css('right', '0');
-          $()('.sound-off').css('top', '32px').css('right', '0');
-        } else {
-          $()('.sound-on').css('right', '32px').css('top', '0');
-          $()('.sound-off').css('right', '32px').css('top', '0');
-        }
-      };
+    define()('OnResize', function SoundIcon () {
+      return reposition;
     });
   }
 };

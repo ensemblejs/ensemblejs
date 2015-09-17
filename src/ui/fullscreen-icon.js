@@ -5,8 +5,8 @@ var icon = require('../../public/partials/fullscreen-icon.jade');
 
 module.exports = {
   type: 'Fullscreen',
-  deps: ['DefinePlugin'],
-  func: function Fullscreen (define) {
+  deps: ['DefinePlugin', '$'],
+  func: function Fullscreen (define, $) {
 
     function toggleFullscreen () {
       if (screenfull.enabled) {
@@ -14,9 +14,18 @@ module.exports = {
       }
     }
 
-    define()('OnClientReady', ['$'], function Fullscreen ($) {
-      return function setup () {
+    function reposition (dims) {
+      if (dims.orientation === 'landscape') {
+        $()('.fullscreen').css('top', '0').css('right', '0');
+      } else {
+        $()('.fullscreen').css('right', '0').css('top', '0');
+      }
+    }
+
+    define()('OnClientReady', function Fullscreen () {
+      return function setup (dims) {
         $()('.icons').append(icon());
+        reposition(dims);
 
         $()('.fullscreen').on('click', toggleFullscreen);
       };
@@ -28,14 +37,8 @@ module.exports = {
       };
     });
 
-    define()('OnResize', ['$'], function Fullscreen ($) {
-      return function layoutIcons (dims) {
-        if (dims.orientation === 'landscape') {
-          $()('.fullscreen').css('top', '0').css('right', '0');
-        } else {
-          $()('.fullscreen').css('right', '0').css('top', '0');
-        }
-      };
+    define()('OnResize', function Fullscreen () {
+      return reposition;
     });
   }
 };
