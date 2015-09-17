@@ -60,6 +60,10 @@ module.exports = {
 
     function createOnInputFunction (game, socketId) {
       return function onInputFunction (packet) {
+        if (state().for(game.id).for('ensemble').get('paused')) {
+          return;
+        }
+
         var pendingAcks = packet.pendingAcks;
         delete packet.pendingAcks;
 

@@ -18,6 +18,7 @@ module.exports = {
     define()('OnClientReady', function ConnectDisconnect () {
       return function setup (dims) {
         $()('.icons').append(icon());
+        $()('.disconnected').hide();
         reposition(dims);
       };
     });
