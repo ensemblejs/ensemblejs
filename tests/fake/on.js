@@ -13,5 +13,5 @@ module.exports = {
   outgoingServerPacket: sinon.spy(),
   pause: sinon.spy(),
   resume: sinon.spy(),
-  setup: sinon.spy()
+  clientStart: sinon.spy()
 };

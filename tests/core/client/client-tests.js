@@ -138,17 +138,17 @@ describe('the socket client', function () {
 			});
 
 			it('should call all OnSetup plugins', function () {
-				expect(fakeOn.setup.callCount).toEqual(1);
+				expect(fakeOn.clientStart.callCount).toEqual(1);
 			});
 
 			it('should pass the packet on', function () {
-				expect(fakeOn.setup.firstCall.args[0]).toEqual({
+				expect(fakeOn.clientStart.firstCall.args[0]).toEqual({
 					packet: true
 				});
 			});
 
 			it('should pass the mode to the router', function () {
-				expect(fakeOn.setup.firstCall.args[1]).toEqual('arcade');
+				expect(fakeOn.clientStart.firstCall.args[1]).toEqual('arcade');
 			});
 		});
 

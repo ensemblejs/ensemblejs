@@ -25,12 +25,20 @@ var io = {
 	}
 };
 var gameState = {
-	hi: 'there'
+	hi: 'there',
 };
 
 var StateAccess = {
 	for: function() {
-		return gameState;
+		return {
+			for: function () {
+				return {
+					get: function () {
+						return false;
+					}
+				};
+			}
+		};
 	}
 };
 
@@ -255,7 +263,6 @@ describe('the socket server', function () {
 		it('should call the onPause callback', function() {
 			expect(fakeOn.clientDisconnect.calledOnce).toEqual(true);
 		});
-
 	});
 
 	describe('on pause', function () {
@@ -303,13 +310,12 @@ describe('the socket server', function () {
 			expect(pendingAckCallback.called).toEqual(true);
 		});
 
-		it('should pass the data parameter into the pendingAck target', function () {
-			expect(pendingAckCallback.firstCall.args[0]).toEqual(gameState);
-		});
-
 		it('should pass the ack into the pendingAck target', function () {
 			expect(pendingAckCallback.firstCall.args[1]).toEqual({name: 'first', id: 1});
 		});
 
+		it('should pass the data parameter into the pendingAck target', function () {
+			expect(pendingAckCallback.firstCall.args[2]).toEqual(gameState);
+		});
 	});
 });
