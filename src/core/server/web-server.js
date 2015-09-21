@@ -45,8 +45,6 @@ module.exports = {
     }
 
     function start (assetPath, modes) {
-      modes = modes || [];
-
       var app = configureApp(assetPath);
       routes().configure(app, modes);
 

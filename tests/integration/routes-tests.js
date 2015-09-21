@@ -5,12 +5,31 @@ var sinon = require('sinon');
 var request = require('request');
 var makeTestible = require('../support').makeTestible;
 
-describe('configuring the routes', function () {
+describe('game routes', function () {
 	var onServerStart;
 	var onServerStop;
 
+	function url (path) {
+		return ['http://localhost:3000', path].join('');
+	}
+
+	function posturl (path, body) {
+		return {
+			uri : url(path),
+			method: 'POST',
+			body: body,
+			json: true
+		};
+	}
+
 	before(function() {
-		var routes = makeTestible('core/server/routes', {});
+		var routes = makeTestible('core/server/routes', {
+			UUID: {
+				gen: function () {
+					return '34242-324324';
+				}
+			}
+		});
 		var sut = makeTestible('core/server/web-server', {
 			SocketServer: {
 				start: sinon.spy(),
@@ -31,68 +50,128 @@ describe('configuring the routes', function () {
 		onServerStop = sut[1].OnServerStop();
 	});
 
-	describe('when the modes are not supplied', function () {
-		before(function () {
-			onServerStart('../dummy');
-		});
+	describe('the index', function () {
+		describe('as json', function () {
+			var opts = {
+				url: url('/'),
+				headers: {
+					'Accept': 'application/json'
+				}
+			};
 
-		after(function () {
-			onServerStop();
-		});
+			describe('when there is no game mode specified', function () {
+				before(function () {
+					onServerStart('../dummy', ['game']);
+				});
 
-		it('should map /index to the single game mode', function (done) {
-			request.get('http://localhost:3000/', function (err, res) {
-				expect(res.statusCode).toEqual(200);
-				expect(res.body).toInclude('<script src="/game/js/gen/game.min.js">');
-				done();
-			}).end();
+				after(function () {
+					onServerStop();
+				});
+
+				it ('should show only the default game mode', function (done) {
+					request.get(opts, function (err, res) {
+						expect(res.statusCode).toEqual(200);
+
+						var json = JSON.parse(res.body);
+						expect(json.modes).toEqual(['game']);
+						expect(json.links[0].what).toEqual('/game/new');
+						expect(json.links[0].uri).toEqual('/games');
+						expect(json.links[0].method).toEqual('POST');
+						expect(json.links[0].data).toEqual({ mode: 'game'});
+						done();
+					}).end();
+				});
+			});
+
+			describe('when there is more than one game mode', function () {
+				before(function () {
+					onServerStart('../dummy', ['easy', 'hard']);
+				});
+
+				after(function () {
+					onServerStop();
+				});
+
+				it ('should show all game modes', function (done) {
+					request.get(opts, function (err, res) {
+						expect(res.statusCode).toEqual(200);
+
+						var json = JSON.parse(res.body);
+						expect(json.modes).toEqual(['easy', 'hard']);
+						expect(json.links[0].what).toEqual('/game/new');
+						expect(json.links[0].uri).toEqual('/games');
+						expect(json.links[0].method).toEqual('POST');
+						expect(json.links[0].data).toEqual({ mode: 'easy'});
+						expect(json.links[1].what).toEqual('/game/new');
+						expect(json.links[1].uri).toEqual('/games');
+						expect(json.links[1].method).toEqual('POST');
+						expect(json.links[1].data).toEqual({ mode: 'hard'});
+						done();
+					}).end();
+				});
+			});
+
+			describe('when no request type specified', function () {
+				before(function () {
+					onServerStart('../dummy', ['arcade']);
+				});
+
+				after(function () {
+					onServerStop();
+				});
+
+				it('should provide a route to the index', function (done) {
+					request.get(url('/'), function (err, res) {
+						expect(res.statusCode).toEqual(200);
+						done();
+					}).end();
+				});
+			});
 		});
 	});
 
-	describe('when the modes object has more than one element', function () {
-		var modes = ['arcade'];
-
+	describe('given a mode', function () {
 		before(function () {
-			onServerStart('../dummy', modes);
+			onServerStart('../dummy', ['arcade']);
 		});
 
 		after(function () {
 			onServerStop();
 		});
 
-		it('should provide a route to the index, to be supplied by the gamedev', function (done) {
-			request.get('http://localhost:3000/', function (err, res) {
-				expect(res.statusCode).toEqual(200);
-				done();
-			}).end();
-		});
-
-		it('should redirect to the root page when the mode is not in the modes', function (done) {
-			request({
-				followRedirect: function(res) {
-					expect(res.statusCode).toEqual(302);
-					expect(res.headers.location).toEqual('/');
-				},
-				uri: 'http://localhost:3000/derp'
-			}, function () {
-				done();
-			}).end();
-		});
-
-		it('should invoke the callback specified by the mode', function (done) {
-			request.get('http://localhost:3000/arcade', function (err, res) {
-				expect(res.statusCode).toEqual(200);
-				expect(res.body).toInclude('<script src="/game/js/gen/arcade.min.js">');
-				done();
-			}).end();
-		});
-
-		describe('each of the default routes', function () {
-			it('the "primary" view', function (done) {
-				request.get('http://localhost:3000/arcade', function (err, res) {
-					expect(res.statusCode).toEqual(200);
+		describe('starting a new game', function () {
+			it('should report an error if the mode is not supplied', function (done) {
+				request.post(posturl('/games', {}), function (err, res) {
+					expect(res.statusCode).toEqual(400);
 					done();
-				}).end();
+				});
+			});
+
+			it('should redirect to the continue game url', function (done) {
+				request.post(posturl('/games', {mode: 'arcade'}), function (err, res) {
+					expect(res.statusCode).toEqual(302);
+					expect(res.headers.location).toEqual('34242-324324');
+					done();
+				});
+			});
+		});
+
+		describe('continuing a new game', function () {
+			it('should return a 404 if the game does not exist', function (done) {
+				request.get(url('/games/1'), function (err, res) {
+					expect(res.statusCode).toEqual(404);
+					done();
+				});
+			});
+
+			it('should invoke the callback specified by the mode', function (done) {
+				request.post(posturl('/games', {mode: 'arcade'}), function () {
+					request.get(url('/games/34242-324324'), function (err, res) {
+						expect(res.statusCode).toEqual(200);
+						expect(res.body).toInclude('<script src="/game/js/gen/arcade.min.js">');
+						done();
+					});
+				});
 			});
 		});
 	});

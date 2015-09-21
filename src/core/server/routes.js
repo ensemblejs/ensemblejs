@@ -1,46 +1,87 @@
 'use strict';
 
-var extension = '.jade';
+var each = require('lodash').each;
+var keys = require('lodash').keys;
 
-function handleEphemeralSingleMode (req, res) {
-  res.render('primary' + extension, { mode: 'game' });
+function buildIndexJson (modes) {
+  var index = {
+    modes: modes,
+    links: []
+  };
+
+  each(modes, function(mode) {
+    index.links.push({
+      what: '/game/new',
+      uri: '/games',
+      method: 'POST',
+      data: { mode: mode }
+    });
+  });
+
+  return function modesList (req, res) {
+    res.json(index);
+  };
 }
 
-function handleEphemeralMultiModeIndex (req, res) {
-  res.render('index' + extension);
+function indexHtml (req, res) {
+  res.render('index.jade');
 }
 
-function handleEphemeralMultiMode (req, res) {
-  var mode = req.params.mode;
-  res.render('primary' + extension, { mode: mode });
+function buildIndexHandler (modes) {
+  return {
+    'html': indexHtml,
+    'json': buildIndexJson(modes)
+  };
 }
 
-function configureSingleModeGame (app) {
-  app.get('/', handleEphemeralSingleMode);
-}
+function buildHandler (callbacks) {
+  return function handle (req, res) {
+    var contentType = req.accepts(keys(callbacks));
+    if (contentType) {
+      return callbacks[contentType](req, res);
+    }
 
-function configureMultiModeGame (app) {
-  app.get('/', handleEphemeralMultiModeIndex);
-  app.get('/:mode/', handleEphemeralMultiMode);
+    res.status(406).send();
+  };
 }
 
 module.exports = {
   type: 'Routes',
-  deps: ['Config'],
-  func: function Routes (config) {
+  deps: ['Config', 'UUID'],
+  func: function Routes (config, uuid) {
 
     function getConfig (req, res) {
       res.json(config());
     }
 
+    var games = {};
+
+    function createNewGame (req, res) {
+      if (!req.body.mode) {
+        res.status(400).send('Missing mode');
+      } else {
+        var gameId = uuid().gen();
+        games[gameId] = { mode: req.body.mode };
+
+        res.redirect(gameId);
+      }
+    }
+
+    function continueGame (req, res) {
+      var gameId = req.params.gameId;
+
+      if (!games[gameId]) {
+        return res.status(404).send();
+      }
+
+      res.render('primary.jade', { mode: games[gameId].mode });
+    }
+
     function configure (app, modes) {
       app.get('/config', getConfig);
-
-      if (modes.length > 0) {
-        configureMultiModeGame(app);
-      } else {
-        configureSingleModeGame(app);
-      }
+      app.get('/', buildHandler(buildIndexHandler(modes)));
+      app.post('/games', createNewGame);
+      app.get('/games/:gameId', continueGame);
     }
 
     return {
