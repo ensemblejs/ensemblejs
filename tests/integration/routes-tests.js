@@ -4,6 +4,7 @@ var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
 var makeTestible = require('../support').makeTestible;
+var fakeMetrics = require('../fake/metrics');
 
 describe('game routes', function () {
 	var onServerStart;
@@ -28,7 +29,8 @@ describe('game routes', function () {
 				gen: function () {
 					return '34242-324324';
 				}
-			}
+			},
+			Metrics: fakeMetrics
 		});
 		var sut = makeTestible('core/server/web-server', {
 			SocketServer: {

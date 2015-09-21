@@ -54,6 +54,7 @@
     "factor-bundle": "^2.5.0",
     "jade": "^1.11.0",
     "lodash": "^3.10.0",
+    "mixpanel": "^0.3.1",
     "morgan": "^1.6.1",
     "node-uuid": "^1.4.3",
     "numeral": "^1.5.3",

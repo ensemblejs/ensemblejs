@@ -47,8 +47,8 @@ function buildHandler (callbacks) {
 
 module.exports = {
   type: 'Routes',
-  deps: ['Config', 'UUID'],
-  func: function Routes (config, uuid) {
+  deps: ['Config', 'UUID', 'Metrics'],
+  func: function Routes (config, uuid, metrics) {
 
     function getConfig (req, res) {
       res.json(config());
@@ -60,10 +60,12 @@ module.exports = {
       if (!req.body.mode) {
         res.status(400).send('Missing mode');
       } else {
-        var gameId = uuid().gen();
-        games[gameId] = { mode: req.body.mode };
+        var game = { id: uuid().gen(), mode: req.body.mode };
+        games[game.id] = game;
 
-        res.redirect(gameId);
+        metrics().event('new-game', game);
+
+        res.redirect(game.id);
       }
     }
 
@@ -74,7 +76,11 @@ module.exports = {
         return res.status(404).send();
       }
 
-      res.render('primary.jade', { mode: games[gameId].mode });
+      var game = games[gameId];
+
+      metrics().event('continue-game', game);
+
+      res.render('primary.jade', { mode: game.mode });
     }
 
     function configure (app, modes) {
