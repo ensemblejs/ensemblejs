@@ -55,8 +55,8 @@ function buildHandler (callbacks) {
 
 module.exports = {
   type: 'Routes',
-  deps: ['Config', 'UUID', 'Metrics'],
-  func: function Routes (config, uuid, metrics) {
+  deps: ['Config', 'UUID'],
+  func: function Routes (config, uuid) {
 
     function getConfig (req, res) {
       res.json(config());
@@ -71,8 +71,6 @@ module.exports = {
         var game = { gameId: uuid().gen(), mode: req.body.mode };
         games[game.gameId] = game;
 
-        metrics().event('new-game', game);
-
         res.redirect('/games/' + game.gameId);
       }
     }
@@ -85,8 +83,6 @@ module.exports = {
       }
 
       var game = games[gameId];
-
-      metrics().event('continue-game', game);
 
       res.render('primary.jade', { mode: game.mode });
     }

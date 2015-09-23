@@ -9,8 +9,8 @@ var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes'],
-  func: function (socket, config, logger, define, routes) {
+  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher'],
+  func: function (socket, config, logger, define, routes, requestEventPublisher) {
     var server;
 
     var pathToPublic = __dirname + '/../../../public';
@@ -40,6 +40,7 @@ module.exports = {
         pathToFavIcon = pathToPublic + '/favicon.ico';
       }
       app.use(favicon(pathToFavIcon));
+      app.use(requestEventPublisher().middleware);
 
       return app;
     }
