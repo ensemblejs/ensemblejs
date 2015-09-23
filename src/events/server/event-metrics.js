@@ -14,7 +14,6 @@ module.exports = {
 
     define()('OnServerStop', function () {
       return function publish () {
-        //TODO: this is not being sent
         metrics().major('OnServerStop', {
           duration: time().sinceStart()
         });
