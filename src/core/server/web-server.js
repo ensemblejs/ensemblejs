@@ -44,14 +44,14 @@ module.exports = {
       return app;
     }
 
-    function start (assetPath, modes) {
+    function start (assetPath, game) {
       var app = configureApp(assetPath);
-      routes().configure(app, modes);
+      routes().configure(app, game);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, modes);
+      socket().start(server, game.modes);
     }
 
     define()('OnServerStop', function () {

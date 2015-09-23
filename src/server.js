@@ -41,9 +41,12 @@ function runGameAtPath (path) {
   plugins.loadPath(path + '/js/maps');
 
   function modesJsonExists (exists) {
-    var modes = exists ? require(path + '/js/modes.json') : ['game'];
+    var game = {
+      modes: exists ? require(path + '/js/modes.json') : ['game'],
+      name: packageInfo.name
+    };
 
-    plugins.get('On').serverStart(path, modes);
+    plugins.get('On').serverStart(path, game);
   }
 
   require('fs').exists(path + '/js/modes.json', modesJsonExists);
@@ -57,6 +60,8 @@ function shutdownHandler() {
 process.on('SIGINT', shutdownHandler);
 process.on('SIGTERM', shutdownHandler);
 process.on('SIGHUP', shutdownHandler);
+process.on('uncaughtException', plugins.get('On').error);
+process.on('unhandledRejection', plugins.get('On').error);
 
 module.exports = {
   runGameAtPath: runGameAtPath

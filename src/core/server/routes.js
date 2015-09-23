@@ -3,34 +3,42 @@
 var each = require('lodash').each;
 var keys = require('lodash').keys;
 
-function buildIndexJson (modes) {
+function buildIndexJson (game) {
   var index = {
-    modes: modes,
+    name: game.name,
+    modes: game.modes,
     links: []
   };
 
-  each(modes, function(mode) {
+  each(game.modes, function(mode) {
     index.links.push({
-      what: '/game/new',
+      name: mode,
+      what: '/game/' + mode + '/new',
       uri: '/games',
       method: 'POST',
       data: { mode: mode }
     });
   });
 
-  return function modesList (req, res) {
-    res.json(index);
+  return index;
+}
+
+function buildJsonHandler (json) {
+  return function jsonHandler (req, res) {
+    res.json(json);
   };
 }
 
-function indexHtml (req, res) {
-  res.render('index.jade');
+function renderPage (page, opts) {
+  return function pageHandler (req, res) {
+    res.render(page, opts);
+  };
 }
 
-function buildIndexHandler (modes) {
+function buildIndexHandler (game) {
   return {
-    'html': indexHtml,
-    'json': buildIndexJson(modes)
+    'html': renderPage('index.jade', buildIndexJson(game)),
+    'json': buildJsonHandler(buildIndexJson(game))
   };
 }
 
@@ -41,7 +49,7 @@ function buildHandler (callbacks) {
       return callbacks[contentType](req, res);
     }
 
-    res.status(406).send();
+    res.status(406).send('The following Accept types supported: ' + keys(callbacks).join(', '));
   };
 }
 
@@ -60,12 +68,12 @@ module.exports = {
       if (!req.body.mode) {
         res.status(400).send('Missing mode');
       } else {
-        var game = { id: uuid().gen(), mode: req.body.mode };
-        games[game.id] = game;
+        var game = { gameId: uuid().gen(), mode: req.body.mode };
+        games[game.gameId] = game;
 
         metrics().event('new-game', game);
 
-        res.redirect(game.id);
+        res.redirect('/games/' + game.gameId);
       }
     }
 
@@ -73,7 +81,7 @@ module.exports = {
       var gameId = req.params.gameId;
 
       if (!games[gameId]) {
-        return res.status(404).send();
+        return res.status(404).send('This game does not exist');
       }
 
       var game = games[gameId];
@@ -83,9 +91,9 @@ module.exports = {
       res.render('primary.jade', { mode: game.mode });
     }
 
-    function configure (app, modes) {
+    function configure (app, game) {
       app.get('/config', getConfig);
-      app.get('/', buildHandler(buildIndexHandler(modes)));
+      app.get('/', buildHandler(buildIndexHandler(game)));
       app.post('/games', createNewGame);
       app.get('/games/:gameId', continueGame);
     }

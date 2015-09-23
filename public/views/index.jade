@@ -1,3 +1,10 @@
-h1 The INCH Framework
-p
-  You are seeing this because the gamedev has not create their own index page. If you want your own index page create: /game/views/pages/index.jade. The server is setup to look in the game folder first and fall back to the pre-packaged files i.e. this one.
+h1 #{name}
+p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
+h2 Get Playing
+p This game supports the following game modes:
+ul
+  each link in links
+    li
+      form(id="a", method="#{link.method}", action="#{link.uri}")
+        input(type="hidden", name="mode", value="#{link.data.mode}")
+        a(onclick="document.getElementById('a').submit()") #{link.name}

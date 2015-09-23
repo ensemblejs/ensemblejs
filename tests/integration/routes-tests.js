@@ -63,7 +63,7 @@ describe('game routes', function () {
 
 			describe('when there is no game mode specified', function () {
 				before(function () {
-					onServerStart('../dummy', ['game']);
+					onServerStart('../dummy', {modes: ['game']});
 				});
 
 				after(function () {
@@ -87,7 +87,7 @@ describe('game routes', function () {
 
 			describe('when there is more than one game mode', function () {
 				before(function () {
-					onServerStart('../dummy', ['easy', 'hard']);
+					onServerStart('../dummy',	{ modes: ['easy', 'hard']});
 				});
 
 				after(function () {
@@ -134,7 +134,7 @@ describe('game routes', function () {
 
 	describe('given a mode', function () {
 		before(function () {
-			onServerStart('../dummy', ['arcade']);
+			onServerStart('../dummy', {modes: ['arcade']});
 		});
 
 		after(function () {
@@ -152,7 +152,7 @@ describe('game routes', function () {
 			it('should redirect to the continue game url', function (done) {
 				request.post(posturl('/games', {mode: 'arcade'}), function (err, res) {
 					expect(res.statusCode).toEqual(302);
-					expect(res.headers.location).toEqual('34242-324324');
+					expect(res.headers.location).toEqual('/games/34242-324324');
 					done();
 				});
 			});
