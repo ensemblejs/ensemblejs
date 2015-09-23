@@ -53,8 +53,11 @@ function runGameAtPath (path) {
 }
 
 function shutdownHandler() {
+  logger.info('Shutdown request received. Shutting down.');
+
   plugins.get('On').serverStop();
-  process.exit();
+
+  setTimeout(process.exit, 1000);
 }
 
 process.on('SIGINT', shutdownHandler);
