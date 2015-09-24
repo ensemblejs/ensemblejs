@@ -1,5 +1,6 @@
 'use strict';
 
+var first = require('lodash').first;
 var filter = require('lodash').filter;
 var reject = require('lodash').reject;
 
@@ -18,11 +19,11 @@ module.exports = {
     }
 
     function remove (id) {
-      games = reject(games, function (game) { return game.id === id; });
+      games = reject(games, { id: id });
     }
 
     function get (id) {
-      return filter(games, function (game) { return game.id === id; });
+      return first(filter(games, { id: id }));
     }
 
     define()('InternalState', function GamesList () {
@@ -33,15 +34,9 @@ module.exports = {
       };
     });
 
-    define()('OnClientConnect', function GamesList () {
-      return function addGame (state, socket, game) {
+    define()('OnNewGame', function GamesList () {
+      return function addGame (game) {
         add(game);
-      };
-    });
-
-    define()('OnClientDisconnect', function GamesList () {
-      return function removeGame (state, socket, game) {
-        remove(game.id);
       };
     });
 

@@ -1,6 +1,7 @@
 'use strict';
 
 var io = require('socket.io-client');
+var last = require('lodash').last;
 
 module.exports = {
   type: 'SocketClient',
@@ -13,6 +14,9 @@ module.exports = {
 
     function connect () {
       var socket = io.connect(url(), { reconnection: false });
+
+      var gameId = last(window().location.pathname.split('/'));
+      socket.emit('gameId', gameId);
 
       socket.on('startTime', function (serverOffset) {
         var currentClientTime = time().present();

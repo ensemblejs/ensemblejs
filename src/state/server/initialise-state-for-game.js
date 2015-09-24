@@ -1,24 +1,18 @@
 'use strict';
 
 var each = require('lodash').each;
-var filter = require('lodash').filter;
 var last = require('lodash').last;
-var isApplicable = require('../../util/modes').isApplicable;
+var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'OnNewGame',
   deps: ['StateSeed', 'StateMutator'],
   func: function OnNewGame (stateSeed, mutate) {
-
-    return function initialiseState (game) {
-      var applicableSeeds = filter(stateSeed(), function(seed) {
-        return isApplicable(game.mode, seed);
-      });
-
+    return function initialiseStateForGame (game) {
+      var applicableSeeds = filterPluginsByMode(stateSeed(), game.mode);
       each(applicableSeeds, function (state) {
         mutate()(game.id, last(state));
       });
     };
-
   }
 };

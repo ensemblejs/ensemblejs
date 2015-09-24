@@ -55,34 +55,28 @@ function buildHandler (callbacks) {
 
 module.exports = {
   type: 'Routes',
-  deps: ['Config', 'UUID'],
-  func: function Routes (config, uuid) {
+  deps: ['Config', 'UUID', 'On', 'GamesList'],
+  func: function Routes (config, uuid, on, games) {
 
     function getConfig (req, res) {
       res.json(config());
     }
 
-    var games = {};
-
     function createNewGame (req, res) {
       if (!req.body.mode) {
-        res.status(400).send('Missing mode');
-      } else {
-        var game = { gameId: uuid().gen(), mode: req.body.mode };
-        games[game.gameId] = game;
-
-        res.redirect('/games/' + game.gameId);
+        return res.status(400).send('Missing mode');
       }
+
+      var game = { id: uuid().gen(), mode: req.body.mode };
+      on().newGame(game);
+      res.redirect('/games/' + game.id);
     }
 
     function continueGame (req, res) {
-      var gameId = req.params.gameId;
-
-      if (!games[gameId]) {
+      var game = games().get(req.params.gameId);
+      if (!game) {
         return res.status(404).send('This game does not exist');
       }
-
-      var game = games[gameId];
 
       res.render('primary.jade', { mode: game.mode });
     }

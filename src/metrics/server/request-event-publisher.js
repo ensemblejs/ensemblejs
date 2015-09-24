@@ -16,7 +16,7 @@ module.exports = {
         '127.0.0.1';
     }
 
-    function expressMiddleware (req, res, next) {
+    function onRequest (req, res, next) {
       var startTime = time().present();
 
       var ua = useragent.lookup(req.headers['user-agent']);
@@ -59,7 +59,7 @@ module.exports = {
     }
 
     return {
-      middleware: expressMiddleware
+      middleware: onRequest
     };
   }
 };

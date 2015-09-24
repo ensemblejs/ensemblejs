@@ -8,8 +8,8 @@ var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'RawStateAccess', 'StateMutator', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time'],
-  func: function SocketServer (acknowledgementMaps, onInput, rawStateAccess, stateMutator, state, logger, config, lowestInputProcessed, on, define, time) {
+  deps: ['AcknowledgementMap', 'OnInput', 'RawStateAccess', 'StateMutator', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'GamesList'],
+  func: function SocketServer (acknowledgementMaps, onInput, rawStateAccess, stateMutator, state, logger, config, lowestInputProcessed, on, define, time, games) {
 
     var io;
     var sockets = {};
@@ -82,31 +82,19 @@ module.exports = {
       };
     });
 
-    function createSetupPlayableClientFunction (mode) {
-      return function setupPlayableClient (socket) {
-        sockets[socket.id] = socket;
+    function setupPlayableClient (socket) {
+      sockets[socket.id] = socket;
 
-        var socketInfo = {
-          socketId: socket.id,
-          address: socket.handshake.address
-        };
-        logger().socket(socketInfo, 'connected');
+      var socketInfo = {
+        socketId: socket.id,
+        address: socket.handshake.address
+      };
+      logger().socket(socketInfo, 'connected');
 
-        socket.emit('startTime', time().present());
+      socket.emit('startTime', time().present());
 
-        var game = {
-          id: sequence.next('game-id'),
-          mode: mode
-        };
-
-        on().newGame(game);
-
-        function addLogging (eventName, eventCallback) {
-          return function withLogging () {
-            logger().socket(socketInfo, arguments, eventName);
-            eventCallback.apply(this, arguments);
-          };
-        }
+      function sendGame (gameId) {
+        var game = games().get(gameId);
 
         function publishDisconnect() {
           on().clientDisconnect(game, socket);
@@ -125,31 +113,37 @@ module.exports = {
         }
 
         socket.on('disconnect', addLogging('disconnect', publishDisconnect));
+        socket.on('disconnect', addLogging('disconnect', publishPause));
         socket.on('pause', addLogging('pause', publishPause));
         socket.on('unpause', addLogging('unpause', publishUnpause));
         socket.on('error', addLogging('error', error));
         socket.on('input', createOnInputFunction(game, socket.id));
         socket.emit('initialState', rawStateAccess().for(game.id));
 
-        socket.playerId = sequence.next('playerId');
-        socket.emit('playerId', { id: socket.playerId } );
-
         on().clientConnect(game, socket);
 
         startUpdateClientLoop(game, socket.id, socket);
-      };
+      }
+
+      socket.on('gameId', sendGame);
+
+      function addLogging (eventName, eventCallback) {
+        return function withLogging () {
+          logger().socket(socketInfo, arguments, eventName);
+          eventCallback.apply(this, arguments);
+        };
+      }
+
+      socket.playerId = sequence.next('playerId');
+      socket.emit('playerId', { id: socket.playerId } );
     }
 
     function start (server, modes) {
       io = require('socket.io').listen(server);
 
-      if (modes.length > 0) {
-        each(modes, function(mode) {
-          io.of('/' + mode + '/primary').on('connection', createSetupPlayableClientFunction(mode));
-        });
-      } else {
-        io.of('/game/primary').on('connection', createSetupPlayableClientFunction('game'));
-      }
+      each(modes, function(mode) {
+        io.of('/' + mode + '/primary').on('connection', setupPlayableClient);
+      });
     }
 
     function stop () {
