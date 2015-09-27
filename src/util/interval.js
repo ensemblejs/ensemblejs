@@ -6,7 +6,7 @@ var minutesPerHour = 60;
 var secondsPerHour = secondsPerMinute * minutesPerHour;
 
 function sample (callback, frequency) {
-  var timeSinceLast = 0;
+  var timeSinceLast = frequency;
 
   return function (state, delta) {
     timeSinceLast += delta;
