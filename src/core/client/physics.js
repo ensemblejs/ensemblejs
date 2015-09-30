@@ -31,9 +31,11 @@ module.exports = {
       var delta = (now - priorStep) / 1000;
       priorStep = now;
 
-      var gameState = state().for(game.id);
+      if (config().client.cientSidePrediction) {
+        var gameState = state().for(game.id);
+        callForModeWithMutation(onFrame(), mutator, game, [gameState, delta]);
+      }
 
-      callForModeWithMutation(onFrame(), mutator, game, [gameState, delta]);
       callEachPlugin(onFrameComplete());
     }
 

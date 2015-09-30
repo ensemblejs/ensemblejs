@@ -4,7 +4,8 @@
     "widescreenMinimumMargin": 32,
     "element": "canvas",
     "inputElement": "input",
-    "physicsUpdateLoop": 15
+    "physicsUpdateLoop": 15,
+    "cientSidePrediction": true
   },
   "server": {
     "physicsUpdateLoop": 15,
