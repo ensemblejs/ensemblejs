@@ -11,6 +11,9 @@
     "physicsUpdateLoop": 15,
     "pushUpdateFrequencyMs": 45
   },
+  "ensemble": {
+    "maxPlayers": 1
+  },
   "logging": {
     "logLevel": "warn",
     "silencedPlugins": [
