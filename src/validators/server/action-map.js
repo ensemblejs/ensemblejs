@@ -1,30 +1,48 @@
 'use strict';
 
 var select = require('lodash').select;
-var map = require('lodash').map;
-var last = require('lodash').last;
-var flatten = require('lodash').flatten;
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
+var isArray = require('lodash').isArray;
 
 module.exports = {
   type: 'Validator',
   deps: ['ActionMap', 'Logger'],
-  func: function (actionMaps, logger) {
-    return function () {
-      var withoutModes = map(actionMaps(), function(actionMap) {
-        return last(actionMap).tab;
-      });
-      var tabs = flatten(select(withoutModes, function (mode) {
-        return mode;
-      }));
+  func: function Validator (actionMaps, logger) {
+    return function validateActionMaps () {
 
-      var invalid = select(tabs, function (tab) {
-        return isEqual(tab.modifiers, ['ctrl']) || isEqual(tab.modifiers, ['ctrl', 'shift']);
-      });
+      function filterByMissingProperty (records, prop) {
+        return select(records, function(record) { return !record[prop]; });
+      }
 
-      each(invalid, function(invalidActionMap) {
-        logger().error('ActionMap defined with ' + invalidActionMap.modifiers.join('+') + '+tab');
+      each(actionMaps(), function (ackMap) {
+        if (isArray(ackMap)) {
+          ackMap = ackMap[1];
+        }
+
+        each(ackMap, function (records, key) {
+          if (!isArray(records)) {
+            ackMap[key] = [records];
+            records = ackMap[key];
+          }
+
+          var invalidTarget = filterByMissingProperty(records, 'target');
+          each(invalidTarget, function() {
+            logger().error('ActionMap "' + key + '" missing "target" property');
+          });
+
+          if (key === 'tab') {
+            each(records, function (record) {
+              if (isEqual(record.modifiers, ['ctrl'])) {
+                logger().error('ActionMap "tab" has "ctrl" modifier. This is not supported');
+              }
+
+              if (isEqual(record.modifiers, ['ctrl', 'shift'])) {
+                logger().error('ActionMap "tab" has "ctrl+shift" modifier. This is not supported');
+              }
+            });
+          }
+        });
       });
     };
   }
