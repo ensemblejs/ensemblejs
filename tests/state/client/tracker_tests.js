@@ -2,7 +2,6 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var assert = require('assert');
 var isEqual = require('lodash').isEqual;
 var defer = require('../../support').defer;
 var plugin = require('../../support').plugin();
@@ -31,12 +30,16 @@ function forceCurrentRawState (newState) {
 describe('StateTracker', function () {
 	var callback = sinon.spy();
 	var onPhysicsFrameComplete;
+	var onClientStart;
+	var onIncomingServerPacket;
 
 	beforeEach(function () {
 		callback.reset();
 		plugin.reset();
 		tracker = require(modulePath).func(defer(plugin.define));
 		onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
+		onClientStart = plugin.deps().OnClientStart(defer(rawStateAccess));
+		onIncomingServerPacket = plugin.deps().OnIncomingServerPacket();
 	});
 
 	describe('working with property', function () {
@@ -45,12 +48,14 @@ describe('StateTracker', function () {
 				forceCurrentRawState({ property: 'unchanged' });
 				onPhysicsFrameComplete();
 				tracker.onChangeOf(the('property'), callback, 'data');
+
+				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.callCount).toBe(1);
 			});
 
 			it('should not invoke the callback when the thing does not change', function () {
@@ -69,12 +74,13 @@ describe('StateTracker', function () {
 		describe('when there is no prior state', function() {
 			beforeEach(function () {
 				tracker.onChangeOf(the('property'), callback, 'data');
+				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should pass only the new values of the thing and the data to the callback', function() {
@@ -89,12 +95,13 @@ describe('StateTracker', function () {
 				forceCurrentRawState({property: 'unchanged'});
 				onPhysicsFrameComplete();
 				tracker.onChangeTo(the('property'), equals('changed'), callback, 'data');
+				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change to the correct state', function () {
@@ -112,7 +119,7 @@ describe('StateTracker', function () {
 			it('should call the callback immediately if the state is already true', function() {
 				callback.reset();
 				tracker.onChangeTo(the('property'), equals('unchanged'), callback, 'data');
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 		});
 	});
@@ -123,12 +130,13 @@ describe('StateTracker', function () {
 				forceCurrentRawState({obj: {child: 'value'}});
 				onPhysicsFrameComplete();
 				tracker.onChangeOf(the('obj'), callback, 'data');
+				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change', function () {
@@ -147,12 +155,13 @@ describe('StateTracker', function () {
 		describe('when there is no prior state', function() {
 			beforeEach(function () {
 				tracker.onChangeOf(the('obj'), callback, 'data');
+				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should pass the new values of the thing and the data to the callback', function() {
@@ -172,7 +181,7 @@ describe('StateTracker', function () {
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				onPhysicsFrameComplete();
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change to the desired state', function () {
@@ -190,7 +199,7 @@ describe('StateTracker', function () {
 			it('should call the callback immediately if the state is already true', function() {
 				callback.reset();
 				tracker.onChangeTo(the('obj'), equals({child: 'value'}), callback, 'data');
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 			});
 		});
 	});
@@ -212,7 +221,7 @@ describe('StateTracker', function () {
 			});
 
 			it('should invoke the callback with the new element and the data', function() {
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
 			});
 
@@ -225,7 +234,7 @@ describe('StateTracker', function () {
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
 				onPhysicsFrameComplete();
 				tracker.onElementAdded(to('numbers'), callback, callback2, 'data');
-				assert(callback2.calledOnce);
+				expect(callback2.calledOnce).toBe(true);
 				expect(callback2.firstCall.args).toEqual([[{id: 1, value: '7'}], undefined, 'data']);
 			});
 		});
@@ -240,7 +249,7 @@ describe('StateTracker', function () {
 			});
 
 			it('should invoke the callback with the removed element and the data', function() {
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
 			});
 		});
@@ -255,7 +264,7 @@ describe('StateTracker', function () {
 			});
 
 			it('should invoke the callback with the removed element and the data', function() {
-				assert(callback.calledOnce);
+				expect(callback.calledOnce).toBe(true);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, 'data']);
 			});
 
@@ -268,29 +277,17 @@ describe('StateTracker', function () {
 		});
 	});
 
-	describe.skip('on setup', function () {
-		it('should update the state', function () {
-			forceCurrentRawState({prop: 'a'});
-			onPhysicsFrameComplete();
-			expect(plugin.deps().CurrentState().get(the('prop'))).toEqual('a');
-
-			forceCurrentRawState({prop: 'b'});
-			onPhysicsFrameComplete();
-			expect(plugin.deps().CurrentState().get(the('prop'))).toEqual('b');
+	describe('on setup', function () {
+		it('should update the latest server state', function () {
+			onClientStart({prop: 'a'});
+			expect(plugin.deps().CurrentServerState().get(the('prop'))).toEqual('a');
 		});
 	});
 
-	describe.skip('on packet', function () {
-		it('should update the state', function () {
-			plugin.deps().OnPacket()({id: 1, gameState: {prop: 'c'}});
-			expect(plugin.deps().CurrentState().get(the('prop'))).toEqual('c');
-		});
-
-		it('should ignore old packets', function () {
-			var onPacket = plugin.deps().OnPacket();
-			onPacket({id: 2, gameState: {prop: 'c'}});
-			onPacket({id: 1, gameState: {prop: 'd'}});
-			expect(plugin.deps().CurrentState().get(the('prop'))).toEqual('c');
+	describe('on packet', function () {
+		it('should update the latest server state', function () {
+			onIncomingServerPacket({id: 1, gameState: {prop: 'c'}});
+			expect(plugin.deps().CurrentServerState().get(the('prop'))).toEqual('c');
 		});
 	});
 

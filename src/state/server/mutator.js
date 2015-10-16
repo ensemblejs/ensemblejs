@@ -42,6 +42,13 @@ module.exports = {
                   return provideReadAccessToState(root[gameId][namespace])(key);
                 }
               };
+            },
+            player: function forPlayer (playerId) {
+              return {
+                get: function get (key) {
+                  return provideReadAccessToState(root[gameId].player[playerId])(key);
+                }
+              };
             }
           };
         }

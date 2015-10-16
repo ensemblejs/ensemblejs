@@ -209,6 +209,7 @@ module.exports = {
         data: data
       };
 
+      invokeCallback(callback, currentValue(model), priorValue(model), data);
       changes.push(change);
     }
 

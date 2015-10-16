@@ -31,6 +31,13 @@ module.exports = {
                   return provideReadAccessToState(root[namespace])(key);
                 }
               };
+            },
+            player: function forPlayer (playerId) {
+              return {
+                get: function get (key) {
+                  return provideReadAccessToState(root.player[playerId])(key);
+                }
+              };
             }
           };
         }
