@@ -40,6 +40,7 @@ module.exports = {
         inputQueue.push({
           id: packet.id,
           rawData: packet,
+          playerId: packet.playerId,
           timestamp: time().present(),
           game: {
             id: 'client',

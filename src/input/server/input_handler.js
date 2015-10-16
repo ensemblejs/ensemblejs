@@ -158,6 +158,7 @@ module.exports = {
 					somethingHasReceivedInput = [];
 					data = {
 						timestamp: currentInput.timestamp,
+						playerId: currentInput.playerId,
 						delta: delta
 					};
 
@@ -172,7 +173,7 @@ module.exports = {
 					lowestInputProcessed[currentInput.game.id] = currentInput.rawData.id;
 				}
 
-				if (userInput.lengtht > lengthOfInputStackAtStart) {
+				if (userInput.length > lengthOfInputStackAtStart) {
 					logger().warn('More input was received than we processed.');
 				}
 			}
@@ -197,6 +198,7 @@ module.exports = {
 		return function handle(rawData, timestamp, game) {
 			userInput.push({
 				rawData: rawData,
+				playerId: rawData.playerId,
 				timestamp: timestamp,
 				game: game
 			});

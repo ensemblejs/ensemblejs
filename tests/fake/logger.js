@@ -10,7 +10,8 @@ var logging = {
   debug: sinon.spy(),
   filename: sinon.spy(),
   info: sinon.spy(),
-  warn: sinon.spy()
+  warn: sinon.spy(),
+  error: sinon.spy()
 };
 
 module.exports = logging;

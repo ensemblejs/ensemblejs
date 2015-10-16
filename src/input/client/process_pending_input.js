@@ -161,6 +161,7 @@ module.exports = {
 					somethingHasReceivedInput = [];
 					data = {
 						timestamp: currentInput.timestamp,
+						playerId: currentInput.playerId,
 						delta: delta
 					};
 

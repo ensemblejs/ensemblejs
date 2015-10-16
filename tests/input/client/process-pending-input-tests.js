@@ -36,17 +36,18 @@ var game = {
 	id: 1,
 	mode: 'arcade'
 };
-
+var playerId = 3;
 var queue = [];
 var inputQueue = {
 	length: function () { return queue.length; },
 	get: function(i) { return queue[i]; }
 };
-function newUserInput (rawData, timestamp, game) {
+function newUserInput (rawData, timestamp, game, playerId) {
 	queue.push({
 		rawData: rawData,
 		timestamp: timestamp,
-		game: game
+		game: game,
+		playerId: playerId
 	});
 }
 
@@ -99,7 +100,7 @@ describe('Input Bindings', function() {
 	describe('when no input has been received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -114,7 +115,7 @@ describe('Input Bindings', function() {
 
 		it('should pass in the standard event data', function () {
 			onPhysicsFrame(currentState, 16);
-			var expected = {timestamp: undefined, delta: 16};
+			var expected = {timestamp: undefined, playerId: 3, delta: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(currentState);
 			expect(model.noEvent.firstCall.args[1]).toEqual(expected);
@@ -139,7 +140,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
@@ -159,7 +160,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			onPhysicsFrame(currentState, 16);
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -171,10 +172,10 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { keys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 			onPhysicsFrame(currentState, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -183,7 +184,7 @@ describe('Input Bindings', function() {
 
 			onPhysicsFrame(currentState, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
@@ -200,7 +201,7 @@ describe('Input Bindings', function() {
 			queue = [];
 
 			rawData = { keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 			onPhysicsFrame(currentState, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -214,7 +215,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -228,7 +229,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			onPhysicsFrame(currentState, 16);
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -240,10 +241,10 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { singlePressKeys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 			onPhysicsFrame(currentState, 16);
 
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -252,7 +253,7 @@ describe('Input Bindings', function() {
 			onPhysicsFrame(currentState, 16);
 
 			expect(model.keyEvent.called).toBe(false);
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -269,7 +270,7 @@ describe('Input Bindings', function() {
 			queue = [];
 
 			rawData = { singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 			onPhysicsFrame(currentState, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -283,7 +284,7 @@ describe('Input Bindings', function() {
 	describe('when key input is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -302,7 +303,7 @@ describe('Input Bindings', function() {
 	describe('when touch input is received', function() {
 		beforeEach(function() {
 			rawData = { touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -316,7 +317,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			onPhysicsFrame(currentState, 16);
-			expect(model.touchEvent.firstCall.args).toEqual([currentState, 4, 5, {timestamp: undefined, delta: 16}]);
+			expect(model.touchEvent.firstCall.args).toEqual([currentState, 4, 5, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -324,7 +325,7 @@ describe('Input Bindings', function() {
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -342,7 +343,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received', function() {
 		beforeEach(function() {
 			rawData = { keys: [], mouse: {x: 6, y: 7 }};
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -351,7 +352,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			onPhysicsFrame(currentState, 16);
-			expect(model.cursorEvent.firstCall.args).toEqual([currentState, 6,7, {timestamp: undefined, delta: 16}]);
+			expect(model.cursorEvent.firstCall.args).toEqual([currentState, 6,7, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -361,7 +362,7 @@ describe('Input Bindings', function() {
 			rawData = { x: 6, y: 7 };
 			require('../../../src/input/client/process_pending_input').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 			onPhysicsFrame = plugin.deps().OnPhysicsFrame(defer(inputQueue));
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -378,7 +379,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { singlePressKeys: [{key: 'button1'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, game, playerId);
 		});
 
 		afterEach(function () {
@@ -392,7 +393,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			onPhysicsFrame(currentState, 16);
-			expect(model.mouseClickEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, delta: 16}]);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -404,7 +405,7 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now(), game);
+			newUserInput(rawData, Date.now(), game, playerId);
 		});
 
 		afterEach(function () {
@@ -413,8 +414,8 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with direction vector and the fource', function () {
 			onPhysicsFrame(currentState, 16);
-			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, 0.1, 1.0, 0.5, {timestamp: Date.now(), delta: 16}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, 0.9, 0.3, 1.0, {timestamp: Date.now(), delta: 16}]);
+			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, 0.1, 1.0, 0.5, {timestamp: Date.now(), playerId: 3, delta: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, 0.9, 0.3, 1.0, {timestamp: Date.now(), playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 	});
@@ -427,7 +428,7 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now(), game);
+			newUserInput(rawData, Date.now(), game, playerId);
 		});
 
 		afterEach(function () {
