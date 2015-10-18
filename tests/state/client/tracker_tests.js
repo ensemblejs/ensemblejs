@@ -121,6 +121,36 @@ describe('StateTracker', function () {
 				tracker.onChangeTo(the('property'), equals('unchanged'), callback, 'data');
 				expect(callback.calledOnce).toBe(true);
 			});
+
+			describe('when using literals', function () {
+				beforeEach(function () {
+					callback.reset();
+				});
+
+				it('should support strings', function () {
+					tracker.onChangeTo(the('property'), 'something-else', callback, 'data');
+					forceCurrentRawState({property: 'something-else'});
+					onPhysicsFrameComplete();
+
+					expect(callback.callCount).toBe(1);
+				});
+
+				it('should support numbers', function () {
+					tracker.onChangeTo(the('property'), 7, callback, 'data');
+					forceCurrentRawState({property: 7});
+					onPhysicsFrameComplete();
+
+					expect(callback.callCount).toBe(1);
+				});
+
+				it('should support booleans', function () {
+					tracker.onChangeTo(the('property'), false, callback, 'data');
+					forceCurrentRawState({property: false});
+					onPhysicsFrameComplete();
+
+					expect(callback.callCount).toBe(1);
+				});
+			});
 		});
 	});
 

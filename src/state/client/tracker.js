@@ -3,6 +3,7 @@
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
 var isEqual = require('lodash').isEqual;
+var isFunction = require('lodash').isFunction;
 var clone = require('lodash').clone;
 var where = require('lodash').where;
 
@@ -214,10 +215,18 @@ module.exports = {
     }
 
     function onChangeTo (model, condition, callback, data) {
+      var when = condition;
+      if (!isFunction(when)) {
+        when = function (currentValue) {
+          console.log(currentValue, condition, isEqual(currentValue, condition));
+          return isEqual(currentValue, condition);
+        };
+      }
+
       var change = {
         type: 'object',
         focus: model,
-        'when': condition,
+        'when': when,
         callback: callback,
         data: data
       };
