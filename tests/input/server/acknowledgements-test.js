@@ -9,8 +9,8 @@ var ackOnceForAll = sinon.spy();
 var ackOnceEach = sinon.spy();
 var ackFirst = sinon.spy();
 var game = {
-  id: 1,
-  mode: 'arcade'
+  id: 100,
+  mode: 'acknowledgements-test'
 };
 var mutate = sinon.spy();
 var fakeState = {
@@ -23,16 +23,19 @@ function hasResponse () {
   return { state: 'changed' };
 }
 
+var fakeLogger = require('../../fake/logger');
+var config = require('../../../src/util/config')(fakeLogger);
+
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
 
   beforeEach(function () {
+    config.ensemble.maxPlayers = 3;
+
+    fakeLogger.error.reset();
+
     var acknowledgements = makeTestible('input/server/acknowledgements', {
-      Config: {
-        ensemble: {
-          maxPlayers: 3
-        }
-      },
+      Config: config,
       StateMutator: mutate,
       StateAccess: fakeState,
       AcknowledgementMap: [['*', {
@@ -182,7 +185,7 @@ describe('acknowledgements', function () {
 
     it('should mutate the repsonse of the callback', function () {
       expect(mutate.called).toBe(true);
-      expect(mutate.firstCall.args).toEqual([1, { state: 'changed' }]);
+      expect(mutate.firstCall.args).toEqual([100, { state: 'changed' }]);
     });
 
     it('should pass the playerId into the callback', function () {

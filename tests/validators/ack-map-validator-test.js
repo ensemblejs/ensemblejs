@@ -9,6 +9,10 @@ function empty () {}
 describe('ack map validator test', function () {
   var validator;
 
+  beforeEach(function () {
+    logger.error.reset();
+  });
+
   it('is a validator', function () {
     expect(require('../../src/validators/server/ack-maps').type).toEqual('Validator');
   });

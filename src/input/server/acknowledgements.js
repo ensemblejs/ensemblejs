@@ -12,7 +12,7 @@ module.exports = {
   deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap'],
   func: function OnIncomingClientInputPacket (config, mutate, state, acknowledgementMaps) {
 
-    function ackOnceForAll (action, ack) {
+    function ackOnceForAll (action, ack, game) {
       action.players = action.players || [];
       action.fired = action.fired || false;
 
@@ -23,7 +23,7 @@ module.exports = {
       action.players.push(ack.playerId);
       action.players = unique(action.players);
 
-      if (action.players.length === config().ensemble.maxPlayers) {
+      if (action.players.length === config().maxPlayers(game.mode)) {
         action.fired = true;
         return true;
       } else {
@@ -76,7 +76,7 @@ module.exports = {
         each(hasMatchingName, function(ackMap) {
           var actions = last(ackMap)[ack.name];
           var toFire = select(actions, function (action) {
-            return ackMapTypeCanFireHandler[action.type](action, ack);
+            return ackMapTypeCanFireHandler[action.type](action, ack, game);
           });
 
           each(toFire, function (action) {

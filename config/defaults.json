@@ -12,6 +12,7 @@
     "pushUpdateFrequencyMs": 45
   },
   "ensemble": {
+    "minPlayers": 1,
     "maxPlayers": 1
   },
   "logging": {

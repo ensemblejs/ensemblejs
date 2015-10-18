@@ -8,8 +8,8 @@ module.exports = {
       ensemble: {
         jobs: [],
         paused: false,
-        started: time().present(),
-        maxPlayers: 1
+        waitingForPlayers: true,
+        started: time().present()
       }
     };
   }

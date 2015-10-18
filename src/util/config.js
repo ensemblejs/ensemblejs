@@ -18,6 +18,35 @@ function getConfig (logger) {
   config.nothing = function nothing () {};
   logger.info(config, 'Initial Configuration');
 
+  function minPlayers (mode) {
+    if (config[mode] && config[mode].minPlayers) {
+      return config[mode].minPlayers;
+    }
+
+    return config.ensemble.minPlayers;
+  }
+
+  function maxPlayers (mode) {
+    if (config[mode] && config[mode].maxPlayers) {
+      return config[mode].maxPlayers;
+    }
+
+    return config.ensemble.maxPlayers;
+  }
+
+  function createCheckForValidPlayerCounts (originalFunction) {
+    return function checkForValidPlayerCounts (mode) {
+      if (minPlayers(mode) > maxPlayers(mode)) {
+        logger.error('minPlayers for "' + mode + '" (' + minPlayers(mode) + ') is greater than the maxPlayers (' + maxPlayers(mode) + ') property.');
+      }
+
+      return originalFunction(mode);
+    };
+  }
+
+  config.minPlayers = createCheckForValidPlayerCounts(minPlayers);
+  config.maxPlayers = createCheckForValidPlayerCounts(maxPlayers);
+
   return config;
 }
 

@@ -35,12 +35,12 @@ module.exports = {
       });
     }
 
-    function getPlayer (gameId, sessionId) {
-      if (!exists(gameId, sessionId)) {
-        add(config().ensemble.maxPlayers, gameId, sessionId);
+    function addPlayer (game, sessionId) {
+      if (!exists(game.id, sessionId)) {
+        add(getMaxPlayerCount(game.mode), game.id, sessionId);
       }
 
-      var connection = get(gameId, sessionId);
+      var connection = get(game.id, sessionId);
       if (!connection) {
         return undefined;
       }
@@ -48,21 +48,54 @@ module.exports = {
       return connection.player;
     }
 
-    define()('OnClientConnect', function Player () {
+    function connectedCount (gameId) {
+      return select(connections, { gameId: gameId, status: 'online' }).length;
+    }
+
+    function getMinPlayerCount (mode) {
+      if (config()[mode] && config()[mode].minPlayers) {
+        return config()[mode].minPlayers;
+      }
+
+      return config().ensemble.minPlayers;
+    }
+
+    function getMaxPlayerCount (mode) {
+      if (config()[mode] && config()[mode].maxPlayers) {
+        return config()[mode].maxPlayers;
+      }
+
+      return config().ensemble.maxPlayers;
+    }
+
+    define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerId (state, socket, game) {
-        var gameId = game.gameId;
         var sessionId = socket.request.sessionID;
 
-        socket.emit('playerId', getPlayer(gameId, sessionId));
+        socket.emit('playerId', addPlayer(game, sessionId));
+
+        return {
+          ensemble: {
+            waitingForPlayers: (connectedCount(game.id) < getMinPlayerCount(game.mode))
+          }
+        };
       };
     });
 
-    define()('OnClientDisconnect', function Player () {
+    define()('OnClientDisconnect', function PlayerConnections () {
       return function indicatePlayerAsDisconnected (state, socket, game) {
-        get(game.gameId, socket.request.sessionID).status = 'offline';
+        get(game.id, socket.request.sessionID).status = 'offline';
+
+        return {
+          ensemble: {
+            waitingForPlayers: (connectedCount(game.id) < getMinPlayerCount(game.mode))
+          }
+        };
       };
     });
 
-    return undefined;
+    return {
+      connectedCount: connectedCount
+    };
   }
 };
