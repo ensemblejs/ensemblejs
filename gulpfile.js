@@ -16,6 +16,7 @@ var coveralls = require('gulp-coveralls');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
+  coveragejs: ['ensemble.js', 'src/**/*.js', '!src/debug/**/*.js'],
   scss: ['src/scss/**/*.scss'],
   cssSrc: ['src/css/**/*.css'],
   css: ['public/css/*.css'],
@@ -48,7 +49,7 @@ gulp.task('lint-scss', function () {
 gulp.task('lint', ['lint-code', 'lint-scss']);
 
 gulp.task('test', ['clean'], function (cb) {
-    gulp.src(paths.js)
+    gulp.src(paths.coveragejs)
         .pipe(plumber({errorHandler: onError}))
         .pipe(istanbul({includeUntested: true}))
         .pipe(istanbul.hookRequire())
