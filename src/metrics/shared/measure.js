@@ -3,6 +3,6 @@
 module.exports = {
   type: 'Measure',
   deps: ['Time'],
-  func: function Measure (time) {
+  func: function Measure () {
   }
 };

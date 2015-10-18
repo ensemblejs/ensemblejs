@@ -30,7 +30,11 @@ module.exports = {
       });
 
       socket.on('playerId', function savePlayerId (playerId) {
-        socket.playerId = playerId;
+        if (!playerId) {
+          return;
+        }
+
+        on().clientPlayerId(playerId);
       });
 
       socket.on('initialState', function initialState (packet) {

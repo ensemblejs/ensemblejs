@@ -66,19 +66,7 @@ function ensureNotNull (param, message) {
   }
 }
 
-function setupLogger (logger) {
-  log = logger;
-
-  log.filename = filename;
-  log.loaded = loaded;
-  log.called = called;
-  log.plugin = called;
-  log.subdue = trace;
-  log.deprecate = deprecate;
-  log.unsupported = unsupported;
-  log.logLevel = logger.logLevel || 'trace';
-  log.ensureNotNull = ensureNotNull;
-
+function discardLower (log) {
   switch(log.logLevel) {
     case 'debug':
       log.trace = discard;
@@ -101,6 +89,22 @@ function setupLogger (logger) {
     default:
       break;
   }
+}
+
+function setupLogger (logger) {
+  log = logger;
+
+  log.filename = filename;
+  log.loaded = loaded;
+  log.called = called;
+  log.plugin = called;
+  log.subdue = trace;
+  log.deprecate = deprecate;
+  log.unsupported = unsupported;
+  log.logLevel = logger.logLevel || 'trace';
+  log.ensureNotNull = ensureNotNull;
+
+  discardLower(log);
 
   return log;
 }

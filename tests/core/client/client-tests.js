@@ -51,27 +51,27 @@ describe('the socket client', function () {
 
 	describe('on connect', function () {
 		describe('when the window has focus', function () {
-
 			beforeEach(function () {
+				socket.emit.reset();
 				global.window.document.hasFocus = function () { return true; };
 				client.connect();
 			});
 
 			it('should send unpause event if the window has focus', function () {
-				expect(socket.emit.firstCall.args[0]).toEqual('unpause');
-				expect(socket.emit.callCount).toEqual(1);
+				expect(socket.emit.secondCall.args[0]).toEqual('unpause');
+				expect(socket.emit.callCount).toEqual(2);
 			});
 		});
 
 		describe('when the window does not have focus', function () {
-
 			beforeEach(function () {
+				socket.emit.reset();
 				global.window.document.hasFocus = function () { return false; };
 				client.connect();
 			});
 
 			it('should not send an unpause event', function () {
-				expect(socket.emit.callCount).toEqual(0);
+				expect(socket.emit.callCount).toEqual(1);
 			});
 		});
 
@@ -79,6 +79,13 @@ describe('the socket client', function () {
 			client.connect();
 
 			expect(io.connect.firstCall.args[0]).toEqual('http://ensemblejs.com/arcade/primary');
+		});
+
+		it('should send gameId', function () {
+			client.connect();
+
+			expect(socket.emit.firstCall.args[0]).toEqual('gameId');
+			expect(socket.emit.callCount).toEqual(1);
 		});
 	});
 
@@ -125,8 +132,9 @@ describe('the socket client', function () {
 				socket.savedEvents().playerId[0](12);
 			});
 
-			it('should set the playerId on the socket', function () {
-				expect(socket.playerId).toEqual(12);
+			it('should call the clientPlayerId callback', function () {
+				expect(fakeOn.clientPlayerId.callCount).toEqual(1);
+				expect(fakeOn.clientPlayerId.firstCall.args).toEqual([12]);
 			});
 		});
 
@@ -169,6 +177,7 @@ describe('the socket client', function () {
 
 		describe('on error', function () {
 			beforeEach(function () {
+				fakeOn.error.reset();
 				socket.savedEvents().error[0]('data');
 			});
 
@@ -179,8 +188,8 @@ describe('the socket client', function () {
 		});
 
 		describe('on outgoing client packet', function () {
-
 			beforeEach(function () {
+				socket.emit.reset();
 				onOutgoingClientPacket({
 					outgoingPacket: true
 				});
@@ -198,8 +207,8 @@ describe('the socket client', function () {
 		});
 
 		describe('on incoming server packet', function () {
-
 			beforeEach(function () {
+				socket.emit.reset();
 				onIncomingServerPacket({
 					id: 50
 				});
@@ -215,6 +224,7 @@ describe('the socket client', function () {
 
 		describe('when the window has focus', function () {
 			beforeEach (function () {
+				socket.emit.reset();
 				fake$.savedEvents().blur[0]();
 			});
 
@@ -225,6 +235,10 @@ describe('the socket client', function () {
 		});
 
 		describe('when the window does not have focus', function () {
+			beforeEach(function () {
+				socket.emit.reset();
+			});
+
 			it('should send a pause event when the focus is gained', function () {
 				fake$.savedEvents().focus[0]();
 

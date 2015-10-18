@@ -63,6 +63,7 @@ module.exports = {
         addTouchBindings($()(this));
       }
 
+      //jshint strict: false
       addMouseBindings($()(this));
     }
 

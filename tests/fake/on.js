@@ -10,6 +10,7 @@ module.exports = {
   error: sinon.spy(),
   incomingServerPacket: sinon.spy(),
   incomingClientInputPacket: sinon.spy(),
+  clientPlayerId: sinon.spy(),
   newGame: sinon.spy(),
   outgoingServerPacket: sinon.spy(),
   pause: sinon.spy(),

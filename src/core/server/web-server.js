@@ -3,19 +3,21 @@
 var compression = require('compression');
 var express = require('express');
 var favicon = require('serve-favicon');
+var expressSession = require('express-session');
 var http = require('http');
 var fs = require('fs');
 var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher'],
-  func: function (socket, config, logger, define, routes, requestEventPublisher) {
+  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID'],
+  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid) {
     var server;
+    var session;
 
     var pathToPublic = __dirname + '/../../../public';
 
-    function configureApp (assetPath) {
+    function configureApp (assetPath, game) {
       var app = express();
 
       app.use(expressBunyanLogger({
@@ -42,17 +44,26 @@ module.exports = {
       app.use(favicon(pathToFavIcon));
       app.use(requestEventPublisher().middleware);
 
+      session = expressSession({
+        genid: uuid().get,
+        secret: 'ensemblejs-' + game.name,
+        resave: true,
+        saveUninitialized: true
+      });
+
+      app.use(session);
+
       return app;
     }
 
     function start (assetPath, game) {
-      var app = configureApp(assetPath);
+      var app = configureApp(assetPath, game);
       routes().configure(app, game);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, game.modes);
+      socket().start(server, game.modes, session);
     }
 
     define()('OnServerStop', function () {

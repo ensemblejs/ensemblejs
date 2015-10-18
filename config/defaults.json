@@ -50,7 +50,8 @@
   "debug": {
     "inputOverlay": false,
     "network": false,
-    "time": false
+    "time": false,
+    "multiplayer": true
   },
   "measure": {
     "timers": []

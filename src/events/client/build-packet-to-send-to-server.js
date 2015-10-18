@@ -2,7 +2,6 @@
 
 var each = require('lodash').each;
 var merge = require('lodash').merge;
-var isEqual = require('lodash').isEqual;
 var isArray = require('lodash').isArray;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
@@ -11,13 +10,10 @@ var interval = require('../../util/interval');
 
 module.exports = {
   type: 'OnPhysicsFrame',
-  deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time'],
-  func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time) {
+  deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
+  func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time, define) {
     var lastPacket = {};
-
-    function packetHasNotChanged (current, prior) {
-      return isEqual(current, prior);
-    }
+    var playerId;
 
     function mergeArrays (a, b) {
       if (isArray(a)) {
@@ -38,12 +34,9 @@ module.exports = {
         merge(packet, getCurrentState(), mergeArrays);
       });
 
-      if (packetHasNotChanged(packet, lastPacket)) {
-        return null;
-      }
-
       lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');
+      packet.playerId = playerId;
       packet.timestamp = time().present();
 
       return packet;
@@ -55,6 +48,12 @@ module.exports = {
         on().outgoingClientPacket(packet);
       }
     }
+
+    define()('OnClientPlayerId', function () {
+      return function setPlayerId (id) {
+        playerId = id;
+      };
+    });
 
     return interval.execute(buildPacketToSendToServer).about(120).timesPer.second();
   }

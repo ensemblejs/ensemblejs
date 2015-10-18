@@ -5,6 +5,8 @@ var sinon = require('sinon');
 var request = require('request');
 var makeTestible = require('../support').makeTestible;
 var fakeMetrics = require('../fake/metrics');
+var fakeOn = require('../fake/on');
+var fakeGamesList = require('../fake/games-list')('arcade');
 
 describe('game routes', function () {
 	var onServerStart;
@@ -30,7 +32,9 @@ describe('game routes', function () {
 					return '34242-324324';
 				}
 			},
-			Metrics: fakeMetrics
+			On: fakeOn,
+			Metrics: fakeMetrics,
+			GamesList: fakeGamesList
 		});
 		var sut = makeTestible('core/server/web-server', {
 			SocketServer: {
@@ -45,7 +49,10 @@ describe('game routes', function () {
 					}
 				}
 			},
-			Routes: routes[0]
+			Routes: routes[0],
+			RequestEventPublisher: { middleware: function(a, b, next) {
+				next();
+			}}
 		});
 
 		onServerStart = sut[0];
@@ -70,13 +77,13 @@ describe('game routes', function () {
 					onServerStop();
 				});
 
-				it ('should show only the default game mode', function (done) {
+				it('should show only the default game mode', function (done) {
 					request.get(opts, function (err, res) {
 						expect(res.statusCode).toEqual(200);
 
 						var json = JSON.parse(res.body);
 						expect(json.modes).toEqual(['game']);
-						expect(json.links[0].what).toEqual('/game/new');
+						expect(json.links[0].what).toEqual('/game/game/new');
 						expect(json.links[0].uri).toEqual('/games');
 						expect(json.links[0].method).toEqual('POST');
 						expect(json.links[0].data).toEqual({ mode: 'game'});
@@ -100,11 +107,11 @@ describe('game routes', function () {
 
 						var json = JSON.parse(res.body);
 						expect(json.modes).toEqual(['easy', 'hard']);
-						expect(json.links[0].what).toEqual('/game/new');
+						expect(json.links[0].what).toEqual('/game/easy/new');
 						expect(json.links[0].uri).toEqual('/games');
 						expect(json.links[0].method).toEqual('POST');
 						expect(json.links[0].data).toEqual({ mode: 'easy'});
-						expect(json.links[1].what).toEqual('/game/new');
+						expect(json.links[1].what).toEqual('/game/hard/new');
 						expect(json.links[1].uri).toEqual('/games');
 						expect(json.links[1].method).toEqual('POST');
 						expect(json.links[1].data).toEqual({ mode: 'hard'});
@@ -160,8 +167,12 @@ describe('game routes', function () {
 
 		describe('continuing a new game', function () {
 			it('should return a 404 if the game does not exist', function (done) {
+				var original = fakeGamesList.get;
+				fakeGamesList.get = function () { return undefined; };
+
 				request.get(url('/games/1'), function (err, res) {
 					expect(res.statusCode).toEqual(404);
+					fakeGamesList.get = original;
 					done();
 				});
 			});

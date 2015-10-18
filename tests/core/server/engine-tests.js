@@ -1,6 +1,5 @@
 'use strict';
 
-var assert = require('assert');
 var expect = require('expect');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
@@ -67,8 +66,8 @@ describe('the engine', function() {
 		it('should call each function passed in with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
 			interval = onServerStart();
-			assert.deepEqual(update1[1].firstCall.args[1], 5);
-			assert.deepEqual(update2[1].firstCall.args[1], 5);
+			expect(update1[1].firstCall.args[1]).toEqual(5);
+			expect(update2[1].firstCall.args[1]).toEqual(5);
 		});
 
 		it('should not increase the delta whilst the game is paused', function () {
@@ -88,7 +87,7 @@ describe('the engine', function() {
 			paused = false;
 			fakeTime.present = function () { return 10100; };
 			onServerStart();
-			assert.deepEqual(update1[1].firstCall.args[1], 0.1);
+			expect(update1[1].firstCall.args[1]).toEqual(0.1);
 		});
 
 		describe('update functions for all games', function() {
@@ -134,7 +133,7 @@ describe('the engine', function() {
 		it('it should not call any update functions', function() {
 			paused = true;
 			interval = onServerStart(1);
-			assert(!update1[1].called);
+			expect(!update1[1].called).toBe(true);
 		});
 	});
 });

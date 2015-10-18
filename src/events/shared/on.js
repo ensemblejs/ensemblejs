@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -99,6 +99,18 @@ module.exports = {
       callEachPlugin(onUnmute());
     }
 
+    function clientPlayerId (id) {
+      callEachPlugin(onClientPlayerId(), [id]);
+    }
+
+    function incomingClientInputPacket (packet, game) {
+      if (state().for(game.id).for('ensemble').get('paused')) {
+        return;
+      }
+
+      callEachPlugin(onIncomingClientInputPacket(), [packet, game]);
+    }
+
     return {
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
@@ -107,6 +119,7 @@ module.exports = {
       disconnect: disconnect,
       error: error,
       incomingServerPacket: createOnServerPacketCallback(),
+      incomingClientInputPacket: incomingClientInputPacket,
       input: input,
       mute: mute,
       newGame: newGame,
@@ -116,7 +129,8 @@ module.exports = {
       resume: resume,
       serverStart: serverStart,
       serverStop: serverStop,
-      unmute: unmute
+      unmute: unmute,
+      clientPlayerId: clientPlayerId
     };
   }
 };

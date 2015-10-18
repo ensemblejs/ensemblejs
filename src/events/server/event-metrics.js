@@ -4,6 +4,7 @@ module.exports = {
   type: 'Events',
   deps: ['Metrics', 'DefinePlugin', 'Time'],
   func: function Events (metrics, define, time) {
+
     define()('OnServerStart', function () {
       return function publish () {
         metrics().major('OnServerStart', {
@@ -28,5 +29,6 @@ module.exports = {
         });
       };
     });
+
   }
 };

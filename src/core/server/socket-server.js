@@ -2,14 +2,12 @@
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
-var last = require('lodash').last;
 var sequence = require('distributedlife-sequence');
-var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['AcknowledgementMap', 'OnInput', 'RawStateAccess', 'StateMutator', 'StateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'GamesList'],
-  func: function SocketServer (acknowledgementMaps, onInput, rawStateAccess, stateMutator, state, logger, config, lowestInputProcessed, on, define, time, games) {
+  deps: ['RawStateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'GamesList'],
+  func: function SocketServer (rawStateAccess, logger, config, lowestInputProcessed, on, define, time, games) {
 
     var io;
     var sockets = {};
@@ -44,38 +42,6 @@ module.exports = {
       intervals.push(id);
     }
 
-    function handleAcknowledgements (socketId, acks, game) {
-      each(acks, function (ack) {
-        var applicable = filterPluginsByMode(acknowledgementMaps(), game.mode);
-
-        each(applicable, function(acknowledgementMap) {
-          if (!last(acknowledgementMap)[ack.name]) { return; }
-
-          each(last(acknowledgementMap)[ack.name], function (action) {
-            stateMutator()(game.id, action.target(state().for(game.id), ack, action.data));
-          });
-        });
-      });
-    }
-
-    function createOnInputFunction (game, socketId) {
-      return function onInputFunction (packet) {
-        if (state().for(game.id).for('ensemble').get('paused')) {
-          return;
-        }
-
-        var pendingAcks = packet.pendingAcks;
-        delete packet.pendingAcks;
-
-        var now = time().present();
-        each(onInput(), function (onInputCallback) {
-          onInputCallback(packet, now, game);
-        });
-
-        handleAcknowledgements(socketId, pendingAcks, game);
-      };
-    }
-
     define()('OnOutgoingServerPacket', function OnOutgoingServerPacket () {
       return function emitPacket (socketId, packet) {
         sockets[socketId].emit('updateState', packet);
@@ -87,6 +53,7 @@ module.exports = {
 
       var socketInfo = {
         socketId: socket.id,
+        sessionId: socket.request.sessionID,
         address: socket.handshake.address
       };
       logger().socket(socketInfo, 'connected');
@@ -112,12 +79,17 @@ module.exports = {
           on().error(data);
         }
 
+        function publishInput (packet) {
+          on().incomingClientInputPacket(packet, game);
+        }
+
         socket.on('disconnect', addLogging('disconnect', publishDisconnect));
         socket.on('disconnect', addLogging('disconnect', publishPause));
         socket.on('pause', addLogging('pause', publishPause));
         socket.on('unpause', addLogging('unpause', publishUnpause));
         socket.on('error', addLogging('error', error));
-        socket.on('input', createOnInputFunction(game, socket.id));
+        socket.on('input', addLogging('input', publishInput));
+
         socket.emit('initialState', rawStateAccess().for(game.id));
 
         on().clientConnect(game, socket);
@@ -133,21 +105,21 @@ module.exports = {
           eventCallback.apply(this, arguments);
         };
       }
-
-      socket.playerId = sequence.next('playerId');
-      socket.emit('playerId', { id: socket.playerId } );
     }
 
-    function start (server, modes) {
+    function start (server, modes, session) {
       io = require('socket.io').listen(server);
+      io.use(function linkSessionToSocket (socket, next) {
+        session(socket.request, socket.request.res, next);
+      });
 
-      each(modes, function(mode) {
+      each(modes, function eachMode (mode) {
         io.of('/' + mode + '/primary').on('connection', setupPlayableClient);
       });
     }
 
     function stop () {
-      each(intervals, function(interval) {
+      each(intervals, function eachInterval (interval) {
         clearInterval(interval);
       });
 
