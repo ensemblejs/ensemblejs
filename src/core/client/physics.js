@@ -39,17 +39,17 @@ module.exports = {
       callEachPlugin(onFrameComplete());
     }
 
-    function gamePaused () {
-      return clientState().get(paused) && serverState().get(paused);
+    function shouldRunPhysicsEngine () {
+      return (!clientState().get(paused) && !serverState().get(paused));
     }
 
     function step() {
       var now = time().present();
 
-      if (gamePaused()) {
-        doPaused(now);
-      } else {
+      if (shouldRunPhysicsEngine()) {
         doRunning(now);
+      } else {
+        doPaused(now);
       }
     }
 

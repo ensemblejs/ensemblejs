@@ -6,13 +6,16 @@ var makeTestible = require('../../support').makeTestible;
 
 var update1 = [['*'], sinon.spy()];
 var update2 = [['custom'], sinon.spy()];
-var paused = false;
+var values = {
+	paused: false,
+	waitingForPlayers: false
+};
 var state = {
 	for: function () {
 		return {
 			for: function () {
 				return {
-					get: function () { return paused; }
+					get: function (key) { return values[key]; }
 				};
 			}
 		};
@@ -71,7 +74,7 @@ describe('the engine', function() {
 		});
 
 		it('should not increase the delta whilst the game is paused', function () {
-			paused = true;
+			values.paused = true;
 			interval = onServerStart();
 			onServerStop();
 
@@ -84,7 +87,7 @@ describe('the engine', function() {
 			onServerStop();
 
 			update1[1].reset();
-			paused = false;
+			values.paused = false;
 			fakeTime.present = function () { return 10100; };
 			onServerStart();
 			expect(update1[1].firstCall.args[1]).toEqual(0.1);
@@ -131,9 +134,9 @@ describe('the engine', function() {
 		});
 
 		it('it should not call any update functions', function() {
-			paused = true;
+			values.paused = true;
 			interval = onServerStart(1);
-			expect(!update1[1].called).toBe(true);
+			expect(update1[1].called).toBe(false);
 		});
 	});
 });
