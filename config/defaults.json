@@ -52,7 +52,8 @@
     "inputOverlay": false,
     "network": false,
     "time": false,
-    "multiplayer": true
+    "multiplayer": true,
+    "develop": true
   },
   "measure": {
     "timers": []

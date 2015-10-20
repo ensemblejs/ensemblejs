@@ -6,12 +6,13 @@ var favicon = require('serve-favicon');
 var expressSession = require('express-session');
 var http = require('http');
 var fs = require('fs');
+var each = require('lodash').each;
 var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID'],
-  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid) {
+  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID', 'On'],
+  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid, on) {
     var server;
     var session;
 
@@ -64,6 +65,12 @@ module.exports = {
       server.listen(process.env.PORT || 3000);
 
       socket().start(server, game.modes, session);
+
+      if (config().debug.develop) {
+        each(game.modes, function (mode) {
+          on().newGame({id: mode, mode: mode});
+        });
+      }
     }
 
     define()('OnServerStop', function () {
