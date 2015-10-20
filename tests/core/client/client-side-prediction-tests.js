@@ -88,6 +88,7 @@ function gameLogic (state) {
 describe('after on OnPhysicsFrameComplete', function () {
   beforeEach(function () {
     var initialState = {
+      ensemble: { waitingForPlayers: false },
       namespace: {
         count: 0,
         tracking: 'initial-server-state'
@@ -114,6 +115,7 @@ describe('after on OnPhysicsFrameComplete', function () {
 
     it('should reset the RawState back to last known server state', function () {
       expect(resetTo.firstCall.args).toEqual([{
+        ensemble: { waitingForPlayers: false },
         namespace: {
           count: 0,
           tracking: 'initial-server-state'
@@ -181,6 +183,7 @@ describe('after on OnPhysicsFrameComplete', function () {
     var laterState = {
       highestProcessedMessage: 1,
       gameState: {
+        ensemble: { waitingForPlayers: false },
         namespace: {
           count: 20,
           tracking: 'after-new-packet'

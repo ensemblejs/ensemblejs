@@ -18,15 +18,26 @@ var model = {
 	touchEvent: sinon.spy(),
 	cursorEvent: sinon.spy(),
 	leftStickEvent: sinon.spy(),
-	rightStickEvent: sinon.spy()
+	rightStickEvent: sinon.spy(),
+	waiting: sinon.spy()
 };
 
-var currentState;
-function stateCallback () {
-	return currentState;
-}
+var currentState = {
+	ensemble: {
+		waitingForPlayers: true
+	}
+};
 
-var currentState = require('../../support').gameScopedState(stateCallback);
+var currentState = {
+	for: function () {
+		return {
+			get: function () {
+				return true;
+			}
+		};
+	}
+};
+
 
 var actions = [];
 var rawData = {};
@@ -69,25 +80,29 @@ describe('Input Bindings', function() {
 		model.leftStickEvent.reset();
 		model.rightStickEvent.reset();
 
+		model.waiting.reset();
+
 		mutator.reset();
 
 		actions = [['*'], {
 			'key': [
-				{target: model.keyEvent, noEventKey: 'model'},
-				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model'},
-				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl']},
-				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl']},
+				{target: model.keyEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
+				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
+				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
 			],
+			'not-waiting': [{target: model.waiting, noEventKey: 'model'}],
 			'button1': [
-				{target: model.mouseDownEvent, noEventKey: 'model'},
-				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model'}
+				{target: model.mouseDownEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model', whenWaiting: true}
 			],
-			'touch0': [{target: model.touchEvent, noEventKey: 'model'}],
-			'cursor': [{target: model.cursorEvent, noEventKey: 'model'}],
-			'nothing': [{target: model.noEvent, noEventKey: 'model'}],
-			'leftStick': [{target: model.leftStickEvent, noEventKey: 'model'}],
-			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model'}],
+			'touch0': [{target: model.touchEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
+			'cursor': [{target: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model' }],
+			'nothing': [{target: model.noEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
+			'leftStick': [{target: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
+			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
 		}];
+
 
 		require('../../../src/input/client/process_pending_input').func(defer([actions]), defer(plugin.define), defer(mutator));
 		onPhysicsFrame = plugin.deps().OnPhysicsFrame(defer(inputQueue));
@@ -119,6 +134,21 @@ describe('Input Bindings', function() {
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(currentState);
 			expect(model.noEvent.firstCall.args[1]).toEqual(expected);
+		});
+
+		describe('when no input is received while waiting for players', function () {
+
+			beforeEach(function() {
+				rawData = { keys: [], touches: [] };
+				newUserInput(rawData, undefined, game, playerId);
+
+				model.waiting.reset();
+			});
+
+			it('should not call actions without the "whenWaiting" flag', function () {
+				onPhysicsFrame(currentState, 16);
+				expect(model.waiting.called).toBe(false);
+			});
 		});
 
 		describe('when the action map has not been configured for "nothing"', function() {
@@ -300,6 +330,27 @@ describe('Input Bindings', function() {
 		});
 	});
 
+	describe('when key input is received while waiting for players', function () {
+
+		beforeEach(function() {
+			rawData = { keys: [{key: 'key'}, {key: 'not-waiting'}] };
+			newUserInput(rawData, undefined, game, playerId);
+
+			model.waiting.reset();
+			model.keyEvent.reset();
+		});
+
+		it('should not call actions without the "whenWaiting" flag', function () {
+			onPhysicsFrame(currentState, 16);
+			expect(model.waiting.called).toBe(false);
+		});
+
+		it('should call actions with the "whenWaiting" flag', function () {
+			onPhysicsFrame(currentState, 16);
+			expect(model.keyEvent.called).toBe(true);
+		});
+	});
+
 	describe('when touch input is received', function() {
 		beforeEach(function() {
 			rawData = { touches: [{id: 0, x: 4, y: 5}] };
@@ -337,6 +388,21 @@ describe('Input Bindings', function() {
 
 			expect(model.touchEvent.called).toBe(false);
 			expect(model.noEvent.called).toBe(false);
+		});
+	});
+
+	describe('when touch input is received while waiting for players', function () {
+
+		beforeEach(function() {
+			rawData = { touches: [{id: 0, x: 4, y: 5}] };
+			newUserInput(rawData, undefined, game, playerId);
+
+			model.waiting.reset();
+		});
+
+		it('should not call actions without the "whenWaiting" flag', function () {
+			onPhysicsFrame(currentState, 16);
+			expect(model.waiting.called).toBe(false);
 		});
 	});
 
@@ -399,6 +465,21 @@ describe('Input Bindings', function() {
 		});
 	});
 
+	describe('when mouse input is received while waiting for players', function () {
+
+		beforeEach(function() {
+			rawData = { keys: [], mouse: {x: 6, y: 7 }};
+			newUserInput(rawData, undefined, game, playerId);
+
+			model.waiting.reset();
+		});
+
+		it('should not call actions without the "whenWaiting" flag', function () {
+			onPhysicsFrame(currentState, 16);
+			expect(model.waiting.called).toBe(false);
+		});
+	});
+
 	describe('when stick input is received', function () {
 		beforeEach(function() {
 			rawData = {
@@ -440,6 +521,25 @@ describe('Input Bindings', function() {
 			expect(model.leftStickEvent.called).toEqual(false);
 			expect(model.rightStickEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
+		});
+	});
+
+	describe('when stick input is received while waiting for players', function () {
+
+		beforeEach(function() {
+			rawData = {
+				leftStick: {x: 0.1, y: 1.0, force: 0.5},
+				rightStick: {x: 0.9, y: 0.3, force: 1.0}
+			};
+			newUserInput(rawData, undefined, game, playerId);
+
+			model.waiting.reset();
+		});
+
+
+		it('should not call actions without the "whenWaiting" flag', function () {
+			onPhysicsFrame(currentState, 16);
+			expect(model.waiting.called).toBe(false);
 		});
 	});
 });

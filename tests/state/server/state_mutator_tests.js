@@ -78,4 +78,19 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for(1).for('controller').get('start')).toEqual(0);
     expect(state.for(12).for('controller').get('start')).toEqual(5);
   });
+
+  it('should do nothing with undefined', function () {
+    stateMutator(1, undefined);
+    expect(state.for(1).for('controller').get('state')).toBe('ready');
+  });
+
+  it('should do nothing with null', function () {
+    stateMutator(1, null);
+    expect(state.for(1).for('controller').get('state')).toBe('ready');
+  });
+
+  it('should do nothing with empty hashes', function () {
+    stateMutator(1, {});
+    expect(state.for(1).for('controller').get('state')).toBe('ready');
+  });
 });

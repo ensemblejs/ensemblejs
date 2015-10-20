@@ -218,7 +218,6 @@ module.exports = {
       var when = condition;
       if (!isFunction(when)) {
         when = function (currentValue) {
-          console.log(currentValue, condition, isEqual(currentValue, condition));
           return isEqual(currentValue, condition);
         };
       }

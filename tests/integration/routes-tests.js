@@ -42,6 +42,9 @@ describe('game routes', function () {
 				stop: sinon.spy()
 			},
 			Config:  {
+				debug: {
+					develop: false
+				},
 				logging: {
 					logLevel: 'info',
 					expressBunyanLogger: {

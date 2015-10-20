@@ -2,16 +2,13 @@
 
 var each = require('lodash').each;
 var select = require('lodash').select;
-var reject = require('lodash').reject;
 var last = require('lodash').last;
-var xor = require('lodash').xor;
-var map = require('lodash').map;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
-function ensureMapHasModifiers(action) {
-	action.modifiers = action.modifiers || [];
-	return action;
-}
+var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
+var parseMouse = require('../../util/input-common').parseMouse;
+var parseTouches = require('../../util/input-common').parseTouches;
+var parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
 	type: 'OnInput',
@@ -20,104 +17,13 @@ module.exports = {
 		var userInput = [];
 		var lowestInputProcessed = {};
 
-		function parseKeysAndKeypresses (currentInput, callback) {
-      function invokeCallback(action) {
-				mutate()(
-					currentInput.game.id,
-					callback(action.target, action.noEventKey)
-				);
-			}
-
-			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
-
-			function processKeys (keyData, rejectOrSelect) {
-				each(keyData, function processKey(keyInfo) {
-					function whereModifiersDoNotMatch(action) {
-						return (xor(action.modifiers, keyInfo.modifiers).length > 0);
-					}
-
-					var ignoreCaseKey = keyInfo.key.toLowerCase();
-
-					each(forMode, function (actionMap) {
-						var keyMap = last(actionMap)[ignoreCaseKey];
-						if (keyMap === undefined) {
-							return;
-						}
-
-						var suitableActions = rejectOrSelect(keyMap, 'onRelease');
-						suitableActions = map(suitableActions, ensureMapHasModifiers);
-						var matching = reject(suitableActions, whereModifiersDoNotMatch);
-
-						each(matching, invokeCallback);
-					});
-				});
-			}
-
-			processKeys(currentInput.rawData.keys, reject);
-			processKeys(currentInput.rawData.singlePressKeys, select);
-		}
-
-		var parseMouse = function(currentInput, callback) {
-			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
-
-			each(forMode, function(actionMapDefinition) {
-				var actionMap = last(actionMapDefinition);
-
-				if (actionMap.cursor === undefined) { return; }
-
-				if (currentInput.rawData.mouse) {
-					each(actionMap.cursor, function(action) {
-						mutate()(currentInput.game.id,  callback(action.target, action.noEventKey, currentInput.rawData.mouse));
-					});
-				}
-			});
-		};
-
-		var parseTouches = function(currentInput, callback) {
-			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
-
-			each(currentInput.rawData.touches, function(touch) {
-				var key = 'touch' + touch.id;
-
-
-				each(forMode, function(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
-
-					if (actionMap[key] === undefined) { return; }
-
-					each(actionMap[key], function(action) {
-						mutate()(currentInput.game.id, callback(action.target, action.noEventKey, {x: touch.x, y: touch.y}));
-					});
-				});
-			});
-		};
-
-		var parseSticks = function(currentInput, callback) {
-			var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
-
-			each(['leftStick', 'rightStick'], function(key) {
-				if (currentInput.rawData[key] === undefined) {return;}
-
-
-				each(forMode, function(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
-
-					if (actionMap[key] === undefined) { return; }
-
-					var data = currentInput.rawData[key];
-					each(actionMap[key], function(action) {
-						mutate()(currentInput.game.id, callback(action.target, action.noEventKey,{x: data.x, y: data.y, force: data.force}));
-					});
-				});
-			});
-		};
-
 		definePlugin()('OnPhysicsFrame', function () {
+
 			function ProcessPendingInput (state, delta) {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-
+				var waitingForPlayers = state.for('ensemble').get('waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -138,14 +44,31 @@ module.exports = {
 					return target(state, inputData.x, inputData.y, data);
 				}
 
-				function doSomethingWithActionMaps(actionMapDefinition) {
+				function runNoInputHandlers(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					each(actionMap.nothing, function(action) {
+					var suitableActions = actionMap.nothing;
+					if (waitingForPlayers) {
+						suitableActions = select(suitableActions, { whenWaiting: true });
+					}
+
+					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							return mutate()(currentInput.game.id, action.target(state, data));
+							return mutate()(
+								currentInput.game.id,
+								action.target(state, data)
+							);
 						}
 					});
+				}
+
+				function createOnMatchingCallback (callback) {
+					return function onMatchingActionMap (currentInput, action, inputData) {
+						mutate()(
+				      currentInput.game.id,
+				      callback(action.target, action.noEventKey, inputData)
+				    );
+					};
 				}
 
 				var lengthOfInputStackAtStart = userInput.length;
@@ -162,13 +85,13 @@ module.exports = {
 						delta: delta
 					};
 
-					parseKeysAndKeypresses(currentInput, keyAndKeypressCallback);
-					parseTouches(currentInput, touchCallback);
-					parseSticks(currentInput, stickCallback);
-					parseMouse(currentInput, mouseCallback);
+					parseKeysAndKeypresses(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(keyAndKeypressCallback));
+					parseTouches(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(touchCallback));
+					parseSticks(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(stickCallback));
+					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
 
 					var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
-					each(forMode, doSomethingWithActionMaps);
+					each(forMode, runNoInputHandlers);
 
 					lowestInputProcessed[currentInput.game.id] = currentInput.rawData.id;
 				}

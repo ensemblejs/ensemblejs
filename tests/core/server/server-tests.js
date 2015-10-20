@@ -26,6 +26,9 @@ describe('starting the server', function () {
 				stop: sinon.spy()
 			},
 			Config:  {
+				debug: {
+					develop: false
+				},
 				logging: {
 					logLevel: 'info',
 					expressBunyanLogger: {
@@ -71,6 +74,9 @@ describe('stopping the server', function () {
 				stop: sinon.spy()
 			},
 			Config:  {
+				debug: {
+					develop: false
+				},
 				logging: {
 					logLevel: 'info',
 					expressBunyanLogger: {
