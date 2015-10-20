@@ -55,6 +55,9 @@ module.exports = {
       if (result === undefined) {
         return;
       }
+      if (result === null) {
+        return;
+      }
       if (isEqual(result, {})) {
         return;
       }
