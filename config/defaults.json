@@ -5,7 +5,7 @@
     "element": "canvas",
     "inputElement": "input",
     "physicsUpdateLoop": 15,
-    "cientSidePrediction": true
+    "clientSidePrediction": true
   },
   "server": {
     "physicsUpdateLoop": 15,

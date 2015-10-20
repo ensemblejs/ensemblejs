@@ -55,7 +55,7 @@ var serverState = {
 
 var config = {
   client: {
-    cientSidePrediction: true,
+    clientSidePrediction: true,
     physicsUpdateLoop: 15
   }
 };
