@@ -6,7 +6,7 @@ var sumCallback = require('../../util/collections').sumCallback;
 var filterInternalState = require('../../util/internal-state').filter;
 
 module.exports = {
-  type: 'OnPhysicsFrame',
+  type: 'OnPhysicsFrameAlways',
   deps: ['Config', 'InternalState'],
   func: function OnPhysicsFrame (config, internalState) {
     if (!config().debug.inputOverlay) {

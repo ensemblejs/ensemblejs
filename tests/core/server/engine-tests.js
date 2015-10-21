@@ -6,9 +6,11 @@ var makeTestible = require('../../support').makeTestible;
 
 var update1 = [['*'], sinon.spy()];
 var update2 = [['custom'], sinon.spy()];
+var update3 = [['*'], sinon.spy()];
+var update4 = [['custom'], sinon.spy()];
 var values = {
 	paused: false,
-	waitingForPlayers: false
+	waitingForPlayers: true
 };
 var state = {
 	for: function () {
@@ -45,9 +47,12 @@ describe('the engine', function() {
 	beforeEach(function() {
 		update1[1].reset();
 		update2[1].reset();
+		update3[1].reset();
+		update4[1].reset();
 
 		var sut = makeTestible('core/server/engine', {
-			OnPhysicsFrame: [update1, update2],
+			OnPhysicsFrameAlways: [update1, update2],
+			OnPhysicsFrameInGame: [update3, update4],
 			GamesList: gamesList,
 			Config: config,
 			Time: fakeTime,
@@ -66,11 +71,44 @@ describe('the engine', function() {
 			onServerStop();
 		});
 
-		it('should call each function passed in with the delta in ms', function() {
+		it('should call OnPhysicsFrameA with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
 			interval = onServerStart();
 			expect(update1[1].firstCall.args[1]).toEqual(5);
 			expect(update2[1].firstCall.args[1]).toEqual(5);
+		});
+
+		describe('when waitingForPlayers', function () {
+			beforeEach(function () {
+				values.waitingForPlayers = true;
+				update3[1].reset();
+				update4[1].reset();
+				fakeTime.present = function () { return 5000; };
+				interval = onServerStart();
+			});
+
+			it('should not call OnPhysicsFrameB', function() {
+				expect(update3[1].called).toBe(false);
+				expect(update4[1].called).toBe(false);
+			});
+		});
+
+		describe('when not waitingForPlayers', function () {
+			beforeEach(function () {
+				values.waitingForPlayers = false;
+				update3[1].reset();
+				update4[1].reset();
+				fakeTime.present = function () { return 10000; };
+				interval = onServerStart();
+			});
+
+			it('should call OnPhysicsFrameB', function() {
+				expect(update3[1].called).toBe(true);
+				expect(update4[1].called).toBe(true);
+
+				expect(update3[1].firstCall.args[1]).toEqual(5);
+				expect(update4[1].firstCall.args[1]).toEqual(5);
+			});
 		});
 
 		it('should not increase the delta whilst the game is paused', function () {
@@ -96,6 +134,7 @@ describe('the engine', function() {
 		describe('update functions for all games', function() {
 			beforeEach(function() {
 				update1[1].reset();
+				update3[1].reset();
 				onServerStop();
 			});
 
@@ -107,12 +146,14 @@ describe('the engine', function() {
 				interval = onServerStart();
 
 				expect(update1[1].callCount).toEqual(3);
+				expect(update3[1].callCount).toEqual(3);
 			});
 		});
 
 		describe('update functions for specific modes', function() {
 			beforeEach(function() {
 				update2[1].reset();
+				update4[1].reset();
 				onServerStop();
 			});
 
@@ -124,6 +165,7 @@ describe('the engine', function() {
 				interval = onServerStart();
 
 				expect(update2[1].callCount).toEqual(1);
+				expect(update4[1].callCount).toEqual(1);
 			});
 		});
 	});

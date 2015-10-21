@@ -6,8 +6,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode', 'Config'],
-  func: function PhysicsLoop (clientState, serverState, define, time, onFrame, onFrameComplete, mutator, state, mode, config) {
+  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'OnPhysicsFrameAlways', 'OnPhysicsFrameInGame', 'OnPhysicsFrameComplete', 'StateMutator', 'StateAccess', 'GameMode', 'Config'],
+  func: function PhysicsLoop (clientState, serverState, define, time, onFrameAlways, onFrameInGame, onFrameComplete, mutator, state, mode, config) {
     var priorStep = time().present();
 
     var game = {
@@ -33,7 +33,12 @@ module.exports = {
 
       if (config().client.clientSidePrediction) {
         var gameState = state().for(game.id);
-        callForModeWithMutation(onFrame(), mutator, game, [gameState, delta]);
+
+        callForModeWithMutation(onFrameAlways(), mutator, game, [gameState, delta]);
+
+        if (!state().for(game.id).for('ensemble').get('waitingForPlayers')) {
+          callForModeWithMutation(onFrameInGame(), mutator, game, [gameState, delta]);
+        }
       }
 
       callEachPlugin(onFrameComplete());

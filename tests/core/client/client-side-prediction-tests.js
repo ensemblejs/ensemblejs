@@ -16,7 +16,8 @@ var fakeTime = require('../../fake/time').at(2000);
 var onClientStart = [];
 var onOutgoingClientPacket = [];
 var onIncomingServerPacket = [];
-var onPhysicsFrame = [];
+var onPhysicsFrameAlways = [];
+var onPhysicsFrameInGame = [];
 var onPhysicsFrameComplete = [];
 var actionMap = [];
 var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
@@ -31,7 +32,7 @@ var mode = 'game';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
-var processPendingInput = processPendingInputPlugins.deps().OnPhysicsFrame(defer(inputQueue));
+var processPendingInput = processPendingInputPlugins.deps().OnPhysicsFrameAlways(defer(inputQueue));
 
 var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
@@ -41,7 +42,7 @@ onClientStart.push(trackerPlugins.deps().OnClientStart(defer(rawStateAccess)));
 onOutgoingClientPacket.push(inputQueuePlugins.deps().OnOutgoingClientPacket());
 onIncomingServerPacket.push(trackerPlugins.deps().OnIncomingServerPacket());
 onIncomingServerPacket.push(inputQueuePlugins.deps().OnIncomingServerPacket());
-onPhysicsFrame.push(['*', processPendingInput]);
+onPhysicsFrameAlways.push(['*', processPendingInput]);
 onPhysicsFrameComplete.push(trackerPlugins.deps().OnPhysicsFrameComplete(defer(rawStateAccess)));
 onPhysicsFrameComplete.push(inputQueuePlugins.deps().OnPhysicsFrameComplete());
 
@@ -60,7 +61,7 @@ var config = {
   }
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(onPhysicsFrame), defer(onPhysicsFrameComplete), defer(mutator), defer(stateAccess), defer(mode), defer(config));
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(onPhysicsFrameAlways), defer(onPhysicsFrameInGame), defer(onPhysicsFrameComplete), defer(mutator), defer(stateAccess), defer(mode), defer(config));
 var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
 
 function tracking (state) { return state.namespace.tracking; }
@@ -126,13 +127,13 @@ describe('after on OnPhysicsFrameComplete', function () {
 
   describe('when game logic exists ', function () {
     beforeEach(function () {
-      onPhysicsFrame.push(['*', gameLogic]);
+      onPhysicsFrameInGame.push(['*', gameLogic]);
       startPhysicsEngine();
     });
 
     afterEach(function () {
       stopPhysicsEngine();
-      onPhysicsFrame.pop();
+      onPhysicsFrameInGame.pop();
     });
 
     it('should apply the changes of the game logic to the last known server state', function () {
@@ -147,6 +148,27 @@ describe('after on OnPhysicsFrameComplete', function () {
       expect(currentState.get(count)).toEqual(1);
 
       stopPhysicsEngine();
+    });
+
+    describe('when waitingForPlayers', function () {
+      beforeEach(function () {
+        var initialState = {
+          ensemble: { waitingForPlayers: false },
+          namespace: {
+            count: 0,
+            tracking: 'initial-server-state'
+          }
+        };
+
+        each(onClientStart, function (callback) {
+          callback(initialState);
+        });
+      });
+
+      it('should not run if the game', function () {
+        expect(currentState.get(tracking)).toEqual('initial-server-state');
+        expect(currentState.get(count)).toEqual(0);
+      });
     });
   });
 

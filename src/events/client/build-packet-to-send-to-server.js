@@ -9,7 +9,7 @@ var paused = require('../../util/state').paused;
 var interval = require('../../util/interval');
 
 module.exports = {
-  type: 'OnPhysicsFrame',
+  type: 'OnPhysicsFrameAlways',
   deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
   func: function OnPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time, define) {
     var lastPacket = {};

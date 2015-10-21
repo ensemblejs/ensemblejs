@@ -5,7 +5,7 @@ var pluck = require('lodash').pluck;
 var filterInternalState = require('../../util/internal-state').filter;
 
 module.exports = {
-  type: 'OnPhysicsFrame',
+  type: 'OnPhysicsFrameAlways',
   deps: ['Config', 'InternalState'],
   func: function OnPhysicsFrame (config, internalState) {
     if (!config().debug.time) {
