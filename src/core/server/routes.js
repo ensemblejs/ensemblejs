@@ -55,11 +55,19 @@ function buildHandler (callbacks) {
 
 module.exports = {
   type: 'Routes',
-  deps: ['Config', 'UUID', 'On', 'GamesList'],
-  func: function Routes (config, uuid, on, games) {
+  deps: ['Config', 'UUID', 'On', 'GamesList', 'RawStateAccess'],
+  func: function Routes (config, uuid, on, games, state) {
 
     function getConfig (req, res) {
       res.json(config());
+    }
+
+    function dumpState (req, res) {
+      if (!config().debug.develop) {
+        return res.status(400).send('Not available in release mode.');
+      }
+
+      res.json(state().for(req.params.gameId));
     }
 
     function createNewGame (req, res) {
@@ -86,6 +94,7 @@ module.exports = {
       app.get('/', buildHandler(buildIndexHandler(project)));
       app.post('/games', createNewGame);
       app.get('/games/:gameId', continueGame);
+      app.get('/games/:gameId/data', dumpState);
     }
 
     return {
