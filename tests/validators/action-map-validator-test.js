@@ -8,8 +8,8 @@ function empty () {}
 describe('action map validator', function () {
   var validator;
 
-  it('is a validator', function () {
-    expect(require('../../src/validators/server/action-map').type).toEqual('Validator');
+  it('runs on server start', function () {
+    expect(require('../../src/validators/server/action-map').type).toEqual('OnServerStart');
   });
 
   describe('when there are no action maps', function () {

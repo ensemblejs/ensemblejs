@@ -57,17 +57,17 @@ module.exports = {
       return app;
     }
 
-    function start (assetPath, game) {
-      var app = configureApp(assetPath, game);
-      routes().configure(app, game);
+    function start (assetPath, project) {
+      var app = configureApp(assetPath, project);
+      routes().configure(app, project);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, game.modes, session);
+      socket().start(server, project.modes, session);
 
       if (config().debug.develop) {
-        each(game.modes, function (mode) {
+        each(project.modes, function (mode) {
           on().newGame({id: mode, mode: mode});
         });
       }

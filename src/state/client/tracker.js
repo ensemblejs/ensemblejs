@@ -54,7 +54,7 @@ module.exports = {
       return f(currentState);
     }
 
-     function currentServerValue (f) {
+    function currentServerValue (f) {
       if (latestServerState === undefined) {
         return undefined;
       }
@@ -214,13 +214,18 @@ module.exports = {
       changes.push(change);
     }
 
-    function onChangeTo (model, condition, callback, data) {
-      var when = condition;
-      if (!isFunction(when)) {
-        when = function (currentValue) {
+    function functionifyIfRequired (condition) {
+      if (!isFunction(condition)) {
+        return function equals (currentValue) {
           return isEqual(currentValue, condition);
         };
+      } else {
+        return condition;
       }
+    }
+
+    function onChangeTo (model, condition, callback, data) {
+      var when = functionifyIfRequired(condition);
 
       var change = {
         type: 'object',
@@ -230,7 +235,17 @@ module.exports = {
         data: data
       };
 
-      handleObjects(change);
+      // handleObjects(change);
+      console.log(currentState);
+      console.log(latestServerState);
+      if (change.when(currentValue(change.focus))) {
+        invokeCallback(
+          change.callback,
+          currentValue(change.focus),
+          priorValue(change.focus),
+          change.data
+        );
+      }
       changes.push(change);
     }
 

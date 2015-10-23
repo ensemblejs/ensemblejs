@@ -8,10 +8,10 @@ var contains = require('lodash').contains;
 var validTypes = [ 'one', 'all' ];
 
 module.exports = {
-  type: 'Validator',
+  type: 'OnServerStart',
   deps: ['AcknowledgementMap', 'Logger'],
-  func: function Validator (ackMaps, logger) {
-    return function validateAckMaps () {
+  func: function AckMapValidator (ackMaps, logger) {
+    return function validate () {
 
       function filterByMissingProperty (records, prop) {
         return select(records, function(record) { return !record[prop]; });

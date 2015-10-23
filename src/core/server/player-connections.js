@@ -5,8 +5,8 @@ var first = require('lodash').first;
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config'],
-  func: function PlayerConnections (define, config) {
+  deps: ['DefinePlugin', 'Config', 'Logger'],
+  func: function PlayerConnections (define, config, logger) {
     var connections = [];
 
     function filterByGameAndSession (gameId, sessionId) {
@@ -84,7 +84,12 @@ module.exports = {
 
     define()('OnClientDisconnect', function PlayerConnections () {
       return function indicatePlayerAsDisconnected (state, socket, game) {
-        get(game.id, socket.request.sessionID).status = 'offline';
+        var connection = get(game.id, socket.request.sessionID);
+        if (!connection) {
+          logger().error({ socket: socket, game: game}, 'Connection not found when disconnecting player.');
+        }
+
+        connection.status = 'offline';
 
         return {
           ensemble: {

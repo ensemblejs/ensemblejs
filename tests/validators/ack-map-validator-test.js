@@ -13,8 +13,8 @@ describe('ack map validator test', function () {
     logger.error.reset();
   });
 
-  it('is a validator', function () {
-    expect(require('../../src/validators/server/ack-maps').type).toEqual('Validator');
+  it('runs on server start', function () {
+    expect(require('../../src/validators/server/ack-maps').type).toEqual('OnServerStart');
   });
 
   describe('when there are no ack maps', function () {

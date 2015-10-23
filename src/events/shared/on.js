@@ -78,8 +78,8 @@ module.exports = {
       callForMode(onClientReady(), mode, [dimensions().get()]);
     }
 
-    function serverStart (path, modes) {
-      callEachPlugin(onServerStart(), [path, modes]);
+    function serverStart (path, project) {
+      callEachPlugin(onServerStart(), [path, project]);
       callEachPlugin(onServerReady());
     }
 

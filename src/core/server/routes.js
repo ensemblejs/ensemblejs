@@ -3,14 +3,14 @@
 var each = require('lodash').each;
 var keys = require('lodash').keys;
 
-function buildIndexJson (game) {
+function buildIndexJson (project) {
   var index = {
-    name: game.name,
-    modes: game.modes,
+    name: project.name,
+    modes: project.modes,
     links: []
   };
 
-  each(game.modes, function(mode) {
+  each(project.modes, function(mode) {
     index.links.push({
       name: mode,
       what: '/game/' + mode + '/new',
@@ -35,10 +35,10 @@ function renderPage (page, opts) {
   };
 }
 
-function buildIndexHandler (game) {
+function buildIndexHandler (project) {
   return {
-    'html': renderPage('index.jade', buildIndexJson(game)),
-    'json': buildJsonHandler(buildIndexJson(game))
+    'html': renderPage('index.jade', buildIndexJson(project)),
+    'json': buildJsonHandler(buildIndexJson(project))
   };
 }
 
@@ -81,9 +81,9 @@ module.exports = {
       res.render('primary.jade', { mode: game.mode });
     }
 
-    function configure (app, game) {
+    function configure (app, project) {
       app.get('/config', getConfig);
-      app.get('/', buildHandler(buildIndexHandler(game)));
+      app.get('/', buildHandler(buildIndexHandler(project)));
       app.post('/games', createNewGame);
       app.get('/games/:gameId', continueGame);
     }

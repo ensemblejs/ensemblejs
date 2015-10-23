@@ -6,10 +6,10 @@ var isEqual = require('lodash').isEqual;
 var isArray = require('lodash').isArray;
 
 module.exports = {
-  type: 'Validator',
+  type: 'OnServerStart',
   deps: ['ActionMap', 'Logger'],
-  func: function Validator (actionMaps, logger) {
-    return function validateActionMaps () {
+  func: function ActionMapValidator (actionMaps, logger) {
+    return function validate () {
 
       function filterByMissingProperty (records, prop) {
         return select(records, function(record) { return !record[prop]; });

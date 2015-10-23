@@ -41,12 +41,12 @@ function runGameAtPath (path) {
   plugins.loadPath(path + '/js/maps');
 
   function modesJsonExists (exists) {
-    var game = {
+    var project = {
       modes: exists ? require(path + '/js/modes.json') : ['game'],
       name: packageInfo.name
     };
 
-    plugins.get('On').serverStart(path, game);
+    plugins.get('On').serverStart(path, project);
   }
 
   require('fs').exists(path + '/js/modes.json', modesJsonExists);

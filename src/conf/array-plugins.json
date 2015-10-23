@@ -29,6 +29,5 @@
     "OnServerStart",
     "OnServerStop",
     "OnUnmute",
-    "StateSeed",
-    "Validator"
+    "StateSeed"
 ]
