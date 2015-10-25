@@ -48,7 +48,7 @@ gulp.task('lint-scss', function () {
 });
 gulp.task('lint', ['lint-code', 'lint-scss']);
 
-gulp.task('test', ['clean'], function (cb) {
+gulp.task('test', function (cb) {
     gulp.src(paths.coveragejs)
         .pipe(plumber({errorHandler: onError}))
         .pipe(istanbul({includeUntested: true}))
