@@ -87,7 +87,6 @@ describe('the plugin manager', function() {
 			sinon.spy(logger, 'loaded');
 			sinon.spy(logger, 'plugin');
 			logger.loaded.reset();
-			logger.error.reset();
 			logger.plugin.reset();
 		});
 
@@ -300,7 +299,7 @@ describe('the plugin manager', function() {
 			expect(message).toBe('Incorrect use of deferred dependency. You\'re using: dep(p1, p2), when you should be using: dep()(p1, p2).');
 		});
 
-		it('should log an error if the plugin does not have a type', function () {
+		it('should throw an error if the plugin does not have a type', function () {
 			var message;
 			try {
 				pluginManager.load({func: sinon.spy()});
@@ -309,7 +308,7 @@ describe('the plugin manager', function() {
 			expect(message).toEqual('Attempted to load plugin without type');
 		});
 
-		it('should log an error if the type is not a string', function () {
+		it('should throw an error if the type is not a string', function () {
 			var message;
 			try {
 				pluginManager.load({type: 3, func: sinon.spy()});
@@ -318,7 +317,7 @@ describe('the plugin manager', function() {
 			expect(message).toEqual('Attempted to load plugin "3" with invalid type. It must be a string.');
 		});
 
-		it('should log an error if the plugin does not have a function', function () {
+		it('should throw an error if the plugin does not have a function', function () {
 			var message;
 			try {
 				pluginManager.load({type: 'Type'});
@@ -327,13 +326,22 @@ describe('the plugin manager', function() {
 			expect(message).toEqual('Attempted to load plugin "Type" without function');
 		});
 
-		it('should log an error if the function is not a function', function () {
+		it('should throw an error if the function is not a function', function () {
 			var message;
 			try {
 				pluginManager.load({type: 'Type', func: 4});
 			} catch (e) { message = e.message; }
 
 			expect(message).toEqual('Attempted to load plugin "Type" with invalid function.');
+		});
+
+		it('should log a warning if a non-array function is loaded twice', function () {
+			logger.warn.reset();
+
+			pluginManager.load(myModuleReturnFunction);
+			pluginManager.load(myModuleReturnFunction);
+
+			expect(logger.warn.firstCall.args).toEqual(['Plugin "RetFunction" has been loaded more than once. The latter calls will replace the former.']);
 		});
 
 		it('should wrap a single dependency in an array', function () {

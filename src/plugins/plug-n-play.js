@@ -166,6 +166,10 @@ function load (module, prefix) {
   if (isArray(plugins[module.type])) {
     plugins[module.type].push(preparedPlugin);
   } else {
+    if (plugins[module.type]) {
+      log.warn('Plugin "' + module.type + '" has been loaded more than once. The latter calls will replace the former.');
+    }
+
     plugins[module.type] = preparedPlugin;
   }
 }
