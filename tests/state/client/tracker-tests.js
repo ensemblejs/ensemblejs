@@ -235,17 +235,11 @@ describe('StateTracker', function () {
 	});
 
 	describe('working with arrays', function () {
-		var callback2 = sinon.spy();
-
-		beforeEach(function () {
-			callback2.reset();
-		});
-
 		describe('when an element is added', function() {
 			beforeEach(function() {
 				forceCurrentRawState({ numbers: [] });
 				onPhysicsFrameComplete();
-				tracker.onElementAdded(to('numbers'), callback, callback2, 'data');
+				tracker.onElementAdded(to('numbers'), callback, 'data');
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
 				onPhysicsFrameComplete();
 			});
@@ -255,17 +249,18 @@ describe('StateTracker', function () {
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
 			});
 
-			it('should accept a second callback that is invoked when there are elements already in the array', function() {
-				callback2.reset();
+			it('should invoked the callback with each existing elements in the array', function() {
+				callback.reset();
 				plugin.reset();
 				tracker = require(modulePath).func(defer(plugin.define));
 				onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
 
-				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
+				forceCurrentRawState({ numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] });
 				onPhysicsFrameComplete();
-				tracker.onElementAdded(to('numbers'), callback, callback2, 'data');
-				expect(callback2.calledOnce).toBe(true);
-				expect(callback2.firstCall.args).toEqual([[{id: 1, value: '7'}], undefined, 'data']);
+				tracker.onElementAdded(to('numbers'), callback, 'data');
+				expect(callback.callCount).toBe(2);
+				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+				expect(callback.secondCall.args).toEqual([2, {id: 2, value: '17'}, 'data']);
 			});
 		});
 

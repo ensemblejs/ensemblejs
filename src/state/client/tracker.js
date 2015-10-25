@@ -140,7 +140,9 @@ module.exports = {
     }
 
     function sendCurrentContentsNow (change) {
-      invokeCallback(change.callback, currentValue(change.focus), undefined, change.data);
+      each(currentValue(change.focus), function(element) {
+        invokeCallbackWithId(change.callback, element, undefined, change.data);
+      });
     }
 
     var handle = {
@@ -262,7 +264,7 @@ module.exports = {
       changes.push(change);
     }
 
-    function onElementAdded (focusArray, onCallback, existingCallback, data) {
+    function onElementAdded (focusArray, onCallback, data) {
       var change = {
         type: 'array',
         focus: focusArray,
@@ -274,15 +276,7 @@ module.exports = {
 
       changes.push(change);
 
-      if (!existingCallback) {
-        return;
-      }
-
-      sendCurrentContentsNow({
-        focus: focusArray,
-        callback: existingCallback,
-        data: data
-      });
+      sendCurrentContentsNow(change);
     }
 
     function onElementRemoved (focusArray, callback, data) {

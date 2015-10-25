@@ -50,7 +50,7 @@ describe('the engine', function() {
 		update3[1].reset();
 		update4[1].reset();
 
-		var sut = makeTestible('core/server/engine', {
+		var sut = makeTestible('core/server/physics', {
 			OnPhysicsFrameAlways: [update1, update2],
 			OnPhysicsFrameInGame: [update3, update4],
 			GamesList: gamesList,
