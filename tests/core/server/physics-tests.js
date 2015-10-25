@@ -171,6 +171,13 @@ describe('the engine', function() {
 	});
 
 	describe('when paused', function() {
+		beforeEach(function () {
+			update1[1].reset();
+			update2[1].reset();
+			update3[1].reset();
+			update4[1].reset();
+		});
+
 		afterEach(function () {
 			onServerStop();
 		});
@@ -179,6 +186,9 @@ describe('the engine', function() {
 			values.paused = true;
 			interval = onServerStart(1);
 			expect(update1[1].called).toBe(false);
+			expect(update2[1].called).toBe(false);
+			expect(update3[1].called).toBe(false);
+			expect(update4[1].called).toBe(false);
 		});
 	});
 });
