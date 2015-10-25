@@ -121,25 +121,19 @@ function addLoggingToPlugin (module, prefix, args) {
   }
 }
 
-function invalid (module) {
+function checkModuleValidity (module) {
   if (!module.type) {
-    log.error('Attempted to load plugin without type');
-    return true;
+    throw new Error('Attempted to load plugin without type');
   }
   if (!isString(module.type)) {
-    log.error('Attempted to load plugin "' + module.type + '" with invalid type. It must be a string.');
-    return true;
+    throw new Error('Attempted to load plugin "' + module.type + '" with invalid type. It must be a string.');
   }
   if (!module.func) {
-    log.error('Attempted to load plugin "' + module.type + '" without function');
-    return true;
+    throw new Error('Attempted to load plugin "' + module.type + '" without function');
   }
   if (!isFunction(module.func)) {
-    log.error('Attempted to load plugin "' + module.type + '" with invalid function.');
-    return true;
+    throw new Error('Attempted to load plugin "' + module.type + '" with invalid function.');
   }
-
-  return false;
 }
 
 function loadSensibleDefaults (module) {
@@ -152,9 +146,7 @@ function loadSensibleDefaults (module) {
 }
 
 function load (module, prefix) {
-  if (invalid(module)) {
-    return;
-  }
+  checkModuleValidity(module);
 
   module = loadSensibleDefaults(module);
 

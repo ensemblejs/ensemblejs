@@ -260,6 +260,7 @@ describe('the plugin manager', function() {
 		});
 
 		it('should raise an exception if a dependency is used during the load phase', function () {
+			var message;
 			var now = {
 				deps: ['OkNow'],
 				type: 'NowNowNow',
@@ -270,28 +271,14 @@ describe('the plugin manager', function() {
 
 			try {
 				pluginManager.load(now);
-			} catch (e) {
-				expect(true).toBe(true);
-				return;
-			}
+			} catch (e) { message = e.message; }
 
-			expect(true).toBe(false);
-		});
-
-		it('should raise an exception if the dependency is not defined', function () {
-			try {
-				pluginManager.load(createAModuleToExecuteTest(['NotDefined'], function(PM) {
-					expect(PM).toEqual(pluginManager);
-				}));
-			} catch (e) {
-				expect(true).toBe(true);
-				return;
-			}
-
-			expect(true).toBe(false);
+			expect(message).toBe('No plugin defined for: OkNow');
 		});
 
 		it('should raise an exception if any arguments are passed into a dependency', function () {
+			var message;
+
 			try {
 				var loadedFirstRequiresSecondDefine = {
 					type: 'NowNowNow',
@@ -307,35 +294,46 @@ describe('the plugin manager', function() {
 					nowNowNow(1);
 				}));
 			} catch (e) {
-				expect(true).toBe(true);
-				return;
+				message = e.message;
 			}
 
-			expect(true).toBe(false);
+			expect(message).toBe('Incorrect use of deferred dependency. You\'re using: dep(p1, p2), when you should be using: dep()(p1, p2).');
 		});
 
 		it('should log an error if the plugin does not have a type', function () {
-			pluginManager.load({func: sinon.spy()});
+			var message;
+			try {
+				pluginManager.load({func: sinon.spy()});
+			} catch (e) { message = e.message; }
 
-			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin without type']);
+			expect(message).toEqual('Attempted to load plugin without type');
 		});
 
 		it('should log an error if the type is not a string', function () {
-			pluginManager.load({type: 3, func: sinon.spy()});
+			var message;
+			try {
+				pluginManager.load({type: 3, func: sinon.spy()});
+			} catch (e) { message = e.message; }
 
-			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "3" with invalid type. It must be a string.']);
+			expect(message).toEqual('Attempted to load plugin "3" with invalid type. It must be a string.');
 		});
 
 		it('should log an error if the plugin does not have a function', function () {
-			pluginManager.load({type: 'Type'});
+			var message;
+			try {
+				pluginManager.load({type: 'Type'});
+			} catch (e) { message = e.message; }
 
-			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "Type" without function']);
+			expect(message).toEqual('Attempted to load plugin "Type" without function');
 		});
 
 		it('should log an error if the function is not a function', function () {
-			pluginManager.load({type: 'Type', func: 4});
+			var message;
+			try {
+				pluginManager.load({type: 'Type', func: 4});
+			} catch (e) { message = e.message; }
 
-			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "Type" with invalid function.']);
+			expect(message).toEqual('Attempted to load plugin "Type" with invalid function.');
 		});
 
 		it('should wrap a single dependency in an array', function () {
