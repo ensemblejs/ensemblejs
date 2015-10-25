@@ -87,6 +87,7 @@ describe('the plugin manager', function() {
 			sinon.spy(logger, 'loaded');
 			sinon.spy(logger, 'plugin');
 			logger.loaded.reset();
+			logger.error.reset();
 			logger.plugin.reset();
 		});
 
@@ -311,6 +312,39 @@ describe('the plugin manager', function() {
 			}
 
 			expect(true).toBe(false);
+		});
+
+		it('should log an error if the plugin does not have a type', function () {
+			pluginManager.load({func: sinon.spy()});
+
+			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin without type']);
+		});
+
+		it('should log an error if the type is not a string', function () {
+			pluginManager.load({type: 3, func: sinon.spy()});
+
+			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "3" with invalid type. It must be a string.']);
+		});
+
+		it('should log an error if the plugin does not have a function', function () {
+			pluginManager.load({type: 'Type'});
+
+			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "Type" without function']);
+		});
+
+		it('should log an error if the function is not a function', function () {
+			pluginManager.load({type: 'Type', func: 4});
+
+			expect(logger.error.firstCall.args).toEqual(['Attempted to load plugin "Type" with invalid function.']);
+		});
+
+		it('should wrap a single dependency in an array', function () {
+			pluginManager.load(myDep);
+			pluginManager.load(myModuleWithDep);
+
+			pluginManager.load(createAModuleToExecuteTest('Mine', function(mine) {
+				expect(mine()).toEqual(3);
+			}));
 		});
 	});
 

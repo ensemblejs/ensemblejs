@@ -2,6 +2,8 @@
 
 var loader = require('./folder-loader.js');
 var isArray = require('lodash').isArray;
+var isString = require('lodash').isString;
+var isFunction = require('lodash').isFunction;
 var each = require('lodash').each;
 var map = require('lodash').map;
 var contains = require('lodash').contains;
@@ -33,110 +35,141 @@ function deferredDependency (deferred) {
   };
 }
 
+function setModesForPlugin (plugin, type) {
+  if (!contains(defaultModes, type)) {
+    return plugin;
+  }
+  if (!(plugin instanceof Array)) {
+    return [['*'], plugin];
+  }
+  if (!(plugin[0] instanceof Array)) {
+    return [[plugin[0]], plugin[1]];
+  }
+
+  return plugin;
+}
+
+function createTimer (prefix, plugin, func) {
+  var profiler = getIfExists('Profiler');
+
+  if (profiler) {
+    func = func || 'anonymous';
+    return profiler.timer(prefix, plugin, func, 100);
+  } else {
+    return undefined;
+  }
+}
+
+function isNotProfileExclusion(type) {
+  return type !== 'Time';
+}
+
+function wrapOriginalFunction (original, key, prefix, type) {
+  var timer = createTimer(prefix, type, key);
+
+  return function wrappedWithLoggingAndTimers () {
+    if (contains(traceOnly, type)) {
+      log.subdue(arguments, prefix + ':' + type, original.toString());
+    } else {
+      log.plugin(arguments, prefix, type, original.toString());
+    }
+
+    if (timer && isNotProfileExclusion(type)) {
+      timer.fromHere();
+      var result = original.apply(this, arguments);
+      timer.toHere();
+      return result;
+    } else {
+      return original.apply(this, arguments);
+    }
+  };
+}
+
+function wrapEachElementOfArray (array, prefix, type) {
+  return map(array, function wrapIfFunction (element) {
+    if (element instanceof Function) {
+      return wrapOriginalFunction(element, undefined, prefix, type);
+    } else {
+      return element;
+    }
+  });
+}
+
+function wrapEachFunctionInObject (obj, prefix, type) {
+  for (var key in obj) {
+    if (obj[key] instanceof Function) {
+      obj[key] = wrapOriginalFunction(obj[key], key, prefix, type);
+    }
+  }
+
+  return obj;
+}
+
+function addLoggingToPlugin (module, prefix, args) {
+  var plugin = module.func.apply(undefined, args);
+
+  if (plugin instanceof Function) {
+    return wrapOriginalFunction(plugin, undefined, prefix, module.type);
+  }
+  if (plugin instanceof Array) {
+    return wrapEachElementOfArray(plugin, prefix, module.type);
+  }
+  if (!(plugin instanceof Object)) {
+    return plugin;
+  } else {
+    return wrapEachFunctionInObject(plugin, prefix, module.type);
+  }
+}
+
+function invalid (module) {
+  if (!module.type) {
+    log.error('Attempted to load plugin without type');
+    return true;
+  }
+  if (!isString(module.type)) {
+    log.error('Attempted to load plugin "' + module.type + '" with invalid type. It must be a string.');
+    return true;
+  }
+  if (!module.func) {
+    log.error('Attempted to load plugin "' + module.type + '" without function');
+    return true;
+  }
+  if (!isFunction(module.func)) {
+    log.error('Attempted to load plugin "' + module.type + '" with invalid function.');
+    return true;
+  }
+
+  return false;
+}
+
+function loadSensibleDefaults (module) {
+  module.deps = module.deps || [];
+  if (!isArray(module.deps)) {
+    module.deps = [module.deps];
+  }
+
+  return module;
+}
+
 function load (module, prefix) {
+  if (invalid(module)) {
+    return;
+  }
+
+  module = loadSensibleDefaults(module);
+
   prefix = prefix || 'ensemblejs';
 
   log.loaded(prefix, module.type, module.func);
 
-  module.deps = module.deps || [];
+  var args = map(module.deps, function (dep) {
+    return deferredDependency(dep);
+  });
 
-  var args = [];
-  var i;
-
-  var dep;
-  for (i = 0; i < module.deps.length; i += 1) {
-    dep = module.deps[i];
-
-    args.push(deferredDependency(dep));
-  }
-
-  function createTimer (prefix, plugin, func) {
-    var profiler = getIfExists('Profiler');
-
-    if (profiler) {
-      func = func || 'anonymous';
-      return profiler.timer(prefix, plugin, func, 100);
-    } else {
-      return undefined;
-    }
-  }
-
-  function isNotProfileExclusion(type) {
-    return type !== 'Time';
-  }
-
-  function wrapOriginalFunction (original, key) {
-    var timer = createTimer(prefix, module.type, key);
-
-    return function wrappedWithLoggingAndTimers () {
-      if (contains(traceOnly, module.type)) {
-        log.subdue(arguments, prefix + ':' + module.type, original.toString());
-      } else {
-        log.plugin(arguments, prefix, module.type, original.toString());
-      }
-
-      if (timer && isNotProfileExclusion(module.type)) {
-        timer.fromHere();
-        var result = original.apply(this, arguments);
-        timer.toHere();
-        return result;
-      } else {
-        return original.apply(this, arguments);
-      }
-    };
-  }
-
-  function wrapEachElementOfArray (array) {
-    return map(array, function wrapIfFunction (element) {
-      if (element instanceof Function) {
-        return wrapOriginalFunction(element);
-      } else {
-        return element;
-      }
-    });
-  }
-
-  function wrapEachFunctionInObject (obj) {
-    for (var key in obj) {
-      if (obj[key] instanceof Function) {
-        obj[key] = wrapOriginalFunction(obj[key], key);
-      }
-    }
-
-    return obj;
-  }
-
-  function addLoggingToPlugin (func) {
-    var plugin = func.apply(undefined, args);
-
-    if (plugin instanceof Function) {
-      return wrapOriginalFunction(plugin);
-    }
-    if (plugin instanceof Array) {
-      return wrapEachElementOfArray(plugin);
-    }
-    if (!(plugin instanceof Object)) {
-      return plugin;
-    } else {
-      return wrapEachFunctionInObject(plugin);
-    }
-  }
-
-  function setModesForPlugin (plugin) {
-    if (!contains(defaultModes, module.type)) {
-      return plugin;
-    }
-    if (!(plugin instanceof Array)) {
-      return [['*'], plugin];
-    }
-    if (!(plugin[0] instanceof Array)) {
-      return [[plugin[0]], plugin[1]];
-    }
-
-    return plugin;
-  }
-
-  var preparedPlugin = setModesForPlugin(addLoggingToPlugin(module.func));
+  var preparedPlugin = setModesForPlugin(
+    addLoggingToPlugin(module, prefix, args),
+    module.type
+  );
 
   if (isArray(plugins[module.type])) {
     plugins[module.type].push(preparedPlugin);
