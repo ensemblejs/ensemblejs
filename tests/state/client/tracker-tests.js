@@ -27,16 +27,20 @@ function forceCurrentRawState (newState) {
 	rawStateAccess.get = function () { return newState; };
 }
 
+var logger = require('../../fake/logger');
+
 describe('StateTracker', function () {
 	var callback = sinon.spy();
+	var callback2 = sinon.spy();
 	var onPhysicsFrameComplete;
 	var onClientStart;
 	var onIncomingServerPacket;
 
 	beforeEach(function () {
 		callback.reset();
+		callback2.reset();
 		plugin.reset();
-		tracker = require(modulePath).func(defer(plugin.define));
+		tracker = require(modulePath).func(defer(plugin.define), defer(logger));
 		onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
 		onClientStart = plugin.deps().OnClientStart(defer(rawStateAccess));
 		onIncomingServerPacket = plugin.deps().OnIncomingServerPacket();
@@ -45,7 +49,7 @@ describe('StateTracker', function () {
 	describe('working with property', function () {
 		describe('when a property changes', function() {
 			beforeEach(function () {
-				forceCurrentRawState({ property: 'unchanged' });
+				forceCurrentRawState({ property: 'unchanged', a: { b: 'c'} });
 				onPhysicsFrameComplete();
 				tracker.onChangeOf(the('property'), callback, 'data');
 
@@ -68,6 +72,19 @@ describe('StateTracker', function () {
 				forceCurrentRawState({property: 'changed'});
 				onPhysicsFrameComplete();
 				expect(callback.firstCall.args).toEqual(['changed', 'unchanged', 'data']);
+			});
+
+			it('should work with dot strings', function () {
+				tracker.onChangeOf('property', callback, 'data');
+				onPhysicsFrameComplete();
+				expect(callback.callCount).toBe(1);
+
+				callback.reset();
+
+				tracker.onChangeOf('a.b', callback);
+				onPhysicsFrameComplete();
+				expect(callback.callCount).toBe(1);
+				expect(callback.firstCall.args).toEqual(['c', 'c', undefined]);
 			});
 		});
 
@@ -92,7 +109,7 @@ describe('StateTracker', function () {
 
 		describe('when detecting a change to a particular value', function() {
 			beforeEach(function () {
-				forceCurrentRawState({property: 'unchanged'});
+				forceCurrentRawState({property: 'unchanged', a: {b: 'c'}});
 				onPhysicsFrameComplete();
 				tracker.onChangeTo(the('property'), equals('changed'), callback, 'data');
 				callback.reset();
@@ -120,6 +137,20 @@ describe('StateTracker', function () {
 				callback.reset();
 				tracker.onChangeTo(the('property'), equals('unchanged'), callback, 'data');
 				expect(callback.calledOnce).toBe(true);
+			});
+
+			it('should work with dot strings', function () {
+				callback.reset();
+				tracker.onChangeTo('property', 'something-else', callback);
+				forceCurrentRawState({property: 'something-else', a: {b: 'c'}});
+				onPhysicsFrameComplete();
+				expect(callback.callCount).toBe(1);
+
+				callback.reset();
+				tracker.onChangeTo('a.b', 'd', callback);
+				forceCurrentRawState({a: {b: 'd'}});
+				onPhysicsFrameComplete();
+				expect(callback.callCount).toBe(1);
 			});
 
 			describe('when using literals', function () {
@@ -252,7 +283,7 @@ describe('StateTracker', function () {
 			it('should invoked the callback with each existing elements in the array', function() {
 				callback.reset();
 				plugin.reset();
-				tracker = require(modulePath).func(defer(plugin.define));
+				tracker = require(modulePath).func(defer(plugin.define), defer(logger));
 				onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
 
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] });
@@ -261,6 +292,13 @@ describe('StateTracker', function () {
 				expect(callback.callCount).toBe(2);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
 				expect(callback.secondCall.args).toEqual([2, {id: 2, value: '17'}, 'data']);
+			});
+
+			it('should work with dot strings', function () {
+				callback.reset();
+				tracker.onElementAdded('numbers', callback);
+				expect(callback.callCount).toBe(1);
+				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
 			});
 		});
 
@@ -276,6 +314,19 @@ describe('StateTracker', function () {
 			it('should invoke the callback with the removed element and the data', function() {
 				expect(callback.calledOnce).toBe(true);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+			});
+
+			it('should work with dot strings', function () {
+				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
+				onPhysicsFrameComplete();
+
+				callback2.reset();
+				tracker.onElementRemoved('numbers', callback2);
+				forceCurrentRawState({ numbers: [] });
+				onPhysicsFrameComplete();
+
+				expect(callback2.callCount).toBe(1);
+				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
 			});
 		});
 
@@ -298,6 +349,19 @@ describe('StateTracker', function () {
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
 				onPhysicsFrameComplete();
 				expect(callback.called).toEqual(false);
+			});
+
+			it('should work with dot strings', function () {
+				callback2.reset();
+
+				forceCurrentRawState({ numbers: [{id: 1, value: '6'}] });
+				onPhysicsFrameComplete();
+				tracker.onElementChanged('numbers', callback2);
+				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
+				onPhysicsFrameComplete();
+
+				expect(callback2.callCount).toBe(1);
+				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, undefined]);
 			});
 		});
 	});

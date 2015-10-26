@@ -2,6 +2,7 @@
 
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
+var isString = require('lodash').isString;
 var isEqual = require('lodash').isEqual;
 var isFunction = require('lodash').isFunction;
 var clone = require('lodash').clone;
@@ -9,8 +10,8 @@ var where = require('lodash').where;
 
 module.exports = {
   type: 'StateTracker',
-  deps: ['DefinePlugin'],
-  func: function StateTracker (define) {
+  deps: ['DefinePlugin', 'Logger'],
+  func: function StateTracker (define, logger) {
     var latestServerState;
     var priorState;
     var currentState;
@@ -204,15 +205,36 @@ module.exports = {
       };
     });
 
+    function functionifyDotStrings (model) {
+      if (!isString(model)) {
+        return model;
+      }
+
+      var parts = model.split('.');
+
+      return function stateFromDotString (state) {
+        var prop = state;
+        each(parts, function (part) {
+          prop = prop[part];
+
+          if (!prop) {
+            logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          }
+        });
+
+        return prop;
+      };
+    }
+
     function onChangeOf (model, callback, data) {
       var change = {
         type: 'object',
-        focus: model,
+        focus: functionifyDotStrings(model),
         callback: callback,
         data: data
       };
 
-      invokeCallback(callback, currentValue(model), priorValue(model), data);
+      invokeCallback(callback, currentValue(change.focus), priorValue(change.focus), data);
       changes.push(change);
     }
 
@@ -231,15 +253,12 @@ module.exports = {
 
       var change = {
         type: 'object',
-        focus: model,
+        focus: functionifyDotStrings(model),
         'when': when,
         callback: callback,
         data: data
       };
 
-      // handleObjects(change);
-      console.log(currentState);
-      console.log(latestServerState);
       if (change.when(currentValue(change.focus))) {
         invokeCallback(
           change.callback,
@@ -248,13 +267,14 @@ module.exports = {
           change.data
         );
       }
+
       changes.push(change);
     }
 
     function onElementChanged (focusArray, callback, data) {
       var change = {
         type: 'array',
-        focus: focusArray,
+        focus: functionifyDotStrings(focusArray),
         callback: callback,
         detectionFunc: elementChanged,
         operatesOn: currentValue,
@@ -267,7 +287,7 @@ module.exports = {
     function onElementAdded (focusArray, onCallback, data) {
       var change = {
         type: 'array',
-        focus: focusArray,
+        focus: functionifyDotStrings(focusArray),
         callback: onCallback,
         detectionFunc: elementAdded,
         operatesOn: currentValue,
@@ -282,7 +302,7 @@ module.exports = {
     function onElementRemoved (focusArray, callback, data) {
       var change = {
         type: 'array',
-        focus: focusArray,
+        focus: functionifyDotStrings(focusArray),
         callback: callback,
         detectionFunc: elementRemoved,
         operatesOn: priorValue,
