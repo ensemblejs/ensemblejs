@@ -312,9 +312,16 @@ module.exports = {
       changes.push(change);
     }
 
+    function onElement (focusArray, added, changed, removed, data) {
+      onElementAdded(focusArray, added, data);
+      onElementChanged(focusArray, changed, data);
+      onElementRemoved(focusArray, removed, data);
+    }
+
     return {
       onChangeOf: onChangeOf,
       onChangeTo: onChangeTo,
+      onElement: onElement,
       onElementChanged: onElementChanged,
       onElementAdded: onElementAdded,
       onElementRemoved: onElementRemoved
