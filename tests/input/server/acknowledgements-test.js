@@ -38,6 +38,7 @@ describe('acknowledgements', function () {
       Config: config,
       StateMutator: mutate,
       StateAccess: fakeState,
+      Logger: fakeLogger,
       AcknowledgementMap: [['*', {
         'ack-every': [{target: ackEvery, type: 'every'}],
         'ack-once-for-all': [{target: ackOnceForAll, type: 'once-for-all'}],
@@ -177,13 +178,14 @@ describe('acknowledgements', function () {
     var pendingAcks = [{ name: 'mutate-this', playerId: 1 }];
 
     beforeEach(function () {
+      fakeLogger.debug.reset();
       mutate.reset();
       ackEvery.reset();
 
       onIncomingClientInputPacket({pendingAcks: pendingAcks}, game);
     });
 
-    it('should mutate the repsonse of the callback', function () {
+    it('should mutate the response of the callback', function () {
       expect(mutate.called).toBe(true);
       expect(mutate.firstCall.args).toEqual([100, { state: 'changed' }]);
     });
@@ -194,6 +196,10 @@ describe('acknowledgements', function () {
 
     it('should pass optional data into the callback', function () {
       expect(ackEvery.firstCall.args[2]).toEqual([1, 2, 'a']);
+    });
+
+    it('should log the firing of the callback', function () {
+      expect(fakeLogger.debug.firstCall.args).toEqual(['Acknowledgement "mutate-this" called.']);
     });
   });
 });

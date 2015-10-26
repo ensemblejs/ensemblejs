@@ -9,8 +9,8 @@ var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'OnIncomingClientInputPacket',
-  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap'],
-  func: function OnIncomingClientInputPacket (config, mutate, state, acknowledgementMaps) {
+  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'Logger'],
+  func: function OnIncomingClientInputPacket (config, mutate, state, acknowledgementMaps, logger) {
 
     function ackOnceForAll (action, ack, game) {
       action.players = action.players || [];
@@ -80,6 +80,8 @@ module.exports = {
           });
 
           each(toFire, function (action) {
+            logger().debug('Acknowledgement "' + ack.name + '" called.');
+
             mutate()(
               game.id,
               action.target(state().for(game.id),
