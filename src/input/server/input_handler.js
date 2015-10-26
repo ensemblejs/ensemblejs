@@ -54,6 +54,8 @@ module.exports = {
 
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
+							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
+
 							return mutate()(
 								currentInput.game.id,
 								action.target(state, data)
@@ -63,7 +65,10 @@ module.exports = {
 				}
 
 				function createOnMatchingCallback (callback) {
-					return function onMatchingActionMap (currentInput, action, inputData) {
+					return function onMatchingActionMap (currentInput, key, action, inputData) {
+
+						logger().debug('ActionMap "' + key + '" called');
+
 						mutate()(
 				      currentInput.game.id,
 				      callback(action.target, action.noEventKey, inputData)

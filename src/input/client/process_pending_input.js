@@ -12,8 +12,8 @@ var parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
 	type: 'ProcessPendingInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function ProcessPendingInput (actionMaps, define, mutate) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
+	func: function ProcessPendingInput (actionMaps, define, mutate, logger) {
 
 		define()('OnPhysicsFrameAlways', ['InputQueue'], function ProcessPendingInput (inputQueue) {
 
@@ -52,6 +52,8 @@ module.exports = {
 
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
+							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
+
 							return mutate()(
 								currentInput.game.id,
 								action.target(state, data)
@@ -61,7 +63,10 @@ module.exports = {
 				}
 
 				function createOnMatchingCallback (callback) {
-					return function invokeCallbackAndMutate (currentInput, action, inputData) {
+					return function invokeCallbackAndMutate (currentInput, key, action, inputData) {
+
+						logger().debug('ActionMap "' + key + '" called');
+
 						mutate()(
 				      currentInput.game.id,
 				      callback(action.target, action.noEventKey, inputData)

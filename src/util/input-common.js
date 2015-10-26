@@ -40,7 +40,7 @@ function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, ca
         var matching = reject(suitableActions, whereModifiersDoNotMatch);
 
         each(matching, function (action) {
-          callback(currentInput, action);
+          callback(currentInput, ignoreCaseKey, action);
         });
       });
     });
@@ -65,7 +65,7 @@ function parseMouse (actionMaps, currentInput, waitingForPlayers, callback) {
       }
 
       each(suitableActions, function(action) {
-        callback(currentInput, action, currentInput.rawData.mouse);
+        callback(currentInput, 'cursor', action, currentInput.rawData.mouse);
       });
     }
   });
@@ -88,7 +88,10 @@ function parseTouches (actionMaps, currentInput, waitingForPlayers, callback) {
       }
 
       each(suitableActions, function(action) {
-        callback(currentInput, action, {x: touch.x, y: touch.y});
+        callback(currentInput, key, action, {
+          x: touch.x,
+          y: touch.y
+        });
       });
     });
   });
@@ -112,7 +115,11 @@ function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
 
       var data = currentInput.rawData[key];
       each(suitableActions, function(action) {
-        callback(currentInput, action, {x: data.x, y: data.y, force: data.force});
+        callback(currentInput, key, action, {
+          x: data.x,
+          y: data.y,
+          force: data.force
+        });
       });
     });
   });

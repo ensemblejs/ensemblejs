@@ -5,7 +5,7 @@ var expect = require('expect');
 
 var defer = require('../../support').defer;
 var plugin = require('../../support').plugin();
-var logger = require('../../support').logger;
+var fakeLogger = require('../../support').fakeLogger;
 
 var model = {
 	noEvent: sinon.spy(),
@@ -62,6 +62,8 @@ function newUserInput (rawData, timestamp, game, playerId) {
 	});
 }
 
+var fakeLogger = require('../../fake/logger');
+
 describe('Input Bindings', function() {
 	var clock;
 
@@ -104,7 +106,7 @@ describe('Input Bindings', function() {
 		}];
 
 
-		require('../../../src/input/client/process_pending_input').func(defer([actions]), defer(plugin.define), defer(mutator));
+		require('../../../src/input/client/process_pending_input').func(defer([actions]), defer(plugin.define), defer(mutator), defer(fakeLogger));
 		onPhysicsFrameAlways = plugin.deps().OnPhysicsFrameAlways(defer(inputQueue));
 	});
 
@@ -126,6 +128,12 @@ describe('Input Bindings', function() {
 			onPhysicsFrameAlways(currentState, 16);
 			expect(model.noEvent.called).toBe(true);
 			expect(mutator.called).toBe(true);
+		});
+
+		it('should log a debug message', function() {
+			fakeLogger.debug.reset();
+			onPhysicsFrameAlways(currentState, 16);
+			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "nothing" with key: "model" called']);
 		});
 
 		it('should pass in the standard event data', function () {
@@ -153,7 +161,7 @@ describe('Input Bindings', function() {
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				require('../../../src/input/client/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+				require('../../../src/input/client/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(fakeLogger));
 				onPhysicsFrameAlways = plugin.deps().OnPhysicsFrameAlways(defer(inputQueue));
 
 				mutator.reset();
@@ -193,6 +201,12 @@ describe('Input Bindings', function() {
 			expect(model.keyEvent.firstCall.args).toEqual([currentState, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
+		});
+
+		it('should log a debug message', function() {
+			fakeLogger.debug.reset();
+			onPhysicsFrameAlways(currentState, 16);
+			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "key" called']);
 		});
 
 		it('should ignore the key case', function () {
@@ -371,6 +385,12 @@ describe('Input Bindings', function() {
 			expect(model.touchEvent.firstCall.args).toEqual([currentState, 4, 5, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
+
+		it('should log a debug message', function() {
+			fakeLogger.debug.reset();
+			onPhysicsFrameAlways(currentState, 16);
+			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "touch0" called']);
+		});
 	});
 
 	describe('when touch is recieved but not bound', function () {
@@ -421,12 +441,18 @@ describe('Input Bindings', function() {
 			expect(model.cursorEvent.firstCall.args).toEqual([currentState, 6,7, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
+
+		it('should log a debug message', function() {
+			fakeLogger.debug.reset();
+			onPhysicsFrameAlways(currentState, 16);
+			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "cursor" called']);
+		});
 	});
 
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7 };
-			require('../../../src/input/client/process_pending_input').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+			require('../../../src/input/client/process_pending_input').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(fakeLogger));
 			onPhysicsFrameAlways = plugin.deps().OnPhysicsFrameAlways(defer(inputQueue));
 			newUserInput(rawData, undefined, game, playerId);
 		});
@@ -498,6 +524,13 @@ describe('Input Bindings', function() {
 			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, 0.1, 1.0, 0.5, {timestamp: Date.now(), playerId: 3, delta: 16}]);
 			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, 0.9, 0.3, 1.0, {timestamp: Date.now(), playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
+		});
+
+		it('should log a debug message', function() {
+			fakeLogger.debug.reset();
+			onPhysicsFrameAlways(currentState, 16);
+			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "leftStick" called']);
+			expect(fakeLogger.debug.secondCall.args).toEqual(['ActionMap "rightStick" called']);
 		});
 	});
 

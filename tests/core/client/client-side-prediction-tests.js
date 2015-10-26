@@ -10,8 +10,8 @@ var mutatorPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var physicsEnginePlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
-var logger = require('../../support').logger;
 var fakeTime = require('../../fake/time').at(2000);
+var logger = require('../../fake/logger');
 
 var onClientStart = [];
 var onOutgoingClientPacket = [];
@@ -86,7 +86,7 @@ function gameLogic (state) {
   };
 }
 
-describe('after on OnPhysicsFrameComplete', function () {
+describe('CSP: after on OnPhysicsFrameComplete', function () {
   beforeEach(function () {
     var initialState = {
       ensemble: { waitingForPlayers: false },
