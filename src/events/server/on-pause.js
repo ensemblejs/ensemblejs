@@ -2,8 +2,8 @@
 
 module.exports = {
   type: 'OnPause',
-  func: function () {
-    return function () {
+  func: function OnPause () {
+    return function pauseGame () {
       return {
         ensemble: {
           paused: true

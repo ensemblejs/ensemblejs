@@ -35,9 +35,13 @@ module.exports = {
       });
     }
 
+    function newPlayer (game, sessionId) {
+      add(getMaxPlayerCount(game.mode), game.id, sessionId);
+    }
+
     function addPlayer (game, sessionId) {
       if (!exists(game.id, sessionId)) {
-        add(getMaxPlayerCount(game.mode), game.id, sessionId);
+        newPlayer(game, sessionId);
       }
 
       var connection = get(game.id, sessionId);
@@ -68,6 +72,10 @@ module.exports = {
       return config().ensemble.maxPlayers;
     }
 
+    function determineIfWaitingForPlayers (game) {
+      return (connectedCount(game.id) < getMinPlayerCount(game.mode));
+    }
+
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerId (state, socket, game) {
         var sessionId = socket.request.sessionID;
@@ -76,7 +84,7 @@ module.exports = {
 
         return {
           ensemble: {
-            waitingForPlayers: (connectedCount(game.id) < getMinPlayerCount(game.mode))
+            waitingForPlayers: determineIfWaitingForPlayers(game)
           }
         };
       };
@@ -93,7 +101,7 @@ module.exports = {
 
         return {
           ensemble: {
-            waitingForPlayers: (connectedCount(game.id) < getMinPlayerCount(game.mode))
+            waitingForPlayers: determineIfWaitingForPlayers(game)
           }
         };
       };

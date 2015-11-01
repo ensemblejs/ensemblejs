@@ -100,7 +100,7 @@ module.exports = {
 
         on().clientConnect(game, socket);
 
-        startUpdateClientLoop(game, socket.id, socket);
+        startUpdateClientLoop(game, socket.id);
       }
 
       socket.on('gameId', sendGame);
