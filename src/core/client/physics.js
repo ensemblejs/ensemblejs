@@ -40,8 +40,6 @@ module.exports = {
           callForModeWithMutation(onFrameInGame(), mutator, game, [gameState, delta]);
         }
       }
-
-      callEachPlugin(onFrameComplete());
     }
 
     function shouldRunPhysicsEngine () {
@@ -56,6 +54,8 @@ module.exports = {
       } else {
         doPaused(now);
       }
+
+      callEachPlugin(onFrameComplete());
     }
 
     var id;

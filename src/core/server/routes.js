@@ -86,7 +86,11 @@ module.exports = {
         return res.status(404).send('This game does not exist');
       }
 
-      res.render('primary.jade', { mode: game.mode });
+      res.render('primary.jade', {
+        mode: game.mode,
+        dashboard: config().ensemble.dashboard,
+        debugMode: config().debug.enabled
+      });
     }
 
     function configure (app, project) {

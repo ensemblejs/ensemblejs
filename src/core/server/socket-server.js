@@ -40,6 +40,12 @@ module.exports = {
 
       var id = setInterval(updateClient, config().server.pushUpdateFrequency);
       intervals.push(id);
+
+      define()('OnClientDisconnect', function OnClientDisconnect () {
+        return function resetLastPacketSent () {
+          lastPacket = {};
+        };
+      });
     }
 
     define()('OnOutgoingServerPacket', function OnOutgoingServerPacket () {
@@ -56,7 +62,7 @@ module.exports = {
         sessionId: socket.request.sessionID,
         address: socket.handshake.address
       };
-      logger().socket(socketInfo, 'connected');
+      logger().info(socketInfo, 'Socket Connected');
 
       socket.emit('startTime', time().present());
 
