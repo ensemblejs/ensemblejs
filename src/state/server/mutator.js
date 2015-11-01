@@ -4,22 +4,14 @@ var isObject = require('lodash').isObject;
 var isArray = require('lodash').isArray;
 var isEqual = require('lodash').isEqual;
 var merge = require('lodash').merge;
+var each = require('lodash').each;
 
 var root = {};
-function provideReadAccessToState (stateHash) {
-  return function(key) {
-    if (isObject(stateHash[key]) && !isArray(stateHash[key])) {
-      return provideReadAccessToState(stateHash[key]);
-    } else {
-      return stateHash[key];
-    }
-  };
-}
 
 module.exports = {
   type: 'StateMutator',
-  deps: ['DefinePlugin'],
-  func: function StateMutator (definePlugin) {
+  deps: ['DefinePlugin', 'Logger'],
+  func: function StateMutator (definePlugin, logger) {
 
     definePlugin()('RawStateAccess', function RawStateAccess () {
       return {
@@ -32,10 +24,33 @@ module.exports = {
       };
     });
 
+    function provideReadAccessToState (stateHash) {
+      return function(key) {
+        var parts = key.split('.');
+        var prop = stateHash;
+        each(parts, function (part) {
+          prop = prop[part];
+
+          if (prop === undefined) {
+            logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          }
+        });
+
+        if (isObject(prop) && !isArray(prop)) {
+          return provideReadAccessToState(prop);
+        } else {
+          return prop;
+        }
+      };
+    }
+
     definePlugin()('StateAccess', function () {
       return {
         for: function forGame (gameId) {
           return {
+            get: function getUsingDotString (dotString) {
+              return provideReadAccessToState(root[gameId])(dotString);
+            },
             for: function forNamespace (namespace) {
               return {
                 get: function get (key) {
@@ -45,6 +60,13 @@ module.exports = {
             },
             player: function forPlayer (playerId) {
               return {
+                for: function forNamespace (namespace) {
+                  return {
+                    get: function get (key) {
+                      return provideReadAccessToState(root[gameId].player[playerId][namespace])(key);
+                    }
+                  };
+                },
                 get: function get (key) {
                   return provideReadAccessToState(root[gameId].player[playerId])(key);
                 }

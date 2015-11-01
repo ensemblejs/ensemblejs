@@ -217,7 +217,7 @@ module.exports = {
         each(parts, function (part) {
           prop = prop[part];
 
-          if (!prop) {
+          if (prop === undefined) {
             logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
           }
         });
