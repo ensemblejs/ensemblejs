@@ -36,9 +36,7 @@ var server = {};
 var session = sinon.spy();
 
 var modes = ['arcade'];
-var logger = {
-	socket: sinon.spy()
-};
+var logger = require('../../fake/logger');
 var fakeOn = require('../../fake/on');
 var fakeTime = require('../../fake/time').at(1000);
 

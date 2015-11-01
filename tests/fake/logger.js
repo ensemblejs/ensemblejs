@@ -11,7 +11,8 @@ var logging = {
   filename: sinon.spy(),
   info: sinon.spy(),
   warn: sinon.spy(),
-  error: sinon.spy()
+  error: sinon.spy(),
+  socket: sinon.spy()
 };
 
 module.exports = logging;

@@ -32,6 +32,14 @@ describe('game routes', function () {
 					return '34242-324324';
 				}
 			},
+			Config:  {
+				ensemble: {
+					dashboard: false
+				},
+				debug: {
+					enabled: false,
+				},
+			},
 			On: fakeOn,
 			Metrics: fakeMetrics,
 			GamesList: fakeGamesList
@@ -185,7 +193,7 @@ describe('game routes', function () {
 					request.get(url('/games/34242-324324'), function (err, res) {
 						expect(res.statusCode).toEqual(200);
 						expect(res.body).toInclude('<script src="/game/js/gen/arcade.min.js">');
-						done();
+						done(err);
 					});
 				});
 			});
