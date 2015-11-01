@@ -4,6 +4,8 @@ html(lang="en")
     meta(charset="UTF-8")
     link(rel="stylesheet", href="/ensemble/css/normalize.min.css")
     link(rel="stylesheet", href="/ensemble/css/ensemble.min.css")
+    if dashboard || debugMode
+      link(rel="stylesheet", href="/ensemble/css/dashboard.min.css")
     link(rel="stylesheet", href="/game/css/game.min.css")
   body
     #paused.paused-layer

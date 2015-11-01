@@ -3,6 +3,7 @@
 require('requirish')._(module);
 var appRoot = require('app-root-path');
 var defaultsDeep = require('lodash').defaultsDeep;
+var select = require('lodash').select;
 
 function getConfig (logger) {
   var config = {};
@@ -16,7 +17,6 @@ function getConfig (logger) {
 
   config = defaultsDeep(config, require('../../config/defaults.json'));
   config.nothing = function nothing () {};
-  logger.info(config, 'Initial Configuration');
 
   function minPlayers (mode) {
     if (config[mode] && config[mode].minPlayers) {
@@ -44,8 +44,17 @@ function getConfig (logger) {
     };
   }
 
+  function anyDebugTrue () {
+    return select(config.debug, function (value) {
+      return value;
+    }).length > 0;
+  }
+
   config.minPlayers = createCheckForValidPlayerCounts(minPlayers);
   config.maxPlayers = createCheckForValidPlayerCounts(maxPlayers);
+  config.debug.enabled = anyDebugTrue();
+
+  logger.info(config, 'Initial Configuration');
 
   return config;
 }

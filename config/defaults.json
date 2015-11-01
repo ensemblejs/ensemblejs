@@ -13,7 +13,8 @@
   },
   "ensemble": {
     "minPlayers": 1,
-    "maxPlayers": 1
+    "maxPlayers": 1,
+    "dashboard": false
   },
   "logging": {
     "logLevel": "warn",
@@ -51,11 +52,12 @@
     }
   },
   "debug": {
+    "enabled": false,
     "inputOverlay": false,
     "network": false,
     "time": false,
-    "multiplayer": true,
-    "develop": true
+    "multiplayer": false,
+    "develop": false
   },
   "measure": {
     "timers": []
