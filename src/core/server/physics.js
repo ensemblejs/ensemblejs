@@ -13,7 +13,7 @@ module.exports = {
     var interval;
 
     function pausedGames (game) {
-      return state().for(game.id).for('ensemble').get('paused');
+      return state().for(game.id).get('ensemble.paused');
     }
 
     function update (delta) {
@@ -29,7 +29,7 @@ module.exports = {
           [gameState, delta]
         );
 
-        if (!state().for(game.id).for('ensemble').get('waitingForPlayers')) {
+        if (!state().for(game.id).get('ensemble.waitingForPlayers')) {
           callForModeWithMutation(
             onPhysicsFrameInGame(),
             mutator,

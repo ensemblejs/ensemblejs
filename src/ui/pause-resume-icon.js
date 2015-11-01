@@ -2,8 +2,6 @@
 
 var icon = require('../../public/partials/pause-icon.jade');
 
-function paused (state) { return state.ensemble.paused; }
-
 module.exports = {
   type: 'PauseResume',
   deps: ['On', '$', 'GameMode', 'DefinePlugin'],
@@ -31,16 +29,14 @@ module.exports = {
       }
     }
 
-    define()('OnClientReady', ['StateTrackerHelpers', 'StateTracker'], function ConnectDisconnect (trackerHelpers, tracker) {
+    define()('OnClientReady', ['StateTracker'], function ConnectDisconnect (tracker) {
 
       return function setup (dims) {
         $()('.icons').append(icon());
         reposition(dims);
 
-        var equals = trackerHelpers().equals;
-
-        tracker().onChangeTo(paused, equals(true), pause);
-        tracker().onChangeTo(paused, equals(false), resume);
+        tracker().onChangeTo('ensemble.paused', true, pause);
+        tracker().onChangeTo('ensemble.paused', false, resume);
 
         resume();
       };
