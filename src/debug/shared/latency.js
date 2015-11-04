@@ -27,15 +27,16 @@ function StateSeed () {
 
 function BeginPhysicsFrame (internalState) {
   return function updateServerTime () {
-    var SocketServer = filterInternalState(internalState, 'SocketServer');
-
-    if (SocketServer.length > 0) {
-      return {
-        ensembleDebug: {
-          latency: first(pluck(SocketServer, 'latency'))()
-        }
-      };
+    var socketServerStats = filterInternalState(internalState, 'SocketServer');
+    if (socketServerStats.length === 0) {
+      return;
     }
+
+    return {
+      ensembleDebug: {
+        latency: first(pluck(socketServerStats, 'latency'))()
+      }
+    };
   };
 }
 

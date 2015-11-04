@@ -5,10 +5,10 @@ var secondsPerMinute = 60;
 var minutesPerHour = 60;
 var secondsPerHour = secondsPerMinute * minutesPerHour;
 
-function sample (callback, frequency) {
+function createSampleFunc (callback, frequency) {
   var timeSinceLast = frequency;
 
-  return function (state, delta) {
+  return function sample (state, delta) {
     timeSinceLast += delta;
 
     if (timeSinceLast >= frequency) {
@@ -25,16 +25,16 @@ module.exports = {
         n = n || 1;
 
         function milliseconds () {
-          return sample(fx, n / millisPerSecond);
+          return createSampleFunc(fx, n / millisPerSecond);
         }
         function seconds () {
-          return sample(fx, n);
+          return createSampleFunc(fx, n);
         }
         function minutes () {
-          return sample(fx, n * secondsPerMinute);
+          return createSampleFunc(fx, n * secondsPerMinute);
         }
         function hours () {
-          return sample(fx, n * secondsPerHour);
+          return createSampleFunc(fx, n * secondsPerHour);
         }
 
         return {
@@ -52,13 +52,13 @@ module.exports = {
         return {
           timesPer: {
             second: function second () {
-              return sample(fx, 1 / i);
+              return createSampleFunc(fx, 1 / i);
             },
             minute: function minute () {
-              return sample(fx, secondsPerMinute / i);
+              return createSampleFunc(fx, secondsPerMinute / i);
             },
             hour: function hour () {
-              return sample(fx, secondsPerHour / i);
+              return createSampleFunc(fx, secondsPerHour / i);
             }
           }
         };

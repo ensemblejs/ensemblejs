@@ -12,6 +12,7 @@ module.exports = {
   type: 'BeginPhysicsFrame',
   deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
   func: function BeginPhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time, define) {
+
     var lastPacket = {};
     var playerId;
 

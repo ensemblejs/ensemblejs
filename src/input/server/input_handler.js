@@ -13,11 +13,11 @@ var parseSticks = require('../../util/input-common').parseSticks;
 module.exports = {
 	type: 'OnInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
-	func: function(actionMaps, definePlugin, mutate, logger) {
+	func: function(actionMaps, define, mutate, logger) {
 		var userInput = [];
 		var lowestInputProcessed = {};
 
-		definePlugin()('BeginPhysicsFrame', function () {
+		define()('BeginPhysicsFrame', function () {
 
 			function ProcessPendingInput (state, delta) {
 				var currentInput;
@@ -102,20 +102,20 @@ module.exports = {
 				}
 
 				if (userInput.length > lengthOfInputStackAtStart) {
-					logger().warn('More input was received than we processed.');
+					logger().warn('More input was received than processed.');
 				}
 			}
 
  			return ProcessPendingInput;
 		});
 
-		definePlugin()('LowestInputProcessed', function LowestInputProcessed () {
+		define()('LowestInputProcessed', function LowestInputProcessed () {
 			return function getFor (gameId) {
 				return lowestInputProcessed[gameId];
 			};
 		});
 
-		definePlugin()('InternalState', function () {
+		define()('InternalState', function () {
 			return {
 				OnInput: {
 					queueLength: function () { return userInput.length; },
