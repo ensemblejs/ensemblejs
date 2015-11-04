@@ -1,9 +1,9 @@
 'use strict';
 
-function StateSeed () {
+function StateSeed (config) {
   return {
     ensembleDebug: {
-      hudVisible: false
+      hudVisible: config().debug.startOpen
     }
   };
 }
@@ -50,7 +50,7 @@ module.exports = {
     }
 
     define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
-    define()('StateSeed', StateSeed);
+    define()('StateSeed', ['Config'], StateSeed);
     define()('ActionMap', ActionMap);
   }
 };

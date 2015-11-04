@@ -57,7 +57,8 @@
     "network": false,
     "time": false,
     "multiplayer": false,
-    "develop": false
+    "develop": false,
+    "startOpen": false
   },
   "measure": {
     "timers": []
