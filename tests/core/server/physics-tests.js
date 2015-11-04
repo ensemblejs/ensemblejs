@@ -4,8 +4,8 @@ var expect = require('expect');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
 
-var update1 = [['*'], sinon.spy()];
-var update2 = [['custom'], sinon.spy()];
+var update1 = sinon.spy();
+var update2 = sinon.spy();
 var update3 = [['*'], sinon.spy()];
 var update4 = [['custom'], sinon.spy()];
 var values = {
@@ -41,8 +41,8 @@ describe('the engine', function() {
 	var interval;
 
 	beforeEach(function() {
-		update1[1].reset();
-		update2[1].reset();
+		update1.reset();
+		update2.reset();
 		update3[1].reset();
 		update4[1].reset();
 
@@ -70,8 +70,8 @@ describe('the engine', function() {
 		it('should call OnPhysicsFrameA with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
 			interval = onServerStart();
-			expect(update1[1].firstCall.args[1]).toEqual(5);
-			expect(update2[1].firstCall.args[1]).toEqual(5);
+			expect(update1.firstCall.args[1]).toEqual(5);
+			expect(update2.firstCall.args[1]).toEqual(5);
 		});
 
 		describe('when waitingForPlayers', function () {
@@ -120,16 +120,16 @@ describe('the engine', function() {
 			interval = onServerStart();
 			onServerStop();
 
-			update1[1].reset();
+			update1.reset();
 			values['ensemble.paused'] = false;
 			fakeTime.present = function () { return 10100; };
 			onServerStart();
-			expect(update1[1].firstCall.args[1]).toEqual(0.1);
+			expect(update1.firstCall.args[1]).toEqual(0.1);
 		});
 
 		describe('update functions for all games', function() {
 			beforeEach(function() {
-				update1[1].reset();
+				update1.reset();
 				update3[1].reset();
 				onServerStop();
 			});
@@ -141,14 +141,13 @@ describe('the engine', function() {
 			it('should only be for every game', function () {
 				interval = onServerStart();
 
-				expect(update1[1].callCount).toEqual(3);
+				expect(update1.callCount).toEqual(3);
 				expect(update3[1].callCount).toEqual(3);
 			});
 		});
 
 		describe('update functions for specific modes', function() {
 			beforeEach(function() {
-				update2[1].reset();
 				update4[1].reset();
 				onServerStop();
 			});
@@ -160,7 +159,6 @@ describe('the engine', function() {
 			it('should only be called when the modes match', function() {
 				interval = onServerStart();
 
-				expect(update2[1].callCount).toEqual(1);
 				expect(update4[1].callCount).toEqual(1);
 			});
 		});
@@ -168,8 +166,8 @@ describe('the engine', function() {
 
 	describe('when paused', function() {
 		beforeEach(function () {
-			update1[1].reset();
-			update2[1].reset();
+			update1.reset();
+			update2.reset();
 			update3[1].reset();
 			update4[1].reset();
 		});
@@ -181,8 +179,8 @@ describe('the engine', function() {
 		it('it should not call any update functions', function() {
 			values['ensemble.paused'] = true;
 			interval = onServerStart(1);
-			expect(update1[1].called).toBe(false);
-			expect(update2[1].called).toBe(false);
+			expect(update1.called).toBe(false);
+			expect(update2.called).toBe(false);
 			expect(update3[1].called).toBe(false);
 			expect(update4[1].called).toBe(false);
 		});

@@ -42,7 +42,7 @@ onClientStart.push(trackerPlugins.deps().OnClientStart(defer(rawStateAccess)));
 onOutgoingClientPacket.push(inputQueuePlugins.deps().OnOutgoingClientPacket());
 onIncomingServerPacket.push(trackerPlugins.deps().OnIncomingServerPacket());
 onIncomingServerPacket.push(inputQueuePlugins.deps().OnIncomingServerPacket());
-beginPhysicsFrame.push(['*', processPendingInput]);
+beginPhysicsFrame.push(processPendingInput);
 endPhysicsFrame.push(trackerPlugins.deps().EndPhysicsFrame(defer(rawStateAccess)));
 endPhysicsFrame.push(inputQueuePlugins.deps().EndPhysicsFrame());
 

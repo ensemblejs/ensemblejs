@@ -32,15 +32,17 @@ module.exports = {
       var delta = (now - priorStep) / 1000;
       priorStep = now;
 
-      if (config().client.clientSidePrediction) {
-        var gameState = state().for(game.id);
-        var opts = [gameState, delta];
+      if (!config().client.clientSidePrediction) {
+        return;
+      }
 
-        callEachWithMutation(beginFrame(), mutator, game, [gameState, delta]);
+      var gameState = state().for(game.id);
+      var opts = [gameState, delta];
 
-        if (!gameState.get('ensemble.waitingForPlayers')) {
-          callForModeWithMutation(onFrame(), mutator, game, opts);
-        }
+      callEachWithMutation(beginFrame(), mutator, game, opts);
+
+      if (!gameState.get('ensemble.waitingForPlayers')) {
+        callForModeWithMutation(onFrame(), mutator, game, opts);
       }
     }
 

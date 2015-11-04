@@ -24,21 +24,13 @@ module.exports = {
         var gameState = state().for(game.id);
         var opts = [gameState, delta];
 
-        callEachWithMutation(
-          beginFrame(),
-          mutator,
-          game,
-          opts
-        );
+        callEachWithMutation(beginFrame(), mutator, game, opts);
 
-        if (!state().for(game.id).get('ensemble.waitingForPlayers')) {
-          callForModeWithMutation(
-            onFrame(),
-            mutator,
-            game,
-            opts
-          );
+        if (gameState.get('ensemble.waitingForPlayers')) {
+          return;
         }
+
+        callForModeWithMutation(onFrame(), mutator, game, opts);
       });
     }
 
@@ -53,10 +45,12 @@ module.exports = {
 
     define()('OnServerStop', function ServerPhysicsEngine () {
       return function stopEngine () {
-        if (interval) {
-          clearInterval(interval);
-          interval = null;
+        if (!interval) {
+          return;
         }
+
+        clearInterval(interval);
+        interval = null;
       };
     });
 
