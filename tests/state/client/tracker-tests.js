@@ -32,7 +32,7 @@ var logger = require('../../fake/logger');
 describe('StateTracker', function () {
 	var callback = sinon.spy();
 	var callback2 = sinon.spy();
-	var onPhysicsFrameComplete;
+	var endPhysicsFrame;
 	var onClientStart;
 	var onIncomingServerPacket;
 
@@ -41,7 +41,7 @@ describe('StateTracker', function () {
 		callback2.reset();
 		plugin.reset();
 		tracker = require(modulePath).func(defer(plugin.define), defer(logger));
-		onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
+		endPhysicsFrame = plugin.deps().EndPhysicsFrame(defer(rawStateAccess));
 		onClientStart = plugin.deps().OnClientStart(defer(rawStateAccess));
 		onIncomingServerPacket = plugin.deps().OnIncomingServerPacket();
 	});
@@ -50,7 +50,7 @@ describe('StateTracker', function () {
 		describe('when a property changes', function() {
 			beforeEach(function () {
 				forceCurrentRawState({ property: 'unchanged', a: { b: 'c'} });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onChangeOf(the('property'), callback, 'data');
 
 				callback.reset();
@@ -58,31 +58,31 @@ describe('StateTracker', function () {
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.callCount).toBe(1);
 			});
 
 			it('should not invoke the callback when the thing does not change', function () {
 				forceCurrentRawState({property: 'unchanged'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(false);
 			});
 
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual(['changed', 'unchanged', 'data']);
 			});
 
 			it('should work with dot strings', function () {
 				tracker.onChangeOf('property', callback, 'data');
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.callCount).toBe(1);
 
 				callback.reset();
 
 				tracker.onChangeOf('a.b', callback);
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.callCount).toBe(1);
 				expect(callback.firstCall.args).toEqual(['c', 'c', undefined]);
 			});
@@ -96,13 +96,13 @@ describe('StateTracker', function () {
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should pass only the new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual(['changed', undefined, 'data']);
 			});
 		});
@@ -110,26 +110,26 @@ describe('StateTracker', function () {
 		describe('when detecting a change to a particular value', function() {
 			beforeEach(function () {
 				forceCurrentRawState({property: 'unchanged', a: {b: 'c'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onChangeTo(the('property'), equals('changed'), callback, 'data');
 				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change to the correct state', function () {
 				forceCurrentRawState({property: 'other'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(false);
 			});
 
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({property: 'changed'});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual(['changed', 'unchanged', 'data']);
 			});
 
@@ -143,13 +143,13 @@ describe('StateTracker', function () {
 				callback.reset();
 				tracker.onChangeTo('property', 'something-else', callback);
 				forceCurrentRawState({property: 'something-else', a: {b: 'c'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.callCount).toBe(1);
 
 				callback.reset();
 				tracker.onChangeTo('a.b', 'd', callback);
 				forceCurrentRawState({a: {b: 'd'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.callCount).toBe(1);
 			});
 
@@ -161,7 +161,7 @@ describe('StateTracker', function () {
 				it('should support strings', function () {
 					tracker.onChangeTo(the('property'), 'something-else', callback, 'data');
 					forceCurrentRawState({property: 'something-else'});
-					onPhysicsFrameComplete();
+					endPhysicsFrame();
 
 					expect(callback.callCount).toBe(1);
 				});
@@ -169,7 +169,7 @@ describe('StateTracker', function () {
 				it('should support numbers', function () {
 					tracker.onChangeTo(the('property'), 7, callback, 'data');
 					forceCurrentRawState({property: 7});
-					onPhysicsFrameComplete();
+					endPhysicsFrame();
 
 					expect(callback.callCount).toBe(1);
 				});
@@ -177,7 +177,7 @@ describe('StateTracker', function () {
 				it('should support booleans', function () {
 					tracker.onChangeTo(the('property'), false, callback, 'data');
 					forceCurrentRawState({property: false});
-					onPhysicsFrameComplete();
+					endPhysicsFrame();
 
 					expect(callback.callCount).toBe(1);
 				});
@@ -189,26 +189,26 @@ describe('StateTracker', function () {
 		describe('when the object changes', function() {
 			beforeEach(function () {
 				forceCurrentRawState({obj: {child: 'value'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onChangeOf(the('obj'), callback, 'data');
 				callback.reset();
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change', function () {
 				forceCurrentRawState({obj: {child: 'value'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(false);
 			});
 
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
 			});
 		});
@@ -221,13 +221,13 @@ describe('StateTracker', function () {
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should pass the new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, undefined, 'data']);
 			});
 		});
@@ -235,25 +235,25 @@ describe('StateTracker', function () {
 		describe('when detecting a change to a particular value', function() {
 			beforeEach(function () {
 				forceCurrentRawState({obj: {child: 'value'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onChangeTo(the('obj'), equals({child: 'newValue'}), callback, 'data');
 			});
 
 			it('should invoke the callback when the change occurs', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(true);
 			});
 
 			it('should not invoke the callback when the thing does not change to the desired state', function () {
 				forceCurrentRawState({obj: {child: 'otherValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.calledOnce).toBe(false);
 			});
 
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
 			});
 
@@ -269,10 +269,10 @@ describe('StateTracker', function () {
 		describe('when an element is added', function() {
 			beforeEach(function() {
 				forceCurrentRawState({ numbers: [] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onElementAdded(to('numbers'), callback, 'data');
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 			});
 
 			it('should invoke the callback with the new element and the data', function() {
@@ -284,10 +284,10 @@ describe('StateTracker', function () {
 				callback.reset();
 				plugin.reset();
 				tracker = require(modulePath).func(defer(plugin.define), defer(logger));
-				onPhysicsFrameComplete = plugin.deps().OnPhysicsFrameComplete(defer(rawStateAccess));
+				endPhysicsFrame = plugin.deps().EndPhysicsFrame(defer(rawStateAccess));
 
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onElementAdded(to('numbers'), callback, 'data');
 				expect(callback.callCount).toBe(2);
 				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
@@ -305,10 +305,10 @@ describe('StateTracker', function () {
 		describe('when an element is removed', function() {
 			beforeEach(function() {
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onElementRemoved(from('numbers'), callback, 'data');
 				forceCurrentRawState({ numbers: [] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 			});
 
 			it('should invoke the callback with the removed element and the data', function() {
@@ -318,12 +318,12 @@ describe('StateTracker', function () {
 
 			it('should work with dot strings', function () {
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 
 				callback2.reset();
 				tracker.onElementRemoved('numbers', callback2);
 				forceCurrentRawState({ numbers: [] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 
 				expect(callback2.callCount).toBe(1);
 				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
@@ -333,10 +333,10 @@ describe('StateTracker', function () {
 		describe('when an element is changed', function() {
 			beforeEach(function() {
 				forceCurrentRawState({ numbers: [{id: 1, value: '6'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onElementChanged(within('numbers'), callback, 'data');
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 			});
 
 			it('should invoke the callback with the removed element and the data', function() {
@@ -347,7 +347,7 @@ describe('StateTracker', function () {
 			it('should not invoke the callback when nothing has changed', function() {
 				callback.reset();
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				expect(callback.called).toEqual(false);
 			});
 
@@ -355,10 +355,10 @@ describe('StateTracker', function () {
 				callback2.reset();
 
 				forceCurrentRawState({ numbers: [{id: 1, value: '6'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 				tracker.onElementChanged('numbers', callback2);
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}] });
-				onPhysicsFrameComplete();
+				endPhysicsFrame();
 
 				expect(callback2.callCount).toBe(1);
 				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, undefined]);
@@ -383,7 +383,7 @@ describe('StateTracker', function () {
 	describe('getting the current value', function () {
 		it('should return the current value', function() {
 			forceCurrentRawState({property: 'unchanged'});
-			onPhysicsFrameComplete();
+			endPhysicsFrame();
 			expect(plugin.deps().CurrentState().get(the('property'))).toEqual('unchanged');
 		});
 	});

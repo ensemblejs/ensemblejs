@@ -17,7 +17,7 @@ module.exports = {
 		var userInput = [];
 		var lowestInputProcessed = {};
 
-		definePlugin()('OnPhysicsFrameAlways', function () {
+		definePlugin()('BeginPhysicsFrame', function () {
 
 			function ProcessPendingInput (state, delta) {
 				var currentInput;

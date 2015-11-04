@@ -39,7 +39,7 @@ module.exports = {
       };
     }
 
-    define()('OnPhysicsFrameAlways', function OnPhysicsFrameAlways () {
+    define()('BeginPhysicsFrame', function BeginPhysicsFrame () {
       return updateTime;
     });
 

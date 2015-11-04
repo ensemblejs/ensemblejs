@@ -21,7 +21,7 @@ var sut = makeTestible('core/shared/delayed-jobs', {
 	})
 });
 var manager = sut[0];
-var onPhysicsFrame = sut[1].OnPhysicsFrameInGame();
+var onPhysicsFrame = sut[1].OnPhysicsFrame();
 currentState = {
 	ensemble: {
 		jobs: []

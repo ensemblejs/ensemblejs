@@ -25,7 +25,7 @@ function StateSeed () {
   };
 }
 
-function OnPhysicsFrameAlways (internalState) {
+function BeginPhysicsFrame (internalState) {
   return function updateServerTime () {
     var SocketServer = filterInternalState(internalState, 'SocketServer');
 
@@ -109,7 +109,7 @@ module.exports = {
     }
 
     define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
-    define()('OnPhysicsFrameAlways', ['InternalState'], OnPhysicsFrameAlways);
+    define()('BeginPhysicsFrame', ['InternalState'], BeginPhysicsFrame);
     define()('StateSeed', StateSeed);
   }
 };

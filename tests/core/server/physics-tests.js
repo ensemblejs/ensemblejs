@@ -47,8 +47,8 @@ describe('the engine', function() {
 		update4[1].reset();
 
 		var sut = makeTestible('core/server/physics', {
-			OnPhysicsFrameAlways: [update1, update2],
-			OnPhysicsFrameInGame: [update3, update4],
+			BeginPhysicsFrame: [update1, update2],
+			OnPhysicsFrame: [update3, update4],
 			GamesList: gamesList,
 			Config: config,
 			Time: fakeTime,

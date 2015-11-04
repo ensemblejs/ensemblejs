@@ -15,7 +15,7 @@ module.exports = {
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
 	func: function ProcessPendingInput (actionMaps, define, mutate, logger) {
 
-		define()('OnPhysicsFrameAlways', ['InputQueue'], function ProcessPendingInput (inputQueue) {
+		define()('BeginPhysicsFrame', ['InputQueue'], function ProcessPendingInput (inputQueue) {
 
 			return function processPendingInput (state, delta) {
 				var currentInput;

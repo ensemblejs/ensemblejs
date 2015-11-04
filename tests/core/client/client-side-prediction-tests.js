@@ -16,9 +16,9 @@ var logger = require('../../fake/logger');
 var onClientStart = [];
 var onOutgoingClientPacket = [];
 var onIncomingServerPacket = [];
-var onPhysicsFrameAlways = [];
-var onPhysicsFrameInGame = [];
-var onPhysicsFrameComplete = [];
+var beginPhysicsFrame = [];
+var onPhysicsFrame = [];
+var endPhysicsFrame = [];
 var actionMap = [];
 var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
 var dimensions = {};
@@ -32,7 +32,7 @@ var mode = 'game';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
-var processPendingInput = processPendingInputPlugins.deps().OnPhysicsFrameAlways(defer(inputQueue));
+var processPendingInput = processPendingInputPlugins.deps().BeginPhysicsFrame(defer(inputQueue));
 
 var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
@@ -42,9 +42,9 @@ onClientStart.push(trackerPlugins.deps().OnClientStart(defer(rawStateAccess)));
 onOutgoingClientPacket.push(inputQueuePlugins.deps().OnOutgoingClientPacket());
 onIncomingServerPacket.push(trackerPlugins.deps().OnIncomingServerPacket());
 onIncomingServerPacket.push(inputQueuePlugins.deps().OnIncomingServerPacket());
-onPhysicsFrameAlways.push(['*', processPendingInput]);
-onPhysicsFrameComplete.push(trackerPlugins.deps().OnPhysicsFrameComplete(defer(rawStateAccess)));
-onPhysicsFrameComplete.push(inputQueuePlugins.deps().OnPhysicsFrameComplete());
+beginPhysicsFrame.push(['*', processPendingInput]);
+endPhysicsFrame.push(trackerPlugins.deps().EndPhysicsFrame(defer(rawStateAccess)));
+endPhysicsFrame.push(inputQueuePlugins.deps().EndPhysicsFrame());
 
 var clientState = {
   get: function () {return false;}
@@ -61,7 +61,7 @@ var config = {
   }
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(onPhysicsFrameAlways), defer(onPhysicsFrameInGame), defer(onPhysicsFrameComplete), defer(mutator), defer(stateAccess), defer(mode), defer(config));
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beginPhysicsFrame), defer(onPhysicsFrame), defer(endPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(config));
 var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
 
 function tracking (state) { return state.namespace.tracking; }
@@ -86,7 +86,7 @@ function gameLogic (state) {
   };
 }
 
-describe('CSP: after on OnPhysicsFrameComplete', function () {
+describe('CSP: after on EndPhysicsFrame', function () {
   beforeEach(function () {
     var initialState = {
       ensemble: { waitingForPlayers: false },
@@ -127,13 +127,13 @@ describe('CSP: after on OnPhysicsFrameComplete', function () {
 
   describe('when game logic exists ', function () {
     beforeEach(function () {
-      onPhysicsFrameInGame.push(['*', gameLogic]);
+      onPhysicsFrame.push(['*', gameLogic]);
       startPhysicsEngine();
     });
 
     afterEach(function () {
       stopPhysicsEngine();
-      onPhysicsFrameInGame.pop();
+      onPhysicsFrame.pop();
     });
 
     it('should apply the changes of the game logic to the last known server state', function () {

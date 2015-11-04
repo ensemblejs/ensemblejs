@@ -21,7 +21,7 @@ module.exports = {
       };
     });
 
-    define()('OnPhysicsFrameComplete', function OnPhysicsFrameComplete () {
+    define()('EndPhysicsFrame', function EndPhysicsFrame () {
       return function removeInputHandledByServer () {
         inputQueue = select(inputQueue, inputNotProcessedByServer);
       };

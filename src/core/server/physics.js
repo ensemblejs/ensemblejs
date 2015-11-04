@@ -6,8 +6,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['OnPhysicsFrameAlways', 'OnPhysicsFrameInGame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time'],
-  func: function ServerPhysicsEngine (onPhysicsFrameAlways, onPhysicsFrameInGame, state, mutator, games, config, define, time) {
+  deps: ['BeginPhysicsFrame', 'OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time'],
+  func: function ServerPhysicsEngine (beginFrame, onFrame, state, mutator, games, config, define, time) {
 
     var priorStepTime = time().present();
     var interval;
@@ -23,7 +23,7 @@ module.exports = {
         var gameState = state().for(game.id);
 
         callForModeWithMutation(
-          onPhysicsFrameAlways(),
+          beginFrame(),
           mutator,
           game,
           [gameState, delta]
@@ -31,7 +31,7 @@ module.exports = {
 
         if (!state().for(game.id).get('ensemble.waitingForPlayers')) {
           callForModeWithMutation(
-            onPhysicsFrameInGame(),
+            onFrame(),
             mutator,
             game,
             [gameState, delta]

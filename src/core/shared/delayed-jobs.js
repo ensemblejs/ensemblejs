@@ -33,7 +33,7 @@ module.exports = {
       return includes(toCancel, job.key);
     }
 
-    define()('OnPhysicsFrameInGame', function DelayedJobs () {
+    define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (state, dt) {
         var jobs = state.for('ensemble').get('jobs');
         var gameId = state.for('ensemble').get('gameId');

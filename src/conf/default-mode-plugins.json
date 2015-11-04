@@ -8,7 +8,6 @@
     "OnPause",
     "OnClientReady",
     "OnResume",
-    "OnPhysicsFrameAlways",
-    "OnPhysicsFrameInGame",
+    "OnPhysicsFrame",
     "StateSeed"
 ]

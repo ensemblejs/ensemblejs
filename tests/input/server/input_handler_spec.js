@@ -93,7 +93,7 @@ describe('Input Bindings', function() {
 		}];
 
 		newUserInput = require('../../../src/input/server/input_handler.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
-		update = plugin.deps().OnPhysicsFrameAlways();
+		update = plugin.deps().BeginPhysicsFrame();
 	});
 
 	afterEach(function () {
@@ -144,7 +144,7 @@ describe('Input Bindings', function() {
 			beforeEach(function() {
 				newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
-				update = plugin.deps().OnPhysicsFrameAlways();
+				update = plugin.deps().BeginPhysicsFrame();
 
 				mutator.reset();
 			});
