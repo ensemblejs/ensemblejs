@@ -1,8 +1,9 @@
-  'use strict';
+'use strict';
 
 var each = require('lodash').each;
 var reject = require('lodash').reject;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
+var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnServerStart',
@@ -21,12 +22,13 @@ module.exports = {
 
       each(running, function callUpdateOnEach (game) {
         var gameState = state().for(game.id);
+        var opts = [gameState, delta];
 
-        callForModeWithMutation(
+        callEachWithMutation(
           beginFrame(),
           mutator,
           game,
-          [gameState, delta]
+          opts
         );
 
         if (!state().for(game.id).get('ensemble.waitingForPlayers')) {
@@ -34,7 +36,7 @@ module.exports = {
             onFrame(),
             mutator,
             game,
-            [gameState, delta]
+            opts
           );
         }
       });

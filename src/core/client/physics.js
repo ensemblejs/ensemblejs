@@ -3,6 +3,7 @@
 var paused = require('../../util/state').paused;
 var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
+var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnClientReady',
@@ -33,11 +34,12 @@ module.exports = {
 
       if (config().client.clientSidePrediction) {
         var gameState = state().for(game.id);
+        var opts = [gameState, delta];
 
-        callForModeWithMutation(beginFrame(), mutator, game, [gameState, delta]);
+        callEachWithMutation(beginFrame(), mutator, game, [gameState, delta]);
 
-        if (!state().for(game.id).for('ensemble').get('waitingForPlayers')) {
-          callForModeWithMutation(onFrame(), mutator, game, [gameState, delta]);
+        if (!gameState.get('ensemble.waitingForPlayers')) {
+          callForModeWithMutation(onFrame(), mutator, game, opts);
         }
       }
     }
