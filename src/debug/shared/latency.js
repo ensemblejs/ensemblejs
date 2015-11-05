@@ -25,7 +25,7 @@ function StateSeed () {
   };
 }
 
-function BeginPhysicsFrame (internalState) {
+function BeforePhysicsFrame (internalState) {
   return function updateServerTime () {
     var socketServerStats = filterInternalState(internalState, 'SocketServer');
     if (socketServerStats.length === 0) {
@@ -110,7 +110,7 @@ module.exports = {
     }
 
     define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
-    define()('BeginPhysicsFrame', ['InternalState'], BeginPhysicsFrame);
+    define()('BeforePhysicsFrame', ['InternalState'], BeforePhysicsFrame);
     define()('StateSeed', StateSeed);
   }
 };

@@ -1,10 +1,10 @@
 [
   "$",
-  "BeginPhysicsFrame",
+  "AfterPhysicsFrame",
+  "BeforePhysicsFrame",
   "Config",
   "CurrentServerState",
   "CurrentState",
-  "EndPhysicsFrame",
   "InputCapture",
   "InputQueue",
   "On",

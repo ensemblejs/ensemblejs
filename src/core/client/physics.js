@@ -7,8 +7,8 @@ var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeginPhysicsFrame', 'OnPhysicsFrame', 'EndPhysicsFrame', 'StateMutator', 'StateAccess', 'GameMode', 'Config'],
-  func: function PhysicsLoop (clientState, serverState, define, time, beginFrame, onFrame, endFrame, mutator, state, mode, config) {
+  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'GameMode', 'Config'],
+  func: function PhysicsLoop (clientState, serverState, define, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config) {
     var priorStep = time().present();
 
     var game = {
@@ -39,7 +39,7 @@ module.exports = {
       var gameState = state().for(game.id);
       var opts = [gameState, delta];
 
-      callEachWithMutation(beginFrame(), mutator, game.id, opts);
+      callEachWithMutation(beforeFrame(), mutator, game.id, opts);
 
       if (!gameState.get('ensemble.waitingForPlayers')) {
         callForModeWithMutation(onFrame(), mutator, game, opts);
@@ -59,7 +59,7 @@ module.exports = {
         doPaused(now);
       }
 
-      callEachPlugin(endFrame());
+      callEachPlugin(afterFrame());
     }
 
     var id;

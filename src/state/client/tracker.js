@@ -178,7 +178,7 @@ module.exports = {
       };
     });
 
-    define()('EndPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
 
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());

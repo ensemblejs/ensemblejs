@@ -39,7 +39,7 @@ module.exports = {
       };
     }
 
-    define()('BeginPhysicsFrame', function BeginPhysicsFrame () {
+    define()('BeforePhysicsFrame', function BeforePhysicsFrame () {
       return updateTime;
     });
 
