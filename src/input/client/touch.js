@@ -21,7 +21,7 @@ module.exports = {
             id: touch.identifier,
             x: x,
             y: y,
-            force: touch.webkitForce || 1
+            force: touch.force || touch.webkitForce || 1
           });
         });
       });
@@ -34,7 +34,7 @@ module.exports = {
             id: touch.identifier,
             x: x,
             y: y,
-            force: touch.webkitForce || 1
+            force: touch.force || touch.webkitForce || 1
           });
         });
       });

@@ -81,6 +81,24 @@ describe('the touch input capture plugin', function () {
 				expect(touch().touches[0].y).toEqual(20);
 			});
 
+			it('should use the touch force if it is available', function () {
+				fake$.savedEvents().touchstart[0]({
+					touches: [{
+						identifier: 1,
+						clientY: 54,
+						clientX: 45,
+						target: {
+							offsetLeft: 100,
+							offsetTop: 34
+						},
+						force: 0.2,
+						webkitForce: 0.5
+					}]
+				});
+
+				expect(touch().touches[0].force).toEqual(0.2);
+			});
+
 			it('should use the webkit touch force if it is available', function () {
 				fake$.savedEvents().touchstart[0]({
 					touches: [{
@@ -132,6 +150,24 @@ describe('the touch input capture plugin', function () {
 
 				expect(touch().touches[0].x).toEqual(-55);
 				expect(touch().touches[0].y).toEqual(20);
+			});
+
+			it('should use the touch force if it is available', function() {
+				fake$.savedEvents().touchmove[0]({
+					touches: [{
+						identifier: 1,
+						clientY: 54,
+						clientX: 45,
+						target: {
+							offsetLeft: 100,
+							offsetTop: 34
+						},
+						force: 0.2,
+						webkitForce: 0.5
+					}]
+				});
+
+				expect(touch().touches[0].force).toEqual(0.2);
 			});
 
 			it('should use the webkit touch force if it is available', function() {
