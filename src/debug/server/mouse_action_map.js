@@ -27,17 +27,6 @@ function RouteAllInput (config) {
     };
   }
 
-  function updateState (state, x, y) {
-    return {
-      ensembleDebug: {
-        mouse: {
-          x: x,
-          y: y
-        }
-      }
-    };
-  }
-
   if (!config().debug.inputOverlay) {
     return {};
   }
@@ -54,8 +43,7 @@ function RouteAllInput (config) {
     tertiary: [
       {target: mouseDown('tertiary')},
       {target: mouseUp('tertiary'), onRelease: true}
-    ],
-    cursor: [{target: updateState}]
+    ]
   };
 }
 
