@@ -4,7 +4,7 @@ var reject = require('lodash').reject;
 var select = require('lodash').select;
 
 function RouteAllInput (config) {
-  if (!config().debug.inputOverlay) {
+  if (!config().debug.input) {
     return {};
   }
 

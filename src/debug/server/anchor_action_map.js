@@ -31,7 +31,7 @@ function keyUp (state) {
 }
 
 function MapAllKeys (config) {
-  if (!config().debug.inputOverlay) {
+  if (!config().debug.input) {
     return {};
   }
 

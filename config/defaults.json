@@ -54,7 +54,7 @@
   },
   "debug": {
     "enabled": false,
-    "inputOverlay": false,
+    "input": false,
     "network": false,
     "time": false,
     "multiplayer": false,

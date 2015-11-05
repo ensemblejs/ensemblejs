@@ -1,16 +1,12 @@
 'use strict';
 
 function DebugInputOverlay (config) {
-  if (!config().debug.inputOverlay) {
+  if (!config().debug.input) {
     return {};
   }
 
   return {
     ensembleDebug: {
-      mouse: {
-        x: 0,
-        y: 0
-      },
       mouseButtons: {
         primary: false,
         secondary: false,

@@ -27,7 +27,7 @@ function RouteAllInput (config) {
     };
   }
 
-  if (!config().debug.inputOverlay) {
+  if (!config().debug.input) {
     return {};
   }
 
