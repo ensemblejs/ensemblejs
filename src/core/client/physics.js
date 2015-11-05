@@ -39,7 +39,7 @@ module.exports = {
       var gameState = state().for(game.id);
       var opts = [gameState, delta];
 
-      callEachWithMutation(beginFrame(), mutator, game, opts);
+      callEachWithMutation(beginFrame(), mutator, game.id, opts);
 
       if (!gameState.get('ensemble.waitingForPlayers')) {
         callForModeWithMutation(onFrame(), mutator, game, opts);

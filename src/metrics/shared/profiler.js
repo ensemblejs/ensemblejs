@@ -42,7 +42,6 @@ module.exports = {
       });
     }
 
-    //TODO: pull timer out into it's own file
     function getPercentile(percentile, values) {
       var i = (percentile/100) * values.length;
 
