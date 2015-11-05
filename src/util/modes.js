@@ -16,19 +16,19 @@ function filterPluginsByMode (plugins, mode) {
   });
 }
 
-function callEachPlugin (plugins, args) {
-  args = args || [];
+function callEachPlugin (plugins, params) {
+  params = params || [];
 
   each(plugins, function each (callback) {
-    callback.apply(undefined, args);
+    callback.apply(undefined, params);
   });
 }
 
-function callEachWithMutation (plugins, mutator, gameId, args) {
-  args = args || [];
+function callEachWithMutation (plugins, mutator, gameId, params) {
+  params = params || [];
 
   each(plugins, function eachWithMutation (callback) {
-    mutator()(gameId, callback.apply(undefined, args));
+    mutator()(gameId, callback.apply(undefined, params));
   });
 }
 
