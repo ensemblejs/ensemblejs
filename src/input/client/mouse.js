@@ -30,9 +30,9 @@ module.exports = {
     function press (key, alt, ctrl, shift) {
       keys[key] = [];
 
-      if (alt) { singlePressKeys[key].push('alt'); }
-      if (ctrl) { singlePressKeys[key].push('ctrl'); }
-      if (shift) { singlePressKeys[key].push('shift'); }
+      if (alt) { keys[key].push('alt'); }
+      if (ctrl) { keys[key].push('ctrl'); }
+      if (shift) { keys[key].push('shift'); }
     }
 
     function release (key) {
