@@ -17,21 +17,21 @@ module.exports = {
     ];
 
     function shouldMeasureKey (key) {
-      return includes(exact, key) || select(wildcard, function(timer) {
-          return startsWith(key, timer);
+      return includes(exact, key) || select(wildcard, function(t) {
+          return startsWith(key, t);
         }).length > 0;
     }
 
     function removeTimersNotConfigured () {
       var configuredTimers = config().measure.timers;
 
-      exact = select(configuredTimers, function(timer) {
-        return !includes(timer, '*');
+      exact = select(configuredTimers, function(t) {
+        return !includes(t, '*');
       });
-      wildcard = select(configuredTimers, function(timer) {
-        return includes(timer, '*');
-      }).map(function(timer) {
-        return timer.replace('*', '');
+      wildcard = select(configuredTimers, function(t) {
+        return includes(t, '*');
+      }).map(function(t) {
+        return t.replace('*', '');
       });
 
       timers = select(timers, function(timerData) {

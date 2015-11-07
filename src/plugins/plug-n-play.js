@@ -51,8 +51,9 @@ function setModesForPlugin (plugin, type) {
 
 function createTimer (prefix, plugin, func) {
   var profiler = getIfExists('Profiler');
+  var timer = getIfExists('Timer');
 
-  if (profiler) {
+  if (profiler && timer) {
     func = func || 'anonymous';
     return profiler.timer(prefix, plugin, func, 100);
   } else {
@@ -61,7 +62,7 @@ function createTimer (prefix, plugin, func) {
 }
 
 function isNotProfileExclusion(type) {
-  return type !== 'Time';
+  return type !== 'Time' && type !== 'Timer';
 }
 
 function wrapOriginalFunction (original, key, prefix, type) {
