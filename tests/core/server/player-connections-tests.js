@@ -58,6 +58,18 @@ describe('players connecting', function () {
       });
     });
 
+    describe('when the same player reconnects after disconnecting', function () {
+
+      beforeEach(function () {
+        onClientDisconnect(undefined, player1, game1);
+        onClientConnect(undefined, player1, game1);
+      });
+
+      it('should not add a new player connection', function () {
+        expect(connectedCount(game1.id)).toEqual(1);
+      });
+    });
+
     describe('when the maxPlayers is exceeded', function () {
       beforeEach(function () {
         onClientConnect(undefined, player1, game1);

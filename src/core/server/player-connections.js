@@ -35,13 +35,20 @@ module.exports = {
       });
     }
 
-    function newPlayer (game, sessionId) {
+    function createNewPlayer (game, sessionId) {
       add(getMaxPlayerCount(game.mode), game.id, sessionId);
+    }
+
+    function markPlayerAsOnline (gameId, sessionId) {
+      var connection = get(gameId, sessionId);
+      connection.status = 'online';
     }
 
     function addPlayer (game, sessionId) {
       if (!exists(game.id, sessionId)) {
-        newPlayer(game, sessionId);
+        createNewPlayer(game, sessionId);
+      } else {
+        markPlayerAsOnline(game.id, sessionId);
       }
 
       var connection = get(game.id, sessionId);
