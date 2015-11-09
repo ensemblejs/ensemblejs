@@ -4,8 +4,9 @@ var each = require('lodash').each;
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
-  func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
+  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin', 'Profiler'],
+  func: function RenderLoop (window, onRenderFrame, currentState, time, define, profiler) {
+    var fps = profiler().timer('ensemblejs', 'render', 'fps', 1);
     var disconnected = false;
     var priorStep = time().present();
 
@@ -14,6 +15,16 @@ module.exports = {
     define()('OnDisconnect', function () {
       return function stopRenderLoop () {
         disconnected = true;
+      };
+    });
+
+    define()('InternalState', function TrackLatency () {
+      return {
+        RenderLoop: {
+          fps: function frameRateResults () {
+            return fps.results();
+          }
+        }
       };
     });
 
@@ -35,7 +46,7 @@ module.exports = {
       if (currentState().get(paused)) {
         doPaused();
       } else {
-        doRunning();
+        fps.track(doRunning);
       }
 
       if (!disconnected){

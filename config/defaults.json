@@ -53,13 +53,14 @@
     }
   },
   "debug": {
+    "core": false,
+    "develop": false,
     "enabled": false,
     "input": false,
-    "network": false,
-    "time": false,
     "multiplayer": false,
-    "develop": false,
-    "startOpen": false
+    "network": false,
+    "startOpen": false,
+    "time": false
   },
   "measure": {
     "timers": []

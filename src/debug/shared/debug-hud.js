@@ -8,7 +8,7 @@ function StateSeed (config) {
   };
 }
 
-function OnClientReady ($, tracker) {
+function OnClientStart ($, tracker) {
   function hide () {
     $()('#debug').hide();
   }
@@ -49,7 +49,7 @@ module.exports = {
       return;
     }
 
-    define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
+    define()('OnClientStart', ['$', 'StateTracker'], OnClientStart);
     define()('StateSeed', ['Config'], StateSeed);
     define()('ActionMap', ActionMap);
   }

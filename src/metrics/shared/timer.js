@@ -4,7 +4,11 @@ var sortBy = require('lodash').sortBy;
 var first = require('lodash').first;
 var last = require('lodash').last;
 
-function getPercentile(percentile, values) {
+function getPercentile (percentile, values) {
+  if (values.length === 0) {
+    return 0;
+  }
+
   var i = (percentile/100) * values.length;
 
   if (Math.floor(i) === i) {
@@ -12,6 +16,21 @@ function getPercentile(percentile, values) {
   } else {
     return values[Math.floor(i)];
   }
+}
+
+function calculateRate (samples, veryFirstTime, now) {
+  if (samples.length === 0) {
+    return 0;
+  }
+
+  var totalElapsed = (now - veryFirstTime) / 1000;
+  if (totalElapsed <= 0) {
+    return 0;
+  }
+
+  console.log(totalElapsed);
+
+  return samples.length / totalElapsed;
 }
 
 module.exports = {
@@ -24,9 +43,12 @@ module.exports = {
       var totalDuration = 0;
       var counter = 0;
       var startTime;
+      var veryFirstTime;
 
       function start () {
         startTime = time().present();
+
+        veryFirstTime = veryFirstTime || startTime;
       }
 
       function stop () {
@@ -58,15 +80,23 @@ module.exports = {
           '50th': getPercentile(0.5, samples),
           '75th': getPercentile(0.75, samples),
           '95th': getPercentile(0.95, samples),
-          '99th': getPercentile(0.99, samples)
+          '99th': getPercentile(0.99, samples),
+          rate: calculateRate(samples, veryFirstTime, time().present())
         };
+      }
+
+      function track (f) {
+        start();
+        f();
+        stop();
       }
 
       var timerObject = {
         fromHere: start,
         toHere: stop,
         manual: add,
-        results: results
+        results: results,
+        track: track
       };
 
       return timerObject;

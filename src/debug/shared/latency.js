@@ -106,7 +106,7 @@ module.exports = {
   deps: ['Config', 'DefinePlugin'],
   func: function Latency (config, define) {
     if (!config().debug.network) {
-      return config().nothing;
+      return;
     }
 
     define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
