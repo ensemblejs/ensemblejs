@@ -12,6 +12,15 @@ var physicsEnginePlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var fakeTime = require('../../fake/time').at(2000);
 var logger = require('../../fake/logger');
+var profiler = {
+  timer: function () {
+    return {
+      track: function(f) {
+        f();
+      }
+    };
+  }
+};
 
 var onClientStart = [];
 var onOutgoingClientPacket = [];
@@ -61,7 +70,7 @@ var config = {
   }
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(config));
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(config), defer(profiler));
 var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
 
 function tracking (state) { return state.namespace.tracking; }

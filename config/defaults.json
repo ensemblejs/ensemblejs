@@ -53,9 +53,9 @@
     }
   },
   "debug": {
-    "core": false,
     "develop": false,
     "enabled": false,
+    "fps": false,
     "input": false,
     "multiplayer": false,
     "network": false,

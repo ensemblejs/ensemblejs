@@ -34,6 +34,7 @@ var config = {
 	}
 };
 var fakeTime = require('../../fake/time').at(0);
+var profiler = require('../../fake/profiler');
 
 describe('the engine', function() {
 	var onServerStart;
@@ -52,7 +53,8 @@ describe('the engine', function() {
 			GamesList: gamesList,
 			Config: config,
 			Time: fakeTime,
-			StateAccess: state
+			StateAccess: state,
+			Profiler: profiler
 		});
 		onServerStart = sut[0];
 		onServerStop = sut[1].OnServerStop;

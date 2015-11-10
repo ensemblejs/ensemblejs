@@ -4,6 +4,15 @@ var expect = require('expect');
 var sinon = require('sinon');
 var defer = require('../../support').defer;
 var plugins = require('../../support').plugin();
+var profiler = {
+  timer: function () {
+    return {
+      track: function(f) {
+        f();
+      }
+    };
+  }
+};
 
 var window = {
   requestAnimationFrame: sinon.spy()
@@ -33,7 +42,7 @@ describe('the update loop', function () {
     beforeEach(function () {
       window.requestAnimationFrame.reset();
 
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
 
       stopUpdateLoop = plugins.deps().OnDisconnect();
 
@@ -51,7 +60,7 @@ describe('the update loop', function () {
 
   describe('on OnDisconnect', function () {
     beforeEach(function () {
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
 
       stopUpdateLoop = plugins.deps().OnDisconnect();
       stopUpdateLoop();
@@ -70,7 +79,7 @@ describe('the update loop', function () {
 
       on.renderFrame.reset();
 
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
       stopUpdateLoop = plugins.deps().OnDisconnect();
 
       startUpdateLoop();

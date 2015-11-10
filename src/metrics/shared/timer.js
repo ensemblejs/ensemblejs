@@ -18,7 +18,7 @@ function getPercentile (percentile, values) {
   }
 }
 
-function calculateRate (samples, veryFirstTime, now) {
+function calculateRate (samples, veryFirstTime, now, frequency) {
   if (samples.length === 0) {
     return 0;
   }
@@ -28,7 +28,7 @@ function calculateRate (samples, veryFirstTime, now) {
     return 0;
   }
 
-  return samples.length / totalElapsed;
+  return (samples.length / totalElapsed) * frequency;
 }
 
 module.exports = {
@@ -79,7 +79,7 @@ module.exports = {
           '75th': getPercentile(0.75, samples),
           '95th': getPercentile(0.95, samples),
           '99th': getPercentile(0.99, samples),
-          rate: calculateRate(samples, veryFirstTime, time().present())
+          rate: calculateRate(samples, veryFirstTime, time().present(), frequency)
         };
       }
 
