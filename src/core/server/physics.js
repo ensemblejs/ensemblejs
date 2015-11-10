@@ -7,9 +7,9 @@ var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, state, mutator, games, config, define, time) {
-
+  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time', 'Profiler'],
+  func: function ServerPhysicsEngine (beforeFrame, onFrame, state, mutator, games, config, define, time, profiler) {
+    var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
     var priorStepTime = time().present();
     var interval;
 
@@ -35,12 +35,16 @@ module.exports = {
     }
 
     function step () {
+      rate.fromHere();
+
       var now = time().present();
       var dt = (now - priorStepTime) / 1000;
 
       update(dt);
 
       priorStepTime = now;
+
+      rate.toHere();
     }
 
     define()('OnServerStop', function ServerPhysicsEngine () {
@@ -57,7 +61,8 @@ module.exports = {
     define()('InternalState', function ServerPhysicsEngine () {
       return {
         ServerSideEngine: {
-          now: function () { return time().present(); }
+          now: function () { return time().present(); },
+          callRate: function callRate () { return rate.results(); }
         }
       };
     });

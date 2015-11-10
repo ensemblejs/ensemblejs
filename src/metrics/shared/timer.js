@@ -28,8 +28,6 @@ function calculateRate (samples, veryFirstTime, now) {
     return 0;
   }
 
-  console.log(totalElapsed);
-
   return samples.length / totalElapsed;
 }
 
@@ -85,9 +83,11 @@ module.exports = {
         };
       }
 
-      function track (f) {
+      function track (f, args) {
+        args = args || [];
+
         start();
-        f();
+        f.apply(undefined, args);
         stop();
       }
 

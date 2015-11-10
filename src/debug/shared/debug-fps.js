@@ -2,103 +2,79 @@
 
 var first = require('lodash').first;
 var pluck = require('lodash').pluck;
-var numeral = require('numeral');
 var filterInternalState = require('../../util/internal-state').filter;
+var defaultProfilerResults = require('../../util/profiler').defaultProfilerResults;
+var updateProfilerResults = require('../../util/profiler').updateProfilerResults;
 
 function StateSeed () {
   return {
     ensembleDebug: {
-      fps: {
-        namespace: 'ensemblejs',
-        plugin: 'render-loop',
-        name: 'fps',
-        frequency: 0,
-        samples: 0,
-        min: 0,
-        max: 0,
-        '50th': 0,
-        '75th': 0,
-        '95th': 0,
-        '99th': 0
-      }
+      fps: defaultProfilerResults('ensemblejs', 'render-loop', 'fps'),
+      clientPhysicsCallRate: defaultProfilerResults('ensemblejs', 'client-physics', 'call-rate'),
+      serverPhysicsCallRate: defaultProfilerResults('ensemblejs', 'server-physics', 'call-rate')
     }
   };
 }
 
 function BeforePhysicsFrame (internalState) {
-  return function updateServerTime () {
+  return function updateData () {
+    var ensembleDebug = {};
+
     var renderLoopStats = filterInternalState(internalState, 'RenderLoop');
-    if (renderLoopStats.length === 0) {
-      return;
+    if (renderLoopStats.length !== 0) {
+      ensembleDebug.fps = first(pluck(renderLoopStats, 'fps'))();
+    }
+
+    var clientPhysics = filterInternalState(internalState, 'PhysicsLoop');
+    if (clientPhysics.length > 0) {
+      ensembleDebug.clientPhysicsCallRate = first(pluck(clientPhysics, 'callRate'))();
+    }
+
+    var serverPhysics = filterInternalState(internalState, 'ServerSideEngine');
+    if (serverPhysics.length > 0) {
+      ensembleDebug.serverPhysicsCallRate = first(pluck(serverPhysics, 'callRate'))();
     }
 
     return {
-      ensembleDebug: {
-        fps: first(pluck(renderLoopStats, 'fps'))()
-      }
+      ensembleDebug: ensembleDebug
     };
   };
 }
 
 function OnClientReady ($, tracker) {
-  function updateFps (fps) {
-    $()('#debug-fps-rate .value').text(numeral(fps.rate).format('0'));
-    $()('#debug-fps-samples .value').text(numeral(fps.samples).format('0,0'));
-    $()('#debug-fps-min .value').text(numeral(fps.min).format('0.00'));
-    $()('#debug-fps-max .value').text(numeral(fps.max).format('0.00'));
-    $()('#debug-fps-50th .value').text(numeral(fps['50th']).format('0.00'));
-    $()('#debug-fps-75th .value').text(numeral(fps['75th']).format('0.00'));
-    $()('#debug-fps-95th .value').text(numeral(fps['95th']).format('0.00'));
-    $()('#debug-fps-99th .value').text(numeral(fps['99th']).format('0.00'));
+  function updateFps (results) {
+    updateProfilerResults($, 'debug-fps', results);
+  }
+
+  function updateClientPhysicsLoop (results) {
+    updateProfilerResults($, 'debug-client-physics', results);
+  }
+
+  function updateServerPhysicsLoop (results) {
+    updateProfilerResults($, 'debug-server-physics', results);
   }
 
   return function setupDebugOverlay () {
-    var frame = require('../../../public/partials/dashboard/frame-square-medium.jade');
-    var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+    var profiler = require('../../../public/partials/dashboard/profiler.jade');
 
-    $()('#debug').append(frame({id: 'debug-fps'}));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-rate',
+    $()('#debug').append(profiler({
+      id: 'debug-fps',
       title: 'FPS'
     }));
 
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-samples',
-      title: 'Samples',
-      value: '0'
+    $()('#debug').append(profiler({
+      id: 'debug-client-physics',
+      title: 'Client Physics'
     }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-min',
-      title: 'Min (ms)',
-      value: '0'
-    }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-max',
-      title: 'Max (ms)',
-      value: '0'
-    }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-50th',
-      title: '50th (ms)',
-      value: '0'
-    }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-75th',
-      title: '75th (ms)',
-      value: '0'
-    }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-95th',
-      title: '95th (ms)',
-      value: '0'
-    }));
-    $()('#debug-fps').append(rectSmall({
-      id: 'debug-fps-99th',
-      title: '99th (ms)',
-      value: '0'
+
+    $()('#debug').append(profiler({
+      id: 'debug-server-physics',
+      title: 'Server Physics'
     }));
 
     tracker().onChangeOf('ensembleDebug.fps', updateFps);
+    tracker().onChangeOf('ensembleDebug.clientPhysicsCallRate', updateClientPhysicsLoop);
+    tracker().onChangeOf('ensembleDebug.serverPhysicsCallRate', updateServerPhysicsLoop);
   };
 }
 
