@@ -96,9 +96,9 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
-        socket.emit('initialState', rawStateAccess().for(game.id));
-
         on().clientConnect(game, socket);
+
+        socket.emit('initialState', rawStateAccess().for(game.id));
 
         startUpdateClientLoop(game, socket.id);
       }
