@@ -1,11 +1,12 @@
 'use strict';
 
 var select = require('lodash').select;
+var reject = require('lodash').reject;
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
 var contains = require('lodash').contains;
 
-var validTypes = [ 'one', 'all' ];
+var validTypes = [ 'once-for-all', 'every', 'once-each', 'first-only'];
 
 module.exports = {
   type: 'OnServerStart',
@@ -49,6 +50,12 @@ module.exports = {
           var invalidType = filterByInvalidProperty(records, 'type', validTypes);
           each(invalidType, function() {
             logger().error('AcknowledgementMap "' + key + '" has invalid "type" property of "derp"');
+          });
+
+          var hasOnProgress = select(records, 'onProgress');
+          var hasOnProgressAndInvalidType = reject(hasOnProgress, {type: 'once-for-all'});
+          each(hasOnProgressAndInvalidType, function() {
+            logger().error('AcknowledgementMap "' + key + '" can\'t use "onProgress" property');
           });
         });
       });
