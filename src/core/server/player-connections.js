@@ -101,7 +101,7 @@ module.exports = {
       return function indicatePlayerAsDisconnected (state, socket, game) {
         var connection = get(game.id, socket.request.sessionID);
         if (!connection) {
-          logger().error({ socket: socket, game: game}, 'Connection not found when disconnecting player.');
+          logger().error({socket: socket, game: game}, 'Connection not found when disconnecting player.');
         }
 
         connection.status = 'offline';
