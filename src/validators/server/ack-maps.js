@@ -36,9 +36,9 @@ module.exports = {
             records = ackMap[key];
           }
 
-          var invalidTarget = filterByMissingProperty(records, 'target');
+          var invalidTarget = filterByMissingProperty(records, 'onComplete');
           each(invalidTarget, function() {
-            logger().error('AcknowledgementMap "' + key + '" missing "target" property');
+            logger().error('AcknowledgementMap "' + key + '" missing "onComplete" property');
           });
 
           var missingType = filterByMissingProperty(records, 'type');

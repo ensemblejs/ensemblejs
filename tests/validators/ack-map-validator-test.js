@@ -35,12 +35,12 @@ describe('ack map validator test', function () {
   describe('when there are ack maps', function () {
     var maps = [{
       'missingTarget': [{ type: 'one'}],
-      'missingType': [{ target: empty}],
-      'invalidType': [{ target: empty, type: 'derp'}]
+      'missingType': [{ onComplete: empty}],
+      'invalidType': [{ onComplete: empty, type: 'derp'}]
     }, {
-      'notAnArray': { target: empty, type: 'one'},
-      'validAll': [{target: empty, type: 'all' }],
-      'validOne': [{target: empty, type: 'one' }]
+      'notAnArray': { onComplete: empty, type: 'one'},
+      'validAll': [{onComplete: empty, type: 'all' }],
+      'validOne': [{onComplete: empty, type: 'one' }]
     }, [
     'withMode', {
       'invalid': [{ type: 'one '}]
@@ -56,8 +56,8 @@ describe('ack map validator test', function () {
       validator[0]();
     });
 
-    it('should report errors for maps without targets', function () {
-      expect(logger.error.getCall(0).args).toEqual(['AcknowledgementMap "missingTarget" missing "target" property']);
+    it('should report errors for maps without onComplete handlers', function () {
+      expect(logger.error.getCall(0).args).toEqual(['AcknowledgementMap "missingTarget" missing "onComplete" property']);
     });
 
     it('should report errors for maps without types', function () {
@@ -73,7 +73,7 @@ describe('ack map validator test', function () {
     });
 
     it('should support action maps with modes', function () {
-      expect(logger.error.getCall(3).args).toEqual(['AcknowledgementMap "invalid" missing "target" property']);
+      expect(logger.error.getCall(3).args).toEqual(['AcknowledgementMap "invalid" missing "onComplete" property']);
     });
   });
 });
