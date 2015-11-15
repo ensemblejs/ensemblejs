@@ -11,7 +11,7 @@ module.exports = {
   func: function ServerPhysicsEngine (beforeFrame, onFrame, state, mutator, games, config, define, time, profiler) {
     var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
     var priorStepTime = time().present();
-    var interval;
+    var ids = [];
 
     function pausedGames (game) {
       return state().for(game.id).get('ensemble.paused');
@@ -49,12 +49,10 @@ module.exports = {
 
     define()('OnServerStop', function ServerPhysicsEngine () {
       return function stopEngine () {
-        if (!interval) {
-          return;
-        }
-
-        clearInterval(interval);
-        interval = null;
+        each(ids, function (id) {
+          clearInterval(id);
+        });
+        ids = [];
       };
     });
 
@@ -69,7 +67,7 @@ module.exports = {
 
     return function run () {
       step();
-      interval = setInterval(step, config().server.physicsUpdateLoop);
+      ids.push(setInterval(step, config().server.physicsUpdateLoop));
     };
   }
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-var paused = require('../../util/state').paused;
+var each = require('lodash').each;
 var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
@@ -49,6 +49,10 @@ module.exports = {
       }
     }
 
+    function paused (state) {
+      return state.ensemble.paused;
+    }
+
     function shouldRunPhysicsEngine () {
       return (!clientState().get(paused) && !serverState().get(paused));
     }
@@ -65,17 +69,20 @@ module.exports = {
       callEachPlugin(afterFrame());
     }
 
-    var id;
+    var ids = [];
     define()('OnDisconnect', function PhysicsLoop () {
       return function stopPhysicsLoop () {
-        clearInterval(id);
-        id = null;
+        each(ids, function (id) {
+          clearInterval(id);
+        });
+
+        ids = [];
       };
     });
 
     return function run () {
       step();
-      id = setInterval(step, config().client.physicsUpdateLoop);
+      ids.push(setInterval(step, config().client.physicsUpdateLoop));
     };
   }
 };
