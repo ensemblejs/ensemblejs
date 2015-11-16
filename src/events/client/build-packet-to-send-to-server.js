@@ -5,7 +5,6 @@ var merge = require('lodash').merge;
 var isArray = require('lodash').isArray;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
-var paused = require('../../util/state').paused;
 var interval = require('../../util/interval');
 
 module.exports = {
@@ -21,6 +20,8 @@ module.exports = {
         return a.concat(b);
       }
     }
+
+    function paused (state) { return state.ensemble.paused; }
 
     function buildPacket () {
       if (currentState().get(paused)) {

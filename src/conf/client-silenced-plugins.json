@@ -17,6 +17,7 @@
   "RawStateAccess",
   "RenderLoop",
   "StateAccess",
+  "StateTracker",
   "StateMutator",
   "Time"
 ]

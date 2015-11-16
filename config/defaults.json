@@ -20,10 +20,10 @@
     "logLevel": "warn",
     "silencedPlugins": [
       "$",
-      "BeginPhysicsFrame",
+      "BeforePhysicsFrame",
       "Config",
       "CurrentState",
-      "EndPhysicsFrame",
+      "AfterPhysicsFrame",
       "GamesList",
       "LowestInputProcessed",
       "On",

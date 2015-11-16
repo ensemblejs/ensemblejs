@@ -22,6 +22,7 @@
     "OnOutgoingServerPacket",
     "OnPause",
     "OnPhysicsFrame",
+    "OnPlayerGroupChange",
     "OnRenderFrame",
     "OnResize",
     "OnResume",

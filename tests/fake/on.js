@@ -15,5 +15,6 @@ module.exports = {
   outgoingServerPacket: sinon.spy(),
   pause: sinon.spy(),
   resume: sinon.spy(),
-  clientStart: sinon.spy()
+  clientStart: sinon.spy(),
+  playerGroupChange: sinon.spy()
 };

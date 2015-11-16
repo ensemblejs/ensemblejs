@@ -2,15 +2,24 @@
 
 var select = require('lodash').select;
 var first = require('lodash').first;
+var map = require('lodash').map;
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config', 'Logger'],
-  func: function PlayerConnections (define, config, logger) {
+  deps: ['DefinePlugin', 'Config', 'Logger', 'On'],
+  func: function PlayerConnections (define, config, logger, on) {
     var connections = [];
 
     function filterByGameAndSession (gameId, sessionId) {
       return select(connections, {gameId: gameId, sessionId: sessionId});
+    }
+
+    function connectedPlayers (gameId) {
+      return select(connections, { gameId: gameId, status: 'online' });
+    }
+
+    function gamePlayers (gameId) {
+      return select(connections, { gameId: gameId });
     }
 
     function exists (gameId, sessionId) {
@@ -59,8 +68,17 @@ module.exports = {
       return connection.player;
     }
 
+    function getPlayers (gameId) {
+      return map(gamePlayers(gameId), function (connection) {
+        return {
+          id: connection.player,
+          status: connection.status
+        };
+      });
+    }
+
     function connectedCount (gameId) {
-      return select(connections, { gameId: gameId, status: 'online' }).length;
+      return connectedPlayers(gameId).length;
     }
 
     function getMinPlayerCount (mode) {
@@ -87,7 +105,10 @@ module.exports = {
       return function determinePlayerId (state, socket, game) {
         var sessionId = socket.request.sessionID;
 
-        socket.emit('playerId', addPlayer(game, sessionId));
+        var playerId = addPlayer(game, sessionId);
+        socket.emit('playerId', playerId);
+
+        on().playerGroupChange(getPlayers(game.id), game.id);
 
         return {
           ensemble: {
@@ -105,6 +126,8 @@ module.exports = {
         }
 
         connection.status = 'offline';
+
+        on().playerGroupChange(getPlayers(game.id), game.id);
 
         return {
           ensemble: {

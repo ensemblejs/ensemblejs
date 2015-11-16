@@ -42,6 +42,7 @@ module.exports = {
       });
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);
+      socket.on('playerGroupChange', on().playerGroupChange);
 
       if (window().document.hasFocus()) { socket.emit('unpause'); }
       $()(window()).on('blur', function () { socket.emit('pause'); });

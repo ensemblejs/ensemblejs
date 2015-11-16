@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -111,26 +111,31 @@ module.exports = {
       callEachPlugin(onIncomingClientInputPacket(), [packet, game]);
     }
 
+    function playerGroupChange (players, gameId) {
+      callEachPlugin(onPlayerGroupChange(), [players, gameId]);
+    }
+
     return {
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
+      clientPlayerId: clientPlayerId,
       clientStart: clientStart,
       connect: connect,
       disconnect: disconnect,
       error: error,
-      incomingServerPacket: createOnServerPacketCallback(),
       incomingClientInputPacket: incomingClientInputPacket,
+      incomingServerPacket: createOnServerPacketCallback(),
       input: input,
       mute: mute,
       newGame: newGame,
       outgoingClientPacket: outgoingClientPacket,
       outgoingServerPacket: outgoingServerPacket,
       pause: pause,
+      playerGroupChange: playerGroupChange,
       resume: resume,
       serverStart: serverStart,
       serverStop: serverStop,
-      unmute: unmute,
-      clientPlayerId: clientPlayerId
+      unmute: unmute
     };
   }
 };

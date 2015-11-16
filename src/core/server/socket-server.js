@@ -12,6 +12,7 @@ module.exports = {
     var io;
     var sockets = {};
     var intervals = [];
+    var gameSockets = {};
 
     function packetHasNotChanged (current, prior) {
       return isEqual(current.gameState, prior.gameState);
@@ -54,6 +55,14 @@ module.exports = {
       };
     });
 
+    define()('OnPlayerGroupChange', function OnPlayerConnected () {
+      return function propagate (players, gameId) {
+        each(gameSockets[gameId], function emitPlayersToSocket (socketId) {
+          sockets[socketId].emit('playerGroupChange', players);
+        });
+      };
+    });
+
     function setupPlayableClient (socket) {
       sockets[socket.id] = socket;
 
@@ -67,6 +76,9 @@ module.exports = {
       socket.emit('startTime', time().present());
 
       function sendGame (gameId) {
+        gameSockets[gameId] = gameSockets[gameId] || [];
+        gameSockets[gameId].push(socket.id);
+
         var game = games().get(gameId);
 
         function publishDisconnect() {

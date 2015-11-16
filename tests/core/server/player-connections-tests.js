@@ -4,6 +4,8 @@ var sinon = require('sinon');
 var expect = require('expect');
 var makeTestible = require('../../support').makeTestible;
 
+var fakeOn = require('../../fake/on');
+
 var game1 = { id: 1, mode: 'arcade' };
 var game2 = { id: 2, mode: 'endless' };
 var player1 = { request: { sessionID: 1 }, emit: sinon.spy() };
@@ -22,8 +24,11 @@ describe('players connecting', function () {
           minPlayers: 2,
           maxPlayers: 3,
         }
-      }
+      },
+      On: fakeOn
     });
+
+    fakeOn.playerGroupChange.reset();
 
     connectedCount = module[0].connectedCount;
     onClientConnect = module[1].OnClientConnect();
@@ -37,6 +42,10 @@ describe('players connecting', function () {
 
     it('should add a new player connection', function () {
       expect(connectedCount(game1.id)).toEqual(1);
+    });
+
+    it('should publish the players and their status in the game', function () {
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
     });
 
     it('should partion players into games', function () {
@@ -56,17 +65,40 @@ describe('players connecting', function () {
       it('should not add a new player connection', function () {
         expect(connectedCount(game1.id)).toEqual(1);
       });
+
+      it('should publish the players and their status in the game', function () {
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
+      });
+    });
+
+    describe('when a player disconnects', function () {
+      beforeEach(function () {
+        fakeOn.playerGroupChange.reset();
+
+        onClientDisconnect(undefined, player1, game1);
+      });
+
+      it('should publish the players and their status in the game', function () {
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'offline'}], 1]);
+      });
     });
 
     describe('when the same player reconnects after disconnecting', function () {
 
       beforeEach(function () {
         onClientDisconnect(undefined, player1, game1);
+
+        fakeOn.playerGroupChange.reset();
+
         onClientConnect(undefined, player1, game1);
       });
 
       it('should not add a new player connection', function () {
         expect(connectedCount(game1.id)).toEqual(1);
+      });
+
+      it('should publish the players and their status in the game', function () {
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
       });
     });
 
@@ -80,6 +112,20 @@ describe('players connecting', function () {
       it('should not add a new player connection', function () {
         expect(connectedCount(game1.id)).toEqual(3);
       });
+    });
+  });
+
+  describe('when a second player connects', function () {
+    beforeEach(function () {
+      onClientConnect(undefined, player1, game1);
+
+      fakeOn.playerGroupChange.reset();
+
+      onClientConnect(undefined, player2, game1);
+    });
+
+    it('should publish the players and their status in the game', function () {
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'online'}], 1]);
     });
   });
 
