@@ -30,6 +30,7 @@ var config = require('../../../src/util/config')(fakeLogger);
 
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
+  var directAdd;
 
   beforeEach(function () {
     config.ensemble.maxPlayers = 3;
@@ -58,7 +59,8 @@ describe('acknowledgements', function () {
       }]]
     });
 
-    onIncomingClientInputPacket = acknowledgements[0];
+    directAdd = acknowledgements[0].add;
+    onIncomingClientInputPacket = acknowledgements[1].OnIncomingClientInputPacket();
   });
 
   describe('ack every', function () {
@@ -263,6 +265,65 @@ describe('acknowledgements', function () {
 
     it('should log the progress of the callback', function () {
       expect(fakeLogger.debug.lastCall.args).toEqual(['Acknowledgement "mutate-this" progressed.']);
+    });
+  });
+
+  describe('manually added acks', function () {
+    describe('ack every', function () {
+      beforeEach(function () {
+        ackEvery.reset();
+
+        directAdd('ack-every', undefined, 1, game.id);
+        onIncomingClientInputPacket({pendingAcks: []}, game);
+      });
+
+      it('should fire', function () {
+        expect(ackEvery.called).toBe(true);
+      });
+    });
+
+    describe('ack once for all', function () {
+      beforeEach(function () {
+        ackOnceForAll.reset();
+
+        directAdd('ack-once-for-all', undefined, 1, game.id);
+        directAdd('ack-once-for-all', undefined, 2, game.id);
+        directAdd('ack-once-for-all', undefined, 3, game.id);
+
+        onIncomingClientInputPacket({pendingAcks: []}, game);
+      });
+
+      it('should fire', function () {
+        expect(ackOnceForAll.called).toBe(true);
+      });
+    });
+
+    describe('ack once each', function () {
+      beforeEach(function () {
+        ackOnceEach.reset();
+
+        directAdd('ack-once-each', undefined, 1, game.id);
+
+        onIncomingClientInputPacket({pendingAcks: []}, game);
+      });
+
+      it('should fire', function () {
+        expect(ackOnceEach.called).toBe(true);
+      });
+    });
+
+    describe('ack for first', function () {
+      beforeEach(function () {
+        ackFirst.reset();
+
+        directAdd('ack-first', undefined, 1, game.id);
+
+        onIncomingClientInputPacket({pendingAcks: []}, game);
+      });
+
+      it('should fire', function () {
+        expect(ackFirst.called).toBe(true);
+      });
     });
   });
 });

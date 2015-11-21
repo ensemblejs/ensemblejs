@@ -24,7 +24,6 @@ function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, ca
       }
 
       var ignoreCaseKey = keyInfo.key.toLowerCase();
-
       each(forMode, function (actionMap) {
         var keyMap = last(actionMap)[ignoreCaseKey];
         if (keyMap === undefined) {
@@ -32,10 +31,10 @@ function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, ca
         }
 
         var suitableActions = rejectOrSelect(keyMap, 'onRelease');
-
         if (waitingForPlayers) {
           suitableActions = select(suitableActions, { whenWaiting: true });
         }
+
         suitableActions = map(suitableActions, ensureMapHasModifiers);
         var matching = reject(suitableActions, whereModifiersDoNotMatch);
 

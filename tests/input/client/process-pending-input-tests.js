@@ -29,15 +29,10 @@ var currentState = {
 };
 
 var currentState = {
-	for: function () {
-		return {
-			get: function () {
-				return true;
-			}
-		};
+	get: function () {
+		return true;
 	}
 };
-
 
 var actions = [];
 var rawData = {};
@@ -92,6 +87,7 @@ describe('Input Bindings', function() {
 				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
 				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
 				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
+				{ack: 'something', whenWaiting: true}
 			],
 			'not-waiting': [{target: model.waiting, noEventKey: 'model'}],
 			'button1': [

@@ -8,19 +8,51 @@ var unique = require('lodash').unique;
 var contains = require('lodash').contains;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
-module.exports = {
-  type: 'OnIncomingClientInputPacket',
-  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'Logger'],
-  func: function OnIncomingClientInputPacket (config, mutate, state, acknowledgementMaps, logger) {
+function toggleAck (players, playerId) {
+  if (contains(players, playerId)) {
+    return unique(reject(players, function(n) { return n === playerId;}));
+  } else {
+    players.push(playerId);
+    return unique(players);
+  }
+}
 
-    function toggleAck (players, playerId) {
-      if (contains(players, playerId)) {
-        return unique(reject(players, function(n) { return n === playerId;}));
-      } else {
-        players.push(playerId);
-        return unique(players);
-      }
-    }
+function ackEvery () {
+  return true;
+}
+
+function ackOnceEach (action, ack) {
+  action.players = action.players || [];
+
+  if (contains(action.players, ack.playerId)) {
+    return false;
+  }
+
+  action.players.push(ack.playerId);
+  action.players = unique(action.players);
+
+  return true;
+}
+
+function ackFirstOnly (action) {
+  if (action.fired) {
+    return false;
+  }
+
+  action.fired = true;
+  return true;
+}
+
+function shouldFireProgressAck (action) {
+  return !action.onProgress || action.fired;
+}
+
+module.exports = {
+  type: 'AcknowledgementProcessing',
+  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'Logger', 'DefinePlugin'],
+  func: function OnIncomingClientInputPacket (config, mutate, state, acknowledgementMaps, logger, define) {
+
+    var serverAcks = [];
 
     function ackOnceForAll (action, ack, game) {
       action.players = action.players || [];
@@ -43,32 +75,6 @@ module.exports = {
       }
     }
 
-    function ackEvery () {
-      return true;
-    }
-
-    function ackOnceEach (action, ack) {
-      action.players = action.players || [];
-
-      if (contains(action.players, ack.playerId)) {
-        return false;
-      }
-
-      action.players.push(ack.playerId);
-      action.players = unique(action.players);
-
-      return true;
-    }
-
-    function ackFirstOnly (action) {
-      if (action.fired) {
-        return false;
-      }
-
-      action.fired = true;
-      return true;
-    }
-
     var ackMapTypeCanFireHandler = {
       'once-for-all': ackOnceForAll,
       'every': ackEvery,
@@ -76,55 +82,70 @@ module.exports = {
       'first-only': ackFirstOnly
     };
 
-    function shouldFireProgressAck (action) {
-      return !action.onProgress || action.fired;
+    define()('OnIncomingClientInputPacket', function () {
+      return function handleAcknowledgements (packet, game) {
+        var serverAcksForGame = select(serverAcks, {gameId: game.id});
+        serverAcks = reject(serverAcks, {gameId: game.id});
+
+        var acks = packet.pendingAcks.concat(serverAcksForGame);
+
+        each(acks, function (ack) {
+          var byMode = filterPluginsByMode(acknowledgementMaps(), game.mode);
+          var hasMatchingName = select(byMode, function(ackMap) {
+            return last(ackMap)[ack.name];
+          });
+
+          each(hasMatchingName, function(ackMap) {
+            var actions = last(ackMap)[ack.name];
+
+            var toFireProgress = reject(actions, shouldFireProgressAck);
+
+            var toFire = select(actions, function shouldFireCompleteAck (action) {
+              return ackMapTypeCanFireHandler[action.type](action, ack, game);
+            });
+
+            each(toFire, function (action) {
+              logger().debug('Acknowledgement "' + ack.name + '" complete.');
+
+              mutate()(
+                game.id,
+                action.onComplete(
+                  state().for(game.id),
+                  ack,
+                  action.data
+                )
+              );
+            });
+            each(toFireProgress, function (action) {
+              logger().debug('Acknowledgement "' + ack.name + '" progressed.');
+
+              mutate()(
+                game.id,
+                action.onProgress(
+                  state().for(game.id),
+                  ack,
+                  action.players,
+                  action.data
+                )
+              );
+            });
+          });
+        });
+      };
+    });
+
+    function add (name, timestamp, playerId, gameId) {
+      serverAcks.push({
+        name: name,
+        timestamp: timestamp,
+        playerId: playerId,
+        gameId: gameId,
+        source: 'server'
+      });
     }
 
-    return function handleAcknowledgements (packet, game) {
-      var acks = packet.pendingAcks;
-
-      each(acks, function (ack) {
-        var byMode = filterPluginsByMode(acknowledgementMaps(), game.mode);
-        var hasMatchingName = select(byMode, function(ackMap) {
-          return last(ackMap)[ack.name];
-        });
-
-        each(hasMatchingName, function(ackMap) {
-          var actions = last(ackMap)[ack.name];
-
-          var toFireProgress = reject(actions, shouldFireProgressAck);
-
-          var toFire = select(actions, function shouldFireCompleteAck (action) {
-            return ackMapTypeCanFireHandler[action.type](action, ack, game);
-          });
-
-          each(toFire, function (action) {
-            logger().debug('Acknowledgement "' + ack.name + '" complete.');
-
-            mutate()(
-              game.id,
-              action.onComplete(
-                state().for(game.id),
-                ack,
-                action.data
-              )
-            );
-          });
-          each(toFireProgress, function (action) {
-            logger().debug('Acknowledgement "' + ack.name + '" progressed.');
-
-            mutate()(
-              game.id,
-              action.onProgress(
-                state().for(game.id),
-                ack,
-                action.players,
-                action.data
-              )
-            );
-          });
-        });
-      });
+    return {
+      add: add
     };
   }
 };

@@ -3,7 +3,7 @@
 var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var last = require('lodash').last;
-var filter = require('lodash').filter;
+var select = require('lodash').select;
 var each = require('lodash').each;
 
 function isApplicable (mode, callback) {
@@ -11,8 +11,15 @@ function isApplicable (mode, callback) {
 }
 
 function filterPluginsByMode (plugins, mode) {
-  return filter(plugins, function(plugin) {
+  return select(plugins, function(plugin) {
     return isApplicable(mode, plugin);
+  });
+}
+
+function forEachMode (plugins, mode, callback) {
+  var forMode = filterPluginsByMode(plugins, mode);
+  each(forMode, function callEachAndMutate (plugin) {
+    callback(last(plugin));
   });
 }
 
@@ -52,5 +59,6 @@ module.exports = {
   callForMode: callForMode,
   callForModeWithMutation: callForModeWithMutation,
   filterPluginsByMode: filterPluginsByMode,
-  isApplicable: isApplicable
+  isApplicable: isApplicable,
+  forEachMode: forEachMode
 };

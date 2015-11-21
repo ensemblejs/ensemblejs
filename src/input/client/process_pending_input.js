@@ -21,7 +21,7 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.for('ensemble').get('waitingForPlayers');
+				var waitingForPlayers = state.get('ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -64,6 +64,10 @@ module.exports = {
 
 				function createOnMatchingCallback (callback) {
 					return function invokeCallbackAndMutate (currentInput, key, action, inputData) {
+
+						if (action.ack) {
+							return;
+						}
 
 						logger().debug('ActionMap "' + key + '" called');
 

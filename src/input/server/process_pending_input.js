@@ -2,6 +2,7 @@
 
 var each = require('lodash').each;
 var select = require('lodash').select;
+var reject = require('lodash').reject;
 var last = require('lodash').last;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
@@ -11,7 +12,7 @@ var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
-	type: 'OnInput',
+	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
 	func: function(actionMaps, define, mutate, logger) {
 		var userInput = [];
@@ -19,11 +20,11 @@ module.exports = {
 
 		define()('BeforePhysicsFrame', function () {
 
-			function ProcessPendingInput (state, delta) {
+			return function processPendingInput (state, delta) {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.for('ensemble').get('waitingForPlayers');
+				var waitingForPlayers = state.get('ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -52,6 +53,8 @@ module.exports = {
 						suitableActions = select(suitableActions, { whenWaiting: true });
 					}
 
+					suitableActions = reject(suitableActions, 'ack');
+
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
 							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
@@ -66,6 +69,10 @@ module.exports = {
 
 				function createOnMatchingCallback (callback) {
 					return function onMatchingActionMap (currentInput, key, action, inputData) {
+
+						if (action.ack) {
+							return;
+						}
 
 						logger().debug('ActionMap "' + key + '" called');
 
@@ -104,9 +111,7 @@ module.exports = {
 				if (userInput.length > lengthOfInputStackAtStart) {
 					logger().warn('More input was received than processed.');
 				}
-			}
-
- 			return ProcessPendingInput;
+			};
 		});
 
 		define()('LowestInputProcessed', function LowestInputProcessed () {
@@ -123,13 +128,15 @@ module.exports = {
 			};
 		});
 
-		return function handle(rawData, timestamp, game) {
-			userInput.push({
-				rawData: rawData,
-				playerId: rawData.playerId,
-				timestamp: timestamp,
-				game: game
-			});
-		};
+		define()('OnInput', function ProcessPendingInput () {
+			return function handle(rawData, timestamp, game) {
+				userInput.push({
+					rawData: rawData,
+					playerId: rawData.playerId,
+					timestamp: timestamp,
+					game: game
+				});
+			};
+		});
 	}
 };

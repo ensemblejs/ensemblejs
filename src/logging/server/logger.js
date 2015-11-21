@@ -14,8 +14,8 @@ var logger = require('bunyan').createLogger({
 });
 
 function socket (socketInfo, eventData, eventName) {
-  logger.debug([socketInfo, eventData], 'ensemblejs::socket:' + eventName);
-  logger.info(socketInfo, 'ensemblejs::socket:' + eventName);
+  logger.trace([socketInfo, eventData], 'ensemblejs::socket:' + eventName);
+  logger.debug(socketInfo, 'ensemblejs::socket:' + eventName);
 }
 
 logger.socket = socket;

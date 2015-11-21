@@ -23,12 +23,8 @@ var model = {
 
 var state = {
 	a: 'b',
-	for: function () {
-		return {
-			get: function () {
-				return true;
-			}
-		};
+	get: function () {
+		return true;
 	}
 };
 
@@ -79,20 +75,43 @@ describe('Input Bindings', function() {
 				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
 				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
 				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
+				{ack: 'dont-crash', whenWaiting: true}
 			],
 			'not-waiting': [{target: model.waiting, noEventKey: 'model'}],
 			'button1': [
 				{target: model.mouseDownEvent, noEventKey: 'model', whenWaiting: true},
-				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model', whenWaiting: true}
+				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
+				{ack: 'dont-crash', whenWaiting: true}
 			],
-			'touch0': [{target: model.touchEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'cursor': [{target: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model' }],
-			'nothing': [{target: model.noEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'leftStick': [{target: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
+			'touch0': [
+				{target: model.touchEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.waiting, noEventKey: 'model'},
+				{ack: 'dont-crash', whenWaiting: true}
+			],
+			'cursor': [
+				{target: model.cursorEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.waiting, noEventKey: 'model' },
+				{ack: 'dont-crash', whenWaiting: true}
+			],
+			'nothing': [
+				{target: model.noEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.waiting, noEventKey: 'model'},
+				{ack: 'dont-crash', whenWaiting: true}
+			],
+			'leftStick': [
+				{target: model.leftStickEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.waiting, noEventKey: 'model'},
+				{ack: 'dont-crash', whenWaiting: true}
+			],
+			'rightStick': [
+				{target: model.rightStickEvent, noEventKey: 'model', whenWaiting: true},
+				{target: model.waiting, noEventKey: 'model'},
+				{ack: 'dont-crash', whenWaiting: true}
+			]
 		}];
 
-		newUserInput = require('../../../src/input/server/input_handler.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
+		require('../../../src/input/server/process_pending_input.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
+		newUserInput = plugin.deps().OnInput();
 		update = plugin.deps().BeforePhysicsFrame();
 	});
 
@@ -142,8 +161,9 @@ describe('Input Bindings', function() {
 
 		describe('when the action map has not been configured for "nothing"', function() {
 			beforeEach(function() {
-				newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+				require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
+				newUserInput = plugin.deps().OnInput();
 				update = plugin.deps().BeforePhysicsFrame();
 
 				mutator.reset();
@@ -406,7 +426,9 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
 			rawData = { x: 6, y: 7, playerId: playerId };
-			newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+			require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+
+			newUserInput = plugin.deps().OnInput();
 			newUserInput(rawData, undefined, game);
 		});
 
@@ -478,7 +500,10 @@ describe('Input Bindings', function() {
 
 	describe('when stick input is received but not bound', function () {
 		beforeEach(function() {
-			newUserInput = require('../../../src/input/server/input_handler.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+			require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
+
+			newUserInput = plugin.deps().OnInput();
+
 			rawData = {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
