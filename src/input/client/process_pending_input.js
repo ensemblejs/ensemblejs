@@ -56,7 +56,7 @@ module.exports = {
 
 							return mutate()(
 								currentInput.game.id,
-								action.target(state, data)
+								action.call(state, data)
 							);
 						}
 					});
@@ -73,7 +73,7 @@ module.exports = {
 
 						mutate()(
 				      currentInput.game.id,
-				      callback(action.target, action.noEventKey, inputData)
+				      callback(action.call, action.noEventKey, inputData)
 				    );
 					};
 				}

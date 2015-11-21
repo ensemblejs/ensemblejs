@@ -43,8 +43,8 @@ function ActionMap () {
   var touchCount = 16;
   for(var i = 0; i < touchCount; i += 1) {
     var id = 'touch' + i;
-    actionMap[id] = [{target: createAddTouch (i), noEventKey: id}];
-    actionMap.nothing.push({target: createRemoveTouch(i), noEventKey: id});
+    actionMap[id] = [{call: createAddTouch (i), noEventKey: id}];
+    actionMap.nothing.push({call: createRemoveTouch(i), noEventKey: id});
   }
 
   return actionMap;

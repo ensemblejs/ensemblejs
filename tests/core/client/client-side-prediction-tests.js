@@ -84,7 +84,7 @@ function inputCallback (state) {
     }
   };
 }
-actionMap.push(['*', { space: [{target: inputCallback} ] }]);
+actionMap.push(['*', { space: [{call: inputCallback} ] }]);
 
 function gameLogic (state) {
   return {

@@ -33,7 +33,7 @@ module.exports = {
 
     define()('ActionMap', function Fullscreen () {
       return {
-        'fullscreen': [{target: toggleFullscreen}],
+        'fullscreen': [{call: toggleFullscreen}],
       };
     });
 

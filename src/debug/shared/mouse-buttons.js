@@ -33,16 +33,16 @@ function StateSeed () {
 function ActionMap () {
   return {
     primary: [
-      {target: mouseDown('primary')},
-      {target: mouseUp('primary'), onRelease: true}
+      {call: mouseDown('primary')},
+      {call: mouseUp('primary'), onRelease: true}
     ],
     secondary: [
-      {target: mouseDown('secondary')},
-      {target: mouseUp('secondary'), onRelease: true}
+      {call: mouseDown('secondary')},
+      {call: mouseUp('secondary'), onRelease: true}
     ],
     tertiary: [
-      {target: mouseDown('tertiary')},
-      {target: mouseUp('tertiary'), onRelease: true}
+      {call: mouseDown('tertiary')},
+      {call: mouseUp('tertiary'), onRelease: true}
     ]
   };
 }

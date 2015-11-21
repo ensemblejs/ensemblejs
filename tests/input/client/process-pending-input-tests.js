@@ -83,22 +83,22 @@ describe('Input Bindings', function() {
 
 		actions = [['*'], {
 			'key': [
-				{target: model.keyEvent, noEventKey: 'model', whenWaiting: true},
-				{target: model.keyPressEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
-				{target: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
-				{target: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
+				{call: model.keyEvent, noEventKey: 'model', whenWaiting: true},
+				{call: model.keyPressEvent, onRelease: true, noEventKey: 'model', whenWaiting: true},
+				{call: model.keyModCtrl, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
+				{call: model.keyPressModCtrl, onRelease: true, noEventKey: 'model', modifiers: ['ctrl'], whenWaiting: true},
 				{ack: 'something', whenWaiting: true}
 			],
-			'not-waiting': [{target: model.waiting, noEventKey: 'model'}],
+			'not-waiting': [{call: model.waiting, noEventKey: 'model'}],
 			'button1': [
-				{target: model.mouseDownEvent, noEventKey: 'model', whenWaiting: true},
-				{target: model.mouseClickEvent, onRelease: true, noEventKey: 'model', whenWaiting: true}
+				{call: model.mouseDownEvent, noEventKey: 'model', whenWaiting: true},
+				{call: model.mouseClickEvent, onRelease: true, noEventKey: 'model', whenWaiting: true}
 			],
-			'touch0': [{target: model.touchEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'cursor': [{target: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model' }],
-			'nothing': [{target: model.noEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'leftStick': [{target: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
-			'rightStick': [{target: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {target: model.waiting, noEventKey: 'model'}],
+			'touch0': [{call: model.touchEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'cursor': [{call: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model' }],
+			'nothing': [{call: model.noEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'leftStick': [{call: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'rightStick': [{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
 		}];
 
 
