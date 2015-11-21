@@ -10,7 +10,7 @@ module.exports = {
   func: function (define, actionMaps, acknowledgements, mode, state) {
     define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
       return function mapActionsToAcks (packet) {
-        function callback (currentInput, ignoreCaseKey, action) {
+        function callback (currentInput, key, action) {
           if (!action.ack) {
             return;
           }

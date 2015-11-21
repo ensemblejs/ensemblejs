@@ -33,17 +33,20 @@ describe('action map validator', function () {
     var maps = [{
       'missingTarget': [{}],
       'tab': [
-        {target: empty, modifiers: ['ctrl']},
-        {target: empty, modifiers: ['ctrl', 'shift']}
+        {call: empty, modifiers: ['ctrl']},
+        {call: empty, modifiers: ['ctrl', 'shift']}
       ]
     }, {
-      'notAnArray': { target: empty },
-      'valid': [{target: empty}]
+      'notAnArray': { call: empty },
+      'valid': [{call: empty}],
+      'alsoValid': [{ack: 'banana'}],
+      'nothing': [{ack: 'alpha'}],
+      'mouse': [{ack: 'alpha'}]
     },
     [
       'withMode', {
         'invalid': [ {} ],
-        'valid': [ {target: empty} ]
+        'valid': [ {call: empty} ]
       }
     ]
     ];
@@ -59,8 +62,8 @@ describe('action map validator', function () {
       validator[0]();
     });
 
-    it('should report errors for maps without targets', function () {
-      expect(logger.error.getCall(0).args).toEqual(['ActionMap "missingTarget" missing "target" property']);
+    it('should report errors for maps without a target', function () {
+      expect(logger.error.getCall(0).args).toEqual(['ActionMap "missingTarget" missing "call" or "ack" property']);
     });
 
     it('should report errors for ctrl+tab', function () {
@@ -75,8 +78,16 @@ describe('action map validator', function () {
       expect(maps[1].notAnArray).toBeAn(Array);
     });
 
+    it('should report an error when nothing has an ack', function () {
+      expect(logger.error.getCall(3).args).toEqual(['ActionMap "nothing" cannot use the "ack" property']);
+    });
+
+    it('should report an error when mouse has an ack', function () {
+      expect(logger.error.getCall(4).args).toEqual(['ActionMap "mouse" cannot use the "ack" property']);
+    });
+
     it('should support action maps with modes', function () {
-      expect(logger.error.getCall(3).args).toEqual(['ActionMap "invalid" missing "target" property']);
+      expect(logger.error.getCall(5).args).toEqual(['ActionMap "invalid" missing "call" or "ack" property']);
     });
   });
 });
