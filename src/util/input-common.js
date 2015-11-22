@@ -1,11 +1,10 @@
 'use strict';
 
 var each = require('lodash').each;
-var select = require('lodash').select;
-var reject = require('lodash').reject;
+var filter = require('lodash').filter;
 var last = require('lodash').last;
 var xor = require('lodash').xor;
-var map = require('lodash').map;
+var chain = require('lodash').chain;
 var filterPluginsByMode = require('./modes').filterPluginsByMode;
 
 function ensureMapHasModifiers(action) {
@@ -13,114 +12,157 @@ function ensureMapHasModifiers(action) {
   return action;
 }
 
+//TODO: move to util/modes
+function removeMode(pluginAndMode) {
+  return last(pluginAndMode);
+}
+
+function withValidKey(key) {
+  return function (actionMap) {
+    return (actionMap[key] !== undefined);
+  };
+}
+
+function pluckKeyHandler (key) {
+  return function (actionMap) {
+    return actionMap[key];
+  };
+}
+
+function removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers) {
+  return function (handler) {
+    if (!waitingForPlayers) {
+      return handler;
+    }
+
+    return filter(handler, { whenWaiting: true });
+  };
+}
+
+function whenWaiting (waitingForPlayers) {
+  return function (actions) {
+    if (!waitingForPlayers) {
+      return true;
+    }
+
+    return actions.whenWaiting;
+  };
+}
+
 function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, callback) {
 
-  var forMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
 
   function processKeys (keyData, rejectOrSelect) {
     each(keyData, function processKey(keyInfo) {
+
       function whereModifiersDoNotMatch(action) {
         return (xor(action.modifiers, keyInfo.modifiers).length > 0);
       }
 
-      var ignoreCaseKey = keyInfo.key.toLowerCase();
-      each(forMode, function (actionMap) {
-        var keyMap = last(actionMap)[ignoreCaseKey];
-        if (keyMap === undefined) {
-          return;
+      function callTarget(action) {
+        callback(currentInput, key, action);
+      }
+
+      function rejectOrSelectOnRelease (handler) {
+        if (rejectOrSelect === 'reject') {
+          return handler.onRelease !== true;
+        } else {
+          return handler.onRelease === true;
         }
+      }
 
-        var suitableActions = rejectOrSelect(keyMap, 'onRelease');
-        if (waitingForPlayers) {
-          suitableActions = select(suitableActions, { whenWaiting: true });
-        }
+      var key = keyInfo.key.toLowerCase();
 
-        suitableActions = map(suitableActions, ensureMapHasModifiers);
-        var matching = reject(suitableActions, whereModifiersDoNotMatch);
-
-        each(matching, function (action) {
-          callback(currentInput, ignoreCaseKey, action);
-        });
-      });
+      chain(pluginsForMode)
+        .map(removeMode)
+        .filter(withValidKey(key))
+        .map(pluckKeyHandler(key))
+        .flatten()
+        .filter(rejectOrSelectOnRelease)
+        .filter(whenWaiting(waitingForPlayers))
+        .map(ensureMapHasModifiers)
+        .reject(whereModifiersDoNotMatch)
+        .each(callTarget)
+        .value();
     });
   }
 
-  processKeys(currentInput.rawData.keys, reject);
-  processKeys(currentInput.rawData.singlePressKeys, select);
+  processKeys(currentInput.rawData.keys, 'reject');
+  processKeys(currentInput.rawData.singlePressKeys, 'select');
 }
 
 function parseMouse (actionMaps, currentInput, waitingForPlayers, callback) {
-  var forMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  if (!currentInput.rawData.mouse) {
+    return;
+  }
 
-  each(forMode, function(actionMapDefinition) {
-    var actionMap = last(actionMapDefinition);
+  function callTarget (action) {
+    callback(currentInput, 'cursor', action, currentInput.rawData.mouse);
+  }
 
-    if (actionMap.cursor === undefined) { return; }
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
 
-    if (currentInput.rawData.mouse) {
-      var suitableActions = actionMap.cursor;
-      if (waitingForPlayers) {
-        suitableActions = select(suitableActions, { whenWaiting: true });
-      }
-
-      each(suitableActions, function(action) {
-        callback(currentInput, 'cursor', action, currentInput.rawData.mouse);
-      });
-    }
-  });
+  chain(pluginsForMode)
+    .map(removeMode)
+    .filter(withValidKey('cursor'))
+    .map(pluckKeyHandler('cursor'))
+    .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+    .flatten()
+    .each(callTarget)
+    .value();
 }
 
-function parseTouches (actionMaps, currentInput, waitingForPlayers, callback) {
-  var forMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
+  var pluginsForMode = filterPluginsByMode(plugins, currentInput.game.mode);
 
   each(currentInput.rawData.touches, function(touch) {
     var key = 'touch' + touch.id;
 
-    each(forMode, function(actionMapDefinition) {
-      var actionMap = last(actionMapDefinition);
-
-      if (actionMap[key] === undefined) { return; }
-
-      var suitableActions = actionMap[key];
-      if (waitingForPlayers) {
-        suitableActions = select(suitableActions, { whenWaiting: true });
-      }
-
-      each(suitableActions, function(action) {
-        callback(currentInput, key, action, {
-          x: touch.x,
-          y: touch.y
-        });
+    function callTarget(action) {
+      callback(currentInput, key, action, {
+        x: touch.x,
+        y: touch.y
       });
-    });
+    }
+
+    chain(pluginsForMode)
+      .map(removeMode)
+      .filter(withValidKey(key))
+      .map(pluckKeyHandler(key))
+      .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+      .flatten()
+      .each(callTarget)
+      .value();
   });
 }
 
 function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
-  var forMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
 
   each(['leftStick', 'rightStick'], function(key) {
-    if (currentInput.rawData[key] === undefined) {return;}
+    if (currentInput.rawData[key] === undefined) {
+      return;
+    }
 
-    each(forMode, function(actionMapDefinition) {
-      var actionMap = last(actionMapDefinition);
+    var data = currentInput.rawData[key];
 
-      if (actionMap[key] === undefined) { return; }
-
-      var suitableActions = actionMap[key];
-      if (waitingForPlayers) {
-        suitableActions = select(suitableActions, { whenWaiting: true });
-      }
-
-      var data = currentInput.rawData[key];
-      each(suitableActions, function(action) {
-        callback(currentInput, key, action, {
-          x: data.x,
-          y: data.y,
-          force: data.force
-        });
+    function callTarget(action) {
+      callback(currentInput, key, action, {
+        x: data.x,
+        y: data.y,
+        force: data.force
       });
-    });
+    }
+
+    chain(pluginsForMode)
+      .map(removeMode)
+      .filter(withValidKey(key))
+      .map(pluckKeyHandler(key))
+      .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+      .flatten()
+      .each(callTarget)
+      .value();
   });
 }
 
