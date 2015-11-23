@@ -37,8 +37,16 @@ var mutator = require('../../../src/state/client/mutator').func(defer(mutatorPlu
 var rawStateAccess = mutatorPlugins.deps().RawStateAccess();
 var stateAccess = mutatorPlugins.deps().StateAccess();
 
+
+var config = {
+  client: {
+    clientSidePrediction: true,
+    physicsUpdateLoop: 15
+  }
+};
+
 var mode = 'game';
-var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime));
+var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(config));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
@@ -61,13 +69,6 @@ var clientState = {
 
 var serverState = {
   get: function () {return false;}
-};
-
-var config = {
-  client: {
-    clientSidePrediction: true,
-    physicsUpdateLoop: 15
-  }
 };
 
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(config), defer(profiler));
@@ -243,10 +244,41 @@ describe('CSP: after on AfterPhysicsFrame', function () {
       });
 
       startPhysicsEngine();
-      stopPhysicsEngine();
 
       expect(currentState.get(tracking)).toEqual('after-input');
       expect(currentState.get(count)).toEqual(30);
+    });
+  });
+
+  describe('when disabled', function () {
+    var logic = sinon.spy();
+
+   beforeEach(function () {
+      expect(inputQueue.length()).toEqual(1);
+
+      config.client.clientSidePrediction = false;
+
+      onPhysicsFrame.push(['*', logic]);
+
+      startPhysicsEngine();
+
+      on.outgoingClientPacket({
+        id: 1,
+        keys: [{key: 'space'}]
+      });
+    });
+
+    afterEach(function () {
+      stopPhysicsEngine();
+      onPhysicsFrame.pop();
+    });
+
+    it('should not call onPhysicsFrame and afterPhysicsFrame', function () {
+      expect(logic.called).toEqual(false);
+    });
+
+    it('should increase the input queue', function () {
+      expect(inputQueue.length()).toEqual(1);
     });
   });
 });
