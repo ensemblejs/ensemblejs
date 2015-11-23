@@ -9,6 +9,7 @@ var ackEvery = sinon.spy();
 var ackOnceForAll = sinon.spy();
 var ackOnceForAllProgress = sinon.spy();
 var ackOnceEach = sinon.spy();
+var ackOnceEachProgress = sinon.spy();
 var ackFirst = sinon.spy();
 var game = {
   id: 100,
@@ -30,7 +31,6 @@ var config = require('../../../src/util/config')(fakeLogger);
 
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
-  var directAdd;
 
   beforeEach(function () {
     config.ensemble.maxPlayers = 3;
@@ -49,7 +49,11 @@ describe('acknowledgements', function () {
           onProgress: ackOnceForAllProgress,
           type: 'once-for-all'
         }],
-        'ack-once-each': [{ onComplete: ackOnceEach, type: 'once-each' }],
+        'ack-once-each': [{
+          onProgress: ackOnceEachProgress,
+          onComplete: ackOnceEach,
+          type: 'once-each'
+        }],
         'ack-first': [{onComplete: ackFirst, type: 'first-only'}],
         'mutate-this': [
           {onComplete: hasResponse, type: 'every'},
@@ -59,49 +63,48 @@ describe('acknowledgements', function () {
       }]]
     });
 
-    directAdd = acknowledgements[0].add;
     onIncomingClientInputPacket = acknowledgements[1].OnIncomingClientInputPacket();
   });
 
   describe('ack every', function () {
-    var pendingAcks = [{ name: 'ack-every', playerId: 1 }];
+    var player1 = { pendingAcks: [{ name: 'ack-every'}], playerId: 1 };
 
     beforeEach(function () {
       ackEvery.reset();
 
-      onIncomingClientInputPacket({pendingAcks: pendingAcks}, game);
+      onIncomingClientInputPacket(player1, game);
     });
 
     it('should fire on every ack', function () {
       expect(ackEvery.called).toBe(true);
     });
 
-    it('should continue to first if the same player acks again', function () {
-      onIncomingClientInputPacket({pendingAcks: pendingAcks}, game);
+    it('should continue to fire if the same player acks again', function () {
+      onIncomingClientInputPacket(player1, game);
 
       expect(ackEvery.callCount).toBe(2);
     });
   });
 
   describe('ack once for all', function () {
-    var player1 = [{ name: 'ack-once-for-all', playerId: 1 }];
-    var player2 = [{ name: 'ack-once-for-all', playerId: 2 }];
-    var player3 = [{ name: 'ack-once-for-all', playerId: 3 }];
+    var player1 = { pendingAcks: [{ name: 'ack-once-for-all'}], playerId: 1 };
+    var player2 = { pendingAcks: [{ name: 'ack-once-for-all'}], playerId: 2 };
+    var player3 = { pendingAcks: [{ name: 'ack-once-for-all'}], playerId: 3 };
 
     beforeEach(function () {
       ackOnceForAll.reset();
     });
 
     it('should not fire on ack', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
 
       expect(ackOnceForAll.called).toBe(false);
 
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
     });
 
     it('should fire a progress ack', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
 
       expect(ackOnceForAllProgress.called).toBe(true);
       expect(ackOnceForAllProgress.firstCall.args).toEqual([
@@ -114,16 +117,16 @@ describe('acknowledgements', function () {
         undefined
       ]);
 
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
     });
 
     it('should toggle on duplicate acks from the same player', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
 
       ackOnceForAll.reset();
       ackOnceForAllProgress.reset();
 
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
 
       expect(ackOnceForAll.called).toBe(false);
 
@@ -140,13 +143,13 @@ describe('acknowledgements', function () {
     });
 
     it('should fire only when each player has acked once', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
-      onIncomingClientInputPacket({pendingAcks: player2}, game);
+      onIncomingClientInputPacket(player1, game);
+      onIncomingClientInputPacket(player2, game);
       expect(ackOnceForAll.called).toBe(false);
 
       ackOnceForAllProgress.reset();
 
-      onIncomingClientInputPacket({pendingAcks: player3}, game);
+      onIncomingClientInputPacket(player3, game);
       expect(ackOnceForAll.called).toBe(true);
 
       expect(ackOnceForAllProgress.called).toBe(true);
@@ -162,50 +165,53 @@ describe('acknowledgements', function () {
     });
 
     it('should not fire a second time', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
-      onIncomingClientInputPacket({pendingAcks: player2}, game);
-      onIncomingClientInputPacket({pendingAcks: player3}, game);
+      onIncomingClientInputPacket(player1, game);
+      onIncomingClientInputPacket(player2, game);
+      onIncomingClientInputPacket(player3, game);
 
       ackOnceForAll.reset();
       ackOnceForAllProgress.reset();
 
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
       expect(ackOnceForAll.called).toBe(false);
       expect(ackOnceForAllProgress.called).toBe(false);
-      onIncomingClientInputPacket({pendingAcks: player2}, game);
+      onIncomingClientInputPacket(player2, game);
       expect(ackOnceForAll.called).toBe(false);
       expect(ackOnceForAllProgress.called).toBe(false);
-      onIncomingClientInputPacket({pendingAcks: player3}, game);
+      onIncomingClientInputPacket(player3, game);
       expect(ackOnceForAll.called).toBe(false);
       expect(ackOnceForAllProgress.called).toBe(false);
     });
   });
 
   describe('ack once each', function () {
-    var player1 = [{ name: 'ack-once-each', playerId: 1 }];
-    var player2 = [{ name: 'ack-once-each', playerId: 2 }];
-    var player3 = [{ name: 'ack-once-each', playerId: 3 }];
+    var player1 = { pendingAcks: [{name: 'ack-once-each'}], playerId: 1 };
+    var player2 = { pendingAcks: [{name: 'ack-once-each'}], playerId: 2 };
+    var player3 = { pendingAcks: [{name: 'ack-once-each'}], playerId: 3 };
 
     beforeEach(function () {
       ackOnceEach.reset();
     });
 
     it('should fire on each ack', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
 
-      expect(ackOnceEach.called).toBe(true);
+      expect(ackOnceEachProgress.called).toBe(true);
 
-      onIncomingClientInputPacket({pendingAcks: player2}, game);
-      onIncomingClientInputPacket({pendingAcks: player3}, game);
+      onIncomingClientInputPacket(player2, game);
+      onIncomingClientInputPacket(player3, game);
 
-      expect(ackOnceEach.callCount).toBe(3);
+      expect(ackOnceEachProgress.callCount).toBe(3);
+      expect(ackOnceEach.callCount).toBe(1);
     });
 
     it('should ignore duplicate acks from the same player', function () {
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      onIncomingClientInputPacket(player1, game);
       ackOnceEach.reset();
-      onIncomingClientInputPacket({pendingAcks: player1}, game);
+      ackOnceEachProgress.reset();
+      onIncomingClientInputPacket(player1, game);
 
+      expect(ackOnceEachProgress.called).toBe(false);
       expect(ackOnceEach.called).toBe(false);
     });
   });
@@ -236,14 +242,14 @@ describe('acknowledgements', function () {
   });
 
   describe('on ack', function () {
-    var pendingAcks = [{ name: 'mutate-this', playerId: 1 }];
+    var player1 = { pendingAcks: [{ name: 'mutate-this'}], playerId: 1 };
 
     beforeEach(function () {
       fakeLogger.debug.reset();
       mutate.reset();
       ackEvery.reset();
 
-      onIncomingClientInputPacket({pendingAcks: pendingAcks}, game);
+      onIncomingClientInputPacket(player1, game);
     });
 
     it('should mutate the response of the callback', function () {
@@ -265,65 +271,6 @@ describe('acknowledgements', function () {
 
     it('should log the progress of the callback', function () {
       expect(fakeLogger.debug.lastCall.args).toEqual(['Acknowledgement "mutate-this" progressed.']);
-    });
-  });
-
-  describe('manually added acks', function () {
-    describe('ack every', function () {
-      beforeEach(function () {
-        ackEvery.reset();
-
-        directAdd('ack-every', undefined, 1, game.id);
-        onIncomingClientInputPacket({pendingAcks: []}, game);
-      });
-
-      it('should fire', function () {
-        expect(ackEvery.called).toBe(true);
-      });
-    });
-
-    describe('ack once for all', function () {
-      beforeEach(function () {
-        ackOnceForAll.reset();
-
-        directAdd('ack-once-for-all', undefined, 1, game.id);
-        directAdd('ack-once-for-all', undefined, 2, game.id);
-        directAdd('ack-once-for-all', undefined, 3, game.id);
-
-        onIncomingClientInputPacket({pendingAcks: []}, game);
-      });
-
-      it('should fire', function () {
-        expect(ackOnceForAll.called).toBe(true);
-      });
-    });
-
-    describe('ack once each', function () {
-      beforeEach(function () {
-        ackOnceEach.reset();
-
-        directAdd('ack-once-each', undefined, 1, game.id);
-
-        onIncomingClientInputPacket({pendingAcks: []}, game);
-      });
-
-      it('should fire', function () {
-        expect(ackOnceEach.called).toBe(true);
-      });
-    });
-
-    describe('ack for first', function () {
-      beforeEach(function () {
-        ackFirst.reset();
-
-        directAdd('ack-first', undefined, 1, game.id);
-
-        onIncomingClientInputPacket({pendingAcks: []}, game);
-      });
-
-      it('should fire', function () {
-        expect(ackFirst.called).toBe(true);
-      });
     });
   });
 });
