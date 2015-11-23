@@ -53,7 +53,7 @@ describe('input to ack mapper', function () {
   beforeEach(function () {
     var mapper = makeTestible('/input/client/input-to-ack-mapper', {
       ActionMap: [actions],
-      PacketAcknowledgements: acknowledgements,
+      ClientAcknowledgements: acknowledgements,
       GameMode: 'arcade',
       StateAccess: stateAccess
     });
@@ -116,7 +116,7 @@ describe('input to ack mapper', function () {
     beforeEach(function () {
       var mapper = makeTestible('/input/client/input-to-ack-mapper', {
         ActionMap: [],
-        PacketAcknowledgements: acknowledgements,
+        ClientAcknowledgements: acknowledgements,
         GameMode: 'arcade',
         StateAccess: stateAccess
       });
@@ -159,7 +159,7 @@ describe('input to ack mapper', function () {
     beforeEach(function () {
       var mapper = makeTestible('/input/client/input-to-ack-mapper', {
         ActionMap: [],
-        PacketAcknowledgements: acknowledgements,
+        ClientAcknowledgements: acknowledgements,
         GameMode: 'arcade',
         StateAccess: stateAccess
       });
@@ -201,7 +201,7 @@ describe('input to ack mapper', function () {
     beforeEach(function () {
       var mapper = makeTestible('/input/client/input-to-ack-mapper', {
         ActionMap: [],
-        PacketAcknowledgements: acknowledgements,
+        ClientAcknowledgements: acknowledgements,
         GameMode: 'arcade',
         StateAccess: stateAccess
       });
@@ -259,7 +259,7 @@ describe('input to ack mapper', function () {
     beforeEach(function () {
       var mapper = makeTestible('/input/client/input-to-ack-mapper', {
         ActionMap: [],
-        PacketAcknowledgements: acknowledgements,
+        ClientAcknowledgements: acknowledgements,
         GameMode: 'arcade',
         StateAccess: stateAccess
       });

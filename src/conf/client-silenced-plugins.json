@@ -12,7 +12,7 @@
   "OnOutgoingClientPacket",
   "OnPhysicsFrame",
   "OnRenderFrame",
-  "PacketAcknowledgements",
+  "ClientAcknowledgements",
   "Profiler",
   "RawStateAccess",
   "RenderLoop",

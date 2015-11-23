@@ -3,9 +3,9 @@
 var clone = require('lodash').clone;
 
 module.exports = {
-  type: 'PacketAcknowledgements',
+  type: 'ClientAcknowledgements',
   deps: ['Time'],
-  func: function PacketAcknowledgements (time) {
+  func: function ClientAcknowledgements (time) {
     var acks = [];
 
     function reset () {

@@ -9,8 +9,8 @@ var interval = require('../../util/interval');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
-  deps: ['InputCapture', 'On', 'PacketAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
-  func: function BeforePhysicsFrame (inputCaptureMethods, on, packetAcknowledgements, currentState, time, define) {
+  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
+  func: function BeforePhysicsFrame (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define) {
 
     var lastPacket = {};
     var playerId;
@@ -29,7 +29,7 @@ module.exports = {
       }
 
       var packet = {
-        pendingAcks: packetAcknowledgements().flush(),
+        pendingAcks: clientAcknowledgements().flush(),
       };
 
       each(inputCaptureMethods(), function (getCurrentState) {

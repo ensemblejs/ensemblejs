@@ -30,7 +30,7 @@ module.exports = {
       });
     }
 
-    return function handleClientSidePacketAcknowledgements (packet) {
+    return function handleClientAcknowledgements (packet) {
       if (packet.pendingAcks.length === 0) {
         return;
       }

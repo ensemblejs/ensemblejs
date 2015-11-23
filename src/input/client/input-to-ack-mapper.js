@@ -6,7 +6,7 @@ var parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
   type: 'InputToAcknowledgementMapper',
-  deps: ['DefinePlugin', 'ActionMap', 'PacketAcknowledgements', 'GameMode', 'StateAccess'],
+  deps: ['DefinePlugin', 'ActionMap', 'ClientAcknowledgements', 'GameMode', 'StateAccess'],
   func: function (define, actionMaps, acknowledgements, mode, state) {
     define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
       return function mapActionsToAcks (packet) {
