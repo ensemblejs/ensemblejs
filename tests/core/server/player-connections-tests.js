@@ -20,10 +20,8 @@ describe('players connecting', function () {
   beforeEach(function () {
     var module = makeTestible('core/server/player-connections', {
       Config: {
-        ensemble: {
-          minPlayers: 2,
-          maxPlayers: 3,
-        }
+        minPlayers: function () { return 2; },
+        maxPlayers: function () { return 3; }
       },
       On: fakeOn
     });
@@ -45,7 +43,7 @@ describe('players connecting', function () {
     });
 
     it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
     });
 
     it('should partion players into games', function () {
@@ -67,7 +65,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
       });
     });
 
@@ -79,7 +77,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'offline'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'offline'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
       });
     });
 
@@ -98,7 +96,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
       });
     });
 
@@ -125,7 +123,7 @@ describe('players connecting', function () {
     });
 
     it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'online'}], 1]);
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'online'}, {id: 3, status: 'not-joined'}], 1]);
     });
   });
 

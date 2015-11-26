@@ -45,7 +45,7 @@ module.exports = {
     }
 
     function createNewPlayer (game, sessionId) {
-      add(getMaxPlayerCount(game.mode), game.id, sessionId);
+      add(config().maxPlayers(game.mode), game.id, sessionId);
     }
 
     function markPlayerAsOnline (gameId, sessionId) {
@@ -68,37 +68,28 @@ module.exports = {
       return connection.player;
     }
 
-    function getPlayers (gameId) {
-      return map(gamePlayers(gameId), function (connection) {
+    function getPlayers (game) {
+      var players = map(gamePlayers(game.id), function (connection) {
         return {
           id: connection.player,
           status: connection.status
         };
       });
+
+      var maxPlayers = config().maxPlayers(game.mode);
+      for (var i = players.length + 1; i <= maxPlayers; i += 1) {
+        players.push({id: i, status: 'not-joined'});
+      }
+
+      return players;
     }
 
     function connectedCount (gameId) {
       return connectedPlayers(gameId).length;
     }
 
-    function getMinPlayerCount (mode) {
-      if (config()[mode] && config()[mode].minPlayers) {
-        return config()[mode].minPlayers;
-      }
-
-      return config().ensemble.minPlayers;
-    }
-
-    function getMaxPlayerCount (mode) {
-      if (config()[mode] && config()[mode].maxPlayers) {
-        return config()[mode].maxPlayers;
-      }
-
-      return config().ensemble.maxPlayers;
-    }
-
     function determineIfWaitingForPlayers (game) {
-      return (connectedCount(game.id) < getMinPlayerCount(game.mode));
+      return (connectedCount(game.id) < config().minPlayers(game.mode));
     }
 
     define()('OnClientConnect', function PlayerConnections () {
@@ -108,7 +99,7 @@ module.exports = {
         var playerId = addPlayer(game, sessionId);
         socket.emit('playerId', playerId);
 
-        on().playerGroupChange(getPlayers(game.id), game.id);
+        on().playerGroupChange(getPlayers(game), game.id);
 
         return {
           ensemble: {
@@ -127,7 +118,7 @@ module.exports = {
 
         connection.status = 'offline';
 
-        on().playerGroupChange(getPlayers(game.id), game.id);
+        on().playerGroupChange(getPlayers(game), game.id);
 
         return {
           ensemble: {
