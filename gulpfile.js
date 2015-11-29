@@ -83,4 +83,8 @@ gulp.task('copy-css', function () {
 });
 gulp.task('build', ['build-styles', 'copy-css']);
 
+gulp.task('watch', function () {
+  gulp.watch(paths.scss, ['build']);
+});
+
 gulp.task('default', ['lint', 'test', 'build']);
