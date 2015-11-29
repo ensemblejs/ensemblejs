@@ -2,6 +2,7 @@
 
 var isObject = require('lodash').isObject;
 var isArray = require('lodash').isArray;
+var isString = require('lodash').isString;
 var isEqual = require('lodash').isEqual;
 var merge = require('lodash').merge;
 var each = require('lodash').each;
@@ -77,15 +78,70 @@ module.exports = {
       };
     });
 
-    return function mutate (gameId, result) {
+    function isValidDotStringResult(result) {
+      if (result.length !== 2) {
+        logger().error(result, 'Dot.String support for state mutation expects an array of length 2.');
+        return false;
+      }
+      if (!isString(result[0])) {
+        logger().error(result, 'Dot.String support for state mutation requires the first entry be a string.');
+        return false;
+      }
+      if (result[1] === null) {
+        return false;
+      }
+      if (isEqual(result[1], {})) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function isLastPart(index, dotStringParts) {
+      return (index + 1 === dotStringParts.length);
+    }
+
+    function mapDotStringResultToObject (result) {
+      var newResult = {};
+      var dotStringParts = result[0].split('.');
+
+      var currentNode = newResult;
+      each(dotStringParts, function (part, index) {
+        currentNode[part] = isLastPart(index, dotStringParts) ? result[1] : {};
+        currentNode = currentNode[part];
+      });
+
+      return newResult;
+    }
+
+    function ignoreResult (result) {
       if (result === undefined) {
-        return;
+        return true;
       }
       if (result === null) {
-        return;
+        return true;
       }
       if (isEqual(result, {})) {
+        return true;
+      }
+      if (isEqual(result, [])) {
+        return true;
+      }
+
+      return false;
+    }
+
+    return function mutate (gameId, result) {
+      if (ignoreResult(result)) {
         return;
+      }
+
+      if (isArray(result)) {
+        if (!isValidDotStringResult(result)) {
+          return;
+        }
+
+        result = mapDotStringResultToObject(result);
       }
 
       root[gameId] = root[gameId] || {};
