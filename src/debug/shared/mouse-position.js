@@ -9,11 +9,7 @@ function StateSeed () {
 }
 
 function updatePosition (state, x, y) {
-  return {
-    ensembleDebug: {
-      mouse: { x: x, y: y }
-    }
-  };
+  return ['ensembleDebug.mouse', { x: x, y: y }];
 }
 
 function ActionMap () {

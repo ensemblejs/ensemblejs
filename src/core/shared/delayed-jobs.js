@@ -52,11 +52,7 @@ module.exports = {
         newJobs = [];
         toCancel = [];
 
-        return {
-          ensemble: {
-            jobs: reject(jobs, ready)
-          }
-        };
+        return ['ensemble.jobs', reject(jobs, ready)];
       };
     });
 

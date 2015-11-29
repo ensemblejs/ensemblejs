@@ -129,16 +129,16 @@ describe('players connecting', function () {
 
   describe('when the number of connected players gets above the minimum', function () {
     it('should set waitingForPlayers to false', function () {
-      expect(onClientConnect(undefined, player1, game1).ensemble.waitingForPlayers).toBe(true);
-      expect(onClientConnect(undefined, player2, game1).ensemble.waitingForPlayers).toBe(false);
+      expect(onClientConnect(undefined, player1, game1)).toEqual(['ensemble.waitingForPlayers', true]);
+      expect(onClientConnect(undefined, player2, game1)).toEqual(['ensemble.waitingForPlayers', false]);
     });
   });
 
   describe('when the number of connected players falls below the minimum', function () {
     it('should set waitingForPlayers to true', function () {
-      expect(onClientConnect(undefined, player1, game1).ensemble.waitingForPlayers).toBe(true);
-      expect(onClientConnect(undefined, player2, game1).ensemble.waitingForPlayers).toBe(false);
-      expect(onClientDisconnect(undefined, player2, game1).ensemble.waitingForPlayers).toBe(true);
+      expect(onClientConnect(undefined, player1, game1)).toEqual(['ensemble.waitingForPlayers', true]);
+      expect(onClientConnect(undefined, player2, game1)).toEqual(['ensemble.waitingForPlayers', false]);
+      expect(onClientDisconnect(undefined, player2, game1)).toEqual(['ensemble.waitingForPlayers', true]);
     });
   });
 

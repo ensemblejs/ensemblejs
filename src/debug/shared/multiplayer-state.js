@@ -36,21 +36,17 @@ module.exports = {
 
     define()('OnClientConnect', function DebugMultiplayer () {
       return function incrementPlayerCount(state) {
-        return {
-          ensembleDebug: {
-            players: state.get('ensembleDebug.players') + 1
-          }
-        };
+        return [
+          'ensembleDebug.players', state.get('ensembleDebug.players') + 1
+        ];
       };
     });
 
     define()('OnClientDisconnect', function DebugMultiplayer () {
       return function decrementPlayerCount(state) {
-        return {
-          ensembleDebug: {
-            players: state.get('ensembleDebug.players') - 1
-          }
-        };
+        return [
+          'ensembleDebug.players', state.get('ensembleDebug.players') + 1
+        ];
       };
     });
 

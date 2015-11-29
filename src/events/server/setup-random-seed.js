@@ -8,11 +8,7 @@ module.exports = {
       var seed = game.id;
       random().setup(seed);
 
-      return {
-        ensemble: {
-          randomSeed: seed
-        }
-      };
+      return ['ensemble.randomSeed', seed];
     };
   }
 };

@@ -15,7 +15,7 @@ function createAddTouch (i) {
       touches.push({id: i, x: x, y: y});
     }
 
-    return { ensembleDebug: { touches: touches } };
+    return ['ensembleDebug.touches', touches];
   };
 }
 
@@ -23,9 +23,7 @@ function createRemoveTouch (i) {
   return function removeTouch (state) {
     var touches = state.get('ensembleDebug.touches');
 
-    return { ensembleDebug: {
-      touches: reject(touches, {id: i})
-    }};
+    return ['ensembleDebug.touches', reject(touches, {id: i})];
   };
 }
 

@@ -18,7 +18,7 @@ function createKeyDownFunc (key) {
 
     keys.push({id: key});
 
-    return { ensembleDebug: { keys: keys } };
+    return ['ensembleDebug.keys', keys];
   };
 }
 
@@ -27,7 +27,7 @@ function createKeyUpFunc (key) {
     var keys = state.get('ensembleDebug.keys');
     keys = reject(keys, {id : key});
 
-    return { ensembleDebug: { keys: keys } };
+    return ['ensembleDebug.keys', keys];
   };
 }
 

@@ -34,9 +34,7 @@ module.exports = {
         ensembleDebug.serverTime = Math.round(first(pluck(serverPhysics, 'now'))());
       }
 
-      return {
-        ensembleDebug: ensembleDebug
-      };
+      return ['ensembleDebug', ensembleDebug];
     }
 
     define()('BeforePhysicsFrame', function BeforePhysicsFrame () {

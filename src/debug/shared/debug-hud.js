@@ -28,11 +28,7 @@ function OnClientStart ($, tracker) {
 }
 
 function toggleHud (state) {
-  return {
-    ensembleDebug: {
-      hudVisible: !state.get('ensembleDebug.hudVisible')
-    }
-  };
+  return ['ensembleDebug.hudVisible', !state.get('ensembleDebug.hudVisible')];
 }
 
 function ActionMap () {

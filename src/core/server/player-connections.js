@@ -101,11 +101,9 @@ module.exports = {
 
         on().playerGroupChange(getPlayers(game), game.id);
 
-        return {
-          ensemble: {
-            waitingForPlayers: determineIfWaitingForPlayers(game)
-          }
-        };
+        return [
+          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(game)
+        ];
       };
     });
 
@@ -120,11 +118,9 @@ module.exports = {
 
         on().playerGroupChange(getPlayers(game), game.id);
 
-        return {
-          ensemble: {
-            waitingForPlayers: determineIfWaitingForPlayers(game)
-          }
-        };
+        return [
+          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(game)
+        ];
       };
     });
 

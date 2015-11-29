@@ -5,7 +5,7 @@ function mouseUp(key) {
     var mouseButtons = {};
     mouseButtons[key] = false;
 
-    return { ensembleDebug: { mouseButtons: mouseButtons } };
+    return ['ensembleDebug.mouseButtons', mouseButtons];
   };
 }
 
@@ -14,7 +14,7 @@ function mouseDown(key) {
     var mouseButtons = {};
     mouseButtons[key] = true;
 
-    return { ensembleDebug: { mouseButtons: mouseButtons } };
+    return ['ensembleDebug.mouseButtons', mouseButtons];
   };
 }
 

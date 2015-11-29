@@ -18,13 +18,9 @@ function BeforePhysicsFrame (internalState) {
     var onInput = filterInternalState(internalState, 'OnInput');
 
     var queueLengths = pluck(onInput, 'queueLength');
-    var combinedQueueDepth = reduce(queueLengths, sumCallback, 0);
+    var inputQueueDepth = reduce(queueLengths, sumCallback, 0);
 
-    return {
-      ensembleDebug: {
-        inputQueueDepth: combinedQueueDepth
-      }
-    };
+    return ['ensembleDebug.inputQueueDepth', inputQueueDepth];
   };
 }
 

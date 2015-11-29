@@ -35,9 +35,7 @@ function BeforePhysicsFrame (internalState) {
       ensembleDebug.serverPhysicsCallRate = first(pluck(serverPhysics, 'callRate'))();
     }
 
-    return {
-      ensembleDebug: ensembleDebug
-    };
+    return ['ensembleDebug', ensembleDebug];
   };
 }
 

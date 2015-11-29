@@ -46,13 +46,12 @@ describe('the delayed job manager', function() {
 	it('should remove finished effects from the jobs list', function() {
 		var newState = onPhysicsFrame(state, 0.5);
 
-		expect(newState.ensemble.jobs.length).toEqual(1);
-		expect(newState.ensemble.jobs[0]).toEqual({
+		expect(newState).toEqual(['ensemble.jobs', [{
 			key: 'key2',
 			duration: 0.5,
 			plugin: 'Plugin2',
 			method: 'callback'
-		});
+		}]]);
 	});
 
 	it('should be possible to cancel all effects of a certain key', function () {

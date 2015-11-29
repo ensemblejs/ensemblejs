@@ -32,11 +32,9 @@ function BeforePhysicsFrame (internalState) {
       return;
     }
 
-    return {
-      ensembleDebug: {
-        latency: first(pluck(socketServerStats, 'latency'))()
-      }
-    };
+    return [
+      'ensembleDebug.latency', first(pluck(socketServerStats, 'latency'))()
+    ];
   };
 }
 
