@@ -6,14 +6,13 @@ var isString = require('lodash').isString;
 var isEqual = require('lodash').isEqual;
 var isFunction = require('lodash').isFunction;
 var clone = require('lodash').clone;
-var where = require('lodash').where;
 var find = require('lodash').find;
+var where = require('lodash').where;
 
 module.exports = {
   type: 'StateTracker',
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
-    var latestServerState;
     var priorState;
     var currentState;
     var changes = [];
@@ -56,14 +55,6 @@ module.exports = {
       return f(currentState);
     }
 
-    function currentServerValue (f) {
-      if (latestServerState === undefined) {
-        return undefined;
-      }
-
-      return f(latestServerState);
-    }
-
     function priorValue (f) {
       if (priorState === undefined) {
         return undefined;
@@ -76,7 +67,6 @@ module.exports = {
       if (currentState === undefined) {
         return undefined;
       }
-
 
       return find(f(currentState), {id: model.id});
     }
@@ -164,18 +154,8 @@ module.exports = {
       currentState = newState;
     }
 
-    function saveLatestServerState (serverState) {
-      latestServerState = serverState;
-    }
-
-    function resetRawStateBackToLatestServer (rawState) {
-      rawState.resetTo(clone(latestServerState, true));
-    }
-
-    define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
-      return function storeInitialServerState (state) {
-        saveLatestServerState(state);
-        resetRawStateBackToLatestServer(rawState());
+    define()('OnServerStart', ['RawStateAccess'], function StateTracker (rawState) {
+      return function storeInitialServerState () {
         updateState(rawState().get());
       };
     });
@@ -185,27 +165,17 @@ module.exports = {
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());
         detectChangesAndNotifyObservers();
-        resetRawStateBackToLatestServer(rawState());
       };
     });
 
-    define()('OnIncomingServerPacket', function StateTracker () {
-      return function storeLatestServerState (packet) {
-        saveLatestServerState(packet.gameState);
-      };
-    });
-
-    define()('CurrentState', function StateTracker () {
+    function CurrentState () {
       return {
         get: function get (model) { return currentValue(model); }
       };
-    });
+    }
 
-    define()('CurrentServerState', function StateTracker () {
-      return {
-        get: function get (model) { return currentServerValue(model); }
-      };
-    });
+    define()('CurrentState', CurrentState);
+    define()('CurrentServerState', CurrentState);
 
     function functionifyDotStrings (model) {
       if (!isString(model)) {
