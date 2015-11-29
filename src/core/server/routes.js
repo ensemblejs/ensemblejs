@@ -70,6 +70,12 @@ module.exports = {
       res.json(state().for(req.params.gameId));
     }
 
+    function gameFull (req, res) {
+      res.render('full.jade', {
+        title: config().game.title
+      });
+    }
+
     function createNewGame (req, res) {
       if (!req.body.mode) {
         return res.status(400).send('Missing mode');
@@ -98,6 +104,7 @@ module.exports = {
       app.get('/', buildHandler(buildIndexHandler(project)));
       app.post('/games', createNewGame);
       app.get('/games/:gameId', continueGame);
+      app.get('/games/:gameId/full', gameFull);
       app.get('/games/:gameId/data', dumpState);
     }
 

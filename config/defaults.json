@@ -1,4 +1,7 @@
 {
+  "game": {
+    "title": "Not Set"
+  },
   "client": {
     "aspectRatio": 2.6,
     "widescreenMinimumMargin": 32,

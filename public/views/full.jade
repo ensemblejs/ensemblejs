@@ -1,0 +1,24 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    link(rel="stylesheet", href="/ensemble/css/normalize.min.css")
+    link(rel="stylesheet", href="/ensemble/css/ensemble.min.css")
+    if dashboard || debugMode
+      link(rel="stylesheet", href="/ensemble/css/dashboard.min.css")
+    link(rel="stylesheet", href="/game/css/game.min.css")
+  body
+    .content
+      .game-info
+        a(href="/" alt=title)
+          img(src="/game/images/icon64.png")
+        p.title #{title}
+      .game-full
+        img(src="/ensemble/images/site/full.svg" alt="Game is full image.")
+        p.primary-message Game Full
+        p.secondary-message This game does not support broadcasting to observers.
+        .button
+          a.call-to-action(href="/") Start New Game
+      .credits
+        a(href="http://ensemblejs.com")
+          img(src="/ensemble/images/site/ensemble.png" alt="powered by ensemblejs")

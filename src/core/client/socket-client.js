@@ -31,7 +31,7 @@ module.exports = {
 
       socket.on('playerId', function savePlayerId (playerId) {
         if (!playerId) {
-          return;
+          window().location.replace('/games/' + gameId + '/full');
         }
 
         on().clientPlayerId(playerId);

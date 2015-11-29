@@ -1,5 +1,7 @@
+$background-color: #4A4A4A;
+
 body {
-  background-color: #222;
+  background-color: $background-color;
   color: #fff;
   margin: 0;
   overflow: hidden;
@@ -80,4 +82,113 @@ html:full-screen {
 
 .start-hidden {
   display: none;
+}
+
+
+$accent-color: #7ED321;
+$accent-color-light: #B8E986;
+$button-text: #4A4A4A;
+$button-text-hover: #4A90E2;
+
+p {
+  font-family: helvetica;
+  color: white;
+
+  margin: 0;
+}
+
+.content {
+  width: 40%;
+  min-height: 100vh;
+  margin: 0 auto;
+  text-align: center;
+
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+
+  .game-info {
+    margin-top: 5%;
+    flex: 0;
+
+    img {
+      width: 64px;
+      height: 64px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 100;
+    }
+  }
+
+  .game-full {
+    flex: 1;
+    align-self: center;
+
+    img {
+      margin-top: 5%;
+      width: 200px;
+      height: 200px;
+      filter: drop-shadow(0 2px 5px #000)
+    }
+
+    #svg-full {
+      color: #9B9B9B;
+    }
+
+    .primary-message {
+      font-size: 72px;
+      font-weight: 900;
+      color: $accent-color;
+    }
+
+    .secondary-message {
+      font-size: 20px;
+      font-weight: 100;
+    }
+
+    .button {
+      margin-top: 10%;
+      user-select:none;
+
+      a.call-to-action {
+        border: 1px solid;
+        border-radius: 8px;
+        padding: 6px 12px;
+
+        color: $button-text;
+        font-size: 20px;
+
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+
+        text-decoration: none;
+
+        background-color: $accent-color-light;
+        transition-duration: 0.2s;
+      }
+
+      a:hover.call-to-action {
+        background-color: darken($accent-color-light, 20%);
+      }
+
+      a:active.call-to-action {
+        background-color: darken($accent-color-light, 30%);
+        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
+
+  .credits {
+    margin-bottom: 5%;
+    flex: 0;
+
+    text-align: center;
+
+    img {
+      width: 64px;
+      height: 64px;
+    }
+  }
 }
