@@ -3,6 +3,7 @@
 var isObject = require('lodash').isObject;
 var isArray = require('lodash').isArray;
 var isEqual = require('lodash').isEqual;
+var cloneDeep = require('lodash').cloneDeep;
 var isString = require('lodash').isString;
 var merge = require('lodash').merge;
 var each = require('lodash').each;
@@ -13,17 +14,23 @@ module.exports = {
   func: function StateMutator (definePlugin, logger) {
     var root = {};
 
-    function provideReadAccessToState (stateHash) {
-      return function(key) {
-        var parts = key.split('.');
-        var prop = stateHash;
-        each(parts, function (part) {
-          prop = prop[part];
+    function accessState(node, key) {
+      var parts = key.split('.');
+      var prop = node;
+      each(parts, function (part) {
+        prop = prop[part];
 
-          if (prop === undefined) {
-            logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-          }
-        });
+        if (prop === undefined) {
+          logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+        }
+      });
+
+      return prop;
+    }
+
+    function provideReadAccessToState (node) {
+      return function(key) {
+        var prop = accessState(node, key);
 
         if (isObject(prop) && !isArray(prop)) {
           return provideReadAccessToState(prop);
@@ -33,18 +40,34 @@ module.exports = {
       };
     }
 
+    function accessAndCloneState (node, key) {
+      var prop = accessState(node, key);
+
+      if (isObject(prop)) {
+        return cloneDeep(prop);
+      } else {
+        return prop;
+      }
+    }
+
     definePlugin()('StateAccess', function StateAccess () {
       return {
         for: function forGame () {
           return {
-            get: function get (dotString) {
-              return provideReadAccessToState(root)(dotString);
+            get: function get (key) {
+              return provideReadAccessToState(root)(key);
+            },
+            unwrap: function (key) {
+              return accessAndCloneState(root, key);
             },
             for: function forNamespace (namespace) {
               return {
                 get: function get (key) {
                   return provideReadAccessToState(root[namespace])(key);
-                }
+                },
+                unwrap: function (key) {
+                  return accessAndCloneState(root[namespace], key);
+                },
               };
             },
             player: function forPlayer (playerId) {
@@ -53,12 +76,18 @@ module.exports = {
                   return {
                     get: function get (key) {
                       return provideReadAccessToState(root.player[playerId][namespace])(key);
-                    }
+                    },
+                    unwrap: function (key) {
+                      return accessAndCloneState(root.player[playerId][namespace], key);
+                    },
                   };
                 },
                 get: function get (key) {
                   return provideReadAccessToState(root.player[playerId])(key);
-                }
+                },
+                unwrap: function (key) {
+                  return accessAndCloneState(root.player[playerId], key);
+                },
               };
             }
           };

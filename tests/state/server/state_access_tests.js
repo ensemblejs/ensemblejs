@@ -21,6 +21,7 @@ describe('state access', function () {
           }
         }
       },
+      arrayOfThings: [1, 2, 3],
       player: {
         1: { controller: { score: 10 } },
         2: { controller: { score: 20 } },
@@ -86,6 +87,82 @@ describe('state access', function () {
       expect(state.for(1).player(1).get('controller.score')).toEqual(10);
       expect(state.for(1).player(2).get('controller.score')).toEqual(20);
       expect(state.for(1).player(3).get('controller.score')).toEqual(34);
+    });
+  });
+
+  describe('unwrapping', function () {
+    it('should unwrap literals', function () {
+      expect(state.for(1).unwrap('controller.start')).toEqual(0);
+    });
+
+    it ('should work off namespaces', function () {
+      expect(state.for(1).for('controller').unwrap('start')).toEqual(0);
+    });
+
+    it('should unwrap objects', function () {
+      expect(state.for(1).unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+    });
+
+    it('should unwrap arrays', function () {
+      expect(state.for(1).unwrap('arrayOfThings')).toEqual([1, 2, 3]);
+    });
+
+    it('should unwrap nested objects', function () {
+      expect(state.for(1).unwrap('controller.child')).toEqual({
+        age: 5,
+        siblings: {
+          name: 'Geoff'
+        }
+      });
+    });
+
+    it('should work for player data access', function () {
+      expect(state.for(1).player(1).for('controller').unwrap('score')).toEqual(10);
+      expect(state.for(1).player(1).unwrap('controller.score')).toEqual(10);
+    });
+
+    describe('immutable unwraps' , function () {
+      it('should ignore literal changes', function () {
+        var value = state.for(1).unwrap('controller.start');
+        value = 3;
+
+        expect(state.for(1).get('controller.start')).toEqual(0);
+      });
+
+      it('should ignore object changes', function () {
+        var value = state.for(1).unwrap('controller.child.siblings');
+        value.name = 'Roger';
+
+        expect(state.for(1).unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+      });
+
+      it('should ignore array changes', function () {
+        var value = state.for(1).unwrap('arrayOfThings');
+        value.push(4);
+
+        expect(state.for(1).unwrap('arrayOfThings')).toEqual([1, 2, 3]);
+      });
+
+      it('should ignore nested object changes', function () {
+        var value = state.for(1).unwrap('controller.child');
+        value.age = 6;
+        value.siblings.banana = true;
+        value.siblings.name = 'Roger';
+
+        expect(state.for(1).unwrap('controller.child')).toEqual({
+          age: 5,
+          siblings: {
+            name: 'Geoff'
+          }
+        });
+      });
+
+      it('should work for player data access', function () {
+        var value = state.for(1).player(1).for('controller').unwrap('score');
+        value = 30;
+
+        expect(state.for(1).player(1).unwrap('controller.score')).toEqual(10);
+      });
     });
   });
 });
