@@ -87,7 +87,7 @@ module.exports = {
         return;
       }
 
-      logger().warn(['Can\'t cancel job', job.key, 'as it has never been added. Are you sure the job name is spelt correctly?'].join(' '));
+      logger().warn({job: job}, 'Can\'t cancel job as it has never been added. Are you sure the job name is spelt correctly?');
     }
 
     return {
