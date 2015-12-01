@@ -40,7 +40,7 @@ function runGameAtPath (path) {
   plugins.loadPath(path + '/js/events');
   plugins.loadPath(path + '/js/maps');
 
-  function modesJsonExists (exists) {
+  function publishStartServerEvent (exists) {
     var project = {
       modes: exists ? require(path + '/js/modes.json') : ['game'],
       name: packageInfo.name
@@ -49,7 +49,7 @@ function runGameAtPath (path) {
     plugins.get('On').serverStart(path, project);
   }
 
-  require('fs').exists(path + '/js/modes.json', modesJsonExists);
+  require('fs').exists(path + '/js/modes.json', publishStartServerEvent);
 }
 
 function shutdownHandler() {

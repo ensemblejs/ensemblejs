@@ -1,13 +1,13 @@
 [
     "AcknowledgementMap",
     "ActionMap",
-    "OnConnect",
     "OnClientConnect",
-    "OnDisconnect",
     "OnClientDisconnect",
-    "OnPause",
     "OnClientReady",
-    "OnResume",
+    "OnConnect",
+    "OnDisconnect",
+    "OnPause",
     "OnPhysicsFrame",
+    "OnResume",
     "StateSeed"
 ]
