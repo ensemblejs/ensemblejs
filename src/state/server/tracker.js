@@ -41,78 +41,78 @@ module.exports = {
       callback.apply(undefined, args);
     }
 
-    function hasChanged (f) {
+    function hasChanged (f, gameId) {
       if (priorState === undefined) { return true; }
 
-      return !isEqual(f(priorState), f(currentState));
+      return !isEqual(f(priorState[gameId]), f(currentState[gameId]));
     }
 
-    function currentValue (f) {
+    function currentValue (f, gameId) {
       if (currentState === undefined) {
         return undefined;
       }
 
-      return f(currentState);
+      return f(currentState[gameId]);
     }
 
-    function priorValue (f) {
+    function priorValue (f, gameId) {
       if (priorState === undefined) {
         return undefined;
       }
 
-      return f(priorState);
+      return f(priorState[gameId]);
     }
 
-    function currentElement (f, model) {
+    function currentElement (f, model, gameId) {
       if (currentState === undefined) {
         return undefined;
       }
 
-      return find(f(currentState), {id: model.id});
+      return find(f(currentState[gameId]), {id: model.id});
     }
 
-    function priorElement (f, model) {
+    function priorElement (f, model, gameId) {
       if (priorState === undefined) {
         return undefined;
       }
 
-      return find(f(priorState), {id: model.id});
+      return find(f(priorState[gameId]), {id: model.id});
     }
 
-    function elementAdded (f, model) {
-      return (where(f(priorState), {id: model.id}).length === 0);
+    function elementAdded (f, model, gameId) {
+      return (where(f(priorState[gameId]), {id: model.id}).length === 0);
     }
 
-    function elementRemoved (f, model) {
-      return (where(f(currentState), {id: model.id}).length === 0);
+    function elementRemoved (f, model, gameId) {
+      return (where(f(currentState[gameId]), {id: model.id}).length === 0);
     }
 
-    function elementChanged (f, model) {
+    function elementChanged (f, model, gameId) {
       if (priorState === undefined) { return true; }
 
-      var current = where(f(currentState), {id: model.id});
-      var prior = where(f(priorState), {id: model.id});
+      var current = where(f(currentState[gameId]), {id: model.id});
+      var prior = where(f(priorState[gameId]), {id: model.id});
       return !isEqual(current, prior);
     }
 
     function handleObjects (change) {
-      if (hasChanged(change.focus)) {
+      if (hasChanged(change.focus, change.gameId)) {
         if (!change.when) {
           invokeCallback(
             change.callback,
-            currentValue(change.focus),
-            priorValue(change.focus),
+            currentValue(change.focus, change.gameId),
+            priorValue(change.focus, change.gameId),
             change.data
           );
 
           return;
         }
 
-        if (change.when(currentValue(change.focus))) {
+        if (change.when(currentValue(change.focus, change.gameId))) {
           invokeCallback(
             change.callback,
-            currentValue(change.focus),
-            priorValue(change.focus),
+            currentValue(change.focus, change.gameId),
+            priorValue(change.focus, change.gameId),
             change.data
           );
         }
@@ -120,12 +120,12 @@ module.exports = {
     }
 
     function handleArrays (change) {
-      each(change.operatesOn(change.focus), function (model) {
-        if (change.detectionFunc(change.focus, model)) {
+      each(change.operatesOn(change.focus, change.gameId), function (model) {
+        if (change.detectionFunc(change.focus, model, change.gameId)) {
           invokeCallbackWithId(
             change.callback,
-            currentElement(change.focus, model),
-            priorElement(change.focus, model),
+            currentElement(change.focus, model, change.gameId),
+            priorElement(change.focus, model, change.gameId),
             change.data
           );
         }
@@ -133,7 +133,7 @@ module.exports = {
     }
 
     function sendCurrentContentsNow (change) {
-      each(currentValue(change.focus), function(element) {
+      each(currentValue(change.focus, change.gameId), function(element) {
         invokeCallbackWithId(change.callback, element, undefined, change.data);
       });
     }
@@ -154,28 +154,19 @@ module.exports = {
       currentState = newState;
     }
 
-    define()('OnServerStart', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('OnServerReady', ['RawStateAccess'], function StateTracker (rawState) {
       return function storeInitialServerState () {
-        updateState(rawState().get());
+        updateState(rawState().all());
       };
     });
 
     define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
 
       return function takeLatestCopyOfRawState () {
-        updateState(rawState().get());
+        updateState(rawState().all());
         detectChangesAndNotifyObservers();
       };
     });
-
-    function CurrentState () {
-      return {
-        get: function get (model) { return currentValue(model); }
-      };
-    }
-
-    define()('CurrentState', CurrentState);
-    define()('CurrentServerState', CurrentState);
 
     function functionifyDotStrings (model) {
       if (!isString(model)) {
@@ -198,18 +189,6 @@ module.exports = {
       };
     }
 
-    function onChangeOf (model, callback, data) {
-      var change = {
-        type: 'object',
-        focus: functionifyDotStrings(model),
-        callback: callback,
-        data: data
-      };
-
-      invokeCallback(callback, currentValue(change.focus), priorValue(change.focus), data);
-      changes.push(change);
-    }
-
     function functionifyIfRequired (condition) {
       if (!isFunction(condition)) {
         return function equals (currentValue) {
@@ -220,83 +199,105 @@ module.exports = {
       }
     }
 
-    function onChangeTo (model, condition, callback, data) {
-      var when = functionifyIfRequired(condition);
-
-      var change = {
-        type: 'object',
-        focus: functionifyDotStrings(model),
-        'when': when,
-        callback: callback,
-        data: data
-      };
-
-      if (change.when(currentValue(change.focus))) {
-        invokeCallback(
-          change.callback,
-          currentValue(change.focus),
-          priorValue(change.focus),
-          change.data
-        );
-      }
-
-      changes.push(change);
-    }
-
-    function onElementChanged (focusArray, callback, data) {
-      var change = {
-        type: 'array',
-        focus: functionifyDotStrings(focusArray),
-        callback: callback,
-        detectionFunc: elementChanged,
-        operatesOn: currentValue,
-        data: data
-      };
-
-      changes.push(change);
-    }
-
-    function onElementAdded (focusArray, onCallback, data) {
-      var change = {
-        type: 'array',
-        focus: functionifyDotStrings(focusArray),
-        callback: onCallback,
-        detectionFunc: elementAdded,
-        operatesOn: currentValue,
-        data: data
-      };
-
-      changes.push(change);
-
-      sendCurrentContentsNow(change);
-    }
-
-    function onElementRemoved (focusArray, callback, data) {
-      var change = {
-        type: 'array',
-        focus: functionifyDotStrings(focusArray),
-        callback: callback,
-        detectionFunc: elementRemoved,
-        operatesOn: priorValue,
-        data: data
-      };
-
-      changes.push(change);
-    }
-
-    function onElement (focusArray, added, changed, removed, data) {
-      onElementAdded(focusArray, added, data);
-      onElementChanged(focusArray, changed, data);
-      onElementRemoved(focusArray, removed, data);
-    }
-
     return {
-      onChangeOf: onChangeOf,
-      onChangeTo: onChangeTo,
-      onElement: onElement,
-      onElementChanged: onElementChanged,
-      onElementAdded: onElementAdded,
-      onElementRemoved: onElementRemoved
+      for: function filterTrackerByGameId (gameId) {
+
+        function onChangeOf (model, callback, data) {
+          var change = {
+            gameId: gameId,
+            type: 'object',
+            focus: functionifyDotStrings(model),
+            callback: callback,
+            data: data
+          };
+
+          invokeCallback(callback, currentValue(change.focus, gameId), priorValue(change.focus, gameId), data);
+          changes.push(change);
+        }
+
+        function onChangeTo (model, condition, callback, data) {
+          var when = functionifyIfRequired(condition);
+
+          var change = {
+            gameId: gameId,
+            type: 'object',
+            focus: functionifyDotStrings(model),
+            'when': when,
+            callback: callback,
+            data: data
+          };
+
+          if (change.when(currentValue(change.focus, gameId))) {
+            invokeCallback(
+              change.callback,
+              currentValue(change.focus, gameId),
+              priorValue(change.focus, gameId),
+              change.data
+            );
+          }
+
+          changes.push(change);
+        }
+
+        function onElementChanged (focusArray, callback, data) {
+          var change = {
+            gameId: gameId,
+            type: 'array',
+            focus: functionifyDotStrings(focusArray),
+            callback: callback,
+            detectionFunc: elementChanged,
+            operatesOn: currentValue,
+            data: data
+          };
+
+          changes.push(change);
+        }
+
+        function onElementAdded (focusArray, onCallback, data) {
+          var change = {
+            gameId: gameId,
+            type: 'array',
+            focus: functionifyDotStrings(focusArray),
+            callback: onCallback,
+            detectionFunc: elementAdded,
+            operatesOn: currentValue,
+            data: data
+          };
+
+          changes.push(change);
+
+          sendCurrentContentsNow(change);
+        }
+
+        function onElementRemoved (focusArray, callback, data) {
+          var change = {
+            gameId: gameId,
+            type: 'array',
+            focus: functionifyDotStrings(focusArray),
+            callback: callback,
+            detectionFunc: elementRemoved,
+            operatesOn: priorValue,
+            data: data
+          };
+
+          changes.push(change);
+        }
+
+        function onElement (focusArray, added, changed, removed, data) {
+          onElementAdded(focusArray, added, data);
+          onElementChanged(focusArray, changed, data);
+          onElementRemoved(focusArray, removed, data);
+        }
+
+        return {
+          onChangeOf: onChangeOf,
+          onChangeTo: onChangeTo,
+          onElement: onElement,
+          onElementChanged: onElementChanged,
+          onElementAdded: onElementAdded,
+          onElementRemoved: onElementRemoved
+        };
+      }
     };
   }
 };
