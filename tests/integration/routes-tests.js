@@ -163,6 +163,21 @@ describe('game routes', function () {
 			it('should report an error if the mode is not supplied', function (done) {
 				request.post(posturl('/games', {}), function (err, res) {
 					expect(res.statusCode).toEqual(400);
+					expect(fakeOn.newGame.called).toEqual(false);
+					done();
+				});
+			});
+
+			it('should emit the OnNewGame event', function (done) {
+				request.post(posturl('/games', {mode: 'arcade'}), function () {
+					expect(fakeOn.newGame.called).toEqual(true);
+					done();
+				});
+			});
+
+			it('should emit the OnGameReady event', function (done) {
+				request.post(posturl('/games', {mode: 'arcade'}), function () {
+					expect(fakeOn.gameReady.called).toEqual(true);
 					done();
 				});
 			});

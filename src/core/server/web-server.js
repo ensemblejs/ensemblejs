@@ -68,7 +68,9 @@ module.exports = {
 
       if (config().debug.develop) {
         each(project.modes, function (mode) {
-          on().newGame({id: mode, mode: mode});
+          var game = {id: mode, mode: mode};
+          on().newGame(game);
+          on().gameReady(game);
         });
       }
     }

@@ -83,6 +83,7 @@ module.exports = {
 
       var game = { id: uuid().gen(), mode: req.body.mode };
       on().newGame(game);
+      on().gameReady(game);
       res.redirect('/games/' + game.id);
     }
 

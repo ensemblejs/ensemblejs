@@ -34,6 +34,8 @@ var stateAccess = {
 
 var makeTestible = require('../../support').makeTestible;
 
+var game = { id: 2 };
+
 describe('physics autobinding', function () {
   describe('a physics map with one source key', function () {
     var physicsMap;
@@ -55,7 +57,7 @@ describe('physics autobinding', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      loader[0](2);
+      loader[0](game);
     });
 
     it('should pass the source state to the physics system', function () {
@@ -91,7 +93,7 @@ describe('physics autobinding', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      loader[0](3);
+      loader[0](game);
     });
 
     it('should pass the source state to the physics system', function () {
@@ -130,7 +132,7 @@ describe('physics autobinding', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      loader[0](3);
+      loader[0](game);
     });
 
     it('should pass the source state to the physics system', function () {

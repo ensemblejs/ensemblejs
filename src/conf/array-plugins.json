@@ -13,6 +13,7 @@
     "OnConnect",
     "OnDisconnect",
     "OnError",
+    "OnGameReady",
     "OnIncomingClientInputPacket",
     "OnIncomingServerPacket",
     "OnInput",

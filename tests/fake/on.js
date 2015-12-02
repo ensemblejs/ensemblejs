@@ -1,20 +1,12 @@
 'use strict';
 
 var sinon = require('sinon');
+var each = require('lodash').each;
+var realOn = require('../../src/events/shared/on').func();
 
-module.exports = {
-  clientConnect: sinon.spy(),
-  clientDisconnect: sinon.spy(),
-  connect: sinon.spy(),
-  disconnect: sinon.spy(),
-  error: sinon.spy(),
-  incomingServerPacket: sinon.spy(),
-  incomingClientInputPacket: sinon.spy(),
-  clientPlayerId: sinon.spy(),
-  newGame: sinon.spy(),
-  outgoingServerPacket: sinon.spy(),
-  pause: sinon.spy(),
-  resume: sinon.spy(),
-  clientStart: sinon.spy(),
-  playerGroupChange: sinon.spy()
-};
+var fakeOn = {};
+each(realOn, function (f, name) {
+  fakeOn[name] = sinon.spy();
+});
+
+module.exports = fakeOn;
