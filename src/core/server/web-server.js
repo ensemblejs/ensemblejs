@@ -66,13 +66,19 @@ module.exports = {
 
       socket().start(server, project.modes, session);
 
-      if (config().debug.develop) {
-        each(project.modes, function (mode) {
-          var game = {id: mode, mode: mode};
-          on().newGame(game);
-          on().gameReady(game);
-        });
-      }
+      define()('OnServerReady', function () {
+        return function spinupDeveloperGames () {
+          if (!config().debug.develop) {
+            return;
+          }
+
+          each(project.modes, function (mode) {
+            var game = {id: mode, mode: mode};
+            on().newGame(game);
+            on().gameReady(game);
+          });
+        };
+      });
     }
 
     define()('OnServerStop', function () {

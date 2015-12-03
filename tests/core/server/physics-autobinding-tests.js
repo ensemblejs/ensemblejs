@@ -25,7 +25,7 @@ var state = { position: { x: 4, y: 5} };
 var stateAccess = {
   for: function () {
     return {
-      get: function () {
+      unwrap: function () {
         return state;
       }
     };
@@ -149,6 +149,40 @@ describe('physics autobinding', function () {
       expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       expect(physicsSystem.updated.secondCall.args).toEqual(['keyB']);
       expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
+    });
+  });
+
+  describe('a physics map with static objects', function () {
+    var physicsMap;
+
+    beforeEach(function () {
+      physicsMap = {
+        'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}]
+      };
+
+      var loader = makeTestible('core/server/physics-system-loader', {
+        PhysicsMap: physicsMap,
+        StateTracker: tracker,
+        PhysicsSystem: physicsSystem,
+        StateAccess: stateAccess
+      });
+
+      tracker.for.reset();
+      physicsSystem.create.reset();
+      physicsSystem.updated.reset();
+      onChangeOf.reset();
+
+      loader[0](game);
+    });
+
+    it('should pass the source state to the physics system', function () {
+      expect(physicsSystem.create.firstCall.args).toEqual(['keyA', { position: { x: -100, y: -100}, width: 700, height: 100}
+      ]);
+    });
+
+    it('should NOT setup a trigger binding', function () {
+      expect(physicsSystem.updated.called).toEqual(false);
+      expect(onChangeOf.called).toEqual(false);
     });
   });
 });
