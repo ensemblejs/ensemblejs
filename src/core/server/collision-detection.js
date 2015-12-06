@@ -12,6 +12,20 @@ module.exports = {
     define()('OnEachFrame', function CollisionDetection () {
       var hasStarted = [];
 
+      function onCollision (target, collisionKey) {
+        if (contains(hasStarted, collisionKey)) {
+          each(target.during, function (f) {
+            f();
+          });
+        } else {
+          each(target.start, function (f) {
+            f();
+          });
+
+          hasStarted.push(collisionKey);
+        }
+      }
+
       return function thingsSmashTogether () {
 
         each(map(), function (targets, key) {
@@ -21,26 +35,13 @@ module.exports = {
             each(target.and, function (key2) {
               var b = physicsSystem().get(key2);
 
-              var didCollide = false;
-
               var collisionKey = key + ':' + key2;
 
-              test(a, b, function onCollision () {
-                didCollide = true;
-                if (contains(hasStarted, collisionKey)) {
-                  each(target.during, function (f) {
-                    f();
-                  });
-                } else {
-                  each(target.start, function (f) {
-                    f();
-                  });
+              function createOnCollisionCallback () {
+                onCollision(target, collisionKey);
+              }
 
-                  hasStarted.push(collisionKey);
-                }
-              });
-
-              if (!didCollide) {
+              if (!test(a, b, createOnCollisionCallback)) {
                 if (!contains(hasStarted, collisionKey)) {
                   return;
                 }
