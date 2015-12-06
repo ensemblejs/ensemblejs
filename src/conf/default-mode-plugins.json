@@ -3,6 +3,8 @@
     "ActionMap",
     "OnClientConnect",
     "OnClientDisconnect",
+    "PhysicsMap",
+    "CollisionMap",
     "OnClientReady",
     "OnConnect",
     "OnDisconnect",

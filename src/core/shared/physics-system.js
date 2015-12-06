@@ -13,6 +13,10 @@ function updated (key) {
   };
 }
 
+function get (key) {
+  return physicsThings[key];
+}
+
 function tick () {}
 
 module.exports = {
@@ -20,6 +24,7 @@ module.exports = {
   func: function PhysicsSystem () {
     return {
       tick: tick,
+      get: get,
       create: create,
       updated: updated
     };
