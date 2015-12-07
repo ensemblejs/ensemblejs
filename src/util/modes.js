@@ -2,12 +2,17 @@
 
 var intersection = require('lodash').intersection;
 var first = require('lodash').first;
+var isArray = require('lodash').isArray;
 var last = require('lodash').last;
 var select = require('lodash').select;
 var each = require('lodash').each;
 
-function isApplicable (mode, callback) {
-  return intersection(['*', mode], first(callback)).length > 0;
+function isApplicable (mode, plugin) {
+  if (isArray(first(plugin))) {
+    return intersection(['*', mode], first(plugin)).length > 0;
+  } else {
+    return intersection(['*', mode], [first(plugin)]).length > 0;
+  }
 }
 
 function filterPluginsByMode (plugins, mode) {
