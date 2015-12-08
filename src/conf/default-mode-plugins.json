@@ -1,15 +1,15 @@
 [
     "AcknowledgementMap",
     "ActionMap",
+    "CollisionMap",
     "OnClientConnect",
     "OnClientDisconnect",
-    "PhysicsMap",
-    "CollisionMap",
     "OnClientReady",
     "OnConnect",
     "OnDisconnect",
     "OnPause",
     "OnPhysicsFrame",
     "OnResume",
+    "PhysicsMap",
     "StateSeed"
 ]

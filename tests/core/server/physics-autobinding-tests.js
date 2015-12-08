@@ -34,19 +34,197 @@ var stateAccess = {
 
 var makeTestible = require('../../support').makeTestible;
 
-var game = { id: 2 };
+var game = { id: 2, mode: 'game' };
 
-describe('physics autobinding', function () {
-  describe('a physics map with one source key', function () {
-    var physicsMap;
+describe('physics system bridge', function () {
+  describe('on game ready', function () {
+    describe('a physics map with one source key', function () {
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'key': ['source.state']
+        }];
 
+        var bridge = makeTestible('core/server/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        tracker.for.reset();
+        physicsSystem.create.reset();
+        physicsSystem.updated.reset();
+        onChangeOf.reset();
+
+        bridge[1].OnGameReady()(game);
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.create.firstCall.args).toEqual(['2', 'key', {
+          position: {x: 4, y: 5}
+        }]);
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(tracker.for.firstCall.args).toEqual([2]);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'key']);
+        expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+      });
+    });
+
+    describe('a physics map with multiple source key', function () {
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'key': ['source.state', 'different.state']
+        }];
+
+        var bridge = makeTestible('core/server/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        tracker.for.reset();
+        physicsSystem.create.reset();
+        physicsSystem.updated.reset();
+        onChangeOf.reset();
+
+        bridge[1].OnGameReady()(game);
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.create.firstCall.args).toEqual(['2', 'key', {
+          position: {x: 4, y: 5}
+        }]);
+        expect(physicsSystem.create.secondCall.args).toEqual(['2', 'key', {
+          position: {x: 4, y: 5}
+        }]);
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+        expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
+      });
+    });
+
+    describe('a physics map with multiple keys', function () {
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'keyA': ['source.state'],
+          'keyB': ['different.state']
+        }];
+
+        var bridge = makeTestible('core/server/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        tracker.for.reset();
+        physicsSystem.create.reset();
+        physicsSystem.updated.reset();
+        onChangeOf.reset();
+
+        bridge[1].OnGameReady()(game);
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.create.firstCall.args).toEqual(['2', 'keyA', {
+          position: {x: 4, y: 5}
+        }]);
+        expect(physicsSystem.create.secondCall.args).toEqual(['2', 'keyB', {
+          position: {x: 4, y: 5}
+        }]);
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'keyA']);
+        expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'keyB']);
+        expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
+      });
+    });
+
+    describe('a physics map with static objects', function () {
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}]
+        }];
+
+        var bridge = makeTestible('core/server/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        tracker.for.reset();
+        physicsSystem.create.reset();
+        physicsSystem.updated.reset();
+        onChangeOf.reset();
+
+        bridge[1].OnGameReady()(game);
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.create.firstCall.args).toEqual(['2', 'keyA', { position: { x: -100, y: -100}, width: 700, height: 100}
+        ]);
+      });
+
+      it('should NOT setup a trigger binding', function () {
+        expect(physicsSystem.updated.called).toEqual(false);
+        expect(onChangeOf.called).toEqual(false);
+      });
+    });
+
+    describe('dealing with modes', function () {
+      beforeEach(function () {
+        var map1 = ['*', {'key1': ['source.state'] }];
+        var map2 = ['arcade', {'key2': ['source.state'] }];
+        var map3 = ['endless', {'key3': ['source.state'] }];
+
+        var bridge = makeTestible('core/server/physics-system-bridge', {
+          PhysicsMap: [map1, map2, map3],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        tracker.for.reset();
+        physicsSystem.create.reset();
+        physicsSystem.updated.reset();
+        onChangeOf.reset();
+
+        bridge[1].OnGameReady()({id: 2, mode: 'arcade'});
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.create.firstCall.args).toEqual(['2', 'key1', {
+          position: {x: 4, y: 5}
+        }]);
+        expect(physicsSystem.create.secondCall.args).toEqual(['2', 'key2', {
+          position: {x: 4, y: 5}
+        }]);
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(tracker.for.firstCall.args).toEqual([2]);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'key1']);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'key2']);
+        expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+      });
+    });
+  });
+
+  describe('dealing with multiple games', function () {
     beforeEach(function () {
-      physicsMap = {
-        'key': ['source.state']
-      };
+      var map1 = ['*', {'key1': ['source.state'] }];
+      var map2 = ['*', {'key2': ['source.state'] }];
 
-      var loader = makeTestible('core/server/physics-system-loader', {
-        PhysicsMap: physicsMap,
+      var bridge = makeTestible('core/server/physics-system-bridge', {
+        PhysicsMap: [map1, map2],
         StateTracker: tracker,
         PhysicsSystem: physicsSystem,
         StateAccess: stateAccess
@@ -57,132 +235,36 @@ describe('physics autobinding', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      loader[0](game);
+      bridge[1].OnGameReady()({id: 1, mode: 'arcade'});
+      bridge[1].OnGameReady()({id: 2, mode: 'arcade'});
     });
 
     it('should pass the source state to the physics system', function () {
-      expect(physicsSystem.create.firstCall.args).toEqual(['key', {
+      expect(physicsSystem.create.firstCall.args).toEqual(['1', 'key1', {
+        position: {x: 4, y: 5}
+      }]);
+      expect(physicsSystem.create.secondCall.args).toEqual(['1', 'key2', {
+        position: {x: 4, y: 5}
+      }]);
+      expect(physicsSystem.create.thirdCall.args).toEqual(['2', 'key1', {
+        position: {x: 4, y: 5}
+      }]);
+      expect(physicsSystem.create.lastCall.args).toEqual(['2', 'key2', {
         position: {x: 4, y: 5}
       }]);
     });
 
     it('should setup a trigger binding to wire the source changes with the physics system', function () {
-      expect(tracker.for.firstCall.args).toEqual([2]);
-      expect(physicsSystem.updated.firstCall.args).toEqual(['key']);
+      expect(tracker.for.firstCall.args).toEqual([1]);
+      expect(tracker.for.secondCall.args).toEqual([1]);
+      expect(tracker.for.thirdCall.args).toEqual([2]);
+      expect(tracker.for.lastCall.args).toEqual([2]);
+      expect(physicsSystem.updated.firstCall.args).toEqual(['1', 'key1']);
+      expect(physicsSystem.updated.secondCall.args).toEqual(['1', 'key2']);
+      expect(physicsSystem.updated.thirdCall.args).toEqual(['2', 'key1']);
+      expect(physicsSystem.updated.lastCall.args).toEqual(['2', 'key2']);
       expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-    });
-  });
-
-  describe('a physics map with multiple source key', function () {
-    var physicsMap;
-
-    beforeEach(function () {
-      physicsMap = {
-        'key': ['source.state', 'different.state']
-      };
-
-      var loader = makeTestible('core/server/physics-system-loader', {
-        PhysicsMap: physicsMap,
-        StateTracker: tracker,
-        PhysicsSystem: physicsSystem,
-        StateAccess: stateAccess
-      });
-
-      tracker.for.reset();
-      physicsSystem.create.reset();
-      physicsSystem.updated.reset();
-      onChangeOf.reset();
-
-      loader[0](game);
-    });
-
-    it('should pass the source state to the physics system', function () {
-      expect(physicsSystem.create.firstCall.args).toEqual(['key', {
-        position: {x: 4, y: 5}
-      }]);
-      expect(physicsSystem.create.secondCall.args).toEqual(['key', {
-        position: {x: 4, y: 5}
-      }]);
-    });
-
-    it('should setup a trigger binding to wire the source changes with the physics system', function () {
-      expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-      expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
-    });
-  });
-
-  describe('a physics map with multiple keys', function () {
-    var physicsMap;
-
-    beforeEach(function () {
-      physicsMap = {
-        'keyA': ['source.state'],
-        'keyB': ['different.state']
-      };
-
-      var loader = makeTestible('core/server/physics-system-loader', {
-        PhysicsMap: physicsMap,
-        StateTracker: tracker,
-        PhysicsSystem: physicsSystem,
-        StateAccess: stateAccess
-      });
-
-      tracker.for.reset();
-      physicsSystem.create.reset();
-      physicsSystem.updated.reset();
-      onChangeOf.reset();
-
-      loader[0](game);
-    });
-
-    it('should pass the source state to the physics system', function () {
-      expect(physicsSystem.create.firstCall.args).toEqual(['keyA', {
-        position: {x: 4, y: 5}
-      }]);
-      expect(physicsSystem.create.secondCall.args).toEqual(['keyB', {
-        position: {x: 4, y: 5}
-      }]);
-    });
-
-    it('should setup a trigger binding to wire the source changes with the physics system', function () {
-      expect(physicsSystem.updated.firstCall.args).toEqual(['keyA']);
-      expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-      expect(physicsSystem.updated.secondCall.args).toEqual(['keyB']);
-      expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
-    });
-  });
-
-  describe('a physics map with static objects', function () {
-    var physicsMap;
-
-    beforeEach(function () {
-      physicsMap = {
-        'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}]
-      };
-
-      var loader = makeTestible('core/server/physics-system-loader', {
-        PhysicsMap: physicsMap,
-        StateTracker: tracker,
-        PhysicsSystem: physicsSystem,
-        StateAccess: stateAccess
-      });
-
-      tracker.for.reset();
-      physicsSystem.create.reset();
-      physicsSystem.updated.reset();
-      onChangeOf.reset();
-
-      loader[0](game);
-    });
-
-    it('should pass the source state to the physics system', function () {
-      expect(physicsSystem.create.firstCall.args).toEqual(['keyA', { position: { x: -100, y: -100}, width: 700, height: 100}
-      ]);
-    });
-
-    it('should NOT setup a trigger binding', function () {
-      expect(physicsSystem.updated.called).toEqual(false);
-      expect(onChangeOf.called).toEqual(false);
+      expect(onChangeOf.secondCall.args).toEqual(['source.state', updatedCallback]);
     });
   });
 });

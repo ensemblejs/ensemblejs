@@ -3,6 +3,7 @@
     "ActionMap",
     "AfterPhysicsFrame",
     "BeforePhysicsFrame",
+    "CollisionMap",
     "InputCapture",
     "InternalState",
     "OnClientConnect",
@@ -31,5 +32,6 @@
     "OnServerStart",
     "OnServerStop",
     "OnUnmute",
+    "PhysicsMap",
     "StateSeed"
 ]

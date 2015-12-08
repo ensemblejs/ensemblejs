@@ -3,21 +3,25 @@
 var physicsThings = {};
 var autoResolve = require('distributedlife-sat').shapes.autoResolve;
 
-function create (key, initialState) {
-  physicsThings[key] = autoResolve(initialState);
+function create (gameId, key, initialState) {
+  physicsThings[gameId] = physicsThings[gameId] || {};
+  physicsThings[gameId][key] = autoResolve(initialState);
 }
 
-function updated (key) {
+function updated (gameId, key) {
   return function calledWhenUpdated (current) {
-    physicsThings[key] = autoResolve(current);
+    physicsThings[gameId][key] = autoResolve(current);
   };
 }
 
-function get (key) {
-  return physicsThings[key];
+function get (gameId, key) {
+  return physicsThings[gameId][key];
 }
 
-function tick () {}
+function tick (state, delta) {
+  //TOOD: bridge to this
+  return;
+}
 
 module.exports = {
   type: 'PhysicsSystem',
