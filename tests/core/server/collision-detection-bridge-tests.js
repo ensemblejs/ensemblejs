@@ -14,7 +14,6 @@ var during13 = sinon.spy();
 var finish13 = sinon.spy();
 
 var onEachFrame;
-var onServerReady;
 var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
@@ -26,44 +25,79 @@ physicsSystem.create(2, 'dot1', {x: 0, y: 0});
 physicsSystem.create(2, 'dot2', {x: 1, y: 1});
 physicsSystem.create(2, 'dot3', {x: 0, y: 0});
 
-var data = {
-  'ensemble.gameId': 1,
-  'ensemble.mode': 'arcade'
-};
-var state = {
-  get: function (what) {
-    return data[what];
-  }
-};
-var data2 = {
-  'ensemble.gameId': 2,
-  'ensemble.mode': 'endless'
-};
-var state2 = {
-  get: function (what) {
-    return data2[what];
-  }
-};
-var data3 = {
-  'ensemble.gameId': 3,
-  'ensemble.mode': 'arcade'
-};
-var state3 = {
-  get: function (what) {
-    return data3[what];
-  }
-};
+describe('the collision detection bridge', function () {
+  var cd = { detectCollisions: sinon.spy() };
 
-describe('collision detection', function () {
+  describe('on each frame', function () {
+    beforeEach(function () {
+      cd.detectCollisions.reset();
+
+      var map1 = ['*', {
+        'dot1': [{
+          and: ['dot2'],
+          start: [start12],
+          during: [during12],
+          finish: [finish12]
+        }]
+      }];
+      var map2 = ['endless', {
+        'dot1': [{
+          and: ['dot3'],
+          start: [start13],
+          during: [during13],
+          finish: [finish13]
+        }]
+      }];
+
+      var bridge = makeTestible('core/server/collision-detection-bridge', {
+        CollisionDetectionSystem: cd,
+        CollisionMap: [map1, map2]
+      });
+
+      var data = {
+        'ensemble.gameId': 3,
+        'ensemble.mode': 'arcade'
+      };
+      var state = {
+        get: function (what) {
+          return data[what];
+        }
+      };
+
+      onEachFrame = bridge[1].OnPhysicsFrame();
+      onEachFrame(state);
+    });
+
+    it('should call the collision detection system for the game', function () {
+      expect(cd.detectCollisions.firstCall.args[1]).toEqual(3);
+    });
+
+    it('should pass in the application collision maps for the mode', function () {
+      expect(cd.detectCollisions.firstCall.args[0]).toEqual({
+        'dot1': [{
+          and: ['dot2'],
+          start: [start12],
+          during: [during12],
+          finish: [finish12]
+        }]
+      });
+    });
+  });
+});
+
+describe('collision detection system', function () {
   beforeEach(function () {
     physicsSystem.updated(1, 'dot1')({x: 0, y: 0});
     physicsSystem.updated(1, 'dot2')({x: 1, y: 1});
     physicsSystem.updated(1, 'dot3')({x: 2, y: 2});
   });
 
-  describe('on each frame', function () {
+  describe('detecting collisions', function () {
+    var cd;
+    var map;
+
     beforeEach(function () {
-      var map = ['*', {
+      map = {
         'dot1':
           [{
             and: ['dot2'],
@@ -78,12 +112,11 @@ describe('collision detection', function () {
             finish: [finish13]
           }
         ]
-      }];
+      };
 
-      var plugin = makeTestible('core/server/collision-detection', {
-        PhysicsSystem: physicsSystem,
-        CollisionMap: [map]
-      });
+      cd = makeTestible('core/shared/collision-detection-system', {
+        PhysicsSystem: physicsSystem
+      })[0];
 
       start12.reset();
       during12.reset();
@@ -92,15 +125,11 @@ describe('collision detection', function () {
       start13.reset();
       during13.reset();
       finish13.reset();
-
-      onEachFrame = plugin[1].OnPhysicsFrame();
-      onServerReady = plugin[1].OnServerReady();
-      onServerReady();
     });
 
     describe('things that are not colliding', function () {
       beforeEach(function () {
-        onEachFrame(state);
+        cd.detectCollisions(map, 1);
       });
 
       it('should not execute callbacks', function () {
@@ -114,7 +143,7 @@ describe('collision detection', function () {
       beforeEach(function () {
         physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
 
-        onEachFrame(state);
+        cd.detectCollisions(map, 1);
       });
 
       it('should execute the start callbacks', function () {
@@ -126,13 +155,15 @@ describe('collision detection', function () {
 
     describe('things that collide for two frames in a row', function () {
       beforeEach(function () {
+        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
+
+        cd.detectCollisions(map, 1);
+
         start13.reset();
         during13.reset();
         finish13.reset();
 
-        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
-
-        onEachFrame(state);
+        cd.detectCollisions(map, 1);
       });
 
       it('should not execute the start or finsih callbacks', function () {
@@ -147,11 +178,15 @@ describe('collision detection', function () {
 
     describe('things that stop colliding', function () {
       beforeEach(function () {
+        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
+        cd.detectCollisions(map, 1);
+
         start13.reset();
         during13.reset();
         finish13.reset();
 
-        onEachFrame(state);
+        physicsSystem.updated(1, 'dot3')({x: 2, y: 2});
+        cd.detectCollisions(map, 1);
       });
 
       it('should only execute the finish callback', function () {
@@ -162,94 +197,40 @@ describe('collision detection', function () {
     });
   });
 
-  describe('collision map support modes', function () {
-    beforeEach(function () {
-      physicsSystem.updated(1, 'dot1')({x: 0, y: 0});
-      physicsSystem.updated(1, 'dot2')({x: 0, y: 0});
-      physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
-
-      var map1 = ['*', {
-        'dot1': [{
-          and: ['dot2'],
-          start: [start12],
-          during: [during12],
-          finish: [finish12]
-        }]
-      }];
-      var map2 = ['endless', {
-        'dot1': [{
-          and: ['dot3'],
-          start: [start13],
-          during: [during13],
-          finish: [finish13]
-        }]
-      }];
-
-      var plugin = makeTestible('core/server/collision-detection', {
-        PhysicsSystem: physicsSystem,
-        CollisionMap: [map1, map2]
-      });
-
-      start12.reset();
-      during12.reset();
-      finish12.reset();
-      start13.reset();
-      during13.reset();
-      finish13.reset();
-
-      onEachFrame = plugin[1].OnPhysicsFrame();
-      onServerReady = plugin[1].OnServerReady();
-      onServerReady();
-
-      onEachFrame(state);
-    });
-
-    it('the default should be all modes', function () {
-      expect(start12.called).toEqual(true);
-      expect(during12.called).toEqual(false);
-      expect(finish12.called).toEqual(false);
-
-      expect(start13.called).toEqual(false);
-      expect(during13.called).toEqual(false);
-      expect(finish13.called).toEqual(false);
-    });
-  });
-
   describe('system should support multiple games when running on the server', function () {
+    var cd;
+    var map1;
+    var map2;
+
     beforeEach(function () {
-      physicsSystem.create(3, 'dot1', {x: 4, y: 4});
-      physicsSystem.create(3, 'dot2', {x: 4, y: 4});
-      physicsSystem.create(3, 'dot3', {x: 4, y: 4});
+      physicsSystem.create(1, 'dot1', {x: 4, y: 4});
+      physicsSystem.create(1, 'dot2', {x: 4, y: 4});
+      physicsSystem.create(1, 'dot3', {x: 4, y: 4});
 
       physicsSystem.updated(2, 'dot1')({x: 10, y: 10});
       physicsSystem.updated(2, 'dot2')({x: 5, y: 5});
       physicsSystem.updated(2, 'dot3')({x: 10, y: 10});
 
-      var map1 = ['*', {
+      map1 = {
         'dot1': [{
           and: ['dot2'],
           start: [start12],
           during: [during12],
           finish: [finish12]
         }]
-      }];
-      var map2 = ['endless', {
+      };
+      map2 = {
         'dot1': [{
           and: ['dot3'],
           start: [start13],
           during: [during13],
           finish: [finish13]
         }]
-      }];
+      };
 
-      var plugin = makeTestible('core/server/collision-detection', {
+      cd = makeTestible('core/shared/collision-detection-system', {
         PhysicsSystem: physicsSystem,
-        CollisionMap: [map1, map2]
-      });
-
-      onEachFrame = plugin[1].OnPhysicsFrame();
-      onServerReady = plugin[1].OnServerReady();
-      onServerReady();
+      })[0];
 
       start12.reset();
       during12.reset();
@@ -260,7 +241,7 @@ describe('collision detection', function () {
     });
 
     it('it should work for game 1', function () {
-      onEachFrame(state3);
+      cd.detectCollisions(map1, 1);
 
       expect(start12.called).toEqual(true);
       expect(during12.called).toEqual(false);
@@ -272,7 +253,8 @@ describe('collision detection', function () {
     });
 
     it('it should work for game 2', function () {
-      onEachFrame(state2);
+      cd.detectCollisions(map1, 2);
+      cd.detectCollisions(map2, 2);
 
       expect(start12.called).toEqual(false);
       expect(during12.called).toEqual(false);
