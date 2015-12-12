@@ -8,7 +8,7 @@ module.exports = {
   func: function CollisionDetection (define, maps, collisionDetectionSystem) {
 
     define()('OnPhysicsFrame', function CollisionDetection () {
-      return function doSomething (state) {
+      return function callSystemWithRelevantMapsAndGameId (state) {
         var gameId = state.get('ensemble.gameId');
         var mode = state.get('ensemble.mode');
 

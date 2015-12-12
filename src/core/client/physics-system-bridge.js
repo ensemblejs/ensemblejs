@@ -20,21 +20,21 @@ module.exports = {
       physicsSystem().create(gameId, key, source);
     }
 
-    function OnGameReady () {
-      return function wireupPhysicsMap (game) {
+    function OnClientReady (mode) {
 
+      return function wireupPhysicsMap () {
         function loadPhysicsMap (map) {
           each(map, function(sources, key) {
             each(select(sources, isString), function(source) {
-              wireupDynamic(game.id, key, source);
+              wireupDynamic('client', key, source);
             });
             each(reject(sources, isString), function(source) {
-              wireupStatic(game.id, key, source);
+              wireupStatic('client', key, source);
             });
           });
         }
 
-        forEachMode(allMaps(), game.mode, loadPhysicsMap);
+        forEachMode(allMaps(), mode(), loadPhysicsMap);
       };
     }
 
@@ -44,7 +44,7 @@ module.exports = {
       };
     }
 
-    define()('OnGameReady', OnGameReady);
+    define()('OnClientReady', ['GameMode'], OnClientReady);
     define()('OnPhysicsFrame', OnPhysicsFrame);
   }
 };

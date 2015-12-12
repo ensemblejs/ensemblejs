@@ -18,8 +18,7 @@ function get (gameId, key) {
   return physicsThings[gameId][key];
 }
 
-function tick (state, delta) {
-  //TOOD: bridge to this
+function tick (delta) {
   return;
 }
 

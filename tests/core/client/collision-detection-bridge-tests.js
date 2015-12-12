@@ -3,6 +3,7 @@
 var expect = require('expect');
 var sinon = require('sinon');
 
+var defer = require('../../support').defer;
 var makeTestible = require('../../support').makeTestible;
 
 var start12 = sinon.spy();
@@ -49,27 +50,17 @@ describe('the collision detection bridge', function () {
         }]
       }];
 
-      var bridge = makeTestible('core/server/collision-detection-bridge', {
+      var bridge = makeTestible('core/client/collision-detection-bridge', {
         CollisionDetectionSystem: cd,
         CollisionMap: [map1, map2]
       });
 
-      var data = {
-        'ensemble.gameId': 3,
-        'ensemble.mode': 'arcade'
-      };
-      var state = {
-        get: function (what) {
-          return data[what];
-        }
-      };
-
-      onEachFrame = bridge[1].OnPhysicsFrame();
-      onEachFrame(state);
+      onEachFrame = bridge[1].OnPhysicsFrame(defer('arcade'));
+      onEachFrame();
     });
 
-    it('should call the collision detection system for the game', function () {
-      expect(cd.detectCollisions.firstCall.args[1]).toEqual(3);
+    it('should pass in a fake gameId as only one game runs on the client', function () {
+      expect(cd.detectCollisions.firstCall.args[1]).toEqual('client');
     });
 
     it('should pass in the application collision maps for the mode', function () {

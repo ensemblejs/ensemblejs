@@ -17,6 +17,7 @@ sinon.spy(tracker, 'for');
 var updatedCallback = sinon.spy();
 var physicsSystem = {
   create: sinon.spy(),
+  tick: sinon.spy(),
   updated: function () { return updatedCallback; }
 };
 sinon.spy(physicsSystem, 'updated');
@@ -265,6 +266,29 @@ describe('physics system bridge', function () {
       expect(physicsSystem.updated.lastCall.args).toEqual(['2', 'key2']);
       expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       expect(onChangeOf.secondCall.args).toEqual(['source.state', updatedCallback]);
+    });
+  });
+
+describe('on physics frame', function () {
+    beforeEach(function () {
+        var physicsMap = ['*', {
+          'key': ['source.state']
+        }];
+
+        var bridge = makeTestible('core/client/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        physicsSystem.tick.reset();
+
+        bridge[1].OnPhysicsFrame()(state, 0.15);
+      });
+
+    it('should call tick on the physics system', function () {
+      expect(physicsSystem.tick.firstCall.args).toEqual([0.15]);
     });
   });
 });
