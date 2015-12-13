@@ -5,6 +5,8 @@ var select = require('lodash').select;
 var reject = require('lodash').reject;
 var isString = require('lodash').isString;
 var forEachMode = require('../../util/modes').forEachMode;
+var replaceIfPresent = require('../../util/replace-if-present');
+var set = require('lodash').set;
 
 module.exports = {
   type: 'PhysicsSystemBridge',
@@ -40,7 +42,24 @@ module.exports = {
 
     function OnPhysicsFrame () {
       return function tickPhysicsSimulation (state, delta) {
-        physicsSystem().tick(delta);
+        var changes = physicsSystem().tick(delta);
+
+        if (!changes) {
+          return;
+        }
+        if (changes.length === 0) {
+          return;
+        }
+
+        var newState = {};
+        each(changes, function (stateKey) {
+          var gameState = state.unwrap(stateKey);
+          var physicsState = physicsSystem().get(stateKey);
+
+          set(newState, stateKey, replaceIfPresent(gameState, physicsState));
+        });
+
+        return newState;
       };
     }
 

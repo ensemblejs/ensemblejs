@@ -22,14 +22,23 @@ var physicsSystem = {
 };
 sinon.spy(physicsSystem, 'updated');
 
-var state = { position: { x: 4, y: 5} };
+var state = {
+  'source.state': {position: { x: 4, y: 5}},
+  'different.state': {position: { x: 4, y: 5}},
+  'second.state': {position: { x: 24, y: 35}}
+};
 var stateAccess = {
   for: function () {
     return {
-      unwrap: function () {
-        return state;
+      unwrap: function (key) {
+        return state[key];
       }
     };
+  }
+};
+var scopedState = {
+  unwrap: function (key) {
+    return state[key];
   }
 };
 
@@ -269,26 +278,87 @@ describe('physics system bridge', function () {
     });
   });
 
-describe('on physics frame', function () {
+  describe('on physics frame', function () {
+    var bridge;
+
     beforeEach(function () {
-        var physicsMap = ['*', {
-          'key': ['source.state']
-        }];
+      var physicsMap = ['*', {
+        'key': ['source.state']
+      }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
-          PhysicsMap: [physicsMap],
-          StateTracker: tracker,
-          PhysicsSystem: physicsSystem,
-          StateAccess: stateAccess
-        });
-
-        physicsSystem.tick.reset();
-
-        bridge[1].OnPhysicsFrame()(state, 0.15);
+      bridge = makeTestible('core/client/physics-system-bridge', {
+        PhysicsMap: [physicsMap],
+        StateTracker: tracker,
+        PhysicsSystem: physicsSystem,
+        StateAccess: stateAccess
       });
 
+      physicsSystem.tick.reset();
+    });
+
     it('should call tick on the physics system', function () {
+      bridge[1].OnPhysicsFrame()(scopedState, 0.15);
+
       expect(physicsSystem.tick.firstCall.args).toEqual([0.15]);
+    });
+
+    describe('when nothing is returned', function () {
+      it('should return nothing', function () {
+        expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual(undefined);
+      });
+    });
+
+    describe('when physics object changes are returned', function () {
+      beforeEach(function () {
+        physicsSystem.get = function () {
+          return {
+            position: { x: 14, y: 45, ignored: true},
+            alsoIgnored: 'yes'
+          };
+        };
+        physicsSystem.tick = function () {
+          return ['source.state'];
+        };
+      });
+
+      afterEach(function () {
+        physicsSystem.tick = sinon.spy();
+      });
+
+      describe('simple objects', function () {
+        it('should update the state models with the new physics values', function () {
+          expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual({
+            source: {
+              state: {
+                position: { x: 14, y: 45 }
+              }
+            }
+          });
+        });
+      });
+
+      describe('composite objects', function () {
+        beforeEach(function () {
+          physicsSystem.tick = function () {
+            return ['source.state', 'second.state'];
+          };
+        });
+
+        it('should be able to handle keys that match arrays', function () {
+          expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual({
+            source: {
+              state: {
+                position: { x: 14, y: 45 }
+              }
+            },
+            second: {
+              state: {
+                position: { x: 14, y: 45 }
+              }
+            }
+          });
+        });
+      });
     });
   });
 });
