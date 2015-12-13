@@ -16,7 +16,7 @@ module.exports = {
 
     function wireupDynamic (gameId, physicsKey, sourceKey) {
       physicsSystem().register(gameId, physicsKey, sourceKey, state().for(gameId).unwrap(sourceKey));
-      tracker().for(gameId).onChangeOf(sourceKey, physicsSystem().updated(gameId, physicsKey));
+      tracker().for(gameId).onChangeOf(sourceKey, physicsSystem().updated(gameId, sourceKey));
     }
 
     function wireupStatic (gameId, physicsKey, source) {

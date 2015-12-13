@@ -77,7 +77,7 @@ describe('physics system bridge', function () {
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
         expect(tracker.for.firstCall.args).toEqual([2]);
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'key']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
     });
@@ -150,9 +150,9 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'keyA']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'keyB']);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'different.state']);
         expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
       });
     });
@@ -221,8 +221,8 @@ describe('physics system bridge', function () {
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
         expect(tracker.for.firstCall.args).toEqual([2]);
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'key1']);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'key2']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
     });
@@ -265,10 +265,10 @@ describe('physics system bridge', function () {
       expect(tracker.for.secondCall.args).toEqual([1]);
       expect(tracker.for.thirdCall.args).toEqual([2]);
       expect(tracker.for.lastCall.args).toEqual([2]);
-      expect(physicsSystem.updated.firstCall.args).toEqual(['1', 'key1']);
-      expect(physicsSystem.updated.secondCall.args).toEqual(['1', 'key2']);
-      expect(physicsSystem.updated.thirdCall.args).toEqual(['2', 'key1']);
-      expect(physicsSystem.updated.lastCall.args).toEqual(['2', 'key2']);
+      expect(physicsSystem.updated.firstCall.args).toEqual(['1', 'source.state']);
+      expect(physicsSystem.updated.secondCall.args).toEqual(['1', 'source.state']);
+      expect(physicsSystem.updated.thirdCall.args).toEqual(['2', 'source.state']);
+      expect(physicsSystem.updated.lastCall.args).toEqual(['2', 'source.state']);
       expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       expect(onChangeOf.secondCall.args).toEqual(['source.state', updatedCallback]);
     });

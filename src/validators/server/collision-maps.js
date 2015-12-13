@@ -32,13 +32,13 @@ module.exports = {
           if (!isArray(collisionMap.and)) {
             collisionMap.and = [collisionMap.and];
           }
-          if (!isArray(collisionMap.start)) {
+          if (!isArray(collisionMap.start) && collisionMap.start) {
             collisionMap.start = [collisionMap.start];
           }
-          if (!isArray(collisionMap.during)) {
+          if (!isArray(collisionMap.during) && collisionMap.during) {
             collisionMap.during = [collisionMap.during];
           }
-          if (!isArray(collisionMap.finish)) {
+          if (!isArray(collisionMap.finish) && collisionMap.finish) {
             collisionMap.finish = [collisionMap.finish];
           }
         });

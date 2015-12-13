@@ -46,6 +46,14 @@ describe('collision map validator', function () {
     expect(map.key[0].start).toBeAn(Array);
   });
 
+  it('should not array "start" when not supplied', function () {
+    var map = ['*', {'key': { and: 'something', during: empty}}];
+    var validator = makeValidator(map);
+    validator();
+
+    expect(map.key[0].start).toBe(undefined);
+  });
+
   it('should ensure every "during" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', during: empty}}];
     var validator = makeValidator(map);
@@ -54,12 +62,28 @@ describe('collision map validator', function () {
     expect(map.key[0].during).toBeAn(Array);
   });
 
+  it('should not array "during" when not supplied', function () {
+    var map = ['*', {'key': { and: 'something', start: empty}}];
+    var validator = makeValidator(map);
+    validator();
+
+    expect(map.key[0].during).toBe(undefined);
+  });
+
   it('should ensure every "finish" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', finish: empty}}];
     var validator = makeValidator(map);
     validator();
 
     expect(map.key[0].finish).toBeAn(Array);
+  });
+
+  it('should not array "finish" when not supplied', function () {
+    var map = ['*', {'key': { and: 'something', start: empty}}];
+    var validator = makeValidator(map);
+    validator();
+
+    expect(map.key[0].finish).toBe(undefined);
   });
 
   it('must have an "and" key', function () {
