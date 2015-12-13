@@ -24,6 +24,8 @@ physicsSystem.register(2, 'key1', 'dot1', {x: 0, y: 0});
 physicsSystem.register(2, 'key2', 'dot2', {x: 1, y: 1});
 physicsSystem.register(2, 'key3', 'dot3', {x: 0, y: 0});
 
+var callbackDelegate = sinon.spy();
+
 describe('collision detection system', function () {
   beforeEach(function () {
     physicsSystem.updated(1, 'dot1')({x: 0, y: 0});
@@ -56,19 +58,11 @@ describe('collision detection system', function () {
       cd = makeTestible('core/shared/collision-detection-system', {
         PhysicsSystem: physicsSystem
       })[0];
-
-      start12.reset();
-      during12.reset();
-      finish12.reset();
-
-      start13.reset();
-      during13.reset();
-      finish13.reset();
     });
 
     describe('things that are not colliding', function () {
       beforeEach(function () {
-        cd.detectCollisions(map, 1);
+        cd.detectCollisions(map, 1, callbackDelegate);
       });
 
       it('should not execute callbacks', function () {
@@ -82,13 +76,14 @@ describe('collision detection system', function () {
       beforeEach(function () {
         physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
 
-        cd.detectCollisions(map, 1);
+        callbackDelegate.reset();
+
+        cd.detectCollisions(map, 1, callbackDelegate);
       });
 
       it('should execute the start callbacks', function () {
-        expect(start13.called).toEqual(true);
-        expect(during13.called).toEqual(false);
-        expect(finish13.called).toEqual(false);
+        expect(callbackDelegate.callCount).toEqual(1);
+        expect(callbackDelegate.firstCall.args).toEqual([start13]);
       });
     });
 
@@ -96,42 +91,33 @@ describe('collision detection system', function () {
       beforeEach(function () {
         physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
 
-        cd.detectCollisions(map, 1);
+        cd.detectCollisions(map, 1, callbackDelegate);
 
-        start13.reset();
-        during13.reset();
-        finish13.reset();
+        callbackDelegate.reset();
 
-        cd.detectCollisions(map, 1);
-      });
-
-      it('should not execute the start or finsih callbacks', function () {
-        expect(start13.called).toEqual(false);
-        expect(finish13.called).toEqual(false);
+        cd.detectCollisions(map, 1, callbackDelegate);
       });
 
       it('should execute the during callbacks', function () {
-        expect(during13.called).toEqual(true);
+        expect(callbackDelegate.callCount).toEqual(1);
+        expect(callbackDelegate.firstCall.args).toEqual([during13]);
       });
     });
 
     describe('things that stop colliding', function () {
       beforeEach(function () {
         physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
-        cd.detectCollisions(map, 1);
+        cd.detectCollisions(map, 1, callbackDelegate);
 
-        start13.reset();
-        during13.reset();
-        finish13.reset();
+        callbackDelegate.reset();
 
         physicsSystem.updated(1, 'dot3')({x: 2, y: 2});
-        cd.detectCollisions(map, 1);
+        cd.detectCollisions(map, 1, callbackDelegate);
       });
 
       it('should only execute the finish callback', function () {
-        expect(start13.called).toEqual(false);
-        expect(during13.called).toEqual(false);
-        expect(finish13.called).toEqual(true);
+        expect(callbackDelegate.callCount).toEqual(1);
+        expect(callbackDelegate.firstCall.args).toEqual([finish13]);
       });
     });
   });
@@ -156,17 +142,14 @@ describe('collision detection system', function () {
         PhysicsSystem: physicsSystem,
       })[0];
 
-      start12.reset();
-      during12.reset();
-      finish12.reset();
+      callbackDelegate.reset();
 
-      cd.detectCollisions(map, 1);
+      cd.detectCollisions(map, 1, callbackDelegate);
     });
 
     it('should execute the start callbacks', function () {
-      expect(start12.called).toEqual(true);
-      expect(during12.called).toEqual(false);
-      expect(finish12.called).toEqual(false);
+      expect(callbackDelegate.callCount).toEqual(1);
+      expect(callbackDelegate.firstCall.args).toEqual([start12]);
     });
   });
 
@@ -205,37 +188,22 @@ describe('collision detection system', function () {
         PhysicsSystem: physicsSystem,
       })[0];
 
-      start12.reset();
-      during12.reset();
-      finish12.reset();
-      start13.reset();
-      during13.reset();
-      finish13.reset();
+      callbackDelegate.reset();
     });
 
     it('it should work for game 1', function () {
-      cd.detectCollisions(map1, 1);
+      cd.detectCollisions(map1, 1, callbackDelegate);
 
-      expect(start12.called).toEqual(true);
-      expect(during12.called).toEqual(false);
-      expect(finish12.called).toEqual(false);
-
-      expect(start13.called).toEqual(false);
-      expect(during13.called).toEqual(false);
-      expect(finish13.called).toEqual(false);
+      expect(callbackDelegate.callCount).toEqual(1);
+      expect(callbackDelegate.firstCall.args).toEqual([start12]);
     });
 
     it('it should work for game 2', function () {
-      cd.detectCollisions(map1, 2);
-      cd.detectCollisions(map2, 2);
+      cd.detectCollisions(map1, 2, callbackDelegate);
+      cd.detectCollisions(map2, 2, callbackDelegate);
 
-      expect(start12.called).toEqual(false);
-      expect(during12.called).toEqual(false);
-      expect(finish12.called).toEqual(false);
-
-      expect(start13.called).toEqual(true);
-      expect(during13.called).toEqual(false);
-      expect(finish13.called).toEqual(false);
+      expect(callbackDelegate.callCount).toEqual(1);
+      expect(callbackDelegate.firstCall.args).toEqual([start13]);
     });
   });
 });

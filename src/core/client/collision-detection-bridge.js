@@ -8,9 +8,13 @@ module.exports = {
   func: function CollisionDetectionBridge (define, maps, collisionDetectionSystem) {
 
     function OnPhysicsFrame (mode) {
-      return function callSystemWithRelevantMapsAndGameId () {
+      return function callSystemWithRelevantMapsAndGameId (state, delta) {
+        function onCollision (callback) {
+          callback(state, delta);
+        }
+
         forEachMode(maps(), mode(), function (map) {
-          collisionDetectionSystem().detectCollisions(map, 'client');
+          collisionDetectionSystem().detectCollisions(map, 'client', onCollision);
         });
       };
     }

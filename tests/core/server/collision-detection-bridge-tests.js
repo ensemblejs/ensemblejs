@@ -25,6 +25,16 @@ physicsSystem.create(2, 'key1', 'dot1', {x: 0, y: 0});
 physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
 physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
 
+var data = {
+  'ensemble.gameId': 3,
+  'ensemble.mode': 'arcade'
+};
+var state = {
+  get: function (what) {
+    return data[what];
+  }
+};
+
 describe('the collision detection bridge', function () {
   var cd = { detectCollisions: sinon.spy() };
 
@@ -54,16 +64,6 @@ describe('the collision detection bridge', function () {
         CollisionMap: [map1, map2]
       });
 
-      var data = {
-        'ensemble.gameId': 3,
-        'ensemble.mode': 'arcade'
-      };
-      var state = {
-        get: function (what) {
-          return data[what];
-        }
-      };
-
       onEachFrame = bridge[1].OnPhysicsFrame();
       onEachFrame(state);
     });
@@ -80,6 +80,22 @@ describe('the collision detection bridge', function () {
           during: [during12],
           finish: [finish12]
         }]
+      });
+    });
+
+    describe('on collision', function () {
+      var onCollisionCallback = sinon.spy();
+
+      beforeEach(function () {
+        cd.detectCollisions = function (map, gameId, callbackDelegate) {
+          callbackDelegate(onCollisionCallback);
+        };
+
+        onEachFrame(state, 0.15);
+      });
+
+      it('should pass the state and delta to the callback', function () {
+        expect(onCollisionCallback.firstCall.args).toEqual([state, 0.15]);
       });
     });
   });
