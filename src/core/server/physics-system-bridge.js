@@ -7,31 +7,32 @@ var isString = require('lodash').isString;
 var forEachMode = require('../../util/modes').forEachMode;
 var replaceIfPresent = require('../../util/replace-if-present');
 var set = require('lodash').set;
+var sequence = require('distributedlife-sequence');
 
 module.exports = {
   type: 'PhysicsSystemBridge',
   deps: ['DefinePlugin', 'PhysicsMap', 'StateTracker', 'PhysicsSystem', 'StateAccess'],
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
-    function wireupDynamic (gameId, key, source) {
-      physicsSystem().create(gameId, key, state().for(gameId).unwrap(source));
-      tracker().for(gameId).onChangeOf(source, physicsSystem().updated(gameId, key));
+    function wireupDynamic (gameId, physicsKey, sourceKey) {
+      physicsSystem().register(gameId, physicsKey, sourceKey, state().for(gameId).unwrap(sourceKey));
+      tracker().for(gameId).onChangeOf(sourceKey, physicsSystem().updated(gameId, physicsKey));
     }
 
-    function wireupStatic (gameId, key, source) {
-      physicsSystem().create(gameId, key, source);
+    function wireupStatic (gameId, physicsKey, source) {
+      physicsSystem().register(gameId, physicsKey, 'static' + sequence.next('static-physics'), source);
     }
 
     function OnGameReady () {
       return function wireupPhysicsMap (game) {
 
         function loadPhysicsMap (map) {
-          each(map, function(sources, key) {
-            each(select(sources, isString), function(source) {
-              wireupDynamic(game.id, key, source);
+          each(map, function(sources, physicsKey) {
+            each(select(sources, isString), function(sourceKey) {
+              wireupDynamic(game.id, physicsKey, sourceKey);
             });
-            each(reject(sources, isString), function(source) {
-              wireupStatic(game.id, key, source);
+            each(reject(sources, isString), function(sourceKey) {
+              wireupStatic(game.id, physicsKey, sourceKey);
             });
           });
         }
