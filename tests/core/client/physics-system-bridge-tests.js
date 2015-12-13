@@ -6,13 +6,8 @@ var expect = require('expect');
 var onChangeOf = sinon.spy();
 
 var tracker = {
-  for: function () {
-    return {
-      onChangeOf: onChangeOf
-    };
-  }
+  onChangeOf: onChangeOf
 };
-sinon.spy(tracker, 'for');
 
 var updatedCallback = sinon.spy();
 var physicsSystem = {
@@ -60,7 +55,6 @@ describe('physics system bridge', function () {
           StateAccess: stateAccess
         });
 
-        tracker.for.reset();
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
         onChangeOf.reset();
@@ -75,7 +69,6 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(tracker.for.firstCall.args).toEqual(['client']);
         expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'key']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
@@ -94,7 +87,6 @@ describe('physics system bridge', function () {
           StateAccess: stateAccess
         });
 
-        tracker.for.reset();
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
         onChangeOf.reset();
@@ -131,7 +123,6 @@ describe('physics system bridge', function () {
           StateAccess: stateAccess
         });
 
-        tracker.for.reset();
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
         onChangeOf.reset();
@@ -169,7 +160,6 @@ describe('physics system bridge', function () {
           StateAccess: stateAccess
         });
 
-        tracker.for.reset();
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
         onChangeOf.reset();
@@ -201,7 +191,6 @@ describe('physics system bridge', function () {
           StateAccess: stateAccess
         });
 
-        tracker.for.reset();
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
         onChangeOf.reset();
@@ -219,7 +208,6 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(tracker.for.firstCall.args).toEqual(['client']);
         expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'key1']);
         expect(physicsSystem.updated.secondCall.args).toEqual(['client', 'key2']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
