@@ -35,22 +35,39 @@ module.exports = {
     function detectCollisions (map, gameId) {
       each(map, function (targets, aKey) {
         each(targets, function (target) {
-          var a = physicsSystem().get(gameId, aKey);
+          var aShapes = physicsSystem().getByPhysicsKey(gameId, aKey);
 
           function doCollisionTest (bKey) {
-            var b = physicsSystem().get(gameId, bKey);
+            var collided = false;
+
+            var bShapes = physicsSystem().getByPhysicsKey(gameId, bKey);
 
             function createOnCollisionCallback () {
+              collided = true;
               onCollision(target, createKey(gameId, aKey, bKey));
             }
 
-            if (!test(a, b, createOnCollisionCallback)) {
-              if (!contains(hasStarted, createKey(gameId, aKey, bKey))) {
+            each(aShapes, function(a) {
+              if (collided) {
                 return;
               }
 
-              endCollision(target, createKey(gameId, aKey, bKey));
-            }
+              each(bShapes, function(b) {
+                if (collided) {
+                  return;
+                }
+
+                if (!test(a, b, createOnCollisionCallback)) {
+                  if (!contains(hasStarted, createKey(gameId, aKey, bKey))) {
+                    return;
+                  }
+
+                  endCollision(target, createKey(gameId, aKey, bKey));
+
+                  collided = true;
+                }
+              });
+            });
           }
 
           each(target.and, doCollisionTest);

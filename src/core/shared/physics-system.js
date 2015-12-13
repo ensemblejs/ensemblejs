@@ -1,24 +1,39 @@
 'use strict';
 
-var physicsThings = {};
 var autoResolve = require('distributedlife-sat').shapes.autoResolve;
+var map = require('lodash').map;
 
-function create (gameId, key, initialState) {
+var physicsThings = {};
+var keyMappings = {};
+
+function create (gameId, physicsKey, sourceKey, initialState) {
+  keyMappings[gameId] = keyMappings[gameId] || {};
+  keyMappings[gameId][physicsKey] = keyMappings[gameId][physicsKey] || [];
+  keyMappings[gameId][physicsKey].push(sourceKey);
+
   physicsThings[gameId] = physicsThings[gameId] || {};
-  physicsThings[gameId][key] = autoResolve(initialState);
+  physicsThings[gameId][sourceKey] = autoResolve(initialState);
 }
 
-function updated (gameId, key) {
+function updated (gameId, sourceKey) {
   return function calledWhenUpdated (current) {
-    physicsThings[gameId][key] = autoResolve(current);
+    physicsThings[gameId][sourceKey] = autoResolve(current);
   };
 }
 
-function get (gameId, key) {
-  return physicsThings[gameId][key];
+function getBySourceKey (gameId, sourceKey) {
+  return physicsThings[gameId][sourceKey];
 }
 
-function tick (delta) {
+function getByPhysicsKey (gameId, physicsKey) {
+  var sourceKeys = keyMappings[gameId][physicsKey];
+
+  return map(sourceKeys, function(sourceKey) {
+    return getBySourceKey(gameId, sourceKey);
+  });
+}
+
+function tick () {
   return;
 }
 
@@ -27,8 +42,10 @@ module.exports = {
   func: function PhysicsSystem () {
     return {
       tick: tick,
-      get: get,
+      getBySourceKey: getBySourceKey,
+      getByPhysicsKey: getByPhysicsKey,
       create: create,
+      register: create,
       updated: updated
     };
   }

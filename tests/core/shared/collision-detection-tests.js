@@ -17,13 +17,12 @@ var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
 
-physicsSystem.create(1, 'dot1', {x: 0, y: 0});
-physicsSystem.create(1, 'dot2', {x: 1, y: 1});
-physicsSystem.create(1, 'dot3', {x: 2, y: 2});
-physicsSystem.create(2, 'dot1', {x: 0, y: 0});
-physicsSystem.create(2, 'dot2', {x: 1, y: 1});
-physicsSystem.create(2, 'dot3', {x: 0, y: 0});
-
+physicsSystem.register(1, 'key1', 'dot1', {x: 0, y: 0});
+physicsSystem.register(1, 'key2', 'dot2', {x: 1, y: 1});
+physicsSystem.register(1, 'key3', 'dot3', {x: 2, y: 2});
+physicsSystem.register(2, 'key1', 'dot1', {x: 0, y: 0});
+physicsSystem.register(2, 'key2', 'dot2', {x: 1, y: 1});
+physicsSystem.register(2, 'key3', 'dot3', {x: 0, y: 0});
 
 describe('collision detection system', function () {
   beforeEach(function () {
@@ -38,15 +37,15 @@ describe('collision detection system', function () {
 
     beforeEach(function () {
       map = {
-        'dot1':
+        'key1':
           [{
-            and: ['dot2'],
+            and: ['key2'],
             start: [start12],
             during: [during12],
             finish: [finish12]
           },
           {
-            and: ['dot3'],
+            and: ['key3'],
             start: [start13],
             during: [during13],
             finish: [finish13]
@@ -137,31 +136,65 @@ describe('collision detection system', function () {
     });
   });
 
-  describe('system should support multiple games when running on the server', function () {
+  describe('multiple physics objects for a key', function () {
+    beforeEach(function () {
+      physicsSystem.register(1, 'multiple1', 'source.a', {x: 0, y: 0});
+      physicsSystem.register(1, 'multiple1', 'source.b', {x: 1, y: 1});
+      physicsSystem.register(1, 'multiple2', 'source.c', {x: 0, y: 0});
+      physicsSystem.register(1, 'multiple2', 'source.d', {x: 1, y: 1});
+
+      var map = {
+        'multiple1': [{
+          and: ['multiple2'],
+          start: [start12],
+          during: [during12],
+          finish: [finish12]
+        }]
+      };
+
+      var cd = makeTestible('core/shared/collision-detection-system', {
+        PhysicsSystem: physicsSystem,
+      })[0];
+
+      start12.reset();
+      during12.reset();
+      finish12.reset();
+
+      cd.detectCollisions(map, 1);
+    });
+
+    it('should execute the start callbacks', function () {
+      expect(start12.called).toEqual(true);
+      expect(during12.called).toEqual(false);
+      expect(finish12.called).toEqual(false);
+    });
+  });
+
+  describe('multiple games when running on the server', function () {
     var cd;
     var map1;
     var map2;
 
     beforeEach(function () {
-      physicsSystem.create(1, 'dot1', {x: 4, y: 4});
-      physicsSystem.create(1, 'dot2', {x: 4, y: 4});
-      physicsSystem.create(1, 'dot3', {x: 4, y: 4});
+      physicsSystem.register(1, 'common1', 'dot1', {x: 4, y: 4});
+      physicsSystem.register(1, 'common2', 'dot2', {x: 4, y: 4});
+      physicsSystem.register(1, 'common3', 'dot3', {x: 4, y: 4});
 
-      physicsSystem.updated(2, 'dot1')({x: 10, y: 10});
-      physicsSystem.updated(2, 'dot2')({x: 5, y: 5});
-      physicsSystem.updated(2, 'dot3')({x: 10, y: 10});
+      physicsSystem.register(2, 'common1', 'dot1', {x: 10, y: 10});
+      physicsSystem.register(2, 'common2', 'dot2', {x: 5, y: 5});
+      physicsSystem.register(2, 'common3', 'dot3', {x: 10, y: 10});
 
       map1 = {
-        'dot1': [{
-          and: ['dot2'],
+        'key1': [{
+          and: ['key2'],
           start: [start12],
           during: [during12],
           finish: [finish12]
         }]
       };
       map2 = {
-        'dot1': [{
-          and: ['dot3'],
+        'key1': [{
+          and: ['key3'],
           start: [start13],
           during: [during13],
           finish: [finish13]
