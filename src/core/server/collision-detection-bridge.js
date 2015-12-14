@@ -22,7 +22,6 @@ module.exports = {
             onCollisionArgs.unshift(delta);
             onCollisionArgs.unshift(state);
 
-            console.log(onCollisionArgs);
             changes.push(callback.apply(undefined, onCollisionArgs));
           }
 
