@@ -7,9 +7,9 @@ var isObject = require('lodash').isObject;
 var last = require('lodash').last;
 
 module.exports = {
-  type: 'OnServerStart',
-  deps: ['PhysicsMap', 'Logger'],
-  func: function CollisionMapValidator(maps, logger) {
+  type: 'CollisionMapValidator',
+  deps: ['PhysicsMap', 'Logger', 'DefinePlugin'],
+  func: function CollisionMapValidator(maps, logger, define) {
 
     function validateMap (map) {
       var ignoreMode = last(map);
@@ -31,8 +31,13 @@ module.exports = {
       });
     }
 
-    return function validate () {
-      each(maps(), validateMap);
-    };
+    function RunValidator () {
+      return function validate () {
+        each(maps(), validateMap);
+      };
+    }
+
+    define()('OnServerStart', RunValidator);
+    define()('OnClientStart', RunValidator);
   }
 };

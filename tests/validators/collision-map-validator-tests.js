@@ -8,10 +8,10 @@ function empty () {}
 
 describe('collision map validator', function () {
   function makeValidator(map) {
-    return makeTestible('validators/server/collision-maps', {
+    return makeTestible('validators/shared/collision-maps', {
       CollisionMap: [map],
       Logger: logger
-    })[0];
+    })[1];
   }
 
   beforeEach(function () {
@@ -19,13 +19,17 @@ describe('collision map validator', function () {
   });
 
   it('runs on server start', function () {
-    expect(require('../../src/validators/server/collision-maps').type).toEqual('OnServerStart');
+    expect(makeValidator({}).OnServerStart).toNotBe(undefined);
+  });
+
+  it('runs on client start', function () {
+    expect(makeValidator({}).OnClientStart).toNotBe(undefined);
   });
 
   it('should ensure every key becomes an array', function () {
     var map = ['*', {'key': { and: 'something', start: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key).toBeAn(Array);
   });
@@ -33,7 +37,7 @@ describe('collision map validator', function () {
   it('should ensure every "and" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', start: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].and).toBeAn(Array);
   });
@@ -41,7 +45,7 @@ describe('collision map validator', function () {
   it('should ensure every "start" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', start: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].start).toBeAn(Array);
   });
@@ -49,7 +53,7 @@ describe('collision map validator', function () {
   it('should not array "start" when not supplied', function () {
     var map = ['*', {'key': { and: 'something', during: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].start).toBe(undefined);
   });
@@ -57,7 +61,7 @@ describe('collision map validator', function () {
   it('should ensure every "during" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', during: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].during).toBeAn(Array);
   });
@@ -65,7 +69,7 @@ describe('collision map validator', function () {
   it('should not array "during" when not supplied', function () {
     var map = ['*', {'key': { and: 'something', start: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].during).toBe(undefined);
   });
@@ -73,7 +77,7 @@ describe('collision map validator', function () {
   it('should ensure every "finish" becomes an array', function () {
     var map = ['*', {'key': { and: 'something', finish: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].finish).toBeAn(Array);
   });
@@ -81,7 +85,7 @@ describe('collision map validator', function () {
   it('should not array "finish" when not supplied', function () {
     var map = ['*', {'key': { and: 'something', start: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(map.key[0].finish).toBe(undefined);
   });
@@ -89,7 +93,7 @@ describe('collision map validator', function () {
   it('must have an "and" key', function () {
     var map = ['*', {'key': { finish: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" is missing "and" property.']);
   });
@@ -97,7 +101,7 @@ describe('collision map validator', function () {
   it('must must have at least "start", "during" or "finish"', function () {
     var map = ['*', {'key': { and: 'something'}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" requires at least one callback out of "start", "during" and "finish".']);
   });
@@ -105,7 +109,7 @@ describe('collision map validator', function () {
   it('should validate mode restricted maps', function () {
     var map = ['arcade', {'key': { finish: empty}}];
     var validator = makeValidator(map);
-    validator();
+    validator.OnServerStart()();
 
     expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" is missing "and" property.']);
   });

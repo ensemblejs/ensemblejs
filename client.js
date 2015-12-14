@@ -94,6 +94,9 @@ module.exports = {
 
     loadFolder(require('./src/ui/**/*.js', {mode: 'hash'} ));
 
+    loadFolder(require('./src/validators/shared/**/*.js', {mode: 'hash'} ));
+    loadFolder(require('./src/validators/client/**/*.js', {mode: 'hash'} ));
+
     loadFolder(require('./src/debug/shared/**/*.js', {mode: 'hash'} ));
     loadFolder(require('./src/debug/client/**/*.js', {mode: 'hash'} ));
   }

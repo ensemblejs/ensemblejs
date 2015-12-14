@@ -9,13 +9,17 @@ module.exports = {
 
     function OnPhysicsFrame (mode) {
       return function callSystemWithRelevantMapsAndGameId (state, delta) {
+        var changes = [];
+
         function onCollision (callback) {
-          callback(state, delta);
+          changes.push(callback(state, delta));
         }
 
         forEachMode(maps(), mode(), function (map) {
           collisionDetectionSystem().detectCollisions(map, 'client', onCollision);
         });
+
+        return changes;
       };
     }
 

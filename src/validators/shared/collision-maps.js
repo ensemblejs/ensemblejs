@@ -5,9 +5,9 @@ var isArray = require('lodash').isArray;
 var last = require('lodash').last;
 
 module.exports = {
-  type: 'OnServerStart',
-  deps: ['CollisionMap', 'Logger'],
-  func: function CollisionMapValidator(maps, logger) {
+  type: 'CollisionMapValidator',
+  deps: ['CollisionMap', 'Logger', 'DefinePlugin'],
+  func: function CollisionMapValidator(maps, logger, define) {
 
     function validateRequiredKeys (key, collisionMap) {
       if (!collisionMap.and) {
@@ -45,8 +45,13 @@ module.exports = {
       });
     }
 
-    return function validate () {
-      each(maps(), validateMap);
-    };
+    function RunValidator () {
+      return function validate () {
+        each(maps(), validateMap);
+      };
+    }
+
+    define()('OnServerStart', RunValidator);
+    define()('OnClientStart', RunValidator);
   }
 };
