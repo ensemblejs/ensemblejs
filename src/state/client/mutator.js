@@ -176,7 +176,7 @@ module.exports = {
 
     function mutateArrayOfArrays (gameId, result) {
       each(result, function(resultItem) {
-        mutateNonArray(gameId, resultItem);
+        handleResult(gameId, resultItem);
       });
     }
 
