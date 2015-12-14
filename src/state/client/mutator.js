@@ -17,15 +17,6 @@ module.exports = {
     var root = {};
 
     function accessState(node, key) {
-      // var parts = key.split('.');
-      // var prop = node;
-      // each(parts, function (part) {
-      //   prop = prop[part];
-
-      //   if (prop === undefined) {
-      //     logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-      //   }
-      // });
       var prop = get(node, key);
       if (prop === undefined) {
         logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
