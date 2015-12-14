@@ -14,11 +14,11 @@ module.exports = {
     function onCollision (target, collisionKey, callbackDelegate) {
       if (contains(hasStarted, collisionKey)) {
         each(target.during, function (during) {
-          callbackDelegate(during);
+          callbackDelegate(during, target);
         });
       } else {
         each(target.start, function (start) {
-          callbackDelegate(start);
+          callbackDelegate(start, target);
         });
 
         hasStarted.push(collisionKey);
@@ -27,7 +27,7 @@ module.exports = {
 
     function endCollision (target, collisionKey, callbackDelegate) {
       each(target.finish, function (finish) {
-        callbackDelegate(finish);
+        callbackDelegate(finish, target);
       });
 
       hasStarted = remove(hasStarted, collisionKey);

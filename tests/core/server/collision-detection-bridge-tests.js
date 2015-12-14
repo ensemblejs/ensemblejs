@@ -47,7 +47,8 @@ describe('the collision detection bridge', function () {
           and: ['key2'],
           start: [start12],
           during: [during12],
-          finish: [finish12]
+          finish: [finish12],
+          data: ['a', 1, {that: true}]
         }]
       }];
       var map2 = ['endless', {
@@ -78,7 +79,8 @@ describe('the collision detection bridge', function () {
           and: ['key2'],
           start: [start12],
           during: [during12],
-          finish: [finish12]
+          finish: [finish12],
+          data: ['a', 1, {that: true}]
         }]
       });
     });
@@ -88,14 +90,25 @@ describe('the collision detection bridge', function () {
 
       beforeEach(function () {
         cd.detectCollisions = function (map, gameId, callbackDelegate) {
-          callbackDelegate(onCollisionCallback);
+          callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]});
         };
 
         onEachFrame(state, 0.15);
       });
 
+      afterEach(function () {
+        cd.detectCollisions = sinon.spy();
+      });
+
       it('should pass the state and delta to the callback', function () {
-        expect(onCollisionCallback.firstCall.args).toEqual([state, 0.15]);
+        expect(onCollisionCallback.firstCall.args[0]).toEqual(state);
+        expect(onCollisionCallback.firstCall.args[1]).toEqual(0.15);
+      });
+
+      it('should pass in optional data spread as subsequent params', function () {
+        expect(onCollisionCallback.firstCall.args[2]).toEqual('a');
+        expect(onCollisionCallback.firstCall.args[3]).toEqual(1);
+        expect(onCollisionCallback.firstCall.args[4]).toEqual({that: true});
       });
     });
   });

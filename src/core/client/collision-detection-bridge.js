@@ -1,6 +1,7 @@
 'use strict';
 
 var forEachMode = require('../../util/modes').forEachMode;
+var clone = require('lodash').clone;
 
 module.exports = {
   type: 'CollisionDetectionBridge',
@@ -11,11 +12,17 @@ module.exports = {
       return function callSystemWithRelevantMapsAndGameId (state, delta) {
         var changes = [];
 
-        function onCollision (callback) {
-          changes.push(callback(state, delta));
-        }
-
         forEachMode(maps(), mode(), function (map) {
+
+          function onCollision (callback, collisionMap) {
+            var onCollisionArgs = clone(collisionMap.data) || [];
+            onCollisionArgs.unshift(delta);
+            onCollisionArgs.unshift(state);
+
+            console.log(onCollisionArgs);
+            changes.push(callback.apply(undefined, onCollisionArgs));
+          }
+
           collisionDetectionSystem().detectCollisions(map, 'client', onCollision);
         });
 

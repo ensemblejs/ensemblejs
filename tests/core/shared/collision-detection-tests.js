@@ -5,13 +5,13 @@ var sinon = require('sinon');
 
 var makeTestible = require('../../support').makeTestible;
 
-var start12 = sinon.spy();
-var during12 = sinon.spy();
-var finish12 = sinon.spy();
+var start12 = function () {};
+var during12 = function () {};
+var finish12 = function () {};
 
-var start13 = sinon.spy();
-var during13 = sinon.spy();
-var finish13 = sinon.spy();
+var start13 = function () {};
+var during13 = function () {};
+var finish13 = function () {};
 
 var physicsSystem;
 
@@ -66,9 +66,7 @@ describe('collision detection system', function () {
       });
 
       it('should not execute callbacks', function () {
-        expect(start12.called).toEqual(false);
-        expect(during12.called).toEqual(false);
-        expect(finish12.called).toEqual(false);
+        expect(callbackDelegate.called).toEqual(false);
       });
     });
 
@@ -83,7 +81,7 @@ describe('collision detection system', function () {
 
       it('should execute the start callbacks', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([start13]);
+        expect(callbackDelegate.firstCall.args).toEqual([start13, map.key1[1]]);
       });
     });
 
@@ -100,7 +98,7 @@ describe('collision detection system', function () {
 
       it('should execute the during callbacks', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([during13]);
+        expect(callbackDelegate.firstCall.args).toEqual([during13, map.key1[1]]);
       });
     });
 
@@ -117,19 +115,21 @@ describe('collision detection system', function () {
 
       it('should only execute the finish callback', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([finish13]);
+        expect(callbackDelegate.firstCall.args).toEqual([finish13, map.key1[1]]);
       });
     });
   });
 
   describe('multiple physics objects for a key', function () {
+    var map;
+
     beforeEach(function () {
       physicsSystem.register(1, 'multiple1', 'source.a', {x: 0, y: 0});
       physicsSystem.register(1, 'multiple1', 'source.b', {x: 1, y: 1});
       physicsSystem.register(1, 'multiple2', 'source.c', {x: 0, y: 0});
       physicsSystem.register(1, 'multiple2', 'source.d', {x: 1, y: 1});
 
-      var map = {
+      map = {
         'multiple1': [{
           and: ['multiple2'],
           start: [start12],
@@ -149,7 +149,7 @@ describe('collision detection system', function () {
 
     it('should execute the start callbacks', function () {
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start12]);
+      expect(callbackDelegate.firstCall.args).toEqual([start12, map.multiple1[0]]);
     });
   });
 
@@ -195,7 +195,7 @@ describe('collision detection system', function () {
       cd.detectCollisions(map1, 1, callbackDelegate);
 
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start12]);
+      expect(callbackDelegate.firstCall.args).toEqual([start12, map1.key1[0]]);
     });
 
     it('it should work for game 2', function () {
@@ -203,7 +203,7 @@ describe('collision detection system', function () {
       cd.detectCollisions(map2, 2, callbackDelegate);
 
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start13]);
+      expect(callbackDelegate.firstCall.args).toEqual([start13, map2.key1[0]]);
     });
   });
 });
