@@ -7,6 +7,7 @@ var cloneDeep = require('lodash').cloneDeep;
 var isString = require('lodash').isString;
 var merge = require('lodash').merge;
 var each = require('lodash').each;
+var select = require('lodash').select;
 
 module.exports = {
   type: 'StateMutator',
@@ -155,11 +156,7 @@ module.exports = {
       return false;
     }
 
-    return function mutate (gameId, result) {
-      if (ignoreResult(result)) {
-        return true;
-      }
-
+    function mutateNonArray (gameId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
@@ -171,6 +168,30 @@ module.exports = {
       root = merge(root, result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
-    };
+    }
+
+    function isArrayOfArrays (result) {
+      return select(result, isArray).length === result.length;
+    }
+
+    function mutateArrayOfArrays (gameId, result) {
+      each(result, function(resultItem) {
+        mutateNonArray(gameId, resultItem);
+      });
+    }
+
+    function handleResult (gameId, result) {
+      if (ignoreResult(result)) {
+        return false;
+      }
+
+      if (isArrayOfArrays(result)) {
+        mutateArrayOfArrays(gameId, result);
+      } else {
+        mutateNonArray(gameId, result);
+      }
+    }
+
+    return handleResult;
   }
 };

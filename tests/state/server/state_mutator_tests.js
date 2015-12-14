@@ -96,34 +96,53 @@ describe('as before but return new objects with only the changed state', functio
   });
 
   describe('dot-string support', function () {
-    it('should do nothing with arrays not of length 2', function () {
-      stateMutator(1, []);
-      stateMutator(1, ['controller.child.age']);
-      stateMutator(1, ['controller.child.age', 123, 'third']);
+    describe('arrays not of length 2', function () {
+      it('should ignore anything that is not an array of arrays', function () {
+        stateMutator(1, []);
+        stateMutator(1, ['controller.child.age']);
+        stateMutator(1, ['controller.child.age', 123, 'third']);
 
-      expect(state.for(1).get('controller.child.age')).toBe(5);
+        expect(state.for(1).get('controller.child.age')).toBe(5);
+      });
+
+      it('should process arrays of arrays if the subarray is length 2', function () {
+        stateMutator(1, [['controller.child.age', 123]]);
+        expect(state.for(1).get('controller.child.age')).toBe(123);
+
+        stateMutator(1, [
+          ['controller.child.age', 2321],
+          ['controller.start', 2],
+          ['controller.score', 4],
+        ]);
+
+        expect(state.for(1).get('controller.child.age')).toBe(2321);
+        expect(state.for(1).get('controller.start')).toBe(2);
+        expect(state.for(1).get('controller.score')).toBe(4);
+      });
     });
 
-    it('should do nothing if first element of array is not string', function () {
-      stateMutator(1, [123, 'controller.child.age']);
-      expect(state.for(1).get('controller.child.age')).toBe(5);
-    });
-    it('should do nothing if second element of array is undefined', function () {
-      stateMutator(1, ['controller.child.age', undefined]);
-      expect(state.for(1).get('controller.child.age')).toBe(5);
-    });
-    it('should do nothing if second element of array is null', function () {
-      stateMutator(1, ['controller.child.age', null]);
-      expect(state.for(1).get('controller.child.age')).toBe(5);
-    });
-    it('should do nothing if second element of array is empty hash', function () {
-      stateMutator(1, ['controller.child.age', {}]);
-      expect(state.for(1).get('controller.child.age')).toBe(5);
-    });
+    describe('arrays of length 2', function () {
+      it('should do nothing if first element of array is not string', function () {
+        stateMutator(1, [123, 'controller.child.age']);
+        expect(state.for(1).get('controller.child.age')).toBe(5);
+      });
+      it('should do nothing if second element of array is undefined', function () {
+        stateMutator(1, ['controller.child.age', undefined]);
+        expect(state.for(1).get('controller.child.age')).toBe(5);
+      });
+      it('should do nothing if second element of array is null', function () {
+        stateMutator(1, ['controller.child.age', null]);
+        expect(state.for(1).get('controller.child.age')).toBe(5);
+      });
+      it('should do nothing if second element of array is empty hash', function () {
+        stateMutator(1, ['controller.child.age', {}]);
+        expect(state.for(1).get('controller.child.age')).toBe(5);
+      });
 
-    it('should unwrap dot strings into objects', function () {
-      stateMutator(1, ['controller.child.age', 123]);
-      expect(state.for(1).get('controller.child.age')).toBe(123);
+      it('should unwrap dot strings into objects', function () {
+        stateMutator(1, ['controller.child.age', 123]);
+        expect(state.for(1).get('controller.child.age')).toBe(123);
+      });
     });
   });
 });
