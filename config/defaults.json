@@ -17,7 +17,11 @@
   "ensemble": {
     "minPlayers": 1,
     "maxPlayers": 1,
-    "dashboard": false
+    "dashboard": false,
+    "saveStyle": "continual"
+  },
+  "mongo": {
+    "endpoint": "mongodb://localhost:27017/ensemble"
   },
   "logging": {
     "logLevel": "warn",
