@@ -5,24 +5,80 @@ var each = require('lodash').each;
 var remove = require('lodash').remove;
 var gameSummaryFromGameState = require('../../util/adapter').gameSummaryFromGameState;
 
+var db;
+var mongo = {
+  connect: function connect (endpoint, logger, callback) {
+    MongoClient.connect(endpoint, function(err, conn) {
+      if (err) {
+        logger.error('Unable to connect to MongoDb.', err);
+        return;
+      }
+
+      db = conn;
+      callback();
+    });
+  },
+  disconnect: function disconnect (logger, callback) {
+    if (!db) {
+      return;
+    }
+
+    callback();
+    db.close();
+  },
+  isConnected: function isConnected () {
+    return db !== undefined;
+  },
+  store: function store (collection, data, logger) {
+    var filter = { _id: data._id };
+    var opts = { upsert: true };
+
+    db.collection(collection).replaceOne(filter, data, opts, function (err) {
+      if (err) {
+        logger.error('Unable to save game.', err);
+        return;
+      }
+
+      logger.debug('Game saved', { gameId: data.ensemble.gameId });
+    });
+  },
+  getAll: function getAll(collection, adapter, callback, logger) {
+    var games = [];
+    db.collection(collection).find().each(function(err, data) {
+      if (err) {
+        logger.error('Unable to get all ' + collection + '.', err);
+        return;
+      }
+
+      if (data) {
+        games.push(adapter(data));
+      } else {
+        callback(games);
+      }
+    });
+  },
+  getById: function getById (collection, id, callback, logger) {
+    db.collection(collection).find({_id: id}).limit(1).next(function(err, data) {
+      if (err) {
+        logger.error('Unable to get from ' + collection + '.', err);
+        return;
+      }
+
+      callback(data);
+    });
+  }
+};
+
 module.exports = {
   type: 'DbBridge',
   deps: ['DefinePlugin', 'Config', 'Logger', 'RawStateAccess', 'On'],
   func: function MongoDbBridge (define, config, logger, rawState, on) {
-    var db;
     var queue = [];
 
     function OpenDbConnection () {
       return function connectToMongo () {
-        MongoClient.connect(config().mongo.endpoint, function(err, conn) {
-          if (err) {
-            logger().error('Unable to connect to MongoDb.', err);
-            return;
-          }
-
+        mongo.connect(config().mongo.endpoint, logger(), function () {
           logger().info('Connected to MongoDB');
-          db = conn;
-
           on().databaseReady();
         });
       };
@@ -30,13 +86,8 @@ module.exports = {
 
     function CloseDbConnection () {
       return function closeConnectionToMongo () {
-        if (!db) {
-          return;
-        }
-
-        flushPendingSaves();
         logger().info('Closing connection to MongoDB');
-        db.close();
+        mongo.disconnect(logger(), flushPendingSaves);
       };
     }
 
@@ -52,26 +103,6 @@ module.exports = {
       };
     }
 
-    function storeTheFucker (data) {
-      if (!db) {
-        queue.push(data);
-        logger().info('No connection to MongoDB. Game not saved. Save queued until connection established.', {id: data._id});
-        return;
-      }
-
-      var filter = { _id: data._id };
-      var opts = { upsert: true };
-
-      db.collection('games').replaceOne(filter, data, opts, function (err) {
-        if (err) {
-          logger().error('Unable to save game.', err);
-          return;
-        }
-
-        logger().debug('Game saved', { gameId: data.ensemble.gameId });
-      });
-    }
-
     function insertData (data) {
       if (!data) {
         return;
@@ -79,7 +110,13 @@ module.exports = {
 
       data._id = data._id || data.ensemble.gameId;
 
-      storeTheFucker(data);
+      if (!mongo.isConnected()) {
+        queue.push(data);
+        logger().info('No connection to MongoDB. Game not saved. Save queued until connection established.', {id: data._id});
+        return;
+      }
+
+      mongo.store('games', data, logger());
     }
 
     function saveGame (gameId) {
@@ -96,9 +133,7 @@ module.exports = {
       logger().info('Flushing Pending Saves');
 
       var toFlush = remove(queue, function() { return true; });
-      each(toFlush, function (data) {
-        storeTheFucker(data);
-      });
+      each(toFlush, insertData);
     }
 
     function OnDatabaseReady () {
@@ -106,31 +141,11 @@ module.exports = {
     }
 
     function getGames (callback) {
-      var games = [];
-
-      db.collection('games').find().each(function(err, data) {
-        if (err) {
-          logger().error('Unable to get game.', err);
-          return;
-        }
-
-        if (data) {
-          games.push(gameSummaryFromGameState(data));
-        } else {
-          callback(games);
-        }
-      });
+      mongo.getAll('games', gameSummaryFromGameState, callback, logger());
     }
 
     function getGame (gameId, callback) {
-      db.collection('games').find({_id: gameId}).limit(1).next(function(err, data) {
-        if (err) {
-          logger().error('Unable to get game.', err);
-          return;
-        }
-
-        callback(data);
-      });
+      mongo.getById('games', gameId, callback, logger());
     }
 
     define()('OnServerStart', OpenDbConnection);

@@ -29,7 +29,7 @@ module.exports = {
     });
 
     function resetGameOnLoad (state) {
-      state.ensemble.waitingForPlayers = false;
+      state.ensemble.waitingForPlayers = true;
       state.ensemble.paused = true;
 
       return state;
@@ -176,6 +176,14 @@ module.exports = {
       return false;
     }
 
+    function stripOutAttemptsToMutateTrulyImmutableThings (result) {
+      if (result._id) {
+        delete result._id;
+      }
+
+      return result;
+    }
+
     function mutateNonArray (gameId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
@@ -184,6 +192,8 @@ module.exports = {
 
         result = mapDotStringResultToObject(result);
       }
+
+      result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
       root[gameId] = root[gameId] || {};
       root[gameId] = merge(root[gameId], result, function mergeArrays (a, b) {
