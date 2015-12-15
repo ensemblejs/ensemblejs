@@ -93,6 +93,10 @@ module.exports = {
         return res.status(404).send('This game does not exist');
       }
 
+      if (!game.loaded) {
+        on().loadGame(game);
+      }
+
       res.render('primary.jade', {
         mode: game.mode,
         dashboard: config().ensemble.dashboard,

@@ -3,21 +3,14 @@
 var MongoClient = require('mongodb').MongoClient;
 var each = require('lodash').each;
 var remove = require('lodash').remove;
+var gameSummaryFromGameState = require('../../util/adapter').gameSummaryFromGameState;
 
 module.exports = {
-  type: 'MongoDbBridge',
-  deps: ['DefinePlugin', 'Config', 'Logger', 'RawStateAccess'],
-  func: function MongoDbBridge (define, config, logger, rawState) {
+  type: 'DbBridge',
+  deps: ['DefinePlugin', 'Config', 'Logger', 'RawStateAccess', 'On'],
+  func: function MongoDbBridge (define, config, logger, rawState, on) {
     var db;
     var queue = [];
-
-    function flushPendingSaves () {
-      logger().info('Flushing Pending Saves');
-      var toFlush = remove(queue, function() { return true; });
-      each(toFlush, function (data) {
-        storeTheFucker(data);
-      });
-    }
 
     function OpenDbConnection () {
       return function connectToMongo () {
@@ -30,7 +23,7 @@ module.exports = {
           logger().info('Connected to MongoDB');
           db = conn;
 
-          flushPendingSaves();
+          on().databaseReady();
         });
       };
     }
@@ -41,6 +34,7 @@ module.exports = {
           return;
         }
 
+        flushPendingSaves();
         logger().info('Closing connection to MongoDB');
         db.close();
       };
@@ -61,7 +55,7 @@ module.exports = {
     function storeTheFucker (data) {
       if (!db) {
         queue.push(data);
-        logger().warn('No connection to MongoDB. Game not saved. Save queued until connection established.');
+        logger().info('No connection to MongoDB. Game not saved. Save queued until connection established.', {id: data._id});
         return;
       }
 
@@ -79,6 +73,10 @@ module.exports = {
     }
 
     function insertData (data) {
+      if (!data) {
+        return;
+      }
+
       data._id = data._id || data.ensemble.gameId;
 
       storeTheFucker(data);
@@ -94,12 +92,56 @@ module.exports = {
       };
     }
 
+    function flushPendingSaves () {
+      logger().info('Flushing Pending Saves');
+
+      var toFlush = remove(queue, function() { return true; });
+      each(toFlush, function (data) {
+        storeTheFucker(data);
+      });
+    }
+
+    function OnDatabaseReady () {
+      return flushPendingSaves;
+    }
+
+    function getGames (callback) {
+      var games = [];
+
+      db.collection('games').find().each(function(err, data) {
+        if (err) {
+          logger().error('Unable to get game.', err);
+          return;
+        }
+
+        if (data) {
+          games.push(gameSummaryFromGameState(data));
+        } else {
+          callback(games);
+        }
+      });
+    }
+
+    function getGame (gameId, callback) {
+      db.collection('games').find({_id: gameId}).limit(1).next(function(err, data) {
+        if (err) {
+          logger().error('Unable to get game.', err);
+          return;
+        }
+
+        callback(data);
+      });
+    }
+
     define()('OnServerStart', OpenDbConnection);
     define()('OnServerStop', CloseDbConnection);
     define()('OnGameReady', InsertInitialCopyOfGame);
     define()('AfterPhysicsFrame', SaveGameState);
+    define()('OnDatabaseReady', OnDatabaseReady);
 
     return {
+      getGames: getGames,
+      getGame: getGame,
       saveGame: saveGame
     };
   }

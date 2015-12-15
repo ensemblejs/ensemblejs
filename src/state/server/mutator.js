@@ -14,10 +14,10 @@ var root = {};
 
 module.exports = {
   type: 'StateMutator',
-  deps: ['DefinePlugin', 'Logger'],
-  func: function StateMutator (definePlugin, logger) {
+  deps: ['DefinePlugin', 'Logger', 'On'],
+  func: function StateMutator (define, logger, on) {
 
-    definePlugin()('RawStateAccess', function RawStateAccess () {
+    define()('RawStateAccess', function RawStateAccess () {
       return {
         for: function forGame (gameId) {
           return root[gameId];
@@ -25,6 +25,25 @@ module.exports = {
         all: function all () {
           return root;
         }
+      };
+    });
+
+    function resetGameOnLoad (state) {
+      state.ensemble.waitingForPlayers = false;
+      state.ensemble.paused = true;
+
+      return state;
+    }
+
+    define()('OnLoadGame', ['DbBridge'], function (db) {
+      return function loadGameFromDb (game) {
+        function store (state) {
+          root[game.id] = resetGameOnLoad(state);
+
+          on().gameReady(game);
+        }
+
+        db().getGame(game.id, store);
       };
     });
 
@@ -59,7 +78,7 @@ module.exports = {
       }
     }
 
-    definePlugin()('StateAccess', function () {
+    define()('StateAccess', function () {
       return {
         for: function forGame (gameId) {
           return {

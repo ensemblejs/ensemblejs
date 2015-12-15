@@ -18,8 +18,7 @@ module.exports = {
     }
 
     function update (delta) {
-      var running = reject(games().all(), pausedGames);
-
+      var running = reject(games().loaded(), pausedGames);
       each(running, function callUpdateOnEach (game) {
         var gameState = state().for(game.id);
         var opts = [gameState, delta];
@@ -31,7 +30,7 @@ module.exports = {
         }
 
         callForModeWithMutation(onFrame(), mutator, game, opts);
-        callEachWithMutation(afterFrame(), mutator, game, opts);
+        callEachWithMutation(afterFrame(), mutator, game.id, opts);
       });
     }
 

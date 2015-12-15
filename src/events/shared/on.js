@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnGameReady'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onGameReady) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnGameReady', 'OnDatabaseReady', 'OnLoadGame'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onGameReady, onDatabaseReady, onLoadGame) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -119,20 +119,30 @@ module.exports = {
       callEachPlugin(onPlayerGroupChange(), [players, gameId]);
     }
 
+    function databaseReady () {
+      callEachPlugin(onDatabaseReady());
+    }
+
+    function loadGame (game) {
+      callEachPlugin(onLoadGame(), [game]);
+    }
+
     return {
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
       clientPlayerId: clientPlayerId,
       clientStart: clientStart,
       connect: connect,
+      databaseReady: databaseReady,
       disconnect: disconnect,
       error: error,
+      gameReady: gameReady,
       incomingClientInputPacket: incomingClientInputPacket,
       incomingServerPacket: createOnServerPacketCallback(),
       input: input,
+      loadGame: loadGame,
       mute: mute,
       newGame: newGame,
-      gameReady: gameReady,
       outgoingClientPacket: outgoingClientPacket,
       outgoingServerPacket: outgoingServerPacket,
       pause: pause,

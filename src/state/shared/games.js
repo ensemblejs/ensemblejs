@@ -3,6 +3,7 @@
 var first = require('lodash').first;
 var filter = require('lodash').filter;
 var reject = require('lodash').reject;
+var each = require('lodash').each;
 
 module.exports = {
   type: 'GamesList',
@@ -12,6 +13,10 @@ module.exports = {
 
     function all () {
       return games;
+    }
+
+    function loaded () {
+      return filter(games, {loaded: true});
     }
 
     function add (game) {
@@ -34,9 +39,30 @@ module.exports = {
       };
     });
 
+    define()('OnDatabaseReady', ['DbBridge'], function (db) {
+      return function fillWithPotentialGames () {
+        function registerAsUnloadedGame (games) {
+          each(games, function (game) {
+            game.loaded = false;
+
+            add(game);
+          });
+        }
+
+        db().getGames(registerAsUnloadedGame);
+      };
+    });
+
     define()('OnNewGame', function GamesList () {
       return function addGame (game) {
         add(game);
+      };
+    });
+
+    define()('OnGameReady', function GamesList () {
+      return function markGameAsLoaded (gameThatIsReady) {
+        var game = get(gameThatIsReady.id);
+        game.loaded = true;
       };
     });
 
@@ -44,7 +70,8 @@ module.exports = {
       all: all,
       add: add,
       remove: remove,
-      get: get
+      get: get,
+      loaded: loaded
     };
   }
 };
