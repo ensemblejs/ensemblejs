@@ -6,19 +6,18 @@ var favicon = require('serve-favicon');
 var expressSession = require('express-session');
 var http = require('http');
 var fs = require('fs');
-var each = require('lodash').each;
 var expressBunyanLogger = require('express-bunyan-logger');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID', 'On'],
-  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid, on) {
+  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID'],
+  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid) {
     var server;
     var session;
 
     var pathToPublic = __dirname + '/../../../public';
 
-    function configureApp (assetPath, game) {
+    function configureApp (assetPath, project) {
       var app = express();
 
       app.use(expressBunyanLogger({
@@ -47,7 +46,7 @@ module.exports = {
 
       session = expressSession({
         genid: uuid().get,
-        secret: 'ensemblejs-' + game.name,
+        secret: 'ensemblejs-' + project.name,
         resave: true,
         saveUninitialized: true
       });
@@ -65,20 +64,6 @@ module.exports = {
       server.listen(process.env.PORT || 3000);
 
       socket().start(server, project.modes, session);
-
-      define()('OnServerReady', function () {
-        return function spinupDeveloperGames () {
-          if (!config().debug.develop) {
-            return;
-          }
-
-          each(project.modes, function (mode) {
-            var game = {id: mode, mode: mode};
-            on().newGame(game);
-            on().gameReady(game);
-          });
-        };
-      });
     }
 
     define()('OnServerStop', function () {

@@ -15,7 +15,7 @@ var traceOnly = [];
 
 function get (name) {
   if (!plugins[name]) {
-    throw new Error('No plugin defined for: ' + name);
+    throw new Error('No plugin defined for: "' + name + '"');
   }
 
   return plugins[name];

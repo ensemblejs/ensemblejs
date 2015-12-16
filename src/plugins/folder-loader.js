@@ -1,12 +1,7 @@
 'use strict';
 
-function addTrailingSlash (path) {
-	return path.substr(-1) === '/' ? path : path + '/';
-}
-
-function normaliseRelativePath (path) {
-	return path.substr(0, 1) === '/' ? path : require('path').join(__dirname, path);
-}
+var addTrailingSlash = require('../util/path').addTrailingSlash;
+var normaliseRelativePath = require('../util/path').normaliseRelativePath;
 
 function loadFromPath (pathToEntites, callback, prefix) {
 	prefix = prefix || 'Game';

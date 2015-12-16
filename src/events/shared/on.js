@@ -84,7 +84,7 @@ module.exports = {
 
     function serverStart (path, project) {
       callEachPlugin(onServerStart(), [path, project]);
-      callEachPlugin(onServerReady());
+      callEachPlugin(onServerReady(), [path, project]);
     }
 
     function serverStop () {
