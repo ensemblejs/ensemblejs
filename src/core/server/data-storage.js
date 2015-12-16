@@ -2,11 +2,12 @@
 
 var each = require('lodash').each;
 var remove = require('lodash').remove;
+var contains = require('lodash').contains;
 var gameSummaryFromGameState = require('../../util/adapter').gameSummaryFromGameState;
 
 var logger = require('../../logging/server/logger').logger;
 var mongo = require('../../util/mongo').setup(logger);
-var globalConfig = require('../../util/config').get();
+var config = require('../../util/config').get();
 
 module.exports = {
   type: 'DbBridge',
@@ -16,7 +17,7 @@ module.exports = {
 
     function OpenDbConnection () {
       return function connectToMongo () {
-        mongo.connect(globalConfig.mongo.endpoint, function () {
+        mongo.connect(config.mongo.endpoint, function () {
           logger.info('Connected to MongoDB');
           on().databaseReady();
         });
@@ -26,13 +27,13 @@ module.exports = {
     function CloseDbConnection () {
       return function closeConnectionToMongo () {
         logger.info('Closing connection to MongoDB');
-        mongo.disconnect(flushPendingSaves);
+        flushPendingSaves(mongo.disconnect);
       };
     }
 
     function SaveGameState() {
-      if (globalConfig.ensemble.saveStyle !== 'continual') {
-        return globalConfig.nothing;
+      if (!contains(['persistent', 'ephemeral'], config.ensemble.autoSaveBehaviour)) {
+        return config.nothing;
       }
 
       logger.info('Enabled: "continual" save.');
@@ -42,13 +43,13 @@ module.exports = {
       };
     }
 
-    function insertData (data) {
+    function insertData (data, callback) {
       if (!data) {
         return;
       }
 
       data._id = data._id || data.ensemble.gameId;
-      data.timestamp = time().present();
+      data.updated = time().present();
 
       if (!mongo.isConnected()) {
         queue.push(data);
@@ -56,7 +57,7 @@ module.exports = {
         return;
       }
 
-      mongo.store('games', data);
+      mongo.store('games', data, callback);
     }
 
     function saveGame (gameId) {
@@ -69,11 +70,13 @@ module.exports = {
       };
     }
 
-    function flushPendingSaves () {
+    function flushPendingSaves (callback) {
       logger.info('Flushing Pending Saves');
 
       var toFlush = remove(queue, function() { return true; });
-      each(toFlush, insertData);
+      each(toFlush, function (save) {
+        insertData(save, callback);
+      });
     }
 
     function OnDatabaseReady () {
@@ -81,11 +84,21 @@ module.exports = {
     }
 
     function getGames (callback) {
-      mongo.getAll('games', gameSummaryFromGameState, callback, logger);
+      mongo.getAll('games', gameSummaryFromGameState, callback);
     }
 
     function getGame (gameId, callback) {
-      mongo.getById('games', gameId, callback, logger);
+      mongo.getById('games', gameId, callback);
+    }
+
+    function getPlayer (player, callback) {
+      mongo.getByFilter('players', player, callback);
+    }
+
+    function savePlayer (player, callback) {
+      player.updated = time().present();
+
+      mongo.store('players', player, callback);
     }
 
     define()('OnServerStart', OpenDbConnection);
@@ -97,7 +110,9 @@ module.exports = {
     return {
       getGames: getGames,
       getGame: getGame,
-      saveGame: saveGame
+      saveGame: saveGame,
+      getPlayer: getPlayer,
+      savePlayer: savePlayer
     };
   }
 };

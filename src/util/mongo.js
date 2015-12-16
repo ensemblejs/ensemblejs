@@ -30,17 +30,21 @@ function isConnected () {
   return db !== undefined;
 }
 
-function store (collection, data) {
+function store (collection, data, callback) {
   var filter = { _id: data._id };
   var opts = { upsert: true };
 
-  db.collection(collection).replaceOne(filter, data, opts, function (err) {
+  db.collection(collection).replaceOne(filter, data, opts, function (err, res) {
     if (err) {
       logger.error('Unable to save to ' + collection + '.', err);
       return;
     }
 
-    logger.debug('Game saved', { gameId: data.ensemble.gameId });
+    logger.debug('Saved.', { _id: res._id, collection: collection });
+
+    if (callback) {
+      callback(res);
+    }
   });
 }
 
@@ -57,6 +61,17 @@ function getAll(collection, adapter, callback) {
     } else {
       callback(things);
     }
+  });
+}
+
+function getByFilter (collection, filter, callback) {
+  db.collection(collection).find(filter).limit(1).next(function(err, data) {
+    if (err) {
+      logger.error('Unable to get from ' + collection + '.', err);
+      return;
+    }
+
+    callback(data);
   });
 }
 
@@ -80,7 +95,8 @@ function setup (log) {
     isConnected: isConnected,
     store: store,
     getAll: getAll,
-    getById: getById
+    getById: getById,
+    getByFilter: getByFilter
   };
 }
 
