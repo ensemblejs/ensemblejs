@@ -1,76 +1,12 @@
 'use strict';
 
-var MongoClient = require('mongodb').MongoClient;
 var each = require('lodash').each;
 var remove = require('lodash').remove;
 var gameSummaryFromGameState = require('../../util/adapter').gameSummaryFromGameState;
 
 var logger = require('../../logging/server/logger').logger;
+var mongo = require('../../util/mongo').setup(logger);
 var globalConfig = require('../../util/config').get();
-
-var db;
-var mongo = {
-  connect: function connect (endpoint, callback) {
-    MongoClient.connect(endpoint, function(err, conn) {
-      if (err) {
-        logger.error('Unable to connect to MongoDb.', err);
-        return;
-      }
-
-      db = conn;
-      callback();
-    });
-  },
-  disconnect: function disconnect (callback) {
-    if (!db) {
-      return;
-    }
-
-    callback();
-    db.close();
-  },
-  isConnected: function isConnected () {
-    return db !== undefined;
-  },
-  store: function store (collection, data) {
-    var filter = { _id: data._id };
-    var opts = { upsert: true };
-
-    db.collection(collection).replaceOne(filter, data, opts, function (err) {
-      if (err) {
-        logger.error('Unable to save ' + collection + '.', err);
-        return;
-      }
-
-      logger.debug('Game saved', { gameId: data.ensemble.gameId });
-    });
-  },
-  getAll: function getAll(collection, adapter, callback) {
-    var games = [];
-    db.collection(collection).find().each(function(err, data) {
-      if (err) {
-        logger.error('Unable to get all ' + collection + '.', err);
-        return;
-      }
-
-      if (data) {
-        games.push(adapter(data));
-      } else {
-        callback(games);
-      }
-    });
-  },
-  getById: function getById (collection, id, callback) {
-    db.collection(collection).find({_id: id}).limit(1).next(function(err, data) {
-      if (err) {
-        logger.error('Unable to get from ' + collection + '.', err);
-        return;
-      }
-
-      callback(data);
-    });
-  }
-};
 
 module.exports = {
   type: 'DbBridge',
