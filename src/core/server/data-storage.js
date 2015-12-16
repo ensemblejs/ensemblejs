@@ -10,8 +10,8 @@ var globalConfig = require('../../util/config').get();
 
 module.exports = {
   type: 'DbBridge',
-  deps: ['DefinePlugin', 'RawStateAccess', 'On'],
-  func: function MongoDbBridge (define, rawState, on) {
+  deps: ['DefinePlugin', 'RawStateAccess', 'On', 'Time'],
+  func: function MongoDbBridge (define, rawState, on, time) {
     var queue = [];
 
     function OpenDbConnection () {
@@ -48,6 +48,7 @@ module.exports = {
       }
 
       data._id = data._id || data.ensemble.gameId;
+      data.timestamp = time().present();
 
       if (!mongo.isConnected()) {
         queue.push(data);
