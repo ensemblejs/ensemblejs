@@ -5,9 +5,12 @@ var each = require('lodash').each;
 var remove = require('lodash').remove;
 var gameSummaryFromGameState = require('../../util/adapter').gameSummaryFromGameState;
 
+var logger = require('../../logging/server/logger').logger;
+var globalConfig = require('../../util/config').get();
+
 var db;
 var mongo = {
-  connect: function connect (endpoint, logger, callback) {
+  connect: function connect (endpoint, callback) {
     MongoClient.connect(endpoint, function(err, conn) {
       if (err) {
         logger.error('Unable to connect to MongoDb.', err);
@@ -18,7 +21,7 @@ var mongo = {
       callback();
     });
   },
-  disconnect: function disconnect (logger, callback) {
+  disconnect: function disconnect (callback) {
     if (!db) {
       return;
     }
@@ -29,20 +32,20 @@ var mongo = {
   isConnected: function isConnected () {
     return db !== undefined;
   },
-  store: function store (collection, data, logger) {
+  store: function store (collection, data) {
     var filter = { _id: data._id };
     var opts = { upsert: true };
 
     db.collection(collection).replaceOne(filter, data, opts, function (err) {
       if (err) {
-        logger.error('Unable to save game.', err);
+        logger.error('Unable to save ' + collection + '.', err);
         return;
       }
 
       logger.debug('Game saved', { gameId: data.ensemble.gameId });
     });
   },
-  getAll: function getAll(collection, adapter, callback, logger) {
+  getAll: function getAll(collection, adapter, callback) {
     var games = [];
     db.collection(collection).find().each(function(err, data) {
       if (err) {
@@ -57,7 +60,7 @@ var mongo = {
       }
     });
   },
-  getById: function getById (collection, id, callback, logger) {
+  getById: function getById (collection, id, callback) {
     db.collection(collection).find({_id: id}).limit(1).next(function(err, data) {
       if (err) {
         logger.error('Unable to get from ' + collection + '.', err);
@@ -71,14 +74,14 @@ var mongo = {
 
 module.exports = {
   type: 'DbBridge',
-  deps: ['DefinePlugin', 'Config', 'Logger', 'RawStateAccess', 'On'],
-  func: function MongoDbBridge (define, config, logger, rawState, on) {
+  deps: ['DefinePlugin', 'RawStateAccess', 'On'],
+  func: function MongoDbBridge (define, rawState, on) {
     var queue = [];
 
     function OpenDbConnection () {
       return function connectToMongo () {
-        mongo.connect(config().mongo.endpoint, logger(), function () {
-          logger().info('Connected to MongoDB');
+        mongo.connect(globalConfig.mongo.endpoint, function () {
+          logger.info('Connected to MongoDB');
           on().databaseReady();
         });
       };
@@ -86,17 +89,17 @@ module.exports = {
 
     function CloseDbConnection () {
       return function closeConnectionToMongo () {
-        logger().info('Closing connection to MongoDB');
-        mongo.disconnect(logger(), flushPendingSaves);
+        logger.info('Closing connection to MongoDB');
+        mongo.disconnect(flushPendingSaves);
       };
     }
 
     function SaveGameState() {
-      if (config().ensemble.saveStyle !== 'continual') {
-        return config().nothing;
+      if (globalConfig.ensemble.saveStyle !== 'continual') {
+        return globalConfig.nothing;
       }
 
-      logger().info('Enabled: "continual" save.');
+      logger.info('Enabled: "continual" save.');
 
       return function saveEveryFrame (state) {
         saveGame(state.get('ensemble.gameId'));
@@ -112,11 +115,11 @@ module.exports = {
 
       if (!mongo.isConnected()) {
         queue.push(data);
-        logger().info('No connection to MongoDB. Game not saved. Save queued until connection established.', {id: data._id});
+        logger.info('No connection to MongoDB. Game not saved. Save queued until connection established.', {id: data._id});
         return;
       }
 
-      mongo.store('games', data, logger());
+      mongo.store('games', data);
     }
 
     function saveGame (gameId) {
@@ -130,7 +133,7 @@ module.exports = {
     }
 
     function flushPendingSaves () {
-      logger().info('Flushing Pending Saves');
+      logger.info('Flushing Pending Saves');
 
       var toFlush = remove(queue, function() { return true; });
       each(toFlush, insertData);
@@ -141,11 +144,11 @@ module.exports = {
     }
 
     function getGames (callback) {
-      mongo.getAll('games', gameSummaryFromGameState, callback, logger());
+      mongo.getAll('games', gameSummaryFromGameState, callback, logger);
     }
 
     function getGame (gameId, callback) {
-      mongo.getById('games', gameId, callback, logger());
+      mongo.getById('games', gameId, callback, logger);
     }
 
     define()('OnServerStart', OpenDbConnection);

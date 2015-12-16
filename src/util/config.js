@@ -4,6 +4,7 @@ require('requirish')._(module);
 var appRoot = require('app-root-path');
 var defaultsDeep = require('lodash').defaultsDeep;
 var select = require('lodash').select;
+var once = require('lodash').once;
 
 function getConfig (logger) {
   var config = {};
@@ -59,4 +60,6 @@ function getConfig (logger) {
   return config;
 }
 
-module.exports = getConfig;
+module.exports = {
+  get: once(getConfig)
+};

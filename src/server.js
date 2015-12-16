@@ -5,7 +5,7 @@ var packageInfo = require(appRoot + '/package.json');
 var logger = require('./logging/server/logger').logger;
 var each = require('lodash').each;
 
-var config = require('./util/config')(logger);
+var config = require('./util/config').get(logger);
 logger.logLevel = config.logging.logLevel;
 
 var plugins = require('./plugins/plug-n-play').configure(
