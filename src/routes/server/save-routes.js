@@ -8,8 +8,8 @@ var buildRequestHandler = require('../../util/request-handling').buildRequestHan
 
 module.exports = {
   type: 'Routes',
-  deps: ['UUID', 'On', 'GamesList', 'GamePlayersDataModel'],
-  func: function Routes (uuid, on, games, gamePlayers) {
+  deps: ['UUID', 'On', 'GamesList', 'GamePlayersDataModel', 'GamesDataModel'],
+  func: function Routes (uuid, on, saves, gamePlayers, games) {
 
     function saveFull (req, res) {
       res.render('full.jade', { title: config.game.title });
@@ -41,7 +41,7 @@ module.exports = {
     function continueSave (req, res) {
       var playerId = req.player._id;
 
-      var save = games().get(req.params.saveId);
+      var save = saves().get(req.params.saveId);
       if (!save) {
         return res.status(404).send('This save game does not exist.');
       }
@@ -69,9 +69,10 @@ module.exports = {
       var playerId = player._id;
 
       return function joinSaveHandler (req, res) {
-        var save = games().get(req.params.saveId);
+        var save = saves().get(req.params.saveId);
         if (!save) {
-          return res.status(404).send('This game does not exist');
+          res.status(404).send('This game does not exist');
+          return;
         }
 
         function redirectPlayerToPlayGameRoute () {
@@ -86,26 +87,82 @@ module.exports = {
           }
         }
 
-        function playerInGameResult (result) {
-          if (result) {
-            return redirectPlayerToPlayGameRoute();
+        function playerInGameResult (playerIsInGame) {
+          if (playerIsInGame) {
+            redirectPlayerToPlayGameRoute();
+            return;
           }
 
           gamePlayers().canPlayerJoinGame(save.id, playerId, canPlayerJoinGameResult);
         }
 
-        gamePlayers().isPlayerInGame(save.id, req.player._id, playerInGameResult);
+        gamePlayers().isPlayerInGame(save.id, playerId, playerInGameResult);
+      };
+    }
+
+    function buildJoinJson (project, player, saveId) {
+      return {
+        name: project.name,
+        player: {
+          name: player.name
+        },
+        join: {
+          method: 'POST',
+          what: '/save/join',
+          uri: '/saves/' + saveId + '/join',
+          name: 'Join Game'
+        }
       };
     }
 
     function buildJoinHandler (project, player, callback) {
-      function orRedirectToFull (req, res) {
-        res.redirect('/saves/' + req.params.saveId + '/full');
+      function renderJoinOrRedirectToFull (req, res) {
+        var saveId = req.params.saveId;
+
+        function doesGameHaveSpace (gameHasSpace) {
+          if (gameHasSpace) {
+            res.render('join.jade', buildJoinJson(project, player, saveId));
+          } else {
+            res.redirect('/saves/' + saveId + '/full');
+          }
+        }
+
+        gamePlayers().doesGameHaveSpaceForPlayer(req.params.saveId, doesGameHaveSpace);
       }
 
       callback({
-        'html': buildJoinSaveHandler(player, orRedirectToFull),
-        'json': buildJoinSaveHandler(player, orRedirectToFull)
+        'html': buildJoinSaveHandler(player, renderJoinOrRedirectToFull),
+        'json': buildJoinSaveHandler(player, renderJoinOrRedirectToFull)
+      });
+    }
+
+    function buildAddPlayerHandler (project, player, callback) {
+      function addPlayerOrRedirectToFull (req, res) {
+        var saveId = req.params.saveId;
+        var secret = req.body.secret;
+
+        function doesGameHaveSpace (gameHasSpace) {
+          if (gameHasSpace) {
+            games().isSecretCorrect(saveId, secret, function (secretIsCorrect) {
+              if (secretIsCorrect) {
+                gamePlayers().addPlayer(saveId, player._id, function () {
+                  res.redirect('/saves/' + saveId);
+                });
+              } else {
+                res.redirect('/saves/' + saveId + '/join');
+              }
+            });
+          } else {
+            res.redirect('/saves/' + saveId + '/full');
+          }
+        }
+
+        gamePlayers().doesGameHaveSpaceForPlayer(req.params.saveId, doesGameHaveSpace);
+      }
+
+      callback({
+        'html': buildJoinSaveHandler(player, addPlayerOrRedirectToFull),
+        'json': buildJoinSaveHandler(player, addPlayerOrRedirectToFull)
       });
     }
 
@@ -114,6 +171,7 @@ module.exports = {
 
       app.get('/saves/:saveId', continueSave);
       app.get('/saves/:saveId/join', buildRequestHandler(curry(buildJoinHandler)(project)));
+      app.post('/saves/:saveId/join', buildRequestHandler(curry(buildAddPlayerHandler)(project)));
       app.get('/saves/:saveId/full', saveFull);
     }
 

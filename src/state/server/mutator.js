@@ -35,7 +35,7 @@ module.exports = {
       return state;
     }
 
-    define()('OnLoadGame', ['DbBridge'], function (db) {
+    define()('OnLoadGame', ['GamesDataModel'], function (games) {
       return function loadGameFromDb (game) {
         function store (state) {
           root[game.id] = resetGameOnLoad(state);
@@ -43,7 +43,7 @@ module.exports = {
           on().gameReady(game);
         }
 
-        db().getGame(game.id, store);
+        games().get(game.id, store);
       };
     });
 

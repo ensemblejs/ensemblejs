@@ -41,11 +41,22 @@ module.exports = {
       mongo.getAllByFilter(collection, filter, undefined, callback);
     }
 
-    function canPlayerJoinGame (gameId, playerId, callback) {
+    function doesGameHaveSpaceForPlayer (gameId, callback) {
       games().get(gameId, function (game) {
         getPlayers(gameId, function (players) {
           callback(players.length < config.maxPlayers(game.ensemble.mode));
         });
+      });
+    }
+
+    function canPlayerJoinGame (gameId, playerId, callback) {
+      games().get(gameId, function (game) {
+        if (game.ensemble.secret !== 'public') {
+          callback(false);
+          return;
+        }
+
+        doesGameHaveSpaceForPlayer(gameId, callback);
       });
     }
 
@@ -54,7 +65,8 @@ module.exports = {
       isPlayerInGame: isPlayerInGame,
       addPlayer: addPlayer,
       getGamesForPlayer: getGamesForPlayer,
-      canPlayerJoinGame: canPlayerJoinGame
+      canPlayerJoinGame: canPlayerJoinGame,
+      doesGameHaveSpaceForPlayer: doesGameHaveSpaceForPlayer
     };
   }
 };
