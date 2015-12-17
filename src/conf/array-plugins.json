@@ -35,5 +35,7 @@
     "OnServerStop",
     "OnUnmute",
     "PhysicsMap",
-    "StateSeed"
+    "Routes",
+    "StateSeed",
+    "WebServerMiddleware"
 ]

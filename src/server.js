@@ -20,11 +20,13 @@ plugins.load({ type: 'Config', func: function Config () { return config; }});
 var foldersToLoad = [
   'metrics',
   'core',
+  'middleware',
+  'routes',
   'input',
   'events',
   'state',
   'validators',
-  'debug'
+  'debug',
 ];
 
 each(foldersToLoad, function loadFolder (folder) {

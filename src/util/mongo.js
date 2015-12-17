@@ -1,5 +1,6 @@
 'use strict';
 
+var once = require('lodash').once;
 var MongoClient = require('mongodb').MongoClient;
 
 var db;
@@ -43,7 +44,7 @@ function store (collection, data, callback) {
     logger.debug('Saved.', { _id: res._id, collection: collection });
 
     if (callback) {
-      callback(res);
+      callback(res.result.upserted[0]._id);
     }
   });
 }
@@ -126,5 +127,5 @@ function setup (log) {
 }
 
 module.exports = {
-  setup: setup
+  setup: once(setup)
 };

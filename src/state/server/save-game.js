@@ -2,11 +2,11 @@
 
 module.exports = {
   type: 'SaveGame',
-  deps: ['DbBridge'],
-  func: function SaveGame (db) {
+  deps: ['DbBridge', 'RawStateAccess'],
+  func: function SaveGame (db, raw) {
 
     function now (state) {
-      db().saveGame(state.get('ensemble.gameId'));
+      db().saveGame(raw.for(state.get('ensemble.gameId')));
     }
 
     return {

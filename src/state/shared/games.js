@@ -39,7 +39,7 @@ module.exports = {
       };
     });
 
-    define()('OnDatabaseReady', ['DbBridge'], function (db) {
+    define()('OnDatabaseReady', ['GamesDataModel'], function (games) {
       return function fillWithPotentialGames () {
         function registerAsUnloadedGame (games) {
           each(games, function (game) {
@@ -49,7 +49,7 @@ module.exports = {
           });
         }
 
-        db().getGames(registerAsUnloadedGame);
+        games().all(registerAsUnloadedGame);
       };
     });
 

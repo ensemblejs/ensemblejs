@@ -6,8 +6,8 @@ var map = require('lodash').map;
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config', 'Logger', 'On', 'DbBridge'],
-  func: function PlayerConnections (define, config, logger, on, db) {
+  deps: ['DefinePlugin', 'Config', 'Logger', 'On', 'PlayerDataModel'],
+  func: function PlayerConnections (define, config, logger, on, player) {
     var connections = [];
 
     function filterByGameAndSession (gameId, sessionId) {
@@ -100,7 +100,7 @@ module.exports = {
         socket.emit('playerNumber', playerNumber);
 
         var pKey = { key: sessionId, keyType: 'sessionId' };
-        db().getPlayer(pKey, function (player) {
+        player().get(pKey, function (player) {
           var connection = get(game.id, socket.request.sessionID);
           connection.playerId = player._id;
         });

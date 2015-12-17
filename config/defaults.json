@@ -33,6 +33,7 @@
       "CollisionDetectionSystem",
       "Config",
       "CurrentState",
+      "GamesDataModel",
       "GamesList",
       "LowestInputProcessed",
       "On",

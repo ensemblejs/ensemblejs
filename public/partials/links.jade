@@ -1,0 +1,13 @@
+mixin makePostLink(link)
+  form(id="a", method="#{link.method}", action="#{link.uri}")
+    input(type="hidden", name="mode", value="#{link.data.mode}")
+    a(onclick="document.getElementById('a').submit()") #{link.name}
+
+mixin makeGetLink(link)
+  a(href="#{link.uri}") #{link.name}
+
+mixin makeLink(link)
+  if link.method === 'POST'
+    +makePostLink(link)
+  else
+    +makeGetLink(link)

@@ -7,11 +7,13 @@ var expressSession = require('express-session');
 var http = require('http');
 var fs = require('fs');
 var expressBunyanLogger = require('express-bunyan-logger');
+var each = require('lodash').each;
+var config = require('../../util/config').get();
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Config', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID'],
-  func: function (socket, config, logger, define, routes, requestEventPublisher, uuid) {
+  deps: ['SocketServer', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID', 'WebServerMiddleware'],
+  func: function (socket, logger, define, routes, requestEventPublisher, uuid, middleware) {
     var server;
     var session;
 
@@ -22,10 +24,10 @@ module.exports = {
 
       app.use(expressBunyanLogger({
         logger: logger().logger,
-        excludes: config().logging.expressBunyanLogger.excludes
+        excludes: config.logging.expressBunyanLogger.excludes
       }));
       app.use(expressBunyanLogger.errorLogger({
-        logger: logger().logger
+        logger: logger.logger
       }));
       app.use(compression());
       app.use('/game', express.static(assetPath));
@@ -53,6 +55,10 @@ module.exports = {
 
       app.use(session);
 
+      each(middleware(), function (f) {
+        app.use(f);
+      });
+
       return app;
     }
 
@@ -62,7 +68,11 @@ module.exports = {
       });
 
       app.use(function(err, req, res, next) {
-        res.status(500).send(err.message);
+        if (!config.debug.develop) {
+          res.status(500).send('Well, this is awkward.');
+        } else {
+          res.status(500).send(err.message);
+        }
 
         next(err);
       });
@@ -70,7 +80,10 @@ module.exports = {
 
     function start (assetPath, project) {
       var app = configureApp(assetPath, project);
-      routes().configure(app, project);
+
+      each(routes(), function(route) {
+        route.configure(app, project);
+      });
 
       configureErrorHandlers(app);
 
