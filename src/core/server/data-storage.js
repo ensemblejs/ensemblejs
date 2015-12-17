@@ -11,8 +11,8 @@ var config = require('../../util/config').get();
 
 module.exports = {
   type: 'DbBridge',
-  deps: ['DefinePlugin', 'RawStateAccess', 'On', 'Time'],
-  func: function MongoDbBridge (define, rawState, on, time) {
+  deps: ['DefinePlugin', 'RawStateAccess', 'On', 'Time', 'UUID'],
+  func: function MongoDbBridge (define, rawState, on, time, uuid) {
     var queue = [];
 
     function OpenDbConnection () {
@@ -92,7 +92,7 @@ module.exports = {
     }
 
     function getPlayer (player, callback) {
-      mongo.getByFilter('players', player, callback);
+      mongo.getOneByFilter('players', player, callback);
     }
 
     function savePlayer (player, callback) {
@@ -101,18 +101,71 @@ module.exports = {
       mongo.store('players', player, callback);
     }
 
+
+    var GamePlayers = {
+      collection: 'game_players',
+      getPlayers: function (gameId, callback) {
+        var filter = { gameId: gameId };
+
+        mongo.getAllByFilter(GamePlayers.collection, filter, undefined, callback);
+      },
+      playerInGame: function (gameId, playerId, callback) {
+        var filter = { gameId: gameId, playerId: playerId };
+
+        mongo.getOneByFilter(GamePlayers.collection, filter, function (record) {
+          callback(record !== null);
+        });
+      },
+      addPlayer: function (gameId, playerId, callback) {
+        var record = {
+          _id: uuid().gen(),
+          gameId: gameId,
+          playerId: playerId,
+          updated: time().present()
+        };
+
+        mongo.store(GamePlayers.collection, record, callback);
+      },
+      getGamesForPlayer: function (playerId, callback) {
+        var filter = { playerId: playerId };
+
+        mongo.getAllByFilter(GamePlayers.collection, filter, undefined, callback);
+      }
+    };
+
+    function doesPlayerBelongToGame (gameId, playerId, callback) {
+      GamePlayers.playerInGame(gameId, playerId, callback);
+    }
+
+    function canPlayerJoin (gameId, playerId, callback) {
+      getGame(gameId, function (game) {
+        GamePlayers.getPlayers(gameId, function (players) {
+          callback(players.length < config.maxPlayers(game.ensemble.mode));
+        });
+      });
+    }
+
+    function addPlayerToGame (gameId, playerId, callback) {
+      GamePlayers.addPlayer(gameId, playerId, callback);
+    }
+
     define()('OnServerStart', OpenDbConnection);
     define()('OnServerStop', CloseDbConnection);
     define()('OnGameReady', InsertInitialCopyOfGame);
     define()('AfterPhysicsFrame', SaveGameState);
     define()('OnDatabaseReady', OnDatabaseReady);
 
+    //TODO: This should really be split into themed controllers
     return {
       getGames: getGames,
       getGame: getGame,
       saveGame: saveGame,
       getPlayer: getPlayer,
-      savePlayer: savePlayer
+      savePlayer: savePlayer,
+      doesPlayerBelongToGame: doesPlayerBelongToGame,
+      canPlayerJoin: canPlayerJoin,
+      addPlayerToGame: addPlayerToGame,
+      getGamesForPlayer: GamePlayers.getGamesForPlayer
     };
   }
 };

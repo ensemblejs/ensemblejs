@@ -43,7 +43,6 @@
   },
   "dependencies": {
     "app-root-path": "^1.0.0",
-    "bluebird": "^2.9.34",
     "body-parser": "^1.13.2",
     "bunyan": "^1.4.0",
     "compression": "^1.5.1",

@@ -57,14 +57,38 @@ function getAll(collection, adapter, callback) {
     }
 
     if (data) {
-      things.push(adapter(data));
+      if (adapter) {
+        things.push(adapter(data));
+      } else {
+        things.push(data);
+      }
     } else {
       callback(things);
     }
   });
 }
 
-function getByFilter (collection, filter, callback) {
+function getAllByFilter (collection, filter, adapter, callback) {
+  var things = [];
+  db.collection(collection).find(filter).each(function(err, data) {
+    if (err) {
+      logger.error('Unable to get from ' + collection + '.', err);
+      return;
+    }
+
+    if (data) {
+      if (adapter) {
+        things.push(adapter(data));
+      } else {
+        things.push(data);
+      }
+    } else {
+      callback(things);
+    }
+  });
+}
+
+function getOneByFilter (collection, filter, callback) {
   db.collection(collection).find(filter).limit(1).next(function(err, data) {
     if (err) {
       logger.error('Unable to get from ' + collection + '.', err);
@@ -96,7 +120,8 @@ function setup (log) {
     store: store,
     getAll: getAll,
     getById: getById,
-    getByFilter: getByFilter
+    getOneByFilter: getOneByFilter,
+    getAllByFilter: getAllByFilter
   };
 }
 

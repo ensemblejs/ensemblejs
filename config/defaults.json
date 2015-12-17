@@ -18,7 +18,8 @@
     "minPlayers": 1,
     "maxPlayers": 1,
     "dashboard": false,
-    "saveStyle": "continual"
+    "maxSavesPerPlayer": 1,
+    "autoSaveBehaviour": "persistent"
   },
   "mongo": {
     "endpoint": "mongodb://localhost:27017/ensemble"

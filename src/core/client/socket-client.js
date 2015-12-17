@@ -29,12 +29,12 @@ module.exports = {
         on().disconnect('client', gameMode());
       });
 
-      socket.on('playerId', function savePlayerId (playerId) {
-        if (!playerId) {
+      socket.on('playerNumber', function savePlayerId (playerNumber) {
+        if (!playerNumber) {
           window().location.replace('/games/' + gameId + '/full');
         }
 
-        on().clientPlayerId(playerId);
+        on().clientPlayerId(playerNumber);
       });
 
       socket.on('initialState', function initialState (packet) {

@@ -6,8 +6,8 @@ var map = require('lodash').map;
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config', 'Logger', 'On'],
-  func: function PlayerConnections (define, config, logger, on) {
+  deps: ['DefinePlugin', 'Config', 'Logger', 'On', 'DbBridge'],
+  func: function PlayerConnections (define, config, logger, on, db) {
     var connections = [];
 
     function filterByGameAndSession (gameId, sessionId) {
@@ -39,8 +39,9 @@ module.exports = {
       connections.push({
         gameId: gameId,
         sessionId: sessionId,
+        playerId: undefined,
         status: 'online',
-        player: inGame.length + 1
+        number: inGame.length + 1
       });
     }
 
@@ -65,13 +66,13 @@ module.exports = {
         return undefined;
       }
 
-      return connection.player;
+      return connection.number;
     }
 
     function getPlayers (game) {
       var players = map(gamePlayers(game.id), function (connection) {
         return {
-          id: connection.player,
+          id: connection.number,
           status: connection.status
         };
       });
@@ -95,9 +96,14 @@ module.exports = {
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerId (state, socket, game) {
         var sessionId = socket.request.sessionID;
+        var playerNumber = addPlayer(game, sessionId);
+        socket.emit('playerNumber', playerNumber);
 
-        var playerId = addPlayer(game, sessionId);
-        socket.emit('playerId', playerId);
+        var pKey = { key: sessionId, keyType: 'sessionId' };
+        db().getPlayer(pKey, function (player) {
+          var connection = get(game.id, socket.request.sessionID);
+          connection.playerId = player._id;
+        });
 
         on().playerGroupChange(getPlayers(game), game.id);
 

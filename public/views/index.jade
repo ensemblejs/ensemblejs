@@ -1,5 +1,7 @@
 h1 #{name}
 p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
+H2 Welcome
+p #{player.name}
 h2 Get Playing
 p This game supports the following game modes:
 ul
@@ -8,3 +10,6 @@ ul
       form(id="a", method="#{link.method}", action="#{link.uri}")
         input(type="hidden", name="mode", value="#{link.data.mode}")
         a(onclick="document.getElementById('a').submit()") #{link.name}
+h2 Continue A Game
+p
+  a(href="/saves/") Click here to see your saved games

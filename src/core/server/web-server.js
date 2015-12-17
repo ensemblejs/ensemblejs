@@ -56,9 +56,23 @@ module.exports = {
       return app;
     }
 
+    function configureErrorHandlers (app) {
+      app.use(function(req, res) {
+        res.sendStatus(404);
+      });
+
+      app.use(function(err, req, res, next) {
+        res.status(500).send(err.message);
+
+        next(err);
+      });
+    }
+
     function start (assetPath, project) {
       var app = configureApp(assetPath, project);
       routes().configure(app, project);
+
+      configureErrorHandlers(app);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
