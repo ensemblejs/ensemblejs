@@ -6,4 +6,6 @@ coverage/
 npm-debug.log
 vendor
 .DS_Store
+.bundle/bower_components
+bower_components/
 .bundle/

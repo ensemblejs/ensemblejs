@@ -3,6 +3,14 @@
 var curry = require('lodash').curry;
 var contains = require('lodash').contains;
 var config = require('../../util/config').get();
+var logger = require('../../logging/server/logger').logger;
+
+var bitly;
+if (process.env.BITLY_KEY) {
+  var Bitly = require('bitly');
+  console.log(process.env.BITLY_KEY);
+  bitly = new Bitly(process.env.BITLY_KEY);
+}
 
 var buildRequestHandler = require('../../util/request-handling').buildRequestHandler;
 
@@ -33,7 +41,7 @@ module.exports = {
         on().gameReady(newSaveGame);
 
         gamePlayers().addPlayer(newSaveGame.id, req.player._id, function () {
-          res.redirect('/saves/' + newSaveGame.id);
+          res.redirect('/saves/' + newSaveGame.id + '/share');
         });
       };
     }
@@ -166,6 +174,99 @@ module.exports = {
       });
     }
 
+    function buildShareJson (save, project, player, hostname, callback) {
+      var json = {
+        name: project.name,
+        player: {
+          name: player.name
+        },
+        shareUrl: hostname + '/saves/' + save.id + '/join',
+        shortUrl: undefined,
+        secret: undefined,
+        links: [{
+          what: '/save/join',
+          uri: hostname + '/saves/' + save.id + '/join',
+          name: hostname + '/saves/' + save.id + '/join',
+          method: 'GET'
+        }, {
+          what: '/game',
+          uri: hostname + '/',
+          name: hostname + '/',
+          method: 'GET'
+        }]
+      };
+
+      function addShortUrlToLinks (response) {
+        if (response.status !== 200) {
+          logger.error('Unable to shorten URL', response);
+        } else {
+          json.shortUrl = response.data.url;
+          json.links.push({
+            what: '/save/join/shortUrl',
+            uri: response.data.url,
+            name: response.data.url,
+            method: 'GET'
+          });
+        }
+
+        callback(json);
+      }
+
+      function shortenUrl () {
+        if (bitly) {
+          bitly.shorten(hostname + '/saves/' + save.id + '/join')
+            .then(addShortUrlToLinks, function logBitlyError (error) {
+              logger.error('Unable to shorten URL', error);
+            });
+        } else {
+          callback(json);
+        }
+      }
+
+      games().get(save.id, function withGame (game) {
+        json.secret = game.ensemble.secret;
+
+        shortenUrl();
+      });
+    }
+
+    function buildShareSaveHandler (project, player, callback) {
+      var playerId = player._id;
+
+      return function shareSaveHandler (req, res) {
+        var save = saves().get(req.params.saveId);
+        if (!save) {
+          res.status(404).send('This game does not exist');
+          return;
+        }
+
+        function playerInGameResult (playerIsInGame) {
+          if (!playerIsInGame) {
+            res.redirect('/saves/' + save.id + '/join');
+            return;
+          }
+
+          var hostname = 'http://' + req.headers.host;
+          buildShareJson(save, project, player, hostname, function (json) {
+            callback(res, json);
+          });
+        }
+
+        gamePlayers().isPlayerInGame(save.id, playerId, playerInGameResult);
+      };
+    }
+
+    function buildShareHandler (project, player, callback) {
+      callback({
+        'html': buildShareSaveHandler(project, player, function (res, json) {
+          res.render('share.jade', json);
+        }),
+        'json': buildShareSaveHandler(project, player, function (res, json) {
+          res.json(json);
+        })
+      });
+    }
+
     function configure (app, project) {
       app.post('/saves', buildCreateNewSaveHandler(project));
 
@@ -173,6 +274,7 @@ module.exports = {
       app.get('/saves/:saveId/join', buildRequestHandler(curry(buildJoinHandler)(project)));
       app.post('/saves/:saveId/join', buildRequestHandler(curry(buildAddPlayerHandler)(project)));
       app.get('/saves/:saveId/full', saveFull);
+      app.get('/saves/:saveId/share', buildRequestHandler(curry(buildShareHandler)(project)));
     }
 
     return {

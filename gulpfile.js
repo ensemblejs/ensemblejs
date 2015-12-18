@@ -20,7 +20,11 @@ var paths = {
   scss: ['src/scss/**/*.scss'],
   cssSrc: ['src/css/**/*.css'],
   css: ['public/css/*.css'],
-  tests: ['tests/**/*.js']
+  tests: ['tests/**/*.js'],
+  jsToCopy: [
+    'node_modules/clipboard/dist/clipboard.min.js',
+    'bower_components/qrcode.js/qrcode.js'
+  ]
 };
 
 var onError = function (error) {
@@ -81,7 +85,12 @@ gulp.task('copy-css', function () {
        .pipe(plumber({errorHandler: onError}))
        .pipe(gulp.dest('public/css'));
 });
-gulp.task('build', ['build-styles', 'copy-css']);
+gulp.task('copy-vendor-js', function () {
+    return gulp.src(paths.jsToCopy)
+       .pipe(plumber({errorHandler: onError}))
+       .pipe(gulp.dest('public/js/3rd-party'));
+});
+gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js']);
 
 gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);

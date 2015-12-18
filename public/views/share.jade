@@ -1,0 +1,46 @@
+script(src="/ensemble/js/3rd-party/clipboard.min.js")
+script(src="/ensemble/js/3rd-party/qrcode.js")
+
+h1 #{name}
+p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
+
+H2 Welcome
+p #{player.name}
+
+h1 Your playing a multiplayer game. Invite some friends.
+p requires you to tell your friends the shared secret
+#qrcode
+script(type='text/javascript').
+  new QRCode(document.getElementById("qrcode"), "#{shareUrl}");
+
+h1 URL
+p requires you to tell your friends the shared secret
+.input-group
+  input#full-url(type="text", readonly, value="#{shareUrl}")
+  span.input-group-button
+    button.copy(type="button", data-clipboard-demo="", data-clipboard-target="#full-url")
+      img.clippy(src="/ensemble/images/site/clippy.svg", width="13", alt="Copy to clipboard")
+
+if shortUrl !== undefined
+  h1 Short URL
+  p requires you to tell your friends the shared secret
+  .input-group
+    input#short-url(type="text", readonly, value="#{shortUrl}")
+    span.input-group-button
+      button.copy(type="button", data-clipboard-demo="", data-clipboard-target="#short-url")
+        img.clippy(src="/ensemble/images/site/clippy.svg", width="13", alt="Copy to clipboard")
+
+H1 The Secret
+p Tell your friends this so they can join.
+p #{secret}
+H1 Just want to tell them about this neat game?
+each link in links
+  if link.what === '/game'
+    .input-group
+      input#secret(type="text", readonly, value="#{link.uri}")
+      span.input-group-button
+        button.copy(type="button", data-clipboard-demo="", data-clipboard-target="#secret")
+          img.clippy(src="/ensemble/images/site/clippy.svg", width="13", alt="Copy to clipboard")
+
+script(type="text/javascript").
+  new Clipboard('.copy');
