@@ -186,7 +186,7 @@ module.exports = {
         links: [{
           what: '/save/continue',
           uri: hostname + '/saves/' + save.id,
-          name: "Now Play that game",
+          name: 'Now Play that game',
           method: 'GET'
         }, {
           what: '/save/join',

@@ -65,18 +65,26 @@ module.exports = {
       }
     }
 
-    function ackOnceEach (action, ack, game, onProgress, onComplete) {
-      action.players = action.players || [];
-      action.fired = action.fired || false;
-
+    function ackOnceAlreadyFired (action, ack) {
       if (action.fired) {
         logger().trace(action, 'Action has already fired.');
-        return;
+        return true;
       }
 
       if (contains(action.players, ack.playerId)) {
         logger().trace(action, 'Player ' + ack.playerId + ' has already fired ack.');
-        return;
+        return true;
+      }
+
+      return false;
+    }
+
+    function ackOnceEach (action, ack, game, onProgress, onComplete) {
+      action.players = action.players || [];
+      action.fired = action.fired || false;
+
+      if (ackOnceAlreadyFired(action, ack)) {
+        return false;
       }
 
       action.players.push(ack.playerId);

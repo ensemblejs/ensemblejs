@@ -58,12 +58,13 @@ module.exports = {
       });
     }
 
+
     function addBindings() {
+      // jshint strict: false
       if (window().ontouchstart !== undefined) {
         addTouchBindings($()(this));
       }
 
-      //jshint strict: false
       addMouseBindings($()(this));
     }
 

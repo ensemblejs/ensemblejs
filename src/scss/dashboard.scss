@@ -1,15 +1,15 @@
-$dashboard-title-text-colour: grey;
-$dashboard-value-text-colour: black;
-$dashboard-border-colour: black;
+$dashboard-title-text-colour: #808080;
+$dashboard-value-text-colour: #000;
+$dashboard-border-colour: #000;
 
-@mixin resetSpacing {
+@mixin reset-spacing {
   padding: 0;
   margin: 0;
 
   line-height: 1em;
 }
 
-@mixin flexChildren {
+@mixin flex-children {
   width: 100%;
   display: flex;
   flex-flow: row wrap;
@@ -22,36 +22,36 @@ $dashboard-border-colour: black;
   border-radius: 4px;
 }
 
-@mixin dashboard-tinyText {
-  p.title { font-size: 12pt; }
-  p.value { font-size: 20pt; }
+@mixin dashboard-tiny-text {
+  .title { font-size: 12pt; }
+  .value { font-size: 20pt; }
 }
 
-@mixin dashboard-smallText {
-  p.title { font-size: 14pt; }
-  p.value { font-size: 20pt; }
+@mixin dashboard-small-text {
+  .title { font-size: 14pt; }
+  .value { font-size: 20pt; }
 }
 
-@mixin dashboard-mediumText {
-  p.title { font-size: 36pt; }
-  p.value { font-size: 72pt; }
+@mixin dashboard-medium-text {
+  .title { font-size: 36pt; }
+  .value { font-size: 72pt; }
 }
 
 @mixin dashboard {
-  @include flexChildren;
-  @include resetSpacing;
+  @include flex-children;
+  @include reset-spacing;
 
   p {
-    @include resetSpacing;
-    font-weight: normal;
+    @include reset-spacing;
     color: $dashboard-title-text-colour;
+    font-weight: normal;
   }
 
-  p.title {
+  .title {
     margin-top: 5px;
   }
 
-  p.value {
+  .value {
     color: $dashboard-value-text-colour;
     font-weight: bold;
 
@@ -59,100 +59,98 @@ $dashboard-border-colour: black;
   }
 
   .frame-square-small {
-    @include flexChildren;
+    @include flex-children;
 
-    width: 150px;
     height: 150px;
+    width: 150px;
   }
 
   .frame-rect-medium {
-    @include flexChildren;
+    @include flex-children;
 
-    width: 300px;
     height: 150px;
+    width: 300px;
   }
 
   .frame-square-medium {
-    @include flexChildren;
+    @include flex-children;
 
-    width: 300px;
     height: 300px;
+    width: 300px;
   }
 
   .widget {
     @include dashboard-border;
-    @include resetSpacing;
-    flex: 0 0 auto;
+    @include reset-spacing;
 
-    text-align: center;
-    overflow: hidden;
-
-    display: flex;
-    flex-flow: column nowrap;
     align-items: center;
-
-    margin: 2.5px
+    display: flex;
+    flex: 0 0 auto;
+    flex-flow: column nowrap;
+    margin: 2.5px;
+    overflow: hidden;
+    text-align: center;
   }
 
   .widget-square-tiny {
-    width: 70px;
-    height: 70px;
+    @include dashboard-tiny-text;
 
-    @include dashboard-tinyText;
+    height: 70px;
+    width: 70px;
   }
 
   .widget-square-tiny-solo {
-    width: 70px;
+    @include dashboard-tiny-text;
+
     height: 70px;
+    width: 70px;
 
-    @include dashboard-tinyText;
-
-    p.title {
+    .title {
       font-size: 14pt;
       margin: auto;
     }
   }
 
   .widget-rect-small {
-    width: 145px;
-    height: 70px;
+    @include dashboard-tiny-text;
 
-    @include dashboard-tinyText;
+    height: 70px;
+    width: 145px;
   }
 
   .widget-rect-small-flipped {
-    width: 145px;
+    @include dashboard-tiny-text;
+
     height: 70px;
+    width: 145px;
 
-    @include dashboard-tinyText;
-
-    p.title {
-      margin-top: 0;
+    .title {
       margin-bottom: 5px;
+      margin-top: 0;
     }
   }
 
   .widget-square-small {
-    width: 145px;
+    @include dashboard-small-text;
+
     height: 145px;
+    width: 145px;
 
-    @include dashboard-smallText;
-
-    p.value { margin-top: 25px; }
+    .value { margin-top: 25px; }
   }
 
   .widget-square-medium {
-    width: 295px;
-    height: 295px;
+    @include dashboard-medium-text;
 
-    @include dashboard-mediumText;
+    height: 295px;
+    width: 295px;
   }
 
   .widget-rect-medium {
-    width: 295px;
-    height: 145px;
+    @include dashboard-small-text;
 
-    @include dashboard-smallText;
+    height: 145px;
+    width: 295px;
   }
 }
 

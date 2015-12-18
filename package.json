@@ -16,18 +16,28 @@
     "multi-modal"
   ],
   "scripts": {
-    "start": "node ensemble.js",
+    "prestart": "gulp",
+    "start": "gulp watch",
     "test": "gulp test"
   },
-  "author": "Ryan Boucher",
+  "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
+  "contributors": ["Andy Shaw <> ()"],
   "bugs": {
     "url": "https://github.com/ensemblejs/ensemble/issues"
   },
-  "homepage": "http://ensemblejs.github.io/website/",
+  "homepage": "http://ensemblejs.com",
   "engines": {
-    "node": "latest",
-    "npm": "latest"
+    "node": "^4.x",
+    "npm": "^3.x"
   },
+  "files": [
+    "src/",
+    "public/",
+    "config/",
+    "client.js",
+    "default.entrypoint.js",
+    "ensemble.js"
+  ],
   "browserify": {
     "transform": [
       "browserify-shim",
@@ -44,7 +54,7 @@
   "dependencies": {
     "app-root-path": "^1.0.0",
     "bitly": "^4.1.1",
-    "bluebird": "^3.1.1",
+    "bluebird": "^2.10.2",
     "body-parser": "^1.13.2",
     "bunyan": "^1.4.0",
     "clipboard": "^1.5.5",
@@ -63,7 +73,6 @@
     "mixpanel": "^0.3.1",
     "mongodb": "^2.1.1",
     "morgan": "^1.6.1",
-    "node-sass": "^3.4.2",
     "node-uuid": "^1.4.3",
     "numeral": "^1.5.3",
     "present": "0.0.6",
@@ -112,7 +121,7 @@
     "jsdom": "^3.1.2",
     "jshint-stylish": "^2.0.1",
     "mocha": "^2.2.5",
-    "node-sass": "^3.2.0",
+    "node-sass": "^3.4.2",
     "plumber": "^0.4.8",
     "request": "^2.58.0",
     "scss-lint": "0.0.0",
