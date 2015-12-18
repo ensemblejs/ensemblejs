@@ -1,3 +1,5 @@
+include ../partials/links.jade
+
 script(src="/ensemble/js/3rd-party/clipboard.min.js")
 script(src="/ensemble/js/3rd-party/qrcode.js")
 
@@ -33,6 +35,7 @@ if shortUrl !== undefined
 H1 The Secret
 p Tell your friends this so they can join.
 p #{secret}
+
 H1 Just want to tell them about this neat game?
 each link in links
   if link.what === '/game'
@@ -41,6 +44,10 @@ each link in links
       span.input-group-button
         button.copy(type="button", data-clipboard-demo="", data-clipboard-target="#secret")
           img.clippy(src="/ensemble/images/site/clippy.svg", width="13", alt="Copy to clipboard")
+
+each link in links
+  if link.what === '/save/continue'
+    +makeLink(link)
 
 script(type="text/javascript").
   new Clipboard('.copy');

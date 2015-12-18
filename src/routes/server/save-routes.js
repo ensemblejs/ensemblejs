@@ -184,6 +184,11 @@ module.exports = {
         shortUrl: undefined,
         secret: undefined,
         links: [{
+          what: '/save/continue',
+          uri: hostname + '/saves/' + save.id,
+          name: "Now Play that game",
+          method: 'GET'
+        }, {
           what: '/save/join',
           uri: hostname + '/saves/' + save.id + '/join',
           name: hostname + '/saves/' + save.id + '/join',
