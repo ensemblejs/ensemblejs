@@ -2,7 +2,7 @@ include ../partials/links.jade
 
 h1 #{name}
 p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
-H2 Welcome
+H2=__('temp.greeting')
 p #{player.name}
 h2 Get Playing
 p This game supports the following game modes:

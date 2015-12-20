@@ -30,11 +30,13 @@ module.exports = {
         logger: logger.logger
       }));
       app.use(compression());
+      app.use('/dist', express.static(assetPath));
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(pathToPublic + '/'));
       app.use(require('morgan')('combined'));
       app.use(require('body-parser').urlencoded({extended: true }));
       app.use(require('body-parser').json());
+      app.use(require('cookie-parser')());
       app.set('views', ['game/views/pages', pathToPublic + '/views']);
       app.set('view options', {layout: false});
       app.engine('jade', require('jade').__express);
