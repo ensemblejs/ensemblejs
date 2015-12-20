@@ -30,7 +30,6 @@ module.exports = {
         logger: logger.logger
       }));
       app.use(compression());
-      app.use('/dist', express.static(assetPath));
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(pathToPublic + '/'));
       app.use(require('morgan')('combined'));

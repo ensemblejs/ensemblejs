@@ -44,11 +44,10 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
-      if (window().document.hasFocus()) { socket.emit('unpause'); }
       $()(window()).on('blur', function () { socket.emit('pause'); });
-      $()(window()).on('focus', function () { socket.emit('unpause'); });
       $()(window()).on('mousedown', function () { socket.emit('unpause'); });
-      $()(window()).on('mouseup', function () { socket.emit('unpause'); });
+      $()(window()).on('keydown', function () { socket.emit('unpause'); });
+      $()(window()).on('touchstart', function () { socket.emit('unpause'); });
 
       define()('OnOutgoingClientPacket', function SocketClient () {
         return function sendPacketToServer (packet) {

@@ -21,7 +21,9 @@
     "test": "gulp test"
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
-  "contributors": ["Andy Shaw <> ()"],
+  "contributors": [
+    "Andy Shaw <shawry@shawry.com>"
+  ],
   "bugs": {
     "url": "https://github.com/ensemblejs/ensemble/issues"
   },
