@@ -91,6 +91,7 @@ module.exports = {
       server.listen(process.env.PORT || 3000);
 
       socket().start(server, project.modes, session);
+      console.log('started');
     }
 
     define()('OnServerStop', function () {
@@ -100,6 +101,8 @@ module.exports = {
         if (server !== undefined) {
           server.close();
         }
+
+        console.log('stopped');
       };
     });
 

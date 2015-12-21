@@ -33,7 +33,9 @@ describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
 
   beforeEach(function () {
-    config.ensemble.maxPlayers = 3;
+    config.ensemble = {
+      maxPlayers: 3
+    };
 
     fakeLogger.error.reset();
 

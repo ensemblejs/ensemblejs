@@ -8,7 +8,6 @@ var logger = require('../../logging/server/logger').logger;
 var bitly;
 if (process.env.BITLY_KEY) {
   var Bitly = require('bitly');
-  console.log(process.env.BITLY_KEY);
   bitly = new Bitly(process.env.BITLY_KEY);
 }
 

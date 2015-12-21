@@ -21,9 +21,12 @@ describe('config routes', function () {
     console.error(err);
   }
 
+  var config;
+  var original;
   before(function() {
-    var config = require('../../../src/util/config');
-    config. get = function () {
+    config = require('../../../src/util/config');
+    original = config.get;
+    config.get = function () {
       return {
         logging: {
           expressBunyanLogger: {
@@ -45,6 +48,10 @@ describe('config routes', function () {
 
     onServerStart = sut[0];
     onServerStop = sut[1].OnServerStop();
+  });
+
+  after(function () {
+    config.get = original;
   });
 
   describe('get /config', function () {
