@@ -70,14 +70,14 @@ describe('physics system bridge', function () {
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual(['2', 'key', 'source.state', {
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'key', 'source.state', {
           position: {x: 4, y: 5}
         }]);
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
         expect(tracker.for.firstCall.args).toEqual([2]);
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual([2, 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
     });
@@ -104,10 +104,10 @@ describe('physics system bridge', function () {
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual(['2', 'key', 'source.state', {
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'key', 'source.state', {
           position: {x: 4, y: 5}
         }]);
-        expect(physicsSystem.register.secondCall.args).toEqual(['2', 'key', 'different.state', {
+        expect(physicsSystem.register.secondCall.args).toEqual([2, 'key', 'different.state', {
           position: {x: 4, y: 5}
         }]);
       });
@@ -141,18 +141,18 @@ describe('physics system bridge', function () {
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual(['2', 'keyA', 'source.state', {
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'keyA', 'source.state', {
           position: {x: 4, y: 5}
         }]);
-        expect(physicsSystem.register.secondCall.args).toEqual(['2', 'keyB', 'different.state', {
+        expect(physicsSystem.register.secondCall.args).toEqual([2, 'keyB', 'different.state', {
           position: {x: 4, y: 5}
         }]);
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual([2, 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'different.state']);
+        expect(physicsSystem.updated.secondCall.args).toEqual([2, 'different.state']);
         expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
       });
     });
@@ -179,7 +179,7 @@ describe('physics system bridge', function () {
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual(['2', 'keyA', 'static3', { position: { x: -100, y: -100}, width: 700, height: 100}
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'keyA', 'static3', { position: { x: -100, y: -100}, width: 700, height: 100}
         ]);
       });
 
@@ -211,18 +211,18 @@ describe('physics system bridge', function () {
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual(['2', 'key1', 'source.state', {
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'key1', 'source.state', {
           position: {x: 4, y: 5}
         }]);
-        expect(physicsSystem.register.secondCall.args).toEqual(['2', 'key2', 'source.state', {
+        expect(physicsSystem.register.secondCall.args).toEqual([2, 'key2', 'source.state', {
           position: {x: 4, y: 5}
         }]);
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
         expect(tracker.for.firstCall.args).toEqual([2]);
-        expect(physicsSystem.updated.firstCall.args).toEqual(['2', 'source.state']);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['2', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual([2, 'source.state']);
+        expect(physicsSystem.updated.secondCall.args).toEqual([2, 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
     });
@@ -250,13 +250,13 @@ describe('physics system bridge', function () {
     });
 
     it('should pass the source state to the physics system', function () {
-      expect(physicsSystem.register.firstCall.args).toEqual(['1', 'key1', 'source.state', { position: {x: 4, y: 5}
+      expect(physicsSystem.register.firstCall.args).toEqual([1, 'key1', 'source.state', { position: {x: 4, y: 5}
       }]);
-      expect(physicsSystem.register.secondCall.args).toEqual(['1', 'key2', 'source.state', { position: {x: 4, y: 5}
+      expect(physicsSystem.register.secondCall.args).toEqual([1, 'key2', 'source.state', { position: {x: 4, y: 5}
       }]);
-      expect(physicsSystem.register.thirdCall.args).toEqual(['2', 'key1', 'source.state', { position: {x: 4, y: 5}
+      expect(physicsSystem.register.thirdCall.args).toEqual([2, 'key1', 'source.state', { position: {x: 4, y: 5}
       }]);
-      expect(physicsSystem.register.lastCall.args).toEqual(['2', 'key2', 'source.state', { position: {x: 4, y: 5}
+      expect(physicsSystem.register.lastCall.args).toEqual([2, 'key2', 'source.state', { position: {x: 4, y: 5}
       }]);
     });
 
@@ -265,10 +265,10 @@ describe('physics system bridge', function () {
       expect(tracker.for.secondCall.args).toEqual([1]);
       expect(tracker.for.thirdCall.args).toEqual([2]);
       expect(tracker.for.lastCall.args).toEqual([2]);
-      expect(physicsSystem.updated.firstCall.args).toEqual(['1', 'source.state']);
-      expect(physicsSystem.updated.secondCall.args).toEqual(['1', 'source.state']);
-      expect(physicsSystem.updated.thirdCall.args).toEqual(['2', 'source.state']);
-      expect(physicsSystem.updated.lastCall.args).toEqual(['2', 'source.state']);
+      expect(physicsSystem.updated.firstCall.args).toEqual([1, 'source.state']);
+      expect(physicsSystem.updated.secondCall.args).toEqual([1, 'source.state']);
+      expect(physicsSystem.updated.thirdCall.args).toEqual([2, 'source.state']);
+      expect(physicsSystem.updated.lastCall.args).toEqual([2, 'source.state']);
       expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       expect(onChangeOf.secondCall.args).toEqual(['source.state', updatedCallback]);
     });

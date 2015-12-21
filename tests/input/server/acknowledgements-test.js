@@ -27,7 +27,7 @@ function hasResponse () {
 }
 
 var fakeLogger = require('../../fake/logger');
-var config = require('../../../src/util/config')(fakeLogger);
+var config = require('../../../src/util/config').get(fakeLogger);
 
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;

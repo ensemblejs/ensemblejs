@@ -50,19 +50,6 @@ describe('the socket client', function () {
 	});
 
 	describe('on connect', function () {
-		describe('when the window has focus', function () {
-			beforeEach(function () {
-				socket.emit.reset();
-				global.window.document.hasFocus = function () { return true; };
-				client.connect();
-			});
-
-			it('should send unpause event if the window has focus', function () {
-				expect(socket.emit.secondCall.args[0]).toEqual('unpause');
-				expect(socket.emit.callCount).toEqual(2);
-			});
-		});
-
 		describe('when the window does not have focus', function () {
 			beforeEach(function () {
 				socket.emit.reset();
@@ -127,9 +114,9 @@ describe('the socket client', function () {
 			});
 		});
 
-		describe('on playerId', function () {
+		describe('on playerNumber', function () {
 			beforeEach(function () {
-				socket.savedEvents().playerId[0](12);
+				socket.savedEvents().playerNumber[0](12);
 			});
 
 			it('should call the clientPlayerId callback', function () {
@@ -239,22 +226,22 @@ describe('the socket client', function () {
 				socket.emit.reset();
 			});
 
-			it('should send a pause event when the focus is gained', function () {
-				fake$.savedEvents().focus[0]();
-
-				expect(socket.emit.callCount).toEqual(1);
-				expect(socket.emit.firstCall.args).toEqual(['unpause']);
-			});
-
-			it('should send a pause event when the mouse button is pressed', function () {
+			it('should send an unpause event when the mouse button is pressed', function () {
 				fake$.savedEvents().mousedown[0]();
 
 				expect(socket.emit.callCount).toEqual(1);
 				expect(socket.emit.firstCall.args).toEqual(['unpause']);
 			});
 
-			it('should send a pause event when the mouse button is released', function () {
-				fake$.savedEvents().mouseup[0]();
+			it('should send an unpause event when a key pressed', function () {
+				fake$.savedEvents().keydown[0]();
+
+				expect(socket.emit.callCount).toEqual(1);
+				expect(socket.emit.firstCall.args).toEqual(['unpause']);
+			});
+
+			it('should send an unpause event when the screen is tapped', function () {
+				fake$.savedEvents().touchstart[0]();
 
 				expect(socket.emit.callCount).toEqual(1);
 				expect(socket.emit.firstCall.args).toEqual(['unpause']);

@@ -36,9 +36,9 @@ describe('starting the server', function () {
 					}
 				}
 			},
-			Routes: {
+			Routes: [{
 				configure: sinon.spy()
-			},
+			}],
 			RequestEventPublisher: {
 				middleware: sinon.spy()
 			}
@@ -84,9 +84,9 @@ describe('stopping the server', function () {
 					}
 				}
 			},
-			Routes: {
+			Routes: [{
 				configure: sinon.spy()
-			},
+			}],
 			RequestEventPublisher: {
 				middleware: sinon.spy()
 			}

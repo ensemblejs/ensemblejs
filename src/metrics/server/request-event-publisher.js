@@ -5,7 +5,7 @@ var isEqual = require('lodash').isEqual;
 var useragent = require('useragent');
 
 module.exports = {
-  type: 'RequestEventPublisher',
+  type: 'WebServerMiddleware',
   deps: ['Time', 'Metrics'],
   func: function RequestEventPublisher (time, metrics) {
 
@@ -16,7 +16,7 @@ module.exports = {
         '127.0.0.1';
     }
 
-    function onRequest (req, res, next) {
+    return function trackRequest (req, res, next) {
       var startTime = time().present();
 
       var ua = useragent.lookup(req.headers['user-agent']);
@@ -56,10 +56,6 @@ module.exports = {
 
       res.on('finish', publishEvent);
       next();
-    }
-
-    return {
-      middleware: onRequest
     };
   }
 };

@@ -2,7 +2,7 @@
 
 var expect = require('expect');
 var fakeLogger = require('../fake/logger');
-var config = require('../../src/util/config')(fakeLogger);
+var config = require('../../src/util/config').get(fakeLogger);
 
 describe('config', function () {
   beforeEach(function () {

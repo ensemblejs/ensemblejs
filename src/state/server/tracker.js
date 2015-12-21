@@ -8,6 +8,7 @@ var isFunction = require('lodash').isFunction;
 var clone = require('lodash').clone;
 var find = require('lodash').find;
 var where = require('lodash').where;
+var get = require('lodash').get;
 
 module.exports = {
   type: 'StateTracker',
@@ -149,21 +150,18 @@ module.exports = {
       });
     }
 
-    function updateState (newState) {
-      priorState = currentState;
-      currentState = newState;
-    }
-
     define()('OnServerReady', ['RawStateAccess'], function StateTracker (rawState) {
       return function storeInitialServerState () {
-        updateState(rawState().all());
+        priorState = currentState;
+        currentState = rawState().all();
       };
     });
 
     define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
 
       return function takeLatestCopyOfRawState () {
-        updateState(rawState().all());
+        priorState = currentState;
+        currentState = clone(rawState().all(), true);
         detectChangesAndNotifyObservers();
       };
     });
@@ -173,17 +171,11 @@ module.exports = {
         return model;
       }
 
-      var parts = model.split('.');
-
       return function stateFromDotString (state) {
-        var prop = state;
-        each(parts, function (part) {
-          prop = prop[part];
-
-          if (prop === undefined) {
-            logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-          }
-        });
+        var prop = get(state, model);
+        if (prop === undefined) {
+          logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+        }
 
         return prop;
       };
@@ -226,6 +218,7 @@ module.exports = {
             callback: callback,
             data: data
           };
+
 
           if (change.when(currentValue(change.focus, gameId))) {
             invokeCallback(

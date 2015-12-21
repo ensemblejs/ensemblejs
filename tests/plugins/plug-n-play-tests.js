@@ -272,7 +272,7 @@ describe('the plugin manager', function() {
 				pluginManager.load(now);
 			} catch (e) { message = e.message; }
 
-			expect(message).toBe('No plugin defined for: OkNow');
+			expect(message).toBe('No plugin defined for: "OkNow"');
 		});
 
 		it('should raise an exception if any arguments are passed into a dependency', function () {

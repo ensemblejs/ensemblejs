@@ -4,7 +4,7 @@ module.exports = {
   type: 'WebServerMiddleware',
   deps: ['UUID', 'PlayerDataModel'],
   func: function (uuid, players) {
-    function determinePlayerId (req, res, next) {
+    return function determinePlayerId (req, res, next) {
       var player = {
         key: req.sessionID,
         keyType: 'sessionId',
@@ -28,8 +28,6 @@ module.exports = {
       }
 
       players().get(player, handleGetPlayer);
-    }
-
-    return determinePlayerId;
+    };
   }
 };

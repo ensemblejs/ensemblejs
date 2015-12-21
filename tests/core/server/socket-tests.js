@@ -147,7 +147,7 @@ describe('the socket server', function () {
 			updateClientFunc();
 
 			expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([
-				1,
+				'1',
 				{
 					gameState: {hi: 'there'},
 					id: 1,
@@ -191,7 +191,7 @@ describe('the socket server', function () {
 			updateClientFunc();
 
 			expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
-			expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
+			expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
 				gameState: {hi: 'there', altered: true},
 				id: 4,
 				highestProcessedMessage: undefined,

@@ -20,7 +20,7 @@ var state = {
 	}
 };
 var gamesList = {
-	all: function () {
+	loaded: function () {
 		return [
 			{id: 1, mode: '*'},
 			{id: 2, mode: 'custom'},
@@ -50,6 +50,7 @@ describe('the engine', function() {
 		var sut = makeTestible('core/server/physics', {
 			BeforePhysicsFrame: [update1, update2],
 			OnPhysicsFrame: [update3, update4],
+			AfterPhysicsFrame: [],
 			GamesList: gamesList,
 			Config: config,
 			Time: fakeTime,

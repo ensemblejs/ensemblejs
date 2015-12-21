@@ -12,8 +12,8 @@ var config = require('../../util/config').get();
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Logger', 'DefinePlugin', 'Routes', 'RequestEventPublisher', 'UUID', 'WebServerMiddleware'],
-  func: function (socket, logger, define, routes, requestEventPublisher, uuid, middleware) {
+  deps: ['SocketServer', 'Logger', 'DefinePlugin', 'Routes', 'UUID', 'WebServerMiddleware'],
+  func: function (socket, logger, define, routes, uuid, middleware) {
     var server;
     var session;
 
@@ -45,7 +45,6 @@ module.exports = {
         pathToFavIcon = pathToPublic + '/favicon.ico';
       }
       app.use(favicon(pathToFavIcon));
-      app.use(requestEventPublisher().middleware);
 
       session = expressSession({
         genid: uuid().get,

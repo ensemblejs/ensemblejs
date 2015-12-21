@@ -23,7 +23,10 @@ describe('players connecting', function () {
         minPlayers: function () { return 2; },
         maxPlayers: function () { return 3; }
       },
-      On: fakeOn
+      On: fakeOn,
+      PlayerDataModel: {
+        get: sinon.spy()
+      }
     });
 
     fakeOn.playerGroupChange.reset();

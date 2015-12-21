@@ -1,6 +1,5 @@
 'use strict';
 
-require('requirish')._(module);
 var appRoot = require('app-root-path');
 var defaultsDeep = require('lodash').defaultsDeep;
 var select = require('lodash').select;

@@ -11,5 +11,6 @@
     "OnPhysicsFrame",
     "OnResume",
     "PhysicsMap",
-    "StateSeed"
+    "StateSeed",
+    "TriggerMap"
 ]
