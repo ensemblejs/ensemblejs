@@ -12,7 +12,7 @@ module.exports = {
     function comparison (key, triggerInfo, comparator) {
       tracker().onChangeTo(key, function (currentValue) {
         return _[comparator](currentValue, triggerInfo[comparator]);
-      }, triggerInfo.call);
+      }, triggerInfo.call, triggerInfo.data);
     }
 
     var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
@@ -26,7 +26,7 @@ module.exports = {
             each(value, function loadTrigger (triggerInfo) {
               each(directTrackerMappings, function (f) {
                 if (triggerInfo[f]) {
-                  tracker()[f](key, triggerInfo[f]);
+                  tracker()[f](key, triggerInfo[f], triggerInfo.data);
                 }
               });
 

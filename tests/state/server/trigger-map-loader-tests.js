@@ -61,14 +61,14 @@ describe('trigger maps', function () {
 
         beforeEach(function () {
           var v = makeValidator([['*', {
-            'some-state': [{ onChangeOf: callback}]
+            'some-state': [{ onChangeOf: callback, data: ['a', 1]}]
           }]]);
           v.OnGameReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
-          expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', callback]);
+          expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', callback, ['a', 1]]);
         });
       });
 
@@ -101,14 +101,14 @@ describe('trigger maps', function () {
 
         beforeEach(function () {
           var v = makeValidator([['*', {
-            'some-state': [{ onChangeOf: callback}]
+            'some-state': [{ onChangeOf: callback, data: 'a'}]
           }]]);
           v.OnGameReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
-          expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', callback]);
+          expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', callback, 'a']);
         });
       });
 
@@ -117,7 +117,7 @@ describe('trigger maps', function () {
 
         beforeEach(function () {
           var v = makeValidator([['*', {
-            'some-state': [{ eq: 4, call: callback}]
+            'some-state': [{ eq: 4, call: callback, data: 1}]
           }]]);
           v.OnGameReady()(game);
         });
@@ -126,6 +126,7 @@ describe('trigger maps', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
           expect(trackerBindings.onChangeTo.firstCall.args[0]).toEqual('some-state');
           expect(trackerBindings.onChangeTo.firstCall.args[2]).toEqual(callback);
+          expect(trackerBindings.onChangeTo.firstCall.args[3]).toEqual(1);
         });
 
         it('should setup a comparison function', function () {
@@ -241,7 +242,7 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object to listen for element insertion', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
-          expect(trackerBindings.onElementAdded.firstCall.args).toEqual(['some-state', callback]);
+          expect(trackerBindings.onElementAdded.firstCall.args).toEqual(['some-state', callback, undefined]);
         });
       });
 
@@ -257,7 +258,7 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object to listen for element removal', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
-          expect(trackerBindings.onElementRemoved.firstCall.args).toEqual(['some-state', callback]);
+          expect(trackerBindings.onElementRemoved.firstCall.args).toEqual(['some-state', callback, undefined]);
         });
       });
 
@@ -273,7 +274,7 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object to listen for element insertion', function () {
           expect(tracker.for.firstCall.args).toEqual([3]);
-          expect(trackerBindings.onElementChanged.firstCall.args).toEqual(['some-state', callback]);
+          expect(trackerBindings.onElementChanged.firstCall.args).toEqual(['some-state', callback, undefined]);
         });
       });
     });
@@ -297,7 +298,7 @@ describe('trigger maps', function () {
 
     it('should setup bindings for "arcade" mode', function () {
       expect(tracker.for.firstCall.args).toEqual([3]);
-      expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', arcadeCallback]);
+      expect(trackerBindings.onChangeOf.firstCall.args).toEqual(['some-state', arcadeCallback, undefined]);
     });
 
     it('should not setup bindings for "endless" mode', function () {
