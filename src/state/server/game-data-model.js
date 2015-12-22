@@ -30,6 +30,12 @@ module.exports = {
       mongo.store(collection, data, callback);
     }
 
+    function isGamePublic (gameId, callback) {
+      mongo.getById(collection, gameId, function (game) {
+        callback(isEqual(game.ensemble.secret, 'public'));
+      });
+    }
+
     function isSecretCorrect (gameId, secret, callback) {
       mongo.getById(collection, gameId, function (game) {
         var a = game.ensemble.secret.toLowerCase();
@@ -43,7 +49,8 @@ module.exports = {
       all: all,
       get: get,
       save: save,
-      isSecretCorrect: isSecretCorrect
+      isSecretCorrect: isSecretCorrect,
+      isGamePublic: isGamePublic
     };
   }
 };

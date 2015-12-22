@@ -152,16 +152,31 @@ module.exports = {
         var saveId = req.params.saveId;
         var secret = req.body.secret;
 
+        function addPlayerToGame (saveId, playerId) {
+          gamePlayers().addPlayer(saveId, playerId, function () {
+            res.redirect('/saves/' + saveId);
+          });
+        }
+
         function doesGameHaveSpace (gameHasSpace) {
           if (gameHasSpace) {
-            games().isSecretCorrect(saveId, secret, function (secretIsCorrect) {
-              if (secretIsCorrect) {
-                gamePlayers().addPlayer(saveId, player._id, function () {
-                  res.redirect('/saves/' + saveId);
-                });
-              } else {
-                res.redirect('/saves/' + saveId + '/join');
+            games().isGamePublic(saveId, function (gameIsPublic) {
+              if (gameIsPublic) {
+                addPlayerToGame(saveId, player._id);
+                return;
               }
+
+              if (!req.body.secret) {
+                return res.status(400).send('Missing secret');
+              }
+
+              games().isSecretCorrect(saveId, secret, function (secretIsCorrect) {
+                if (secretIsCorrect) {
+                  addPlayerToGame(saveId, player._id);
+                } else {
+                  res.redirect('/saves/' + saveId + '/join');
+                }
+              });
             });
           } else {
             res.redirect('/saves/' + saveId + '/full');

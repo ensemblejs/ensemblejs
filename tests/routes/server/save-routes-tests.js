@@ -18,6 +18,8 @@ describe('save routes', function () {
   var isPlayerInGame = false;
   var canPlayerJoinGame = false;
   var doesGameHaveSpaceForPlayer = false;
+  var isSecretCorrect = false;
+  var isGamePublic = false;
   var GamePlayersDataModel = {
     addPlayer: function (saveId, playerId, callback) {
       callback();
@@ -35,6 +37,12 @@ describe('save routes', function () {
   var GamesDataModel = {
     get: function (gameId, callback) {
       callback({ ensemble: {secret: 'public'}});
+    },
+    isGamePublic: function (gameId, callback) {
+      callback(isGamePublic);
+    },
+    isSecretCorrect: function (gameId, secret, callback) {
+      callback(isSecretCorrect);
     }
   };
   sinon.spy(GamePlayersDataModel, 'addPlayer');
@@ -292,15 +300,17 @@ describe('save routes', function () {
     });
   });
 
-  describe.skip('POSTS', function () {
+  describe('POSTS', function () {
     beforeEach(function () {
       fakeOn.newGame.reset();
       fakeOn.gameReady.reset();
     });
 
     describe('/saves', function () {
+      var uri = '/saves';
+
       it('should report an error if the mode is not supplied', function (done) {
-        request.post(posturl('/saves', {}), function (err, res) {
+        request.post(posturl(uri, {}), function (err, res) {
           expect(res.statusCode).toEqual(400);
           expect(fakeOn.newGame.called).toEqual(false);
           expect(fakeOn.gameReady.called).toEqual(false);
@@ -309,7 +319,7 @@ describe('save routes', function () {
       });
 
       it('should report an error if the mode is invalid', function (done) {
-        request.post(posturl('/saves', { mode: 'endless '}), function (err, res) {
+        request.post(posturl(uri, { mode: 'endless '}), function (err, res) {
           expect(res.statusCode).toEqual(400);
           expect(fakeOn.newGame.called).toEqual(false);
           expect(fakeOn.gameReady.called).toEqual(false);
@@ -318,21 +328,21 @@ describe('save routes', function () {
       });
 
       it('should emit the OnNewGame event', function (done) {
-        request.post(posturl('/saves', {mode: 'arcade'}), function (err) {
+        request.post(posturl(uri, {mode: 'arcade'}), function (err) {
           expect(fakeOn.newGame.called).toEqual(true);
           done(err);
         });
       });
 
       it('should emit the OnGameReady event', function (done) {
-        request.post(posturl('/saves', {mode: 'arcade'}), function (err) {
+        request.post(posturl(uri, {mode: 'arcade'}), function (err) {
           expect(fakeOn.gameReady.called).toEqual(true);
           done(err);
         });
       });
 
       it('should redirect to the continue game url', function (done) {
-        request.post(posturl('/saves', {mode: 'arcade'}), function (err, res) {
+        request.post(posturl(uri, {mode: 'arcade'}), function (err, res) {
           expect(res.statusCode).toEqual(302);
           expect(res.headers.location).toEqual('/saves/34242-324324/share');
           done(err);
@@ -341,35 +351,122 @@ describe('save routes', function () {
     });
 
     describe('/saves/:saveId/join', function () {
-      describe('when the player is already in the game', function () {
-        it('should redirect to the game');
+      var uri = '/saves/34242-324324/join';
+
+      beforeEach(function (done) {
+        request.post(posturl('/saves', {mode: 'arcade'}), done);
       });
 
-      describe('when the player is not already in the game', function () {
+      describe('when the player is already in the game', function () {
+        beforeEach(function () {
+          isPlayerInGame = true;
+        });
+
+        it('should redirect to continue game', function (done) {
+          request.post(posturl(uri), function (err, res) {
+            expect(res.statusCode).toEqual(302);
+            expect(res.headers.location).toEqual('/saves/34242-324324');
+            done(err);
+          });
+        });
+      });
+
+      describe('when the player is not in the game', function () {
+        beforeEach(function () {
+          isPlayerInGame = false;
+        });
+
         describe('when the game is full', function () {
-          it('should redirect to full');
+          beforeEach(function () {
+            doesGameHaveSpaceForPlayer = false;
+          });
+
+          it('should redirect to continue game', function (done) {
+            request.post(posturl(uri), function (err, res) {
+              expect(res.statusCode).toEqual(302);
+              expect(res.headers.location).toEqual('/saves/34242-324324/full');
+              done(err);
+            });
+          });
         });
 
         describe('when the game is not full', function () {
+          beforeEach(function () {
+            doesGameHaveSpaceForPlayer = true;
+          });
+
           describe('when the game is public', function () {
-            it('should add the player to the game', function () {
-              expect(GamePlayersDataModel.addPlayer.firstCall.args[0]).toEqual('1234');
+            beforeEach(function () {
+              GamePlayersDataModel.addPlayer.reset();
+              isGamePublic = true;
             });
 
-            it('should redirect to the game');
+            it('should add the player to the game', function (done) {
+              request.post(posturl(uri, {secret: 'correct'}), function (err) {
+                expect(GamePlayersDataModel.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                expect(GamePlayersDataModel.addPlayer.firstCall.args[1]).toEqual('1234');
+                done(err);
+              });
+            });
+
+            it('should redirect to continue game', function (done) {
+              request.post(posturl(uri), function (err, res) {
+                expect(res.statusCode).toEqual(302);
+                expect(res.headers.location).toEqual('/saves/34242-324324');
+                done(err);
+              });
+            });
           });
 
           describe('when the game is private', function () {
+            beforeEach(function () {
+              isGamePublic = false;
+            });
+
+            describe('when no secret is supplied', function () {
+              it('should return a 400', function (done) {
+                request.post(posturl(uri, {}), function (err, res) {
+                  expect(res.statusCode).toEqual(400);
+                  done(err);
+                });
+              });
+            });
+
             describe('when the secret is incorrect', function () {
-              it('should redirect to the join page');
+              beforeEach(function () {
+                isSecretCorrect = false;
+              });
+
+              it('should redirect to the join page', function (done) {
+                request.post(posturl(uri, {secret: 'not-correct'}), function (err, res) {
+                  expect(res.statusCode).toEqual(302);
+                  expect(res.headers.location).toEqual('/saves/34242-324324/join');
+                  done(err);
+                });
+              });
             });
 
             describe('when the secret is correct', function () {
-              it('should add the player to the game', function () {
-                expect(GamePlayersDataModel.addPlayer.firstCall.args[0]).toEqual('1234');
+              beforeEach(function () {
+                GamePlayersDataModel.addPlayer.reset();
+                isSecretCorrect = true;
               });
 
-              it('should redirect to the game');
+              it('should add the player to the game', function (done) {
+                request.post(posturl(uri, {secret: 'correct'}), function (err) {
+                  expect(GamePlayersDataModel.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                  expect(GamePlayersDataModel.addPlayer.firstCall.args[1]).toEqual('1234');
+                  done(err);
+                });
+              });
+
+              it('should redirect to continue game', function (done) {
+                request.post(posturl(uri, {secret: 'correct'}), function (err, res) {
+                  expect(res.statusCode).toEqual(302);
+                  expect(res.headers.location).toEqual('/saves/34242-324324');
+                  done(err);
+                });
+              });
             });
           });
         });
