@@ -7,26 +7,27 @@ var mongo = require('../../util/mongo').setup(logger);
 module.exports = {
   type: 'GamePlayersDataModel',
   deps: ['UUID', 'Time', 'GamesDataModel'],
-  func: function (uuid, time, games) {
-    var collection = 'game_players';
+  func: function (uuid, time, saves) {
+    var collection = 'save_game_players';
 
-    function getPlayers (gameId, callback) {
-      var filter = { gameId: gameId };
+    function getPlayers (saveId, callback) {
+      var filter = { saveId: saveId };
 
       mongo.getAllByFilter(collection, filter, undefined, callback);
     }
 
-    function isPlayerInGame (gameId, playerId, callback) {
-      var filter = { gameId: gameId, playerId: playerId };
+    function isPlayerInSave (saveId, playerId, callback) {
+      var filter = { saveId: saveId, playerId: playerId };
 
       mongo.getOneByFilter(collection, filter, function (record) {
         callback(record !== null);
       });
     }
 
-    function addPlayer (gameId, playerId, callback) {
+    function addPlayer (gameId, saveId, playerId, callback) {
       var record = {
         _id: uuid().gen(),
+        saveId: saveId,
         gameId: gameId,
         playerId: playerId,
         updated: time().present()
@@ -35,38 +36,45 @@ module.exports = {
       mongo.store(collection, record, callback);
     }
 
-    function getGamesForPlayer (playerId, callback) {
+    function getSavesForGameAndPlayer (gameId, playerId, callback) {
+      var filter = { gameId: gameId, playerId: playerId };
+
+      mongo.getAllByFilter(collection, filter, undefined, callback);
+    }
+
+    function getSavesForPlayer (playerId, callback) {
       var filter = { playerId: playerId };
 
       mongo.getAllByFilter(collection, filter, undefined, callback);
     }
 
-    function doesGameHaveSpaceForPlayer (gameId, callback) {
-      games().get(gameId, function (game) {
-        getPlayers(gameId, function (players) {
-          callback(players.length < config.maxPlayers(game.ensemble.mode));
+    function doesSaveHaveSpaceForPlayer (saveId, callback) {
+      saves().get(saveId, function (save) {
+        getPlayers(saveId, function (players) {
+          callback(players.length < config.maxPlayers(save.ensemble.mode));
         });
       });
     }
 
-    function canPlayerJoinGame (gameId, playerId, callback) {
-      games().get(gameId, function (game) {
-        if (game.ensemble.secret !== 'public') {
+    function canPlayerJoinSave (saveId, playerId, callback) {
+      saves().get(saveId, function (save) {
+        if (save.ensemble.secret !== 'public') {
           callback(false);
           return;
         }
 
-        doesGameHaveSpaceForPlayer(gameId, callback);
+        doesSaveHaveSpaceForPlayer(saveId, callback);
       });
     }
 
     return {
       getPlayers: getPlayers,
-      isPlayerInGame: isPlayerInGame,
+      isPlayerInSave: isPlayerInSave,
       addPlayer: addPlayer,
-      getGamesForPlayer: getGamesForPlayer,
-      canPlayerJoinGame: canPlayerJoinGame,
-      doesGameHaveSpaceForPlayer: doesGameHaveSpaceForPlayer
+      getSavesForPlayer: getSavesForPlayer,
+      getSavesForGameAndPlayer: getSavesForGameAndPlayer,
+      canPlayerJoinSave: canPlayerJoinSave,
+      doesSaveHaveSpaceForPlayer: doesSaveHaveSpaceForPlayer
     };
   }
 };

@@ -7,6 +7,16 @@ function url (route) {
   };
 }
 
+function urlAsJson (route) {
+  return {
+    uri: 'http://localhost:3000' + route,
+    followRedirect: false,
+    headers: {
+      'Accept': 'application/json'
+    }
+  };
+}
+
 function log (err) {
   if (!err) {
     return;
@@ -28,5 +38,6 @@ function posturl (path, body) {
 module.exports = {
   url: url,
   log: log,
-  posturl: posturl
+  posturl: posturl,
+  urlAsJson: urlAsJson
 };
