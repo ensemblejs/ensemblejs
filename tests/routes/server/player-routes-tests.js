@@ -14,14 +14,14 @@ describe('player routes', function () {
 
   describe('/players/:playerId/saves', function () {
     var GamePlayersDataModel = {
-      getGamesForPlayer: function(playerId, callback) {
+      getSavesForGameAndPlayer: function(gameId, playerId, callback) {
         callback([
-          {saveId: 1, gameId: 'tetris', playerId: 1234},
-          {saveId: 2, gameId: 'pong', playerId: 1234}
+          {saveId: 1, gameId: 'distributedlife+tetris', playerId: 1234},
+          {saveId: 2, gameId: 'distributedlife+pong', playerId: 1234}
         ]);
       }
     };
-    sinon.spy(GamePlayersDataModel, 'getGamesForPlayer');
+    sinon.spy(GamePlayersDataModel, 'getSavesForGameAndPlayer');
 
     var opts;
     beforeEach(function() {
@@ -37,7 +37,10 @@ describe('player routes', function () {
       onServerStart = sut[0];
       onServerStop = sut[1].OnServerStop();
 
-      onServerStart('../dummy', ['game']);
+      onServerStart('../dummy', {
+        id: 'distributedlife+pong',
+        modes: ['game']
+      });
 
       opts = url('/players/1234/saves');
       opts.headers = {
@@ -55,15 +58,16 @@ describe('player routes', function () {
         log(err);
 
         expect(res.statusCode).toEqual(200);
-        expect(GamePlayersDataModel.getGamesForPlayer.firstCall.args[0]).toEqual('1234');
+        expect(GamePlayersDataModel.getSavesForGameAndPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
+        expect(GamePlayersDataModel.getSavesForGameAndPlayer.firstCall.args[1]).toEqual('1234');
         expect(JSON.parse(res.body)).toEqual({
           player: {
             id: '1234',
             name: 'Ryan'
           },
           saves: [
-            {method:'GET',name:1,uri:'/saves/1',what:'/save/continue'},
-            {method:'GET',name:2,uri:'/saves/2',what:'/save/continue'}
+            {method: 'GET',name: 1, uri: '/saves/1', what: '/save/continue'},
+            {method: 'GET',name: 2, uri: '/saves/2', what: '/save/continue'}
           ]
         });
         done();

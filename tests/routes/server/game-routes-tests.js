@@ -81,8 +81,8 @@ describe('game routes', function () {
 
 					var json = JSON.parse(res.body);
 					expect(contains(json.links, {
-						what: '/player/saves',
-						url: '/player/1234/saves',
+						what: '/game/player/saves',
+						url: '/games/gameId/player/1234/saves',
 						method: 'GET'
 					}));
 					done(err);
@@ -136,42 +136,5 @@ describe('game routes', function () {
 				}).end();
 			});
 		});
-	});
-
-	describe('/games/:gameId/players/:playerId/saves', function () {
-	  var uri = '/games/distributedlife+pong/players/1234/saves';
-
-	  before(function () {
-			onServerStart('../dummy', {modes: ['game']});
-		});
-
-		after(function () {
-			onServerStop();
-		});
-
-	  describe('as JSON', function () {
-	    it('should return the player\'s saves', function (done) {
-	      request(urlAsJson(uri), function (err, res) {
-	        expect(res.statusCode).toEqual(200);
-	        expect(GamePlayersDataModel.getSavesForGameAndPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
-	        expect(GamePlayersDataModel.getSavesForGameAndPlayer.firstCall.args[1]).toEqual('1234');
-	        expect(JSON.parse(res.body)).toEqual({
-	        	game: {
-	        		id: 'distributedlife+pong',
-	        		name: 'Pong'
-	        	},
-	          player: {
-	            id: '1234',
-	            name: 'Ryan'
-	          },
-	          saves: [
-	            {method: 'GET', name: 1, uri: '/saves/1', what: '/save/continue'},
-	            {method: 'GET', name: 2, uri: '/saves/2', what: '/save/continue'}
-	          ]
-	        });
-	        done(err);
-	      }).end();
-	    });
-	  });
 	});
 });

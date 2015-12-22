@@ -34,7 +34,7 @@ module.exports = {
         callback(json);
       }
 
-      gamePlayers().getGamesForPlayer(player._id, addSavesToResponse);
+      gamePlayers().getSavesForGameAndPlayer(project.id, player._id, addSavesToResponse);
     }
 
     function buildHandler (project, player, callback) {

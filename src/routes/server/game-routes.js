@@ -45,79 +45,13 @@ function createAcceptTypeHandlers (json) {
 
 module.exports = {
   type: 'Routes',
-  deps: ['GamePlayersDataModel', 'ActualGameDataModel'],
-  func: function GameRoutes (gamePlayers, games) {
-
-    function buildListSavesJson (game, player, callback) {
-      var json = {
-        game: {
-          id: game._id,
-          name: game.name
-        },
-        player: {
-          id: player._id,
-          name: player.name
-        },
-        saves: []
-      };
-
-      function addSavesToResponse (saves) {
-         each(saves, function(save) {
-          json.saves.push({
-            name: save.saveId,
-            what: '/save/continue',
-            uri: '/saves/' + save.saveId,
-            method: 'GET'
-          });
-        });
-
-        callback(json);
-      }
-
-      gamePlayers().getSavesForGameAndPlayer(game._id, player._id, addSavesToResponse);
-    }
-
-    function buildListSavesHandler (game, player, callback) {
-      function createAcceptTypeHandlers (json) {
-        callback({
-          'html': renderPage('saves.jade', json),
-          'json': buildJsonHandler(json)
-        });
-      }
-
-      buildListSavesJson(game, player, createAcceptTypeHandlers);
-    }
-
+  func: function GameRoutes () {
     function buildHandler (project, player, callback) {
       callback(createAcceptTypeHandlers(buildJson(project, player)));
     }
 
-
-    var keys = require('lodash').keys;
-    function getSupportContentType (req, acceptTypeResponseHandlers) {
-      return req.accepts(keys(acceptTypeResponseHandlers));
-    }
-
     function configure (app, project) {
       app.get('/', buildRequestHandler(curry(buildHandler)(project)));
-
-      app.get('/games/:gameId/players/:playerId/saves', function (req, res) {
-        var gameId = req.params.gameId;
-
-        games().getGame(gameId, function withGame (game) {
-          var callbacks = curry(buildListSavesHandler)(game);
-          callbacks(req.player, function (acceptTypeResponseHandlers) {
-            var contentType = getSupportContentType(req, acceptTypeResponseHandlers);
-            if (contentType) {
-              return acceptTypeResponseHandlers[contentType](req, res);
-            } else {
-              var msg = 'The following Accept types supported: ' + keys(acceptTypeResponseHandlers).join(', ');
-
-              return res.status(406).send(msg);
-            }
-          });
-        });
-      });
     }
 
     return {

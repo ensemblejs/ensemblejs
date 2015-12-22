@@ -42,12 +42,6 @@ module.exports = {
       mongo.getAllByFilter(collection, filter, undefined, callback);
     }
 
-    function getSavesForPlayer (playerId, callback) {
-      var filter = { playerId: playerId };
-
-      mongo.getAllByFilter(collection, filter, undefined, callback);
-    }
-
     function doesSaveHaveSpaceForPlayer (saveId, callback) {
       saves().get(saveId, function (save) {
         getPlayers(saveId, function (players) {
@@ -71,7 +65,6 @@ module.exports = {
       getPlayers: getPlayers,
       isPlayerInSave: isPlayerInSave,
       addPlayer: addPlayer,
-      getSavesForPlayer: getSavesForPlayer,
       getSavesForGameAndPlayer: getSavesForGameAndPlayer,
       canPlayerJoinSave: canPlayerJoinSave,
       doesSaveHaveSpaceForPlayer: doesSaveHaveSpaceForPlayer

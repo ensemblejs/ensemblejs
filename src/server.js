@@ -45,7 +45,8 @@ function runGameAtPath (path) {
   function publishStartServerEvent (exists) {
     var project = {
       modes: exists ? require(path + '/js/modes.json') : ['game'],
-      name: packageInfo.name
+      name: packageInfo.description,
+      id: packageInfo.name
     };
 
     plugins.get('On').serverStart(path, project);
