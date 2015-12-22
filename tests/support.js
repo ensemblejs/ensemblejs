@@ -3,6 +3,9 @@
 var each = require('lodash').each;
 var sinon = require('sinon');
 
+var fakeDeterminePlayerId = require('./fake/determine-player-id');
+var fakeI18n = require('./fake/i18n');
+
 var pathToSrc = '../src/';
 
 function defer (dep) {
@@ -42,14 +45,21 @@ function makeTestible(pathToModule, explicitDeps) {
   var support = plugin();
   var requiredPlugin = require(pathToSrc + pathToModule);
 
+  var defaultStubs = {
+    'DefinePlugin': support.define,
+    'SocketServer': { start: sinon.spy(), stop: sinon.spy() },
+    'WebServerMiddleware': [fakeDeterminePlayerId, fakeI18n],
+    'Routes': []
+  };
+
   each(requiredPlugin.deps, function (dep) {
     if (explicitDeps[dep]) {
       deps.push(defer(explicitDeps[dep]));
       return;
     }
 
-    if (dep === 'DefinePlugin') {
-      deps.push(defer(support.define));
+    if (defaultStubs[dep]) {
+      deps.push(defer(defaultStubs[dep]));
     } else {
       deps.push(defer(sinon.spy()));
     }

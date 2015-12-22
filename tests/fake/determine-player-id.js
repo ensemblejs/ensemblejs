@@ -2,7 +2,7 @@
 
 module.exports = function (req, res, next) {
   req.player = {
-    id: '1234',
+    _id: '1234',
     name: 'Ryan'
   };
   next();

@@ -14,25 +14,27 @@ module.exports = {
 
     function buildJson (project, player, callback) {
       var json = {
-        name: project.name,
         player: {
+          id: player._id,
           name: player.name
         },
-        links: []
+        saves: []
       };
 
-      gamePlayers().getGamesForPlayer(player._id, function (games) {
-         each(games, function(game) {
-          json.links.push({
-            name: game.gameId,
+      function addSavesToResponse (saves) {
+         each(saves, function(save) {
+          json.saves.push({
+            name: save.saveId,
             what: '/save/continue',
-            uri: '/saves/' + game.gameId,
+            uri: '/saves/' + save.saveId,
             method: 'GET'
           });
         });
 
-         callback(json);
-      });
+        callback(json);
+      }
+
+      gamePlayers().getGamesForPlayer(player._id, addSavesToResponse);
     }
 
     function buildHandler (project, player, callback) {

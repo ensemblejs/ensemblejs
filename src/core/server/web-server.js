@@ -52,11 +52,14 @@ module.exports = {
         resave: true,
         saveUninitialized: true
       });
-
       app.use(session);
 
       each(middleware(), function (f) {
         app.use(f);
+      });
+
+      each(routes(), function(route) {
+        route.configure(app, project);
       });
 
       return app;
@@ -81,17 +84,12 @@ module.exports = {
     function start (assetPath, project) {
       var app = configureApp(assetPath, project);
 
-      each(routes(), function(route) {
-        route.configure(app, project);
-      });
-
       configureErrorHandlers(app);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
       socket().start(server, project.modes, session);
-      console.log('started');
     }
 
     define()('OnServerStop', function () {
@@ -101,8 +99,6 @@ module.exports = {
         if (server !== undefined) {
           server.close();
         }
-
-        console.log('stopped');
       };
     });
 

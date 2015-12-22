@@ -51,6 +51,7 @@ module.exports = {
 
     function configure (app, project) {
       app.get('/', buildRequestHandler(curry(buildHandler)(project)));
+      // app.get('/games/:gameId/players/:playerId/saves')
     }
 
     return {

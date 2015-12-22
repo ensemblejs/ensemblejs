@@ -7,6 +7,6 @@ p #{player.name}
 h2 Continue A Game
 p You have the following saves in progress
 ul
-  each link in links.length ? links : ['You have no saved games.']
+  each save in saves.length ? saves : ['You have no saved games.']
     li
-      +makeLink(link)
+      +makeLink(save)

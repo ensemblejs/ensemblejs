@@ -4,6 +4,7 @@ var curry = require('lodash').curry;
 var contains = require('lodash').contains;
 var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
+var buildRequestHandler = require('../../util/request-handling').buildRequestHandler;
 
 var bitly;
 if (process.env.BITLY_KEY) {
@@ -11,14 +12,17 @@ if (process.env.BITLY_KEY) {
   bitly = new Bitly(process.env.BITLY_KEY);
 }
 
-var buildRequestHandler = require('../../util/request-handling').buildRequestHandler;
-
 module.exports = {
   type: 'Routes',
   deps: ['UUID', 'On', 'GamesList', 'GamePlayersDataModel', 'GamesDataModel'],
   func: function Routes (uuid, on, saves, gamePlayers, games) {
 
     function saveFull (req, res) {
+      var save = saves().get(req.params.saveId);
+      if (!save) {
+        return res.status(404).send('This save game does not exist.');
+      }
+
       res.render('full.jade', { title: config.game.title });
     }
 
@@ -250,9 +254,16 @@ module.exports = {
             return;
           }
 
-          var hostname = 'http://' + req.headers.host;
-          buildShareJson(save, project, player, hostname, function (json) {
-            callback(res, json);
+          games().get(save.id, function withGame (game) {
+            if (config.maxPlayers(game.ensemble.mode) === 1) {
+              res.redirect('/saves/' + save.id);
+              return;
+            } else {
+              var hostname = 'http://' + req.headers.host;
+              buildShareJson(save, project, player, hostname, function (json) {
+                callback(res, json);
+              });
+            }
           });
         }
 
