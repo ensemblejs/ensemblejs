@@ -3,22 +3,27 @@
 var curry = require('lodash').curry;
 var contains = require('lodash').contains;
 var config = require('../../util/config').get();
-var logger = require('../../logging/server/logger').logger;
+var renderPage = require('../../util/request-handling').renderPage;
+var renderJson = require('../../util/request-handling').renderJson;
 var buildRequestHandler = require('../../util/request-handling').buildRequestHandler;
+var redirectTo = require('../../util/request-handling').redirectTo;
+var buildRequestHandler2 = require('../../util/request-handling').buildRequestHandler2;
+var startPromiseChangeFromSync = require('../../util/request-handling').startPromiseChangeFromSync;
+var returnRequestError = require('../../util/request-handling').returnRequestError;
 
-var bitly;
-if (process.env.BITLY_KEY) {
-  var Bitly = require('bitly');
-  bitly = new Bitly(process.env.BITLY_KEY);
-}
+var urlShortenerService = require('../../services/url-shortener');
+var urlBuilder = require('../../util/url-builder');
+var Bluebird = require('bluebird');
+var merge = require('lodash').merge;
+var each = require('lodash').each;
 
 module.exports = {
   type: 'Routes',
   deps: ['UUID', 'On', 'GamesList', 'GamePlayersDataModel', 'GamesDataModel'],
-  func: function Routes (uuid, on, saves, gamePlayers, games) {
+  func: function Routes (uuid, on, savesList, gamePlayers, games) {
 
     function saveFull (req, res) {
-      var save = saves().get(req.params.saveId);
+      var save = savesList().get(req.params.saveId);
       if (!save) {
         return res.status(404).send('This save game does not exist.');
       }
@@ -35,6 +40,8 @@ module.exports = {
           return res.status(400).send('Invalid mode. Supported modes are: ' + project.modes.join(', '));
         }
 
+        var hostname = 'http://' + req.headers.host;
+
         var newSaveGame = {
           id: uuid().gen(),
           mode: req.body.mode
@@ -43,23 +50,24 @@ module.exports = {
         on().newGame(newSaveGame);
         on().gameReady(newSaveGame);
 
-        gamePlayers().addPlayer(newSaveGame.id, req.player._id, function () {
-          res.redirect('/saves/' + newSaveGame.id + '/share');
+        gamePlayers().addPlayer(project.id, newSaveGame.id, req.player._id, function () {
+          res.redirect(urlBuilder(hostname).saves(newSaveGame.id).share());
         });
       };
     }
 
     function continueSave (req, res) {
       var playerId = req.player._id;
+      var hostname = 'http://' + req.headers.host;
 
-      var save = saves().get(req.params.saveId);
+      var save = savesList().get(req.params.saveId);
       if (!save) {
         return res.status(404).send('This save game does not exist.');
       }
 
-      function playerInGameResult (result) {
+      function playerInSaveResult (result) {
         if (!result) {
-          return res.redirect('/saves/' + save.id + '/join');
+          return res.redirect(urlBuilder(hostname).saves(save.id).join());
         }
 
         if (!save.loaded) {
@@ -73,41 +81,40 @@ module.exports = {
         });
       }
 
-      gamePlayers().isPlayerInGame(save.id, playerId, playerInGameResult);
+      gamePlayers().isPlayerInSave(save.id, playerId, playerInSaveResult);
     }
 
-    function buildJoinSaveHandler (player, playerCantJoinCallback) {
-      var playerId = player._id;
-
+    function buildJoinSaveHandler (project, player, playerCantJoinCallback) {
       return function joinSaveHandler (req, res) {
-        var save = saves().get(req.params.saveId);
+        var hostname = 'http://' + req.headers.host;
+        var save = savesList().get(req.params.saveId);
         if (!save) {
           res.status(404).send('This game does not exist');
           return;
         }
 
         function redirectPlayerToPlayGameRoute () {
-          res.redirect('/saves/' + save.id);
+          res.redirect(urlBuilder(hostname).saves(save.id).continue());
         }
 
         function canPlayerJoinGameResult (playerCanJoin) {
           if (playerCanJoin) {
-            gamePlayers().addPlayer(save.id, playerId, redirectPlayerToPlayGameRoute);
+            gamePlayers().addPlayer(project.id, save.id, player._id, redirectPlayerToPlayGameRoute);
           } else {
             playerCantJoinCallback(req, res);
           }
         }
 
-        function playerInGameResult (playerIsInGame) {
+        function playerInSaveResult (playerIsInGame) {
           if (playerIsInGame) {
             redirectPlayerToPlayGameRoute();
             return;
           }
 
-          gamePlayers().canPlayerJoinGame(save.id, playerId, canPlayerJoinGameResult);
+          gamePlayers().canPlayerJoinSave(save.id, player._id, canPlayerJoinGameResult);
         }
 
-        gamePlayers().isPlayerInGame(save.id, playerId, playerInGameResult);
+        gamePlayers().isPlayerInSave(save.id, player._id, playerInSaveResult);
       };
     }
 
@@ -120,7 +127,7 @@ module.exports = {
         join: {
           method: 'POST',
           what: '/save/join',
-          uri: '/saves/' + saveId + '/join',
+          uri: urlBuilder().saves(saveId).join(),
           name: 'Join Game'
         }
       };
@@ -129,39 +136,41 @@ module.exports = {
     function buildJoinHandler (project, player, callback) {
       function renderJoinOrRedirectToFull (req, res) {
         var saveId = req.params.saveId;
+        var hostname = 'http://' + req.headers.host;
 
         function doesGameHaveSpace (gameHasSpace) {
           if (gameHasSpace) {
             res.render('join.jade', buildJoinJson(project, player, saveId));
           } else {
-            res.redirect('/saves/' + saveId + '/full');
+            res.redirect(urlBuilder(hostname).saves(saveId).full());
           }
         }
 
-        gamePlayers().doesGameHaveSpaceForPlayer(req.params.saveId, doesGameHaveSpace);
+        gamePlayers().doesSaveHaveSpaceForPlayer(req.params.saveId, doesGameHaveSpace);
       }
 
       callback({
-        'html': buildJoinSaveHandler(player, renderJoinOrRedirectToFull),
-        'json': buildJoinSaveHandler(player, renderJoinOrRedirectToFull)
+        'html': buildJoinSaveHandler(project, player, renderJoinOrRedirectToFull),
+        'json': buildJoinSaveHandler(project, player, renderJoinOrRedirectToFull)
       });
     }
 
     function buildAddPlayerHandler (project, player, callback) {
       function addPlayerOrRedirectToFull (req, res) {
+        var hostname = 'http://' + req.headers.host;
         var saveId = req.params.saveId;
         var secret = req.body.secret;
 
         function addPlayerToGame (saveId, playerId) {
-          gamePlayers().addPlayer(saveId, playerId, function () {
-            res.redirect('/saves/' + saveId);
+          gamePlayers().addPlayer(project.id, saveId, playerId, function () {
+            res.redirect(urlBuilder(hostname).saves(saveId).continue());
           });
         }
 
-        function doesGameHaveSpace (gameHasSpace) {
-          if (gameHasSpace) {
-            games().isGamePublic(saveId, function (gameIsPublic) {
-              if (gameIsPublic) {
+        function doesSaveHaveSpace (saveHasSpace) {
+          if (saveHasSpace) {
+            games().isSavePublic(saveId, function (saveIsPublic) {
+              if (saveIsPublic) {
                 addPlayerToGame(saveId, player._id);
                 return;
               }
@@ -174,127 +183,155 @@ module.exports = {
                 if (secretIsCorrect) {
                   addPlayerToGame(saveId, player._id);
                 } else {
-                  res.redirect('/saves/' + saveId + '/join');
+                  res.redirect(urlBuilder(hostname).saves(saveId).join());
                 }
               });
             });
           } else {
-            res.redirect('/saves/' + saveId + '/full');
+            res.redirect(urlBuilder(hostname).saves(saveId).full());
           }
         }
 
-        gamePlayers().doesGameHaveSpaceForPlayer(req.params.saveId, doesGameHaveSpace);
+        gamePlayers().doesSaveHaveSpaceForPlayer(req.params.saveId, doesSaveHaveSpace);
       }
 
       callback({
-        'html': buildJoinSaveHandler(player, addPlayerOrRedirectToFull),
-        'json': buildJoinSaveHandler(player, addPlayerOrRedirectToFull)
+        'html': buildJoinSaveHandler(project, player, addPlayerOrRedirectToFull),
+        'json': buildJoinSaveHandler(project, player, addPlayerOrRedirectToFull)
       });
     }
 
-    function buildShareJson (save, project, player, hostname, callback) {
-      var json = {
-        name: project.name,
-        player: {
-          name: player.name
-        },
-        shareUrl: hostname + '/saves/' + save.id + '/join',
-        shortUrl: undefined,
-        secret: undefined,
-        links: [{
-          what: '/save/continue',
-          uri: hostname + '/saves/' + save.id,
-          name: 'Now Play that game',
-          method: 'GET'
-        }, {
-          what: '/save/join',
-          uri: hostname + '/saves/' + save.id + '/join',
-          name: hostname + '/saves/' + save.id + '/join',
-          method: 'GET'
-        }, {
-          what: '/game',
-          uri: hostname + '/',
-          name: hostname + '/',
-          method: 'GET'
-        }]
+    function buildGameHash (game) {
+      return {
+        id: game.id,
+        name: game.name,
       };
-
-      function addShortUrlToLinks (response) {
-        if (response.status !== 200) {
-          logger.error('Unable to shorten URL', response);
-        } else {
-          json.shortUrl = response.data.url;
-          json.links.push({
-            what: '/save/join/shortUrl',
-            uri: response.data.url,
-            name: response.data.url,
-            method: 'GET'
-          });
-        }
-
-        callback(json);
-      }
-
-      function shortenUrl () {
-        if (bitly) {
-          bitly.shorten(hostname + '/saves/' + save.id + '/join')
-            .then(addShortUrlToLinks, function logBitlyError (error) {
-              logger.error('Unable to shorten URL', error);
-            });
-        } else {
-          callback(json);
-        }
-      }
-
-      games().get(save.id, function withGame (game) {
-        json.secret = game.ensemble.secret;
-
-        shortenUrl();
-      });
     }
 
-    function buildShareSaveHandler (project, player, callback) {
-      var playerId = player._id;
+    function buildPlayerHash (player) {
+      return {
+        id: player._id,
+        name: player.name
+      };
+    }
 
-      return function shareSaveHandler (req, res) {
-        var save = saves().get(req.params.saveId);
-        if (!save) {
-          res.status(404).send('This game does not exist');
-          return;
-        }
+    function errorIfSaveDoesNotExist (save) {
+      if (!save) {
+        return returnRequestError(404, 'This game does not exist');
+      }
 
-        function playerInGameResult (playerIsInGame) {
-          if (!playerIsInGame) {
-            res.redirect('/saves/' + save.id + '/join');
-            return;
+      return save;
+    }
+
+    function buildShareSaveJson (hostname, project, player, saveId) {
+      function redirectIfSinglePlayer (save) {
+        return games().get(save.id).then(function (game) {
+          if (config.maxPlayers(game.ensemble.mode) === 1) {
+            return redirectTo(urlBuilder(hostname).saves(saveId).continue());
           }
 
-          games().get(save.id, function withGame (game) {
-            if (config.maxPlayers(game.ensemble.mode) === 1) {
-              res.redirect('/saves/' + save.id);
-              return;
-            } else {
-              var hostname = 'http://' + req.headers.host;
-              buildShareJson(save, project, player, hostname, function (json) {
-                callback(res, json);
-              });
+          return save;
+        });
+      }
+
+      function redirectIfPlayerIsNotInSave (save) {
+        return gamePlayers().isPlayerInSave(save.id, player._id)
+          .then(function (playerIsInSave) {
+            if (!playerIsInSave) {
+              return redirectTo(urlBuilder(hostname).saves(saveId).join());
             }
+
+            return save;
           });
+      }
+
+      function buildShareJson (save) {
+        var json = {
+          name: project.name,
+          game: buildGameHash(project),
+          player: buildPlayerHash(player),
+          shareUrl: urlBuilder(hostname).saves(save.id).join(),
+          shortUrl: undefined,
+          secret: undefined,
+          links: [{
+            what: '/save/continue',
+            uri: urlBuilder(hostname).saves(save.id).continue(),
+            name: 'Now Play that game',
+            method: 'GET'
+          }, {
+            what: '/save/join',
+            uri: urlBuilder(hostname).saves(save.id).join(),
+            name: urlBuilder(hostname).saves(save.id).join(),
+            method: 'GET'
+          }, {
+            what: '/game',
+            uri: urlBuilder(hostname).game().index(),
+            name: hostname + '/',
+            method: 'GET'
+          }]
+        };
+
+        function addShortUrlToLinks (response) {
+          if (!response) {
+            return {};
+          }
+
+          return {
+            shortUrl: response.data.url,
+            links: [{
+              what: '/save/join/shortUrl',
+              uri: response.data.url,
+              name: response.data.url,
+              method: 'GET'
+            }]
+          };
         }
 
-        gamePlayers().isPlayerInGame(save.id, playerId, playerInGameResult);
+        function addSecretToPayload (game) {
+          return {
+            secret: game.ensemble.secret
+          };
+        }
+
+        function mergeResponses (jsonReponses) {
+          each(jsonReponses, function (jsonReponse) {
+            merge(json, jsonReponse, true);
+          });
+
+          return json;
+        }
+
+        var url = urlBuilder(hostname).saves(save.id).join();
+        return Bluebird
+          .all([
+            games().get(save.id).then(addSecretToPayload),
+            urlShortenerService.shorten(url).then(addShortUrlToLinks)
+          ])
+          .then(mergeResponses);
+      }
+
+      return startPromiseChangeFromSync(savesList().get(saveId))
+        .then(errorIfSaveDoesNotExist)
+        .then(redirectIfPlayerIsNotInSave)
+        .then(redirectIfSinglePlayer)
+        .then(buildShareJson);
+    }
+
+    function makeShareSaveJsonBuilder (project) {
+      return function buildJson (req) {
+        var hostname = 'http://' + req.headers.host;
+        var player = req.player;
+        var saveId = req.params.saveId;
+
+        return buildShareSaveJson(hostname, project, player, saveId);
       };
     }
 
-    function buildShareHandler (project, player, callback) {
-      callback({
-        'html': buildShareSaveHandler(project, player, function (res, json) {
-          res.render('share.jade', json);
-        }),
-        'json': buildShareSaveHandler(project, player, function (res, json) {
-          res.json(json);
-        })
-      });
+    function buildShareSaveAcceptHash (json) {
+      return {
+        'html': renderPage('share.jade', json),
+        'json': renderJson(json)
+      };
     }
 
     function configure (app, project) {
@@ -304,7 +341,10 @@ module.exports = {
       app.get('/saves/:saveId/join', buildRequestHandler(curry(buildJoinHandler)(project)));
       app.post('/saves/:saveId/join', buildRequestHandler(curry(buildAddPlayerHandler)(project)));
       app.get('/saves/:saveId/full', saveFull);
-      app.get('/saves/:saveId/share', buildRequestHandler(curry(buildShareHandler)(project)));
+
+      app.get('/saves/:saveId/share', buildRequestHandler2(makeShareSaveJsonBuilder(project),
+        buildShareSaveAcceptHash)
+      );
     }
 
     return {

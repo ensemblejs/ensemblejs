@@ -101,6 +101,13 @@ module.exports = {
           on().incomingClientInputPacket(packet, game);
         }
 
+        function addLogging (eventName, eventCallback) {
+          return function withLogging () {
+            logger().socket(socketInfo, arguments, eventName);
+            eventCallback.apply(this, arguments);
+          };
+        }
+
         socket.on('disconnect', addLogging('disconnect', publishDisconnect));
         socket.on('disconnect', addLogging('disconnect', publishPause));
         socket.on('pause', addLogging('pause', publishPause));
@@ -116,13 +123,6 @@ module.exports = {
       }
 
       socket.on('gameId', sendGame);
-
-      function addLogging (eventName, eventCallback) {
-        return function withLogging () {
-          logger().socket(socketInfo, arguments, eventName);
-          eventCallback.apply(this, arguments);
-        };
-      }
     }
 
     function start (server, modes, session) {

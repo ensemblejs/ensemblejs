@@ -5,7 +5,7 @@ var config = require('../../util/config').get();
 module.exports = {
   type: 'Routes',
   deps: ['GamesDataModel'],
-  func: function DebugRoutes (games) {
+  func: function DebugRoutes (saves) {
 
     function dumpSaveData (req, res) {
       var saveId = req.params.saveId;
@@ -21,7 +21,7 @@ module.exports = {
         return res.json(game);
       }
 
-      games().get(saveId, handleGame);
+      saves().get(saveId, handleGame);
     }
 
     function configure (app) {

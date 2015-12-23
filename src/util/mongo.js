@@ -2,6 +2,7 @@
 
 var once = require('lodash').once;
 var MongoClient = require('mongodb').MongoClient;
+var Bluebird = require('bluebird');
 
 var db;
 var logger;
@@ -90,6 +91,20 @@ function getAllByFilter (collection, filter, adapter, callback) {
 }
 
 function getOneByFilter (collection, filter, callback) {
+  if (!callback) {
+    return new Bluebird (function (resolve, reject) {
+      db.collection(collection).find(filter).limit(1).next(function(err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    }).catch(function (err) {
+      logger.error('Unable to get from ' + collection + '.', err);
+    });
+  }
+
   db.collection(collection).find(filter).limit(1).next(function(err, data) {
     if (err) {
       logger.error('Unable to get from ' + collection + '.', err);
@@ -101,6 +116,20 @@ function getOneByFilter (collection, filter, callback) {
 }
 
 function getById (collection, id, callback) {
+  if (!callback) {
+    return new Bluebird (function (resolve, reject) {
+      db.collection(collection).find({_id: id}).limit(1).next(function(err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    }).catch(function (err) {
+      logger.error('Unable to get from ' + collection + '.', err);
+    });
+  }
+
   db.collection(collection).find({_id: id}).limit(1).next(function(err, data) {
     if (err) {
       logger.error('Unable to get from ' + collection + '.', err);

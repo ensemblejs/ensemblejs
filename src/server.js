@@ -1,7 +1,8 @@
 'use strict';
 
 var appRoot = require('app-root-path');
-var packageInfo = require(appRoot + '/package.json');
+var gameInfo = require(appRoot + '/package.json');
+var frameworkInfo = require(appRoot + '/node_modules/ensemblejs/package.json');
 var logger = require('./logging/server/logger').logger;
 var each = require('lodash').each;
 
@@ -35,7 +36,7 @@ each(foldersToLoad, function loadFolder (folder) {
 });
 
 function runGameAtPath (path) {
-  logger.info('ensemblejs@' + packageInfo.version + ' started.');
+  logger.info('ensemblejs@' + frameworkInfo.version + ' started.');
 
   plugins.loadPath(path + '/js/logic');
   plugins.loadPath(path + '/js/state');
@@ -45,8 +46,8 @@ function runGameAtPath (path) {
   function publishStartServerEvent (exists) {
     var project = {
       modes: exists ? require(path + '/js/modes.json') : ['game'],
-      name: packageInfo.description,
-      id: packageInfo.name
+      id: config.game.id,
+      name: config.game.title
     };
 
     plugins.get('On').serverStart(path, project);

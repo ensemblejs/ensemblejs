@@ -16,6 +16,10 @@ module.exports = {
     }
 
     function get (gameId, callback) {
+      if (!callback) {
+        return mongo.getById(collection, gameId);
+      }
+
       mongo.getById(collection, gameId, callback);
     }
 

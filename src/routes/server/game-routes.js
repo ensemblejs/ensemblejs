@@ -12,7 +12,13 @@ function buildJson (project, player) {
   var json = {
     name: project.name,
     modes: project.modes,
+    game: {
+      id: project.id,
+      name: project.name,
+      modes: project.modes
+    },
     player: {
+      id: player._id,
       name: player.name
     },
     links: [{

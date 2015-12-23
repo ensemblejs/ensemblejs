@@ -4,6 +4,10 @@ var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
 var mongo = require('../../util/mongo').setup(logger);
 
+function determineExistence (record) {
+  return record !== null;
+}
+
 module.exports = {
   type: 'GamePlayersDataModel',
   deps: ['UUID', 'Time', 'GamesDataModel'],
@@ -19,9 +23,14 @@ module.exports = {
     function isPlayerInSave (saveId, playerId, callback) {
       var filter = { saveId: saveId, playerId: playerId };
 
-      mongo.getOneByFilter(collection, filter, function (record) {
-        callback(record !== null);
-      });
+      if (!callback) {
+        return mongo.getOneByFilter(collection, filter)
+          .then(determineExistence);
+      } else {
+        mongo.getOneByFilter(collection, filter, function (record) {
+          callback(record !== null);
+        });
+      }
     }
 
     function addPlayer (gameId, saveId, playerId, callback) {
