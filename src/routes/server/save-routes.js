@@ -2,9 +2,9 @@
 
 var contains = require('lodash').contains;
 var config = require('../../util/config').get();
-var buildAcceptHash = require('../../util/request-handling').buildAcceptHash;
+var buildPostRequestHandler = require('../../util/request-handling').buildPostRequestHandler;
 var redirectTo = require('../../util/request-handling').redirectTo;
-var buildRequestHandler = require('../../util/request-handling').buildRequestHandler2;
+var buildGetRequestHandler = require('../../util/request-handling').buildGetRequestHandler;
 var startPromiseChangeFromSync = require('../../util/request-handling').startPromiseChangeFromSync;
 var returnRequestError = require('../../util/request-handling').returnRequestError;
 
@@ -131,7 +131,7 @@ module.exports = {
             return redirectTo(urlBuilder(hostname).saves(save.id).continue());
           }
 
-          return save;
+          return [save, player, hostname];
         });
     }
 
@@ -142,7 +142,7 @@ module.exports = {
             return redirectTo(urlBuilder(hostname).saves(save.id).full());
           }
 
-          return save;
+          return [save, player, hostname];
         });
     }
 
@@ -153,7 +153,7 @@ module.exports = {
             return redirectTo(urlBuilder(hostname).saves(save.id).join());
           }
 
-          return save;
+          return [save, player, hostname];
         });
     }
 
@@ -161,64 +161,107 @@ module.exports = {
       return gamePlayers().addPlayer(project.id, save.id, player._id);
     }
 
-    function makeAddPlayerHandler (project) {
-      return function buildJson (req) {
-        var hostname = 'http://' + req.headers.host;
+    function errorIfSecretIsNotSupplied (save, player, hostname, secret) {
+      if (!secret) {
+        return returnRequestError(400, 'Missing secret');
+      }
 
-        return startPromiseChangeFromSync(savesList().get(req.params.saveId))
-          .then(errorIfSaveDoesNotExist)
-          .then(function (save) {
-            return redirectIfPlayerIsInSave(save, req.player, hostname);
-          })
-          .then(function (save) {
-            return redirectIfSaveHasNoSpace(save, req.player, hostname);
-          })
-          .then(function (save) {
-            return redirectIfSaveHasNoSpace(save, req.player, hostname);
-          })
-          .then(function withPublicGames (save) {
-            return games().isSavePublic(save.id)
-              .then(function (saveIsPublic) {
-                if (saveIsPublic) {
-                  return addPlayer(project, save, req.player, hostname)
-                    .then(function () {
-                      return redirectTo(urlBuilder(hostname).saves(save.id).continue());
-                    });
-                }
+      return [save, player, hostname, secret];
+    }
 
-                return save;
-              });
-          })
-          .then(function withPrivateGames (save) {
-            if (!req.body.secret) {
-              return returnRequestError(400, 'Missing secret');
-            } else {
-              return redirectIfSecretIsIncorrect(save, req.player, hostname, req.body.secret);
-            }
-          })
-          .then(function addPlayerAndRedirectToGame (save) {
-            return addPlayer(project, save, req.player, hostname)
+    function addPlayer2 (save, player, hostname, project) {
+      return gamePlayers().addPlayer(project.id, save.id, player._id)
+        .then(function() {
+          return [save, player, hostname, project];
+        });
+    }
+
+    function redirectToContinueGame (save, player, hostname) {
+      return redirectTo(urlBuilder(hostname).saves(save.id).continue());
+    }
+
+    function stopPassingSecretThrough (save, player, hostname) {
+      return [save, player, hostname];
+    }
+
+    function stopPassingProjectThrough (save, player, hostname) {
+      return [save, player, hostname];
+    }
+
+    function withPublicGames (save, player, hostname, project) {
+      return games().isSavePublic(save.id)
+        .then(function (saveIsPublic) {
+          if (saveIsPublic) {
+            return addPlayer(project, save, player, hostname)
               .then(function () {
                 return redirectTo(urlBuilder(hostname).saves(save.id).continue());
               });
-          });
+          }
+
+          return [save, player, hostname];
+        });
+    }
+
+    function makeAddPlayerHandler (project) {
+      return function buildJson (req) {
+
+        function passThroughPlayerAndHostname (save) {
+          var hostname = 'http://' + req.headers.host;
+
+          return [save, req.player, hostname];
+        }
+
+        function withPrivateGames (save, player, hostname) {
+          return [save, player, hostname];
+        }
+
+        function passThroughSecret (save, player, hostname) {
+          return [save, player, hostname, req.body.secret];
+        }
+
+        function passThroughProject (save, player, hostname) {
+          return [save, player, hostname, project];
+        }
+
+        return startPromiseChangeFromSync(savesList().get(req.params.saveId))
+          .then(errorIfSaveDoesNotExist)
+          .then(passThroughPlayerAndHostname)
+          .spread(redirectIfPlayerIsInSave)
+          .spread(redirectIfSaveHasNoSpace)
+          .spread(passThroughProject)
+          .spread(withPublicGames)
+          .spread(stopPassingProjectThrough)
+          .spread(withPrivateGames)
+          .spread(passThroughSecret)
+          .spread(errorIfSecretIsNotSupplied)
+          .spread(redirectIfSecretIsIncorrect)
+          .spread(stopPassingSecretThrough)
+          .spread(passThroughProject)
+          .spread(addPlayer2)
+          .spread(redirectToContinueGame);
       };
     }
 
     function makeJoinSaveJsonBuilder (project) {
       return function buildJson (req) {
-        var hostname = 'http://' + req.headers.host;
+
+        function passThroughPlayerAndHostname (save) {
+          var hostname = 'http://' + req.headers.host;
+
+          return [save, req.player, hostname];
+        }
 
         return startPromiseChangeFromSync(savesList().get(req.params.saveId))
           .then(errorIfSaveDoesNotExist)
-          .then(function (save) {
-            return redirectIfPlayerIsInSave(save, req.player, hostname);
+          .then(passThroughPlayerAndHostname)
+          .spread(function (save, player, hostname) {
+            console.log (save, player, hostname);
+            return [save, player, hostname];
           })
-          .then(function (save) {
-            return redirectIfSaveHasNoSpace(save, req.player, hostname);
-          })
-          .then(function () {
-            return buildJoinJson(project, req.player, req.params.saveId);
+          .spread(redirectIfPlayerIsInSave)
+          .spread(redirectIfSaveHasNoSpace)
+          .spread(function (save, player) {
+            return buildJoinJson(project, player, save.id);
           });
       };
     }
@@ -331,50 +374,32 @@ module.exports = {
     function configure (app, project) {
       app.post(
         '/saves',
-        buildRequestHandler(
-          makeNewSaveHandler(project),
-          buildAcceptHash('ignore.jade')
-        )
+        buildPostRequestHandler(makeNewSaveHandler(project))
       );
 
       app.post(
         '/saves/:saveId/join',
-        buildRequestHandler(
-          makeAddPlayerHandler(project),
-          buildAcceptHash('ignore.jade')
-        )
+        buildPostRequestHandler(makeAddPlayerHandler(project))
       );
 
       app.get(
         '/saves/:saveId',
-        buildRequestHandler(
-          makeContinueSaveJsonBuilder(project),
-          buildAcceptHash('primary.jade')
-        )
+        buildGetRequestHandler(makeContinueSaveJsonBuilder(project), 'primary.jade')
       );
 
       app.get(
         '/saves/:saveId/join',
-        buildRequestHandler(
-          makeJoinSaveJsonBuilder(project),
-          buildAcceptHash('join.jade')
-        )
+        buildGetRequestHandler(makeJoinSaveJsonBuilder(project), 'join.jade')
       );
 
       app.get(
         '/saves/:saveId/full',
-        buildRequestHandler(
-          makeSaveFullJsonBuilder(),
-          buildAcceptHash('full.jade')
-        )
+        buildGetRequestHandler(makeSaveFullJsonBuilder(), 'full.jade')
       );
 
       app.get(
         '/saves/:saveId/share',
-        buildRequestHandler(
-          makeShareSaveJsonBuilder(project),
-          buildAcceptHash('share.jade')
-        )
+        buildGetRequestHandler(makeShareSaveJsonBuilder(project), 'share.jade')
       );
     }
 

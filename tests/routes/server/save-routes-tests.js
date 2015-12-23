@@ -20,73 +20,44 @@ describe('save routes', function () {
   var doesSaveHaveSpaceForPlayer = false;
   var isSecretCorrect = false;
   var isSavePublic = false;
-  var GamePlayersDataModel = {
-    addPlayer: function (gameId, saveId, playerId, callback) {
-      if (callback) {
-        callback();
-      } else {
-        return new Bluebird(function(resolve) {
-          resolve();
-        });
-      }
-    },
-    isPlayerInSave: function (saveId, playerId, callback) {
-      if (callback) {
-        callback(isPlayerInSave);
-        return;
-      }
 
+  var GamePlayersDataModel = {
+    addPlayer: function () {
+      return new Bluebird(function(resolve) {
+        resolve();
+      });
+    },
+    isPlayerInSave: function () {
       return new Bluebird(function(resolve) {
         resolve(isPlayerInSave);
       });
     },
-    canPlayerJoinSave: function (saveId, playerId, callback) {
-      if (callback) {
-        callback(canPlayerJoinSave);
-      } else {
-        return new Bluebird(function(resolve) {
-          resolve(canPlayerJoinSave);
-        });
-      }
+    canPlayerJoinSave: function () {
+      return new Bluebird(function(resolve) {
+        resolve(canPlayerJoinSave);
+      });
     },
-    doesSaveHaveSpaceForPlayer: function (saveId, callback) {
-      if (callback) {
-        callback(doesSaveHaveSpaceForPlayer);
-      } else {
-        return new Bluebird(function(resolve) {
-          resolve(doesSaveHaveSpaceForPlayer);
-        });
-      }
+    doesSaveHaveSpaceForPlayer: function () {
+      return new Bluebird(function(resolve) {
+        resolve(doesSaveHaveSpaceForPlayer);
+      });
     }
   };
   var GamesDataModel = {
-    get: function (gameId, callback) {
-      if (callback) {
-        callback({ ensemble: {secret: 'public'}});
-        return;
-      }
-
+    get: function () {
       return new Bluebird(function(resolve) {
         resolve({ ensemble: {secret: 'public'}});
       });
     },
-    isSavePublic: function (gameId, callback) {
-      if (callback) {
-        callback(isSavePublic);
-      } else {
-        return new Bluebird(function(resolve) {
-          resolve(isSavePublic);
-        });
-      }
+    isSavePublic: function () {
+      return new Bluebird(function(resolve) {
+        resolve(isSavePublic);
+      });
     },
-    isSecretCorrect: function (gameId, secret, callback) {
-      if (callback) {
-        callback(isSecretCorrect);
-      } else {
-        return new Bluebird(function(resolve) {
-          resolve(isSecretCorrect);
-        });
-      }
+    isSecretCorrect: function () {
+      return new Bluebird(function(resolve) {
+        resolve(isSecretCorrect);
+      });
     }
   };
   sinon.spy(GamePlayersDataModel, 'addPlayer');

@@ -81,10 +81,19 @@ function getAcceptTypeHandler (req, acceptsHash) {
   }
 }
 
-function buildRequestHandler2 (jsonBuilder, acceptHashBuilder) {
+function buildAcceptHash (page) {
+  return function acceptHash (json) {
+    return {
+      'html': renderPage(page, json),
+      'json': renderJson(json)
+    };
+  };
+}
+
+function buildGetRequestHandler (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
-    .then(acceptHashBuilder)
+    .then(buildAcceptHash(page))
     .then(function (acceptsHash) {
       return getAcceptTypeHandler(req, acceptsHash);
     })
@@ -100,12 +109,15 @@ function buildRequestHandler2 (jsonBuilder, acceptHashBuilder) {
   };
 }
 
-function buildAcceptHash (page) {
-  return function acceptHash (json) {
-    return {
-      'html': renderPage(page, json),
-      'json': renderJson(json)
-    };
+function buildPostRequestHandler (jsonBuilder) {
+  return function handleRequest (req, res) {
+    jsonBuilder(req)
+    .catch(redirect, function applyRedirect (err) {
+      res.redirect(err.data.uri);
+    })
+    .catch(isRequestError, function respondWith4xx (err) {
+      res.status(err.reason).send(err.data.message);
+    });
   };
 }
 
@@ -120,6 +132,6 @@ module.exports = {
   renderJson: renderJson,
   buildJsonHandler: renderJson,
   buildRequestHandler: buildRequestHandler,
-  buildRequestHandler2: buildRequestHandler2,
-  buildAcceptHash: buildAcceptHash
+  buildGetRequestHandler: buildGetRequestHandler,
+  buildPostRequestHandler: buildPostRequestHandler
 };

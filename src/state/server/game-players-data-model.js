@@ -14,30 +14,20 @@ module.exports = {
   func: function (uuid, time, saves) {
     var collection = 'save_game_players';
 
-    function getPlayers (saveId, callback) {
+    function getPlayers (saveId) {
       var filter = { saveId: saveId };
 
-      if (!callback) {
-        return mongo.getAllByFilter(collection, filter, undefined);
-      } else {
-        mongo.getAllByFilter(collection, filter, undefined, callback);
-      }
+      return mongo.getAllByFilter(collection, filter, undefined);
     }
 
-    function isPlayerInSave (saveId, playerId, callback) {
+    function isPlayerInSave (saveId, playerId) {
       var filter = { saveId: saveId, playerId: playerId };
 
-      if (!callback) {
-        return mongo.getOneByFilter(collection, filter)
+      return mongo.getOneByFilter(collection, filter)
           .then(determineExistence);
-      } else {
-        mongo.getOneByFilter(collection, filter, function (record) {
-          callback(record !== null);
-        });
-      }
     }
 
-    function addPlayer (gameId, saveId, playerId, callback) {
+    function addPlayer (gameId, saveId, playerId) {
       var record = {
         _id: uuid().gen(),
         saveId: saveId,
@@ -46,61 +36,34 @@ module.exports = {
         updated: time().present()
       };
 
-      if (callback) {
-        mongo.store(collection, record, callback);
-      } else {
-        return mongo.store(collection, record);
-      }
+      return mongo.store(collection, record);
     }
 
-    function getSavesForGameAndPlayer (gameId, playerId, callback) {
+    function getSavesForGameAndPlayer (gameId, playerId) {
       var filter = { gameId: gameId, playerId: playerId };
 
-      if (callback) {
-        mongo.getAllByFilter(collection, filter, undefined, callback);
-      } else {
-        return mongo.getAllByFilter(collection, filter, undefined);
-      }
+      return mongo.getAllByFilter(collection, filter, undefined);
     }
 
-    function doesSaveHaveSpaceForPlayer (saveId, callback) {
-      if (callback) {
-        saves().get(saveId, function (save) {
-          getPlayers(saveId, function (players) {
-            callback(players.length < config.maxPlayers(save.ensemble.mode));
-          });
+    function doesSaveHaveSpaceForPlayer (saveId) {
+      saves().get(saveId)
+        .then(function withSave (save) {
+          return getPlayers(saveId)
+            .then(function withPlayers (players) {
+              return (players.length < config.maxPlayers(save.ensemble.mode));
+            });
         });
-      } else {
-        saves().get(saveId)
-          .then(function(save) {
-            return getPlayers(saveId)
-              .then(function(players) {
-                return (players.length < config.maxPlayers(save.ensemble.mode));
-              });
-          });
-      }
     }
 
-    function canPlayerJoinSave (saveId, playerId, callback) {
-      if (callback) {
-        saves().get(saveId, function (save) {
+    function canPlayerJoinSave (saveId) {
+      return saves().get(saveId)
+        .then(function (save) {
           if (save.ensemble.secret !== 'public') {
-            callback(false);
-            return;
+            return false;
           }
 
-          doesSaveHaveSpaceForPlayer(saveId, callback);
+          return doesSaveHaveSpaceForPlayer(saveId);
         });
-      } else {
-        return saves().get(saveId)
-          .then(function (save) {
-            if (save.ensemble.secret !== 'public') {
-              return false;
-            }
-
-            return doesSaveHaveSpaceForPlayer(saveId, callback);
-          });
-      }
     }
 
     return {
