@@ -41,16 +41,16 @@ module.exports = {
   deps: ['UUID', 'On', 'GamesList', 'GamePlayersDataModel', 'GamesDataModel'],
   func: function Routes (uuid, on, savesList, gamePlayers, games) {
 
-    function buildCreateNewSaveHandler (project) {
-      return function createNewSave (req, res) {
+    function makeNewSaveHandler (project) {
+      return function buildJson (req) {
+        var hostname = 'http://' + req.headers.host;
+
         if (!req.body.mode) {
-          return res.status(400).send('Missing mode');
+          return returnRequestError(400, 'Missing mode');
         }
         if (!contains(project.modes, req.body.mode)) {
-          return res.status(400).send('Invalid mode. Supported modes are: ' + project.modes.join(', '));
+          return returnRequestError(400, 'Invalid mode. Supported modes are: ' + project.modes.join());
         }
-
-        var hostname = 'http://' + req.headers.host;
 
         var newSaveGame = {
           id: uuid().gen(),
@@ -60,9 +60,10 @@ module.exports = {
         on().newGame(newSaveGame);
         on().gameReady(newSaveGame);
 
-        gamePlayers().addPlayer(project.id, newSaveGame.id, req.player._id, function () {
-          res.redirect(urlBuilder(hostname).saves(newSaveGame.id).share());
-        });
+        return gamePlayers().addPlayer(project.id, newSaveGame.id, req.player._id)
+          .then(function () {
+            return redirectTo(urlBuilder(hostname).saves(newSaveGame.id).share());
+          });
       };
     }
 
@@ -107,28 +108,6 @@ module.exports = {
           });
       };
     }
-
-    // function continueSave (req, res) {
-      // var playerId = req.player._id;
-      // var hostname = 'http://' + req.headers.host;
-
-      // var save = savesList().get(req.params.saveId);
-      // if (!save) {
-      //   return res.status(404).send('This save game does not exist.');
-      // }
-
-      // function playerInSaveResult (result) {
-        // if (!result) {
-          // return res.redirect(urlBuilder(hostname).saves(save.id).join());
-        // }
-
-
-
-        // res.render('primary.jade', buildContinueSaveJson(save));
-      // }
-
-      // gamePlayers().isPlayerInSave(save.id, playerId, playerInSaveResult);
-    // }
 
     function buildJoinJson (project, player, saveId) {
       return {
@@ -350,11 +329,19 @@ module.exports = {
     }
 
     function configure (app, project) {
-      app.post('/saves', buildCreateNewSaveHandler(project));
+      app.post(
+        '/saves',
+        buildRequestHandler(
+          makeNewSaveHandler(project),
+          buildAcceptHash('ignore.jade')
+        )
+      );
 
-      app.post('/saves/:saveId/join', buildRequestHandler(
+      app.post(
+        '/saves/:saveId/join',
+        buildRequestHandler(
           makeAddPlayerHandler(project),
-          buildAcceptHash('join.jade')
+          buildAcceptHash('ignore.jade')
         )
       );
 
