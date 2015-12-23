@@ -8,15 +8,31 @@ var db;
 var logger;
 
 function connect (endpoint, callback) {
-  MongoClient.connect(endpoint, function(err, conn) {
-    if (err) {
-      logger.error('Unable to connect to MongoDB.', err);
-      return;
-    }
+  if (callback) {
+    MongoClient.connect(endpoint, function(err, conn) {
+      if (err) {
+        logger.error('Unable to connect to MongoDB.', err);
+        return;
+      }
 
-    db = conn;
-    callback();
-  });
+      db = conn;
+      callback();
+    });
+  } else {
+    return new Bluebird (function (resolve, reject) {
+      MongoClient.connect(endpoint, function(err, conn) {
+        if (err) {
+          reject(err);
+        } else {
+          db = conn;
+          resolve();
+        }
+      });
+    })
+    .catch(function (err) {
+      logger.error('Unable to connect to MongoDB.', err);
+    });
+  }
 }
 
 function disconnect (callback) {
@@ -36,58 +52,123 @@ function store (collection, data, callback) {
   var filter = { _id: data._id };
   var opts = { upsert: true };
 
-  db.collection(collection).replaceOne(filter, data, opts, function (err, res) {
-    if (err) {
+  if (callback) {
+    db.collection(collection).replaceOne(filter, data, opts, function (err, res) {
+      if (err) {
+        logger.error('Unable to save to ' + collection + '.', err);
+        return;
+      }
+
+      logger.debug('Saved.', { _id: res._id, collection: collection });
+
+      if (callback) {
+        callback(res.result.upserted[0]._id);
+      }
+    });
+  } else {
+    return new Bluebird (function (resolve, reject) {
+      db.collection(collection).replaceOne(filter, data, opts, function (err, res) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.result.upserted[0]._id);
+        }
+      });
+    })
+    .then(function (id) {
+      logger.debug('Saved.', { _id: id, collection: collection });
+    })
+    .catch(function (err) {
       logger.error('Unable to save to ' + collection + '.', err);
-      return;
-    }
-
-    logger.debug('Saved.', { _id: res._id, collection: collection });
-
-    if (callback) {
-      callback(res.result.upserted[0]._id);
-    }
-  });
+    });
+  }
 }
 
 function getAll(collection, adapter, callback) {
   var things = [];
-  db.collection(collection).find().each(function(err, data) {
-    if (err) {
-      logger.error('Unable to get all ' + collection + '.', err);
-      return;
-    }
 
-    if (data) {
-      if (adapter) {
-        things.push(adapter(data));
-      } else {
-        things.push(data);
+  if (callback) {
+    db.collection(collection).find().each(function(err, data) {
+      if (err) {
+        logger.error('Unable to get all ' + collection + '.', err);
+        return;
       }
-    } else {
-      callback(things);
-    }
-  });
+
+      if (data) {
+        if (adapter) {
+          things.push(adapter(data));
+        } else {
+          things.push(data);
+        }
+      } else {
+        callback(things);
+      }
+    });
+  } else {
+    return new Bluebird (function (resolve, reject) {
+      db.collection(collection).find().each(function(err, data) {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (data) {
+          if (adapter) {
+            things.push(adapter(data));
+          } else {
+            things.push(data);
+          }
+        } else {
+          resolve(things);
+        }
+      });
+    }).catch(function (err) {
+      logger.error('Unable to get all ' + collection + '.', err);
+    });
+  }
 }
 
 function getAllByFilter (collection, filter, adapter, callback) {
   var things = [];
-  db.collection(collection).find(filter).each(function(err, data) {
-    if (err) {
-      logger.error('Unable to get from ' + collection + '.', err);
-      return;
-    }
 
-    if (data) {
-      if (adapter) {
-        things.push(adapter(data));
+  if (callback) {
+    db.collection(collection).find(filter).each(function(err, data) {
+      if (err) {
+        logger.error('Unable to get from ' + collection + '.', err);
       } else {
-        things.push(data);
+        if (data) {
+          if (adapter) {
+            things.push(adapter(data));
+          } else {
+            things.push(data);
+          }
+        } else {
+          callback(things);
+        }
       }
-    } else {
-      callback(things);
-    }
-  });
+
+    });
+  } else {
+    return new Bluebird (function (resolve, reject) {
+      db.collection(collection).find(filter).each(function(err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          if (data) {
+            if (adapter) {
+              things.push(adapter(data));
+            } else {
+              things.push(data);
+            }
+          } else {
+            resolve(things);
+          }
+        }
+      });
+    }).catch(function (err) {
+      logger.error('Unable to get from ' + collection + '.', err);
+    });
+  }
 }
 
 function getOneByFilter (collection, filter, callback) {

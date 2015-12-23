@@ -10,7 +10,7 @@ function renderPage (page, opts) {
   };
 }
 
-function buildJsonHandler (json) {
+function renderJson (json) {
   return function jsonHandler (req, res) {
     res.json(json);
   };
@@ -100,6 +100,15 @@ function buildRequestHandler2 (jsonBuilder, acceptHashBuilder) {
   };
 }
 
+function buildAcceptHash (page) {
+  return function acceptHash (json) {
+    return {
+      'html': renderPage(page, json),
+      'json': renderJson(json)
+    };
+  };
+}
+
 module.exports = {
   returnRequestError: returnRequestError,
   redirectTo: redirectTo,
@@ -108,8 +117,9 @@ module.exports = {
   startPromiseChangeFromSync: startPromiseChangeFromSync,
   getAcceptTypeHandler: getAcceptTypeHandler,
   renderPage: renderPage,
-  renderJson: buildJsonHandler,
-  buildJsonHandler: buildJsonHandler,
+  renderJson: renderJson,
+  buildJsonHandler: renderJson,
   buildRequestHandler: buildRequestHandler,
-  buildRequestHandler2: buildRequestHandler2
+  buildRequestHandler2: buildRequestHandler2,
+  buildAcceptHash: buildAcceptHash
 };

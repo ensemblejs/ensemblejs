@@ -17,7 +17,11 @@ module.exports = {
     function getPlayers (saveId, callback) {
       var filter = { saveId: saveId };
 
-      mongo.getAllByFilter(collection, filter, undefined, callback);
+      if (!callback) {
+        return mongo.getAllByFilter(collection, filter, undefined);
+      } else {
+        mongo.getAllByFilter(collection, filter, undefined, callback);
+      }
     }
 
     function isPlayerInSave (saveId, playerId, callback) {
@@ -42,32 +46,61 @@ module.exports = {
         updated: time().present()
       };
 
-      mongo.store(collection, record, callback);
+      if (callback) {
+        mongo.store(collection, record, callback);
+      } else {
+        return mongo.store(collection, record);
+      }
     }
 
     function getSavesForGameAndPlayer (gameId, playerId, callback) {
       var filter = { gameId: gameId, playerId: playerId };
 
-      mongo.getAllByFilter(collection, filter, undefined, callback);
+      if (callback) {
+        mongo.getAllByFilter(collection, filter, undefined, callback);
+      } else {
+        return mongo.getAllByFilter(collection, filter, undefined);
+      }
     }
 
     function doesSaveHaveSpaceForPlayer (saveId, callback) {
-      saves().get(saveId, function (save) {
-        getPlayers(saveId, function (players) {
-          callback(players.length < config.maxPlayers(save.ensemble.mode));
+      if (callback) {
+        saves().get(saveId, function (save) {
+          getPlayers(saveId, function (players) {
+            callback(players.length < config.maxPlayers(save.ensemble.mode));
+          });
         });
-      });
+      } else {
+        saves().get(saveId)
+          .then(function(save) {
+            return getPlayers(saveId)
+              .then(function(players) {
+                return (players.length < config.maxPlayers(save.ensemble.mode));
+              });
+          });
+      }
     }
 
     function canPlayerJoinSave (saveId, playerId, callback) {
-      saves().get(saveId, function (save) {
-        if (save.ensemble.secret !== 'public') {
-          callback(false);
-          return;
-        }
+      if (callback) {
+        saves().get(saveId, function (save) {
+          if (save.ensemble.secret !== 'public') {
+            callback(false);
+            return;
+          }
 
-        doesSaveHaveSpaceForPlayer(saveId, callback);
-      });
+          doesSaveHaveSpaceForPlayer(saveId, callback);
+        });
+      } else {
+        return saves().get(saveId)
+          .then(function (save) {
+            if (save.ensemble.secret !== 'public') {
+              return false;
+            }
+
+            return doesSaveHaveSpaceForPlayer(saveId, callback);
+          });
+      }
     }
 
     return {

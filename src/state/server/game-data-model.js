@@ -12,7 +12,11 @@ module.exports = {
     var collection = 'saves';
 
     function all (callback) {
-      mongo.getAll(collection, gameSummaryFromGameState, callback);
+      if (callback) {
+        mongo.getAll(collection, gameSummaryFromGameState, callback);
+      } else {
+        return mongo.getAll(collection, gameSummaryFromGameState);
+      }
     }
 
     function get (gameId, callback) {
@@ -31,22 +35,43 @@ module.exports = {
       data._id = data._id || data.ensemble.gameId;
       data.updated = time().present();
 
-      mongo.store(collection, data, callback);
+      if (callback) {
+        mongo.store(collection, data, callback);
+      } else {
+        return mongo.store(collection, data);
+      }
     }
 
     function isGamePublic (gameId, callback) {
-      mongo.getById(collection, gameId, function (game) {
-        callback(isEqual(game.ensemble.secret, 'public'));
-      });
+      if (callback) {
+        mongo.getById(collection, gameId, function (game) {
+          callback(isEqual(game.ensemble.secret, 'public'));
+        });
+      } else {
+        return mongo.getById(collection, gameId)
+          .then(function (game) {
+            return isEqual(game.ensemble.secret, 'public');
+          });
+      }
     }
 
     function isSecretCorrect (gameId, secret, callback) {
-      mongo.getById(collection, gameId, function (game) {
-        var a = game.ensemble.secret.toLowerCase();
-        var b = secret.toLowerCase();
+      if (callback) {
+        mongo.getById(collection, gameId, function (game) {
+          var a = game.ensemble.secret.toLowerCase();
+          var b = secret.toLowerCase();
 
-        callback(isEqual(a, b));
-      });
+          callback(isEqual(a, b));
+        });
+      } else {
+        return mongo.getById(collection, gameId)
+          .then(function (game) {
+            var a = game.ensemble.secret.toLowerCase();
+            var b = secret.toLowerCase();
+
+           return isEqual(a, b);
+          });
+      }
     }
 
     return {

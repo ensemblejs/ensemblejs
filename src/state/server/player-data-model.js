@@ -9,17 +9,31 @@ module.exports = {
   func: function (time) {
 
     function get (player, callback) {
-      mongo.getOneByFilter('players', player, callback);
+      if (callback) {
+        mongo.getOneByFilter('players', player, callback);
+      } else {
+        return mongo.getOneByFilter('players', player);
+      }
     }
 
     function save (player, callback) {
-      if (!player) {
-        callback();
+      if (callback) {
+        if (!player) {
+          callback();
+        }
+
+        player.updated = time().present();
+
+        mongo.store('players', player, callback);
+      } else {
+        if (!player) {
+          return;
+        }
+
+        player.updated = time().present();
+
+        return mongo.store('players', player);
       }
-
-      player.updated = time().present();
-
-      mongo.store('players', player, callback);
     }
 
     return {

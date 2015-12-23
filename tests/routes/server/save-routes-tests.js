@@ -22,7 +22,13 @@ describe('save routes', function () {
   var isSavePublic = false;
   var GamePlayersDataModel = {
     addPlayer: function (gameId, saveId, playerId, callback) {
-      callback();
+      if (callback) {
+        callback();
+      } else {
+        return new Bluebird(function(resolve) {
+          resolve();
+        });
+      }
     },
     isPlayerInSave: function (saveId, playerId, callback) {
       if (callback) {
@@ -35,10 +41,22 @@ describe('save routes', function () {
       });
     },
     canPlayerJoinSave: function (saveId, playerId, callback) {
-      callback(canPlayerJoinSave);
+      if (callback) {
+        callback(canPlayerJoinSave);
+      } else {
+        return new Bluebird(function(resolve) {
+          resolve(canPlayerJoinSave);
+        });
+      }
     },
     doesSaveHaveSpaceForPlayer: function (saveId, callback) {
-      callback(doesSaveHaveSpaceForPlayer);
+      if (callback) {
+        callback(doesSaveHaveSpaceForPlayer);
+      } else {
+        return new Bluebird(function(resolve) {
+          resolve(doesSaveHaveSpaceForPlayer);
+        });
+      }
     }
   };
   var GamesDataModel = {
@@ -53,10 +71,22 @@ describe('save routes', function () {
       });
     },
     isSavePublic: function (gameId, callback) {
-      callback(isSavePublic);
+      if (callback) {
+        callback(isSavePublic);
+      } else {
+        return new Bluebird(function(resolve) {
+          resolve(isSavePublic);
+        });
+      }
     },
     isSecretCorrect: function (gameId, secret, callback) {
-      callback(isSecretCorrect);
+      if (callback) {
+        callback(isSecretCorrect);
+      } else {
+        return new Bluebird(function(resolve) {
+          resolve(isSecretCorrect);
+        });
+      }
     }
   };
   sinon.spy(GamePlayersDataModel, 'addPlayer');
@@ -100,7 +130,7 @@ describe('save routes', function () {
     onServerStart = sut[0];
     onServerStop = sut[1].OnServerStop();
 
-    onServerStart('../dummy', { id: 'distributedlife+pong', modes: ['arcade'] });
+    onServerStart('../dummy', { id: 'distributedlife+pong', name: 'Pong', modes: ['arcade'] });
   });
 
   afterEach(function () {
