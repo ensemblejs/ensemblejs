@@ -1,7 +1,7 @@
 'use strict';
 
-var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
+var config = require('../../util/config').get(logger);
 var mongo = require('../../util/mongo').setup(logger);
 
 function determineExistence (record) {

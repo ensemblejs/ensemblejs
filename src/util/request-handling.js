@@ -3,6 +3,7 @@
 var keys = require('lodash').keys;
 var isNumber = require('lodash').isNumber;
 var Bluebird = require('bluebird');
+var returnRequestError = require('./workflow/promise').returnRequestError;
 
 function renderPage (page, opts) {
   return function pageHandler (req, res) {
@@ -44,27 +45,12 @@ function redirectTo (uri) {
   });
 }
 
-function returnRequestError (code, message) {
-  return Bluebird.reject({
-    reason: code,
-    data: {
-      message: message
-    }
-  });
-}
-
 function redirect (error) {
   return error.reason === 'redirect';
 }
 
 function isRequestError (error) {
   return isNumber(error.reason) && error.reason >= 400 && error.reason <= 499;
-}
-
-function startPromiseChangeFromSync (result) {
-  return new Bluebird(function (resolve) {
-    resolve(result);
-  });
 }
 
 var keys = require('lodash').keys;
@@ -122,11 +108,9 @@ function buildPostRequestHandler (jsonBuilder) {
 }
 
 module.exports = {
-  returnRequestError: returnRequestError,
   redirectTo: redirectTo,
   redirect: redirect,
   isRequestError: isRequestError,
-  startPromiseChangeFromSync: startPromiseChangeFromSync,
   getAcceptTypeHandler: getAcceptTypeHandler,
   renderPage: renderPage,
   renderJson: renderJson,

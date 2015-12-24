@@ -1,9 +1,9 @@
 'use strict';
 
-function gameSummaryFromGameState (state) {
+function summaryFromSaveState (state) {
   return { id: state._id, mode: state.ensemble.mode };
 }
 
 module.exports = {
-  gameSummaryFromGameState: gameSummaryFromGameState
+  summaryFromSaveState: summaryFromSaveState
 };
