@@ -2,27 +2,18 @@
 
 var config = require('../../util/config').get();
 var saves = require('../../util/models/saves');
+var saveCommon = require('../../util/workflow/save-common');
 
 module.exports = {
   type: 'Routes',
   func: function DebugRoutes () {
 
     function dumpSaveData (req, res) {
-      var saveId = req.params.saveId;
-      if (!saveId) {
-        return res.status(400).send('Missing saveId');
-      }
-
-      function handleGame (game) {
-        if (!game) {
-          return res.status(404).send('This save game does not exist');
-        }
-
-        return res.json(game);
-      }
-
-      saves.get(saveId)
-        .then(handleGame);
+      return saves.get(req.params.saveId)
+        .then(saveCommon.errorIfSaveDoesNotExist)
+        .then(function returnDataAsJson (save) {
+          res.json(save);
+        });
     }
 
     function configure (app) {

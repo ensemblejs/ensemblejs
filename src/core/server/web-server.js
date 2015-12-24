@@ -22,13 +22,13 @@ module.exports = {
     function configureApp (assetPath, project) {
       var app = express();
 
-      app.use(expressBunyanLogger({
-        logger: logger().logger,
-        excludes: config.logging.expressBunyanLogger.excludes
-      }));
-      app.use(expressBunyanLogger.errorLogger({
-        logger: logger.logger
-      }));
+      // app.use(expressBunyanLogger({
+      //   logger: logger().logger,
+      //   excludes: config.logging.expressBunyanLogger.excludes
+      // }));
+      // app.use(expressBunyanLogger.errorLogger({
+      //   logger: logger.logger
+      // }));
       app.use(compression());
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(pathToPublic + '/'));

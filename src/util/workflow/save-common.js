@@ -18,6 +18,7 @@ function errorIfSaveDoesNotExist (save) {
 
 function redirectIfSinglePlayer (save, player, hostname) {
   return saves.get(save.id).then(function (game) {
+    console.log(config);
     if (config.maxPlayers(game.ensemble.mode) === 1) {
       return redirectTo(urlBuilder(hostname).saves(save.id).continue());
     }
