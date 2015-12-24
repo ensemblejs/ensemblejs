@@ -15,18 +15,27 @@ module.exports = {
   deps: ['On', 'GamesList', 'Time'],
   func: function Routes (on, savesList, time) {
 
-
     function configure (app, project) {
-      app.post('/saves', post(newSaveGame(project, on(), time())));
+      app.post('/saves', post(
+        newSaveGame(project, on(), time())
+      ));
 
       app.post('/saves/:saveId/join', post(
         addPlayerToSave(project, savesList(), time())
       ));
 
-      app.get('/saves/:saveId', get(continueSave(savesList(), on()), 'primary.jade'));
-      app.get('/saves/:saveId/join', get(joinSave(project, savesList()), 'join.jade'));
-      app.get('/saves/:saveId/full', get(saveIsFull(savesList()), 'full.jade'));
-      app.get('/saves/:saveId/share', get(shareSave(project, savesList()), 'share.jade'));
+      app.get('/saves/:saveId', get(
+        continueSave(savesList(), on()), 'primary.jade')
+      );
+      app.get('/saves/:saveId/join', get(
+        joinSave(project, savesList()), 'join.jade')
+      );
+      app.get('/saves/:saveId/full', get(
+        saveIsFull(savesList()), 'full.jade')
+      );
+      app.get('/saves/:saveId/share', get(
+        shareSave(project, savesList()), 'share.jade')
+      );
     }
 
     return {
