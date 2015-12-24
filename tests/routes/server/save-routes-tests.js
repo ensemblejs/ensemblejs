@@ -18,19 +18,11 @@ describe('save routes', function () {
   var onServerStart;
   var onServerStop;
 
-  var isPlayerInSave = sinon.stub(savePlayers, 'isPlayerInSave');
-  var doesSaveHaveSpaceForPlayer = sinon.stub(savePlayers, 'doesSaveHaveSpaceForPlayer');
-  sinon.stub(savePlayers, 'addPlayer').returns(new Bluebird(function(resolve) {
-    resolve();
-  }));
-  var isSecretCorrect = sinon.stub(saves, 'isSecretCorrect');
-  var isSavePublic = sinon.stub(saves, 'isSavePublic');
-  sinon.stub(saves, 'get').returns(new Bluebird(function(resolve) {
-    resolve({ ensemble: {secret: 'public'}});
-  }));
-
-  var uuid = require('node-uuid');
-  sinon.stub(uuid, 'v4').returns('34242-324324');
+  var isPlayerInSave;
+  var doesSaveHaveSpaceForPlayer;
+  var isSecretCorrect;
+  var isSavePublic;
+  var uuid;
 
   var maxPlayers = 2;
 
@@ -55,6 +47,20 @@ describe('save routes', function () {
       }
     });
 
+    isPlayerInSave = sinon.stub(savePlayers, 'isPlayerInSave');
+    doesSaveHaveSpaceForPlayer = sinon.stub(savePlayers, 'doesSaveHaveSpaceForPlayer');
+    sinon.stub(savePlayers, 'addPlayer').returns(new Bluebird(function(resolve) {
+      resolve();
+    }));
+    isSecretCorrect = sinon.stub(saves, 'isSecretCorrect');
+    isSavePublic = sinon.stub(saves, 'isSavePublic');
+    sinon.stub(saves, 'get').returns(new Bluebird(function(resolve) {
+      resolve({ ensemble: {secret: 'public'}});
+    }));
+
+    uuid = require('node-uuid');
+    sinon.stub(uuid, 'v4').returns('34242-324324');
+
     var routes = makeTestible('routes/server/save-routes', {
       On: fakeOn,
       Time: fakeTime,
@@ -73,6 +79,14 @@ describe('save routes', function () {
   });
 
   afterEach(function () {
+    isPlayerInSave.restore();
+    doesSaveHaveSpaceForPlayer.restore();
+    isSecretCorrect.restore();
+    isSavePublic.restore();
+    saves.get.restore();
+    savePlayers.addPlayer.restore();
+    uuid.v4.restore();
+
     onServerStop();
     fakeConfig.restore();
   });

@@ -1,11 +1,11 @@
 'use strict';
 
 var config = require('../../util/config').get();
+var saves = require('../../util/models/saves');
 
 module.exports = {
   type: 'Routes',
-  deps: ['GamesDataModel'],
-  func: function DebugRoutes (saves) {
+  func: function DebugRoutes () {
 
     function dumpSaveData (req, res) {
       var saveId = req.params.saveId;
@@ -21,7 +21,8 @@ module.exports = {
         return res.json(game);
       }
 
-      saves().get(saveId, handleGame);
+      saves.get(saveId)
+        .then(handleGame);
     }
 
     function configure (app) {
