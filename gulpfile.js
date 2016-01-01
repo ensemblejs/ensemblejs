@@ -13,6 +13,7 @@ var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
 var istanbul = require('gulp-istanbul');
 var coveralls = require('gulp-coveralls');
+var nsp = require('gulp-nsp');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
@@ -96,4 +97,8 @@ gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);
 });
 
-gulp.task('default', ['lint', 'test', 'build']);
+gulp.task('nsp', function (done) {
+  nsp({package: __dirname + '/package.json'}, done);
+});
+
+gulp.task('default', ['lint', 'test', 'build', 'nsp']);
