@@ -1,7 +1,6 @@
 'use strict';
 
 var appRoot = require('app-root-path');
-var gameInfo = require(appRoot + '/package.json');
 var frameworkInfo = require(appRoot + '/node_modules/ensemblejs/package.json');
 var logger = require('./logging/server/logger').logger;
 var each = require('lodash').each;
