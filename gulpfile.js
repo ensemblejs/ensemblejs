@@ -14,6 +14,8 @@ var plumber = require('gulp-plumber');
 var istanbul = require('gulp-istanbul');
 var coveralls = require('gulp-coveralls');
 var nsp = require('gulp-nsp');
+var spawn = require('child_process').spawn;
+var gutil = require('gulp-util');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
@@ -101,4 +103,20 @@ gulp.task('nsp', function (done) {
   nsp({package: __dirname + '/package.json'}, done);
 });
 
-gulp.task('default', ['lint', 'test', 'build', 'nsp']);
+gulp.task('retire', function() {
+  var child = spawn('retire', ['--ignore', 'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'], {cwd: process.cwd()});
+
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', function (data) {
+      gutil.log(data);
+  });
+
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', function (data) {
+      gutil.log(gutil.colors.red(data));
+  });
+});
+
+gulp.task('vuln', ['nsp', 'retire']);
+
+gulp.task('default', ['lint', 'test', 'build', 'vuln']);
