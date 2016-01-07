@@ -5,6 +5,7 @@ var expect = require('expect');
 var makeTestible = require('../../support').makeTestible;
 var players = require('../../../src/util/models/players');
 var fakeOn = require('../../fake/on');
+var config = require('../../../src/util/config');
 
 var save1 = { id: 1, mode: 'arcade' };
 var save2 = { id: 2, mode: 'endless' };
@@ -19,14 +20,17 @@ describe('players connecting', function () {
 
   beforeEach(function () {
     var module = makeTestible('core/server/player-connections', {
-      Config: {
-        minPlayers: function () { return 2; },
-        maxPlayers: function () { return 3; }
-      },
       On: fakeOn
     });
 
     sinon.spy(players, 'getByKey');
+    sinon.stub(config, 'get').returns({
+      game: {
+        id: 1
+      },
+      minPlayers: function () { return 2; },
+      maxPlayers: function () { return 3; }
+    });
 
     fakeOn.playerGroupChange.reset();
 
@@ -36,6 +40,7 @@ describe('players connecting', function () {
   });
 
   afterEach(function () {
+    config.get.restore();
     players.getByKey.restore();
   });
 

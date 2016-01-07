@@ -4,6 +4,7 @@ var expect = require('expect');
 var sinon = require('sinon');
 var _ = require('lodash');
 var makeTestible = require('../../support').makeTestible;
+var config = require('../../../src/util/config');
 
 //Stub out socket.io
 var socket = {
@@ -47,11 +48,6 @@ var sut = makeTestible('core/server/socket-server', {
 		}
 	},
 	Logger: logger,
-	Config: {
-		server: {
-			pushUpdateFrequency: 33
-		}
-	},
 	LowestInputProcessed: sinon.spy(),
 	On: fakeOn,
 	Time: fakeTime,
@@ -69,6 +65,11 @@ describe('the socket server', function () {
 
 		sinon.spy(io, 'of');
 		sinon.spy(global, 'setInterval');
+		sinon.stub(config, 'get').returns({
+			server: {
+				pushUpdateFrequency: 33
+			}
+		});
 
 		socket.emit.reset();
 		fakeOn.newSave.reset();
@@ -80,6 +81,7 @@ describe('the socket server', function () {
 			clearInterval(id);
 		});
 
+		config.get.restore();
 		setInterval.restore();
 		io.of.restore();
 	});

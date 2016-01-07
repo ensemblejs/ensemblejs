@@ -4,11 +4,12 @@ var each = require('lodash').each;
 var reject = require('lodash').reject;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
+var config = require('../../util/config');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'Config', 'DefinePlugin', 'Time', 'Profiler'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, state, mutator, saves, config, define, time, profiler) {
+  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'DefinePlugin', 'Time', 'Profiler'],
+  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, state, mutator, saves, define, time, profiler) {
     var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
     var priorStepTime = time().present();
     var ids = [];
@@ -65,7 +66,7 @@ module.exports = {
 
     return function run () {
       step();
-      ids.push(setInterval(step, config().server.physicsUpdateLoop));
+      ids.push(setInterval(step, config.get().server.physicsUpdateLoop));
     };
   }
 };

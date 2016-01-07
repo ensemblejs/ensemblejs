@@ -5,11 +5,12 @@ var first = require('lodash').first;
 var map = require('lodash').map;
 var playerSource = require('../../util/models/players');
 var logger = require('../../logging/server/logger').logger;
+var config = require('../../util/config');
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config', 'On'],
-  func: function PlayerConnections (define, config, on) {
+  deps: ['DefinePlugin', 'On'],
+  func: function PlayerConnections (define, on) {
     var connections = [];
 
     function filterBySaveAndSession (saveId, sessionId) {
@@ -48,7 +49,7 @@ module.exports = {
     }
 
     function createNewPlayer (save, sessionId) {
-      add(config().maxPlayers(save.mode), save.id, sessionId);
+      add(config.get().maxPlayers(save.mode), save.id, sessionId);
     }
 
     function markPlayerAsOnline (saveId, sessionId) {
@@ -79,7 +80,7 @@ module.exports = {
         };
       });
 
-      var maxPlayers = config().maxPlayers(save.mode);
+      var maxPlayers = config.get().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
         players.push({id: i, status: 'not-joined'});
       }
@@ -92,7 +93,7 @@ module.exports = {
     }
 
     function determineIfWaitingForPlayers (save) {
-      return (connectedCount(save.id) < config().minPlayers(save.mode));
+      return (connectedCount(save.id) < config.get().minPlayers(save.mode));
     }
 
     define()('OnClientConnect', function PlayerConnections () {

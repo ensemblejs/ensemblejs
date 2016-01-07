@@ -4,11 +4,12 @@ var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
 var logger = require('../../logging/server/logger').logger;
+var config = require('../../util/config');
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['RawStateAccess', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'SavesList'],
-  func: function SocketServer (rawStateAccess, config, lowestInputProcessed, on, define, time, saves) {
+  deps: ['RawStateAccess', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'SavesList'],
+  func: function SocketServer (rawStateAccess, lowestInputProcessed, on, define, time, saves) {
 
     var io;
     var sockets = {};
@@ -40,7 +41,7 @@ module.exports = {
         on().outgoingServerPacket(socketId, packet);
       }
 
-      var id = setInterval(updateClient, config().server.pushUpdateFrequency);
+      var id = setInterval(updateClient, config.get().server.pushUpdateFrequency);
       intervals.push(id);
 
       define()('OnClientDisconnect', function OnClientDisconnect () {

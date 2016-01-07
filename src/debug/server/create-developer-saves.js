@@ -1,13 +1,14 @@
 'use strict';
 
 var each = require('lodash').each;
+var config = require('../../util/config');
 
 module.exports = {
   type: 'OnServerReady',
-  deps: ['Config', 'On'],
-  func: function OnServerReady (config, on) {
+  deps: ['On'],
+  func: function OnServerReady (on) {
     return function spinupDeveloperSaves (path, project) {
-      if (!config().debug.develop) {
+      if (!config.get().debug.develop) {
         return;
       }
 

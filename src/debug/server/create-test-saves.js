@@ -3,13 +3,14 @@
 var addTrailingSlash = require('../../util/path').addTrailingSlash;
 var normaliseRelativePath = require('../../util/path').normaliseRelativePath;
 var logger = require('../../logging/server/logger').logger;
+var config = require('../../util/config');
 
 module.exports = {
   type: 'OnServerReady',
-  deps: ['Config', 'On', 'StateMutator'],
-  func: function OnServerReady (config, on, mutate) {
+  deps: ['On', 'StateMutator'],
+  func: function OnServerReady (on, mutate) {
     return function spinupTestSeeds (path) {
-      if (!config().debug.develop) {
+      if (!config.get().debug.develop) {
         return;
       }
 

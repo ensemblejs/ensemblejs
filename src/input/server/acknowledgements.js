@@ -9,6 +9,7 @@ var map = require('lodash').map;
 var contains = require('lodash').contains;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 var logger = require('../../logging/server/logger').logger;
+var config = require('../../util/config');
 
 function toggleAck (players, playerId) {
   if (contains(players, playerId)) {
@@ -35,8 +36,8 @@ function ackFirstOnly (action, ack, save, onProgress, onComplete) {
 
 module.exports = {
   type: 'AcknowledgementProcessing',
-  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'DefinePlugin'],
-  func: function AcknowledgementProcessing (config, mutate, state, acknowledgementMaps, define) {
+  deps: ['StateMutator', 'StateAccess', 'AcknowledgementMap', 'DefinePlugin'],
+  func: function AcknowledgementProcessing (mutate, state, acknowledgementMaps, define) {
 
     var serverAcks = [];
 
@@ -51,7 +52,7 @@ module.exports = {
 
       action.players = toggleAck(action.players, ack.playerId);
 
-      if (action.players.length === config().maxPlayers(save.mode)) {
+      if (action.players.length === config.get().maxPlayers(save.mode)) {
         logger.trace(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
 
@@ -92,7 +93,7 @@ module.exports = {
       action.players = unique(action.players);
       onProgress(action);
 
-      if (action.players.length === config().maxPlayers(save.mode)) {
+      if (action.players.length === config.get().maxPlayers(save.mode)) {
         action.fired = true;
         onComplete(action);
       }
