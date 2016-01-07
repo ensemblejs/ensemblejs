@@ -23,9 +23,7 @@ var sut = makeTestible('core/shared/delayed-jobs', {
 var manager = sut[0];
 var onPhysicsFrame = sut[1].OnPhysicsFrame();
 currentState = {
-	ensemble: {
-		jobs: []
-	}
+	'ensemble.jobs': []
 };
 
 describe('the delayed job manager', function() {

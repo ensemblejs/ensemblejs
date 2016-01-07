@@ -3,65 +3,67 @@
 var select = require('lodash').select;
 var first = require('lodash').first;
 var map = require('lodash').map;
+var playerSource = require('../../util/models/players');
+var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'Config', 'Logger', 'On', 'PlayerDataModel'],
-  func: function PlayerConnections (define, config, logger, on, player) {
+  deps: ['DefinePlugin', 'Config', 'On'],
+  func: function PlayerConnections (define, config, on) {
     var connections = [];
 
-    function filterByGameAndSession (gameId, sessionId) {
-      return select(connections, {gameId: gameId, sessionId: sessionId});
+    function filterBySaveAndSession (saveId, sessionId) {
+      return select(connections, {saveId: saveId, sessionId: sessionId});
     }
 
-    function connectedPlayers (gameId) {
-      return select(connections, { gameId: gameId, status: 'online' });
+    function connectedPlayers (saveId) {
+      return select(connections, { saveId: saveId, status: 'online' });
     }
 
-    function gamePlayers (gameId) {
-      return select(connections, { gameId: gameId });
+    function savePlayers (saveId) {
+      return select(connections, { saveId: saveId });
     }
 
-    function exists (gameId, sessionId) {
-      return filterByGameAndSession(gameId, sessionId).length > 0;
+    function exists (saveId, sessionId) {
+      return filterBySaveAndSession(saveId, sessionId).length > 0;
     }
 
-    function get (gameId, sessionId) {
-      return first(filterByGameAndSession(gameId, sessionId));
+    function get (saveId, sessionId) {
+      return first(filterBySaveAndSession(saveId, sessionId));
     }
 
-    function add (maxPlayers, gameId, sessionId) {
-      var inGame = select(connections, {gameId: gameId});
-      if (inGame.length === maxPlayers) {
+    function add (maxPlayers, saveId, sessionId) {
+      var inSave = select(connections, {saveId: saveId});
+      if (inSave.length === maxPlayers) {
         return;
       }
 
       connections.push({
-        gameId: gameId,
+        saveId: saveId,
         sessionId: sessionId,
         playerId: undefined,
         status: 'online',
-        number: inGame.length + 1
+        number: inSave.length + 1
       });
     }
 
-    function createNewPlayer (game, sessionId) {
-      add(config().maxPlayers(game.mode), game.id, sessionId);
+    function createNewPlayer (save, sessionId) {
+      add(config().maxPlayers(save.mode), save.id, sessionId);
     }
 
-    function markPlayerAsOnline (gameId, sessionId) {
-      var connection = get(gameId, sessionId);
+    function markPlayerAsOnline (saveId, sessionId) {
+      var connection = get(saveId, sessionId);
       connection.status = 'online';
     }
 
-    function addPlayer (game, sessionId) {
-      if (!exists(game.id, sessionId)) {
-        createNewPlayer(game, sessionId);
+    function addPlayer (save, sessionId) {
+      if (!exists(save.id, sessionId)) {
+        createNewPlayer(save, sessionId);
       } else {
-        markPlayerAsOnline(game.id, sessionId);
+        markPlayerAsOnline(save.id, sessionId);
       }
 
-      var connection = get(game.id, sessionId);
+      var connection = get(save.id, sessionId);
       if (!connection) {
         return undefined;
       }
@@ -69,15 +71,15 @@ module.exports = {
       return connection.number;
     }
 
-    function getPlayers (game) {
-      var players = map(gamePlayers(game.id), function (connection) {
+    function getPlayers (save) {
+      var players = map(savePlayers(save.id), function (connection) {
         return {
           id: connection.number,
           status: connection.status
         };
       });
 
-      var maxPlayers = config().maxPlayers(game.mode);
+      var maxPlayers = config().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
         players.push({id: i, status: 'not-joined'});
       }
@@ -85,47 +87,46 @@ module.exports = {
       return players;
     }
 
-    function connectedCount (gameId) {
-      return connectedPlayers(gameId).length;
+    function connectedCount (saveId) {
+      return connectedPlayers(saveId).length;
     }
 
-    function determineIfWaitingForPlayers (game) {
-      return (connectedCount(game.id) < config().minPlayers(game.mode));
+    function determineIfWaitingForPlayers (save) {
+      return (connectedCount(save.id) < config().minPlayers(save.mode));
     }
 
     define()('OnClientConnect', function PlayerConnections () {
-      return function determinePlayerId (state, socket, game) {
+      return function determinePlayerId (state, socket, save) {
         var sessionId = socket.request.sessionID;
-        var playerNumber = addPlayer(game, sessionId);
+        var playerNumber = addPlayer(save, sessionId);
         socket.emit('playerNumber', playerNumber);
 
-        var pKey = { key: sessionId, keyType: 'sessionId' };
-        player().get(pKey, function (player) {
-          var connection = get(game.id, socket.request.sessionID);
+        playerSource.getByKey(sessionId, 'sessionId').then(function (player) {
+          var connection = get(save.id, socket.request.sessionID);
           connection.playerId = player._id;
         });
 
-        on().playerGroupChange(getPlayers(game), game.id);
+        on().playerGroupChange(getPlayers(save), save.id);
 
         return [
-          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(game)
+          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
         ];
       };
     });
 
     define()('OnClientDisconnect', function PlayerConnections () {
-      return function indicatePlayerAsDisconnected (state, socket, game) {
-        var connection = get(game.id, socket.request.sessionID);
+      return function indicatePlayerAsDisconnected (state, socket, save) {
+        var connection = get(save.id, socket.request.sessionID);
         if (!connection) {
-          logger().error({socket: socket, game: game}, 'Connection not found when disconnecting player.');
+          logger.error({socket: socket, save: save}, 'Connection not found when disconnecting player.');
         }
 
         connection.status = 'offline';
 
-        on().playerGroupChange(getPlayers(game), game.id);
+        on().playerGroupChange(getPlayers(save), save.id);
 
         return [
-          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(game)
+          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
         ];
       };
     });

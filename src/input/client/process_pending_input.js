@@ -55,7 +55,7 @@ module.exports = {
 							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
 
 							return mutate()(
-								currentInput.game.id,
+								currentInput.save.id,
 								action.call(state, data)
 							);
 						}
@@ -72,7 +72,7 @@ module.exports = {
 						logger().debug('ActionMap "' + key + '" called');
 
 						mutate()(
-				      currentInput.game.id,
+				      currentInput.save.id,
 				      callback(action.call, action.noEventKey, inputData)
 				    );
 					};
@@ -97,7 +97,7 @@ module.exports = {
 					parseSticks(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(stickCallback));
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
 
-					var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
+					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 				}
 			};

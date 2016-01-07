@@ -6,30 +6,30 @@ var map = require('lodash').map;
 var physicsThings = {};
 var keyMappings = {};
 
-function create (gameId, physicsKey, sourceKey, initialState) {
-  keyMappings[gameId] = keyMappings[gameId] || {};
-  keyMappings[gameId][physicsKey] = keyMappings[gameId][physicsKey] || [];
-  keyMappings[gameId][physicsKey].push(sourceKey);
+function create (saveId, physicsKey, sourceKey, initialState) {
+  keyMappings[saveId] = keyMappings[saveId] || {};
+  keyMappings[saveId][physicsKey] = keyMappings[saveId][physicsKey] || [];
+  keyMappings[saveId][physicsKey].push(sourceKey);
 
-  physicsThings[gameId] = physicsThings[gameId] || {};
-  physicsThings[gameId][sourceKey] = autoResolve(initialState);
+  physicsThings[saveId] = physicsThings[saveId] || {};
+  physicsThings[saveId][sourceKey] = autoResolve(initialState);
 }
 
-function updated (gameId, sourceKey) {
+function updated (saveId, sourceKey) {
   return function calledWhenUpdated (current) {
-    physicsThings[gameId][sourceKey] = autoResolve(current);
+    physicsThings[saveId][sourceKey] = autoResolve(current);
   };
 }
 
-function getBySourceKey (gameId, sourceKey) {
-  return physicsThings[gameId][sourceKey];
+function getBySourceKey (saveId, sourceKey) {
+  return physicsThings[saveId][sourceKey];
 }
 
-function getByPhysicsKey (gameId, physicsKey) {
-  var sourceKeys = keyMappings[gameId][physicsKey];
+function getByPhysicsKey (saveId, physicsKey) {
+  var sourceKeys = keyMappings[saveId][physicsKey];
 
   return map(sourceKeys, function(sourceKey) {
-    return getBySourceKey(gameId, sourceKey);
+    return getBySourceKey(saveId, sourceKey);
   });
 }
 

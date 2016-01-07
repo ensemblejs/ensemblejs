@@ -5,13 +5,13 @@ var last = require('lodash').last;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
-  type: 'OnNewGame',
+  type: 'OnNewSave',
   deps: ['StateSeed', 'StateMutator'],
-  func: function OnNewGame (stateSeed, mutate) {
-    return function initialiseStateForGame (game) {
-      var applicableSeeds = filterPluginsByMode(stateSeed(), game.mode);
+  func: function OnNewSave (stateSeed, mutate) {
+    return function initialiseStateForSave (save) {
+      var applicableSeeds = filterPluginsByMode(stateSeed(), save.mode);
       each(applicableSeeds, function (state) {
-        mutate()(game.id, last(state));
+        mutate()(save.id, last(state));
       });
     };
   }

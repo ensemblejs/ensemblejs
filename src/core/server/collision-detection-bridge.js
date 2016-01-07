@@ -9,10 +9,10 @@ module.exports = {
   func: function CollisionDetection (define, maps, collisionDetectionSystem) {
 
     function OnPhysicsFrame () {
-      return function callSystemWithRelevantMapsAndGameId (state, delta) {
+      return function callSystemWithRelevantMapsAndSaveId (state, delta) {
         var changes = [];
 
-        var gameId = state.get('ensemble.gameId');
+        var saveId = state.get('ensemble.saveId');
         var mode = state.get('ensemble.mode');
 
         forEachMode(maps(), mode, function (map) {
@@ -26,7 +26,7 @@ module.exports = {
           }
 
           collisionDetectionSystem().detectCollisions(
-            map, gameId, onCollision
+            map, saveId, onCollision
           );
         });
 

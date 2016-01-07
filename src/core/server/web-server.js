@@ -2,20 +2,17 @@
 
 var compression = require('compression');
 var express = require('express');
-var favicon = require('serve-favicon');
-var expressSession = require('express-session');
 var http = require('http');
-var fs = require('fs');
 var expressBunyanLogger = require('express-bunyan-logger');
 var each = require('lodash').each;
 var config = require('../../util/config').get();
+var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'Logger', 'DefinePlugin', 'Routes', 'UUID', 'WebServerMiddleware'],
-  func: function (socket, logger, define, routes, uuid, middleware) {
+  deps: ['SocketServer', 'DefinePlugin', 'Routes', 'UUID', 'WebServerMiddleware', 'WebSessions'],
+  func: function (socket, define, routes, uuid, middleware, session) {
     var server;
-    var session;
 
     var pathToPublic = __dirname + '/../../../public';
 
@@ -23,7 +20,7 @@ module.exports = {
       var app = express();
 
       app.use(expressBunyanLogger({
-        logger: logger().logger,
+        logger: logger.logger,
         excludes: config.logging.expressBunyanLogger.excludes
       }));
       app.use(expressBunyanLogger.errorLogger({
@@ -39,20 +36,7 @@ module.exports = {
       app.set('views', ['game/views/pages', pathToPublic + '/views']);
       app.set('view options', {layout: false});
       app.engine('jade', require('jade').__express);
-
-      var pathToFavIcon = process.cwd() + '/game/favicon.ico';
-      if (!fs.existsSync(pathToFavIcon)) {
-        pathToFavIcon = pathToPublic + '/favicon.ico';
-      }
-      app.use(favicon(pathToFavIcon));
-
-      session = expressSession({
-        genid: uuid().get,
-        secret: 'ensemblejs-' + project.name,
-        resave: true,
-        saveUninitialized: true
-      });
-      app.use(session);
+      app.disable('x-powered-by');
 
       each(middleware(), function (f) {
         app.use(f);
@@ -89,7 +73,7 @@ module.exports = {
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, project.modes, session);
+      socket().start(server, project.modes, session());
     }
 
     define()('OnServerStop', function () {

@@ -3,27 +3,28 @@ var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
+var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['RawStateAccess', 'Logger', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'GamesList'],
-  func: function SocketServer (rawStateAccess, logger, config, lowestInputProcessed, on, define, time, games) {
+  deps: ['RawStateAccess', 'Config', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'SavesList'],
+  func: function SocketServer (rawStateAccess, config, lowestInputProcessed, on, define, time, saves) {
 
     var io;
     var sockets = {};
     var intervals = [];
-    var gameSockets = {};
+    var clientSockets = {};
 
     function packetHasNotChanged (current, prior) {
-      return isEqual(current.gameState, prior.gameState);
+      return isEqual(current.saveState, prior.saveState);
     }
 
-    function startUpdateClientLoop (game, socketId) {
+    function startUpdateClientLoop (save, socketId) {
       var lastPacket = {};
 
       function updateClient () {
         var packet = {
-          gameState: rawStateAccess().for(game.id)
+          saveState: rawStateAccess().for(save.id)
         };
 
         if (packetHasNotChanged(packet, lastPacket)) {
@@ -33,7 +34,7 @@ module.exports = {
         lastPacket = cloneDeep(packet);
 
         packet.id = sequence.next('server-origin-messages');
-        packet.highestProcessedMessage = lowestInputProcessed()(game.id);
+        packet.highestProcessedMessage = lowestInputProcessed()(save.id);
         packet.timestamp = time().present();
 
         on().outgoingServerPacket(socketId, packet);
@@ -56,8 +57,8 @@ module.exports = {
     });
 
     define()('OnPlayerGroupChange', function OnPlayerConnected () {
-      return function propagate (players, gameId) {
-        each(gameSockets[gameId], function emitPlayersToSocket (socketId) {
+      return function propagate (players, saveId) {
+        each(clientSockets[saveId], function emitPlayersToSocket (socketId) {
           sockets[socketId].emit('playerGroupChange', players);
         });
       };
@@ -71,26 +72,26 @@ module.exports = {
         sessionId: socket.request.sessionID,
         address: socket.handshake.address
       };
-      logger().info(socketInfo, 'Socket Connected');
+      logger.info(socketInfo, 'Socket Connected');
 
       socket.emit('startTime', time().present());
 
-      function sendGame (gameId) {
-        gameSockets[gameId] = gameSockets[gameId] || [];
-        gameSockets[gameId].push(socket.id);
+      function sendSave (saveId) {
+        clientSockets[saveId] = clientSockets[saveId] || [];
+        clientSockets[saveId].push(socket.id);
 
-        var game = games().get(gameId);
+        var save = saves().get(saveId);
 
         function publishDisconnect() {
-          on().clientDisconnect(game, socket);
+          on().clientDisconnect(save, socket);
         }
 
         function publishPause () {
-          on().pause(game);
+          on().pause(save);
         }
 
         function publishUnpause () {
-          on().resume(game);
+          on().resume(save);
         }
 
         function error (data) {
@@ -98,12 +99,12 @@ module.exports = {
         }
 
         function publishInput (packet) {
-          on().incomingClientInputPacket(packet, game);
+          on().incomingClientInputPacket(packet, save);
         }
 
         function addLogging (eventName, eventCallback) {
           return function withLogging () {
-            logger().socket(socketInfo, arguments, eventName);
+            logger.socket(socketInfo, arguments, eventName);
             eventCallback.apply(this, arguments);
           };
         }
@@ -115,14 +116,14 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
-        on().clientConnect(game, socket);
+        on().clientConnect(save, socket);
 
-        socket.emit('initialState', rawStateAccess().for(game.id));
+        socket.emit('initialState', rawStateAccess().for(save.id));
 
-        startUpdateClientLoop(game, socket.id);
+        startUpdateClientLoop(save, socket.id);
       }
 
-      socket.on('gameId', sendGame);
+      socket.on('saveId', sendSave);
     }
 
     function start (server, modes, session) {

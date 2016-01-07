@@ -6,11 +6,11 @@ module.exports = {
   type: 'OnIncomingClientInputPacket',
   deps: ['Time', 'OnInput'],
   func: function OnIncomingClientInputPacket (time, onInput) {
-    return function addTimeToInput (packet, game) {
+    return function addTimeToInput (packet, save) {
       var now = time().present();
 
       each(onInput(), function (onInputCallback) {
-        onInputCallback(packet, now, game);
+        onInputCallback(packet, now, save);
       });
     };
   }

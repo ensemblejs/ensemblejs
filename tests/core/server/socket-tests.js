@@ -28,7 +28,7 @@ var io = {
 		};
 	}
 };
-var gameState = {
+var saveState = {
 	hi: 'there',
 };
 
@@ -43,7 +43,7 @@ var fakeTime = require('../../fake/time').at(1000);
 var sut = makeTestible('core/server/socket-server', {
 	RawStateAccess: {
 		for: function() {
-			return gameState;
+			return saveState;
 		}
 	},
 	Logger: logger,
@@ -55,7 +55,7 @@ var sut = makeTestible('core/server/socket-server', {
 	LowestInputProcessed: sinon.spy(),
 	On: fakeOn,
 	Time: fakeTime,
-	GamesList: {
+	SavesList: {
 		get: function () { return { id: 8, mode: 'arcade'}; }
 	}
 });
@@ -71,7 +71,7 @@ describe('the socket server', function () {
 		sinon.spy(global, 'setInterval');
 
 		socket.emit.reset();
-		fakeOn.newGame.reset();
+		fakeOn.newSave.reset();
 		fakeOn.clientConnect.reset();
 	});
 
@@ -107,7 +107,7 @@ describe('the socket server', function () {
 
 			socketServer.start(server, modes, session);
 
-			expect(socket.on.firstCall.args[0]).toEqual('gameId');
+			expect(socket.on.firstCall.args[0]).toEqual('saveId');
 			socket.on.firstCall.args[1]();
 
 			updateClientFunc = setInterval.firstCall.args[0];
@@ -118,7 +118,7 @@ describe('the socket server', function () {
 		});
 
 		it('should setup the socket events', function () {
-			expect(socket.on.getCall(0).args[0]).toEqual('gameId');
+			expect(socket.on.getCall(0).args[0]).toEqual('saveId');
 			expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
 			expect(socket.on.getCall(2).args[0]).toEqual('disconnect');
 			expect(socket.on.getCall(3).args[0]).toEqual('pause');
@@ -132,7 +132,7 @@ describe('the socket server', function () {
 		});
 
 		it('should send the initial state to the client', function () {
-			expect(socket.emit.secondCall.args).toEqual(['initialState', gameState]);
+			expect(socket.emit.secondCall.args).toEqual(['initialState', saveState]);
 		});
 
 		it('should emit a local client connect event', function () {
@@ -149,7 +149,7 @@ describe('the socket server', function () {
 			expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([
 				'1',
 				{
-					gameState: {hi: 'there'},
+					saveState: {hi: 'there'},
 					id: 1,
 					highestProcessedMessage: undefined,
 					timestamp: 1000
@@ -164,7 +164,7 @@ describe('the socket server', function () {
 		beforeEach(function () {
 			socketServer.start(server, modes, session);
 
-			expect(socket.on.firstCall.args[0]).toEqual('gameId');
+			expect(socket.on.firstCall.args[0]).toEqual('saveId');
 			socket.on.firstCall.args[1]();
 
 			updateClientFunc = setInterval.firstCall.args[0];
@@ -187,12 +187,12 @@ describe('the socket server', function () {
 			updateClientFunc();
 
 			fakeOn.outgoingServerPacket.reset();
-			gameState.altered = true;
+			saveState.altered = true;
 			updateClientFunc();
 
 			expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
 			expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
-				gameState: {hi: 'there', altered: true},
+				saveState: {hi: 'there', altered: true},
 				id: 4,
 				highestProcessedMessage: undefined,
 				timestamp: 1000
@@ -224,7 +224,7 @@ describe('the socket server', function () {
 
 			socketServer.start(server, modes, session);
 
-			expect(socket.on.firstCall.args[0]).toEqual('gameId');
+			expect(socket.on.firstCall.args[0]).toEqual('saveId');
 			socket.on.firstCall.args[1]();
 		});
 

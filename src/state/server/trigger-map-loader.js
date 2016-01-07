@@ -9,8 +9,8 @@ module.exports = {
   deps: ['DefinePlugin', 'StateTracker', 'TriggerMap'],
   func: function TriggerMapLoader (define, tracker, allMaps) {
 
-    function comparison (game, key, triggerInfo, comparator) {
-      tracker().for(game.id).onChangeTo(key, function (currentValue) {
+    function comparison (save, key, triggerInfo, comparator) {
+      tracker().for(save.id).onChangeTo(key, function (currentValue) {
         return _[comparator](currentValue, triggerInfo[comparator]);
       }, triggerInfo.call, triggerInfo.data);
     }
@@ -18,28 +18,28 @@ module.exports = {
     var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
     var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
 
-    define()('OnGameReady', function OnGameReady () {
-      return function loadTriggerMaps (game) {
+    define()('OnSaveReady', function OnSaveReady () {
+      return function loadTriggerMaps (save) {
 
         function loadMapsForMode (map) {
           each(map, function loadKey (value, key) {
             each(value, function loadTrigger (triggerInfo) {
               each(directTrackerMappings, function (f) {
                 if (triggerInfo[f]) {
-                  tracker().for(game.id)[f](key, triggerInfo[f], triggerInfo.data);
+                  tracker().for(save.id)[f](key, triggerInfo[f], triggerInfo.data);
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
                 if (triggerInfo[comparisonKey]) {
-                  comparison(game, key, triggerInfo, comparisonKey);
+                  comparison(save, key, triggerInfo, comparisonKey);
                 }
               });
             });
           });
         }
 
-        forEachMode(allMaps(), game.mode, loadMapsForMode);
+        forEachMode(allMaps(), save.mode, loadMapsForMode);
       };
     });
   }

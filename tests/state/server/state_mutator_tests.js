@@ -1,15 +1,21 @@
 'use strict';
 
 var expect = require('expect');
+var sinon = require('sinon');
+var Bluebird = require('bluebird');
 
 var defer = require('../../support').defer;
-var plugin = require('../../support').plugin();
-var logger = require('../../fake/logger');
+var on = require('../../fake/on');
+var makeTestible = require('../../support').makeTestible;
+var sut = makeTestible('state/server/mutator');
+var stateMutator = sut[0];
+var onLoadSave = sut[1].OnLoadSave(defer(on));
+var state = sut[1].StateAccess();
+var rawState = sut[1].RawStateAccess();
 
-var stateMutator = require('../../../src/state/server/mutator.js').func(defer(plugin.define), defer(logger));
-var state = plugin.deps().StateAccess();
+var saves = require('../../../src/util/models/saves');
 
-describe('as before but return new objects with only the changed state', function () {
+describe('state mutator', function () {
   beforeEach(function () {
     stateMutator(1, {
       controller: {
@@ -49,6 +55,21 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for(1).get('controller.child.age')).toBe(123);
   });
 
+  it('should not allow _id to be mutated', function () {
+    stateMutator(1, {
+      _id: 4,
+      controller: {
+        state: 'started',
+        score: 0,
+        child: {
+          age: 123
+        }
+      }
+    });
+
+    expect(state.for(1).get('_id')).toEqual(undefined);
+  });
+
   it('should work with adding to arrays', function () {
     stateMutator(1, {
       controller: {
@@ -69,7 +90,7 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for(1).for('controller').get('list')).toEqual([]);
   });
 
-  it('should work with different games', function () {
+  it('should work with different saves', function () {
     stateMutator(12, {
       controller: {
         start: 5
@@ -143,6 +164,37 @@ describe('as before but return new objects with only the changed state', functio
         stateMutator(1, ['controller.child.age', 123]);
         expect(state.for(1).get('controller.child.age')).toBe(123);
       });
+    });
+  });
+
+  describe('on save load', function () {
+    beforeEach(function (done) {
+      sinon.stub(saves, 'getById').returns(Bluebird.resolve({
+        ensemble: { waitingForPlayers: false, paused: false }
+      }));
+
+      onLoadSave({id: 3, mode: 'arcade'}).then(function () { done(); });
+    });
+
+    afterEach(function () {
+      saves.getById.restore();
+    });
+
+    it('should store the save state and keep it in memory', function () {
+      expect(saves.getById.firstCall.args).toEqual([3]);
+      expect(rawState.for(3)).toEqual({ensemble: { waitingForPlayers: true, paused: true }});
+    });
+
+    it('should set waitingForPlayers to true', function () {
+      expect(rawState.for(3).ensemble.waitingForPlayers).toBe(true);
+    });
+
+    it('should set paused to true', function () {
+      expect(rawState.for(3).ensemble.paused).toBe(true);
+    });
+
+    it('should call on save ready', function () {
+      expect(on.saveReady.called).toEqual(true);
     });
   });
 });

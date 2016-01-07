@@ -45,7 +45,7 @@ var config = {
   }
 };
 
-var mode = 'game';
+var mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(config));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
@@ -175,7 +175,7 @@ describe('CSP: after on AfterPhysicsFrame', function () {
         });
       });
 
-      it('should not run if the game', function () {
+      it('should not run the save', function () {
         expect(currentState.get(tracking)).toEqual('initial-server-state');
         expect(currentState.get(count)).toEqual(0);
       });
@@ -214,7 +214,7 @@ describe('CSP: after on AfterPhysicsFrame', function () {
   describe('when new server state comes', function () {
     var laterState = {
       highestProcessedMessage: 1,
-      gameState: {
+      saveState: {
         ensemble: { waitingForPlayers: false },
         namespace: {
           count: 20,

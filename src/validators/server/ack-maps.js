@@ -5,6 +5,7 @@ var reject = require('lodash').reject;
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
 var contains = require('lodash').contains;
+var logger = require('../../logging/server/logger').logger;
 
 var validTypes = [ 'once-for-all', 'every', 'once-each', 'first-only'];
 
@@ -36,8 +37,8 @@ function checkHasType (records, key, callback) {
 
 function checkHasValidType (records, key, callback) {
   var invalidType = filterByInvalidProperty(records, 'type', validTypes);
-  each(invalidType, function() {
-    callback(key);
+  each(invalidType, function(record) {
+    callback(key, record.type);
   });
 }
 
@@ -53,22 +54,22 @@ function checkOnProgressType (records, key, callback) {
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['AcknowledgementMap', 'Logger'],
-  func: function AckMapValidator (ackMaps, logger) {
+  deps: ['AcknowledgementMap'],
+  func: function AckMapValidator (ackMaps) {
     function logMissingOnComplete (key) {
-      logger().error('AcknowledgementMap "' + key + '" missing "onComplete" property');
+      logger.error({key: key, property: 'onComplete'}, 'AcknowledgementMap missing property');
     }
 
     function logMissingType (key) {
-      logger().error('AcknowledgementMap "' + key + '" missing "type" property');
+      logger.error({key: key}, 'AcknowledgementMap missing "type" property');
     }
 
-    function logInvalidType (key) {
-      logger().error('AcknowledgementMap "' + key + '" has invalid "type" property of "derp"');
+    function logInvalidType (key, property) {
+      logger.error({key: key, property: property}, 'AcknowledgementMap has invalid "type" property');
     }
 
     function logInvalidOnProgressType (key) {
-      logger().error('AcknowledgementMap "' + key + '" can\'t use "onProgress" property');
+      logger.error({key: key, property: 'onProgress'}, 'AcknowledgementMap can\'t use property');
     }
 
     return function validate () {

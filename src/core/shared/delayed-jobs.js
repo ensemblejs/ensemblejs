@@ -33,10 +33,26 @@ module.exports = {
       return includes(toCancel, job.key);
     }
 
+    function devuxAddKeyToList (key) {
+      if (includes(jobNames, key)) {
+        return;
+      }
+
+      jobNames.push(key);
+    }
+
+    function devuxCheckJobName (job) {
+      if (includes(jobNames, job.key)) {
+        return;
+      }
+
+      logger().warn({job: job}, 'Can\'t cancel job as it has never been added. Are you sure the job name is spelt correctly?');
+    }
+
     define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (state, dt) {
-        var jobs = state.for('ensemble').get('jobs');
-        var gameId = state.for('ensemble').get('gameId');
+        var jobs = state.get('ensemble.jobs');
+        var saveId = state.get('ensemble.saveId');
 
         jobs = jobs.concat(newJobs);
         each(select(jobs, cancelled), devuxCheckJobName);
@@ -46,7 +62,7 @@ module.exports = {
         var invoke = select(jobs, ready);
         each(invoke, function callOnCompleteHandlerForReadyJobs (job) {
           var callback = dynamicPluginLoader().get(job.plugin)[job.method];
-          mutate()(gameId, callback(state));
+          mutate()(saveId, callback(state));
         });
 
         newJobs = [];
@@ -72,22 +88,6 @@ module.exports = {
 
     function cancelAll (key) {
       toCancel.push(key);
-    }
-
-    function devuxAddKeyToList (key) {
-      if (includes(jobNames, key)) {
-        return;
-      }
-
-      jobNames.push(key);
-    }
-
-    function devuxCheckJobName (job) {
-      if (includes(jobNames, job.key)) {
-        return;
-      }
-
-      logger().warn({job: job}, 'Can\'t cancel job as it has never been added. Are you sure the job name is spelt correctly?');
     }
 
     return {

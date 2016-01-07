@@ -7,30 +7,30 @@ var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'GamesList', 'Config', 'DefinePlugin', 'Time', 'Profiler'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, state, mutator, games, config, define, time, profiler) {
+  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'Config', 'DefinePlugin', 'Time', 'Profiler'],
+  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, state, mutator, saves, config, define, time, profiler) {
     var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
     var priorStepTime = time().present();
     var ids = [];
 
-    function pausedGames (game) {
-      return state().for(game.id).get('ensemble.paused');
+    function pausedSaves (save) {
+      return state().for(save.id).get('ensemble.paused');
     }
 
     function update (delta) {
-      var running = reject(games().loaded(), pausedGames);
-      each(running, function callUpdateOnEach (game) {
-        var gameState = state().for(game.id);
-        var opts = [gameState, delta];
+      var running = reject(saves().loaded(), pausedSaves);
+      each(running, function callUpdateOnEach (save) {
+        var saveState = state().for(save.id);
+        var opts = [saveState, delta];
 
-        callEachWithMutation(beforeFrame(), mutator, game.id, opts);
+        callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (gameState.get('ensemble.waitingForPlayers')) {
+        if (saveState.get('ensemble.waitingForPlayers')) {
           return;
         }
 
-        callForModeWithMutation(onFrame(), mutator, game, opts);
-        callEachWithMutation(afterFrame(), mutator, game.id, opts);
+        callForModeWithMutation(onFrame(), mutator, save, opts);
+        callEachWithMutation(afterFrame(), mutator, save.id, opts);
       });
     }
 
@@ -49,9 +49,7 @@ module.exports = {
 
     define()('OnServerStop', function ServerPhysicsEngine () {
       return function stopEngine () {
-        each(ids, function (id) {
-          clearInterval(id);
-        });
+        each(ids, clearInterval);
         ids = [];
       };
     });

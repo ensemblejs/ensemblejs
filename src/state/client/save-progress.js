@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  type: 'SaveGame',
-  func: function SaveGame () {
+  type: 'SaveProgress',
+  func: function SaveProgress () {
     return {
       now: function now () {}
     };

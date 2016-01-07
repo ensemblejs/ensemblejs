@@ -14,30 +14,30 @@ module.exports = {
   deps: ['DefinePlugin', 'PhysicsMap', 'StateTracker', 'PhysicsSystem', 'StateAccess'],
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
-    function wireupDynamic (gameId, physicsKey, sourceKey) {
-      physicsSystem().register(gameId, physicsKey, sourceKey, state().for(gameId).unwrap(sourceKey));
-      tracker().for(gameId).onChangeOf(sourceKey, physicsSystem().updated(gameId, sourceKey));
+    function wireupDynamic (saveId, physicsKey, sourceKey) {
+      physicsSystem().register(saveId, physicsKey, sourceKey, state().for(saveId).unwrap(sourceKey));
+      tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey));
     }
 
-    function wireupStatic (gameId, physicsKey, source) {
-      physicsSystem().register(gameId, physicsKey, 'static' + sequence.next('static-physics'), source);
+    function wireupStatic (saveId, physicsKey, source) {
+      physicsSystem().register(saveId, physicsKey, 'static' + sequence.next('static-physics'), source);
     }
 
-    function OnGameReady () {
-      return function wireupPhysicsMap (game) {
+    function OnSaveReady () {
+      return function wireupPhysicsMap (save) {
 
         function loadPhysicsMap (map) {
           each(map, function(sources, physicsKey) {
             each(select(sources, isString), function(sourceKey) {
-              wireupDynamic(game.id, physicsKey, sourceKey);
+              wireupDynamic(save.id, physicsKey, sourceKey);
             });
             each(reject(sources, isString), function(sourceKey) {
-              wireupStatic(game.id, physicsKey, sourceKey);
+              wireupStatic(save.id, physicsKey, sourceKey);
             });
           });
         }
 
-        forEachMode(allMaps(), game.mode, loadPhysicsMap);
+        forEachMode(allMaps(), save.mode, loadPhysicsMap);
       };
     }
 
@@ -54,17 +54,17 @@ module.exports = {
 
         var newState = {};
         each(changes, function (stateKey) {
-          var gameState = state.unwrap(stateKey);
+          var saveState = state.unwrap(stateKey);
           var physicsState = physicsSystem().get(stateKey);
 
-          set(newState, stateKey, replaceIfPresent(gameState, physicsState));
+          set(newState, stateKey, replaceIfPresent(saveState, physicsState));
         });
 
         return newState;
       };
     }
 
-    define()('OnGameReady', OnGameReady);
+    define()('OnSaveReady', OnSaveReady);
     define()('OnPhysicsFrame', OnPhysicsFrame);
   }
 };

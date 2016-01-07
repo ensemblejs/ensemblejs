@@ -3,7 +3,7 @@
 var post = require('../../util/request-handling').buildPostRequestHandler;
 var get = require('../../util/request-handling').buildGetRequestHandler;
 
-var newSaveGame = require('../../util/workflow/new-save-game');
+var newSave = require('../../util/workflow/new-save');
 var addPlayerToSave = require('../../util/workflow/add-player-to-save');
 var continueSave = require('../../util/workflow/continue-save');
 var saveIsFull = require('../../util/workflow/save-is-full');
@@ -12,12 +12,12 @@ var joinSave = require('../../util/workflow/join-save');
 
 module.exports = {
   type: 'Routes',
-  deps: ['On', 'GamesList', 'Time'],
+  deps: ['On', 'SavesList', 'Time'],
   func: function Routes (on, savesList, time) {
 
     function configure (app, project) {
       app.post('/saves', post(
-        newSaveGame(project, on(), time())
+        newSave(project, on(), time())
       ));
 
       app.post('/saves/:saveId/join', post(

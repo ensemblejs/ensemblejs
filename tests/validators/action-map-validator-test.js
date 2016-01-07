@@ -1,8 +1,9 @@
 'use strict';
 
 var expect = require('expect');
+var sinon = require('sinon');
 var makeTestible = require('../support').makeTestible;
-var logger = require('../fake/logger');
+var logger = require('../../src/logging/server/logger').logger;
 function empty () {}
 
 describe('action map validator', function () {
@@ -19,9 +20,13 @@ describe('action map validator', function () {
         Logger: logger
       });
 
-      logger.error.reset();
+      sinon.spy(logger, 'error');
 
       validator[0]();
+    });
+
+    afterEach(function () {
+      logger.error.restore();
     });
 
     it('should do nothing', function () {
@@ -57,21 +62,25 @@ describe('action map validator', function () {
         Logger: logger
       });
 
-      logger.error.reset();
+      sinon.spy(logger, 'error');
 
       validator[0]();
     });
 
+    afterEach(function () {
+      logger.error.restore();
+    });
+
     it('should report errors for maps without a target', function () {
-      expect(logger.error.getCall(0).args).toEqual(['ActionMap "missingTarget" missing "call" or "ack" property']);
+      expect(logger.error.getCall(0).args).toEqual([{key: 'missingTarget'}, 'ActionMap missing "call" or "ack" property']);
     });
 
     it('should report errors for ctrl+tab', function () {
-      expect(logger.error.getCall(1).args).toEqual(['ActionMap "tab" has "ctrl" modifier. This is not supported']);
+      expect(logger.error.getCall(1).args).toEqual([{key: 'tab'}, 'ActionMap "tab" has "ctrl" modifier. This is not supported']);
     });
 
     it('should report errors for ctrl+shift+tab', function () {
-      expect(logger.error.getCall(2).args).toEqual(['ActionMap "tab" has "ctrl+shift" modifier. This is not supported']);
+      expect(logger.error.getCall(2).args).toEqual([{key: 'tab'}, 'ActionMap "tab" has "ctrl+shift" modifier. This is not supported']);
     });
 
     it('should convert non-arrays to arrays', function () {
@@ -79,15 +88,15 @@ describe('action map validator', function () {
     });
 
     it('should report an error when nothing has an ack', function () {
-      expect(logger.error.getCall(3).args).toEqual(['ActionMap "nothing" cannot use the "ack" property']);
+      expect(logger.error.getCall(3).args).toEqual([{key: 'nothing'}, 'ActionMap cannot use the "ack" property']);
     });
 
     it('should report an error when mouse has an ack', function () {
-      expect(logger.error.getCall(4).args).toEqual(['ActionMap "mouse" cannot use the "ack" property']);
+      expect(logger.error.getCall(4).args).toEqual([{key: 'mouse'}, 'ActionMap cannot use the "ack" property']);
     });
 
     it('should support action maps with modes', function () {
-      expect(logger.error.getCall(5).args).toEqual(['ActionMap "invalid" missing "call" or "ack" property']);
+      expect(logger.error.getCall(5).args).toEqual([{key: 'invalid'}, 'ActionMap missing "call" or "ack" property']);
     });
   });
 });

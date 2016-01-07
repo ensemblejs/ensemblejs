@@ -5,40 +5,40 @@ var last = require('lodash').last;
 
 module.exports = {
   type: 'SocketClient',
-  deps: ['Window', 'GameMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
-  func: function SocketClient (window, gameMode, host, on, define, time, $) {
+  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
+  func: function SocketClient (window, mode, host, on, define, time, $) {
 
     function url () {
-      return host() + '/' + gameMode() + '/primary';
+      return host() + '/' + mode() + '/primary';
     }
 
     function connect () {
       var socket = io.connect(url(), { reconnection: false });
 
-      var gameId = last(window().location.pathname.split('/'));
-      socket.emit('gameId', gameId);
+      var saveId = last(window().location.pathname.split('/'));
+      socket.emit('saveId', saveId);
 
       socket.on('startTime', function (serverOffset) {
         var currentClientTime = time().present();
         time().setOffset(serverOffset - currentClientTime);
       });
       socket.on('connect', function connect () {
-        on().connect('client', gameMode());
+        on().connect('client', mode());
       });
       socket.on('disconnect', function disconnect () {
-        on().disconnect('client', gameMode());
+        on().disconnect('client', mode());
       });
 
       socket.on('playerNumber', function savePlayerId (playerNumber) {
         if (!playerNumber) {
-          window().location.replace('/games/' + gameId + '/full');
+          window().location.replace('/saves/' + saveId + '/full');
         }
 
         on().clientPlayerId(playerNumber);
       });
 
       socket.on('initialState', function initialState (packet) {
-        on().clientStart(packet, gameMode());
+        on().clientStart(packet, mode());
       });
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);

@@ -2,19 +2,14 @@
 
 var each = require('lodash').each;
 var filter = require('lodash').filter;
-var last = require('lodash').last;
 var xor = require('lodash').xor;
 var chain = require('lodash').chain;
 var filterPluginsByMode = require('./modes').filterPluginsByMode;
+var stripMode = require('./modes').stripMode;
 
 function ensureMapHasModifiers(action) {
   action.modifiers = action.modifiers || [];
   return action;
-}
-
-//TODO: move to util/modes
-function removeMode(pluginAndMode) {
-  return last(pluginAndMode);
 }
 
 function withValidKey(key) {
@@ -51,10 +46,12 @@ function whenWaiting (waitingForPlayers) {
 
 function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, callback) {
 
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
   function processKeys (keyData, rejectOrSelect) {
     each(keyData, function processKey(keyInfo) {
+
+      var key = keyInfo.key.toLowerCase();
 
       function whereModifiersDoNotMatch(action) {
         return (xor(action.modifiers, keyInfo.modifiers).length > 0);
@@ -72,10 +69,8 @@ function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, ca
         }
       }
 
-      var key = keyInfo.key.toLowerCase();
-
       chain(pluginsForMode)
-        .map(removeMode)
+        .map(stripMode)
         .filter(withValidKey(key))
         .map(pluckKeyHandler(key))
         .flatten()
@@ -101,10 +96,10 @@ function parseMouse (actionMaps, currentInput, waitingForPlayers, callback) {
     callback(currentInput, 'cursor', action, currentInput.rawData.mouse);
   }
 
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
   chain(pluginsForMode)
-    .map(removeMode)
+    .map(stripMode)
     .filter(withValidKey('cursor'))
     .map(pluckKeyHandler('cursor'))
     .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
@@ -114,7 +109,7 @@ function parseMouse (actionMaps, currentInput, waitingForPlayers, callback) {
 }
 
 function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
-  var pluginsForMode = filterPluginsByMode(plugins, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(plugins, currentInput.save.mode);
 
   each(currentInput.rawData.touches, function(touch) {
     var key = 'touch' + touch.id;
@@ -127,7 +122,7 @@ function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
     }
 
     chain(pluginsForMode)
-      .map(removeMode)
+      .map(stripMode)
       .filter(withValidKey(key))
       .map(pluckKeyHandler(key))
       .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
@@ -138,7 +133,7 @@ function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
 }
 
 function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.game.mode);
+  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
   each(['leftStick', 'rightStick'], function(key) {
     if (currentInput.rawData[key] === undefined) {
@@ -156,7 +151,7 @@ function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
     }
 
     chain(pluginsForMode)
-      .map(removeMode)
+      .map(stripMode)
       .filter(withValidKey(key))
       .map(pluckKeyHandler(key))
       .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))

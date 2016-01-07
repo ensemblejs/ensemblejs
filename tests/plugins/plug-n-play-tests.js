@@ -100,26 +100,33 @@ describe('the plugin manager', function() {
 		it('should report when a plugin\'s functions are executed', function () {
 			pluginManager.load(myModuleReturnFunction);
 			pluginManager.get('RetFunction')();
+			console.log(logger.plugin.firstCall.args);
 			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetFunction');
+			expect(logger.plugin.firstCall.args[2]).toEqual('Profiler');
+
+			expect(logger.plugin.secondCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.secondCall.args[2]).toEqual('Timer');
+
+			expect(logger.plugin.thirdCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.thirdCall.args[2]).toEqual('RetFunction');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnsObject);
 			pluginManager.get('RetObject').f();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetObject');
+			expect(logger.plugin.thirdCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.thirdCall.args[2]).toEqual('RetObject');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnAnonymousFunction);
 			pluginManager.get('RetAnonymousFunction')();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetAnonymousFunction');
+			expect(logger.plugin.thirdCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.thirdCall.args[2]).toEqual('RetAnonymousFunction');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnModedFunction);
 			pluginManager.get('RetModedFunction')[1]();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetModedFunction');
+			expect(logger.plugin.thirdCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.thirdCall.args[2]).toEqual('RetModedFunction');
 		});
 
 		it('should have it\'s dependencies injected as parameters', function() {

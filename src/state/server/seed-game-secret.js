@@ -3,10 +3,10 @@
 var config = require('../../util/config').get();
 
 module.exports = {
-  type: 'OnNewGame',
+  type: 'OnNewSave',
   deps: ['UUID'],
-  func: function OnNewGame (uuid) {
-    return function seedGameInfo () {
+  func: function OnNewSave (uuid) {
+    return function seedSaveInfo () {
       var secret = config.debug.develop ? 'public' : uuid().gen();
 
       return ['ensemble', { secret: secret }];

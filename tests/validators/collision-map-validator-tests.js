@@ -1,8 +1,9 @@
 'use strict';
 
+var sinon = require('sinon');
 var expect = require('expect');
 var makeTestible = require('../support').makeTestible;
-var logger = require('../fake/logger');
+var logger = require('../../src/logging/server/logger').logger;
 
 function empty () {}
 
@@ -15,7 +16,11 @@ describe('collision map validator', function () {
   }
 
   beforeEach(function () {
-    logger.error.reset();
+    sinon.spy(logger, 'error');
+  });
+
+  afterEach(function () {
+    logger.error.restore();
   });
 
   it('runs on server start', function () {
@@ -95,7 +100,7 @@ describe('collision map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" is missing "and" property.']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key', property: 'and'}, 'CollisionMap is missing property.']);
   });
 
   it('must must have at least "start", "during" or "finish"', function () {
@@ -103,7 +108,7 @@ describe('collision map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" requires at least one callback out of "start", "during" and "finish".']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key'}, 'CollisionMap requires at least one callback out of "start", "during" and "finish".']);
   });
 
   it('should validate mode restricted maps', function () {
@@ -111,6 +116,6 @@ describe('collision map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['CollisionMap "key" is missing "and" property.']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key', property: 'and'}, 'CollisionMap is missing property.']);
   });
 });

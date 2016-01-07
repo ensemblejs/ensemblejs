@@ -19,7 +19,7 @@ var state = {
 		};
 	}
 };
-var gamesList = {
+var savesList = {
 	loaded: function () {
 		return [
 			{id: 1, mode: '*'},
@@ -39,7 +39,6 @@ var profiler = require('../../fake/profiler');
 describe('the engine', function() {
 	var onServerStart;
 	var onServerStop;
-	var interval;
 
 	beforeEach(function() {
 		update1.reset();
@@ -51,14 +50,14 @@ describe('the engine', function() {
 			BeforePhysicsFrame: [update1, update2],
 			OnPhysicsFrame: [update3, update4],
 			AfterPhysicsFrame: [],
-			GamesList: gamesList,
+			SavesList: savesList,
 			Config: config,
 			Time: fakeTime,
 			StateAccess: state,
 			Profiler: profiler
 		});
 		onServerStart = sut[0];
-		onServerStop = sut[1].OnServerStop;
+		onServerStop = sut[1].OnServerStop();
 	});
 
 	afterEach(function() {
@@ -66,15 +65,12 @@ describe('the engine', function() {
 	});
 
 	describe('when unpaused', function() {
-		afterEach(function () {
-			onServerStop();
-		});
-
 		it('should call OnPhysicsFrameA with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
-			interval = onServerStart();
+			onServerStart();
 			expect(update1.firstCall.args[1]).toEqual(5);
 			expect(update2.firstCall.args[1]).toEqual(5);
+			onServerStop();
 		});
 
 		describe('when waitingForPlayers', function () {
@@ -83,7 +79,11 @@ describe('the engine', function() {
 				update3[1].reset();
 				update4[1].reset();
 				fakeTime.present = function () { return 5000; };
-				interval = onServerStart();
+				onServerStart();
+			});
+
+			afterEach(function () {
+				onServerStop();
 			});
 
 			it('should not call OnPhysicsFrameB', function() {
@@ -98,7 +98,11 @@ describe('the engine', function() {
 				update3[1].reset();
 				update4[1].reset();
 				fakeTime.present = function () { return 10000; };
-				interval = onServerStart();
+				onServerStart();
+			});
+
+			afterEach(function () {
+				onServerStop();
 			});
 
 			it('should call OnPhysicsFrameB', function() {
@@ -110,17 +114,17 @@ describe('the engine', function() {
 			});
 		});
 
-		it('should not increase the delta whilst the game is paused', function () {
+		it('should not increase the delta whilst the save is paused', function () {
 			values['ensemble.paused'] = true;
-			interval = onServerStart();
+			onServerStart();
 			onServerStop();
 
 			fakeTime.present = function () { return 5000; };
-			interval = onServerStart();
+			onServerStart();
 			onServerStop();
 
 			fakeTime.present = function () { return 10000; };
-			interval = onServerStart();
+			onServerStart();
 			onServerStop();
 
 			update1.reset();
@@ -128,9 +132,10 @@ describe('the engine', function() {
 			fakeTime.present = function () { return 10100; };
 			onServerStart();
 			expect(update1.firstCall.args[1]).toEqual(0.1);
+			onServerStop();
 		});
 
-		describe('update functions for all games', function() {
+		describe('update functions for all saves', function() {
 			beforeEach(function() {
 				update1.reset();
 				update3[1].reset();
@@ -141,8 +146,8 @@ describe('the engine', function() {
 				onServerStop();
 			});
 
-			it('should only be for every game', function () {
-				interval = onServerStart();
+			it('should only be for every save', function () {
+				onServerStart();
 
 				expect(update1.callCount).toEqual(3);
 				expect(update3[1].callCount).toEqual(3);
@@ -160,7 +165,7 @@ describe('the engine', function() {
 			});
 
 			it('should only be called when the modes match', function() {
-				interval = onServerStart();
+				onServerStart();
 
 				expect(update4[1].callCount).toEqual(1);
 			});
@@ -181,7 +186,7 @@ describe('the engine', function() {
 
 		it('it should not call any update functions', function() {
 			values['ensemble.paused'] = true;
-			interval = onServerStart(1);
+			onServerStart(1);
 			expect(update1.called).toBe(false);
 			expect(update2.called).toBe(false);
 			expect(update3[1].called).toBe(false);

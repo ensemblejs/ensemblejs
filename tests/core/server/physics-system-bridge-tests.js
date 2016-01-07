@@ -44,10 +44,10 @@ var scopedState = {
 
 var makeTestible = require('../../support').makeTestible;
 
-var game = { id: 2, mode: 'game' };
+var save = { id: 2, mode: 'save' };
 
 describe('physics system bridge', function () {
-  describe('on game ready', function () {
+  describe('on save ready', function () {
     describe('a physics map with one source key', function () {
       beforeEach(function () {
         var physicsMap = ['*', {
@@ -66,7 +66,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnGameReady()(game);
+        bridge[1].OnSaveReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -100,7 +100,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnGameReady()(game);
+        bridge[1].OnSaveReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -137,7 +137,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnGameReady()(game);
+        bridge[1].OnSaveReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -175,11 +175,11 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnGameReady()(game);
+        bridge[1].OnSaveReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
-        expect(physicsSystem.register.firstCall.args).toEqual([2, 'keyA', 'static3', { position: { x: -100, y: -100}, width: 700, height: 100}
+        expect(physicsSystem.register.firstCall.args).toEqual([2, 'keyA', 'static1', { position: { x: -100, y: -100}, width: 700, height: 100}
         ]);
       });
 
@@ -207,7 +207,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnGameReady()({id: 2, mode: 'arcade'});
+        bridge[1].OnSaveReady()({id: 2, mode: 'arcade'});
       });
 
       it('should pass the source state to the physics system', function () {
@@ -228,7 +228,7 @@ describe('physics system bridge', function () {
     });
   });
 
-  describe('dealing with multiple games', function () {
+  describe('dealing with multiple saves', function () {
     beforeEach(function () {
       var map1 = ['*', {'key1': ['source.state'] }];
       var map2 = ['*', {'key2': ['source.state'] }];
@@ -245,8 +245,8 @@ describe('physics system bridge', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      bridge[1].OnGameReady()({id: 1, mode: 'arcade'});
-      bridge[1].OnGameReady()({id: 2, mode: 'arcade'});
+      bridge[1].OnSaveReady()({id: 1, mode: 'arcade'});
+      bridge[1].OnSaveReady()({id: 2, mode: 'arcade'});
     });
 
     it('should pass the source state to the physics system', function () {
@@ -277,30 +277,33 @@ describe('physics system bridge', function () {
   describe('on physics frame', function () {
     var bridge;
 
+    var onPhysicsFrame;
     beforeEach(function () {
       var physicsMap = ['*', {
         'key': ['source.state']
       }];
 
-      bridge = makeTestible('core/client/physics-system-bridge', {
+      bridge = makeTestible('core/server/physics-system-bridge', {
         PhysicsMap: [physicsMap],
         StateTracker: tracker,
         PhysicsSystem: physicsSystem,
         StateAccess: stateAccess
       });
 
+      onPhysicsFrame = bridge[1].OnPhysicsFrame();
+
       physicsSystem.tick.reset();
     });
 
     it('should call tick on the physics system', function () {
-      bridge[1].OnPhysicsFrame()(scopedState, 0.15);
+      onPhysicsFrame(scopedState, 0.15);
 
       expect(physicsSystem.tick.firstCall.args).toEqual([0.15]);
     });
 
     describe('when nothing is returned', function () {
       it('should return nothing', function () {
-        expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual(undefined);
+        expect(onPhysicsFrame(scopedState, 0.15)).toEqual(undefined);
       });
     });
 
@@ -323,7 +326,7 @@ describe('physics system bridge', function () {
 
       describe('simple objects', function () {
         it('should update the state models with the new physics values', function () {
-          expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual({
+          expect(onPhysicsFrame(scopedState, 0.15)).toEqual({
             source: {
               state: {
                 position: { x: 14, y: 45 }
@@ -341,7 +344,7 @@ describe('physics system bridge', function () {
         });
 
         it('should be able to handle keys that match arrays', function () {
-          expect(bridge[1].OnPhysicsFrame()(scopedState, 0.15)).toEqual({
+          expect(onPhysicsFrame(scopedState, 0.15)).toEqual({
             source: {
               state: {
                 position: { x: 14, y: 45 }

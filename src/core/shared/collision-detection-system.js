@@ -33,23 +33,23 @@ module.exports = {
       hasStarted = remove(hasStarted, collisionKey);
     }
 
-    function createKey (gameId, key1, key2) {
-      return [gameId, ':', key1, ':', key2].join('');
+    function createKey (saveId, key1, key2) {
+      return [saveId, ':', key1, ':', key2].join('');
     }
 
-    function detectCollisions (map, gameId, callbackDelegate) {
+    function detectCollisions (map, saveId, callbackDelegate) {
       each(map, function (targets, aKey) {
         each(targets, function (target) {
-          var aShapes = physicsSystem().getByPhysicsKey(gameId, aKey);
+          var aShapes = physicsSystem().getByPhysicsKey(saveId, aKey);
 
           function doCollisionTest (bKey) {
             var collided = false;
 
-            var bShapes = physicsSystem().getByPhysicsKey(gameId, bKey);
+            var bShapes = physicsSystem().getByPhysicsKey(saveId, bKey);
 
             function createOnCollisionCallback () {
               collided = true;
-              onCollision(target, createKey(gameId, aKey, bKey), callbackDelegate);
+              onCollision(target, createKey(saveId, aKey, bKey), callbackDelegate);
             }
 
             each(aShapes, function(a) {
@@ -63,11 +63,11 @@ module.exports = {
                 }
 
                 if (!test(a, b, createOnCollisionCallback)) {
-                  if (!contains(hasStarted, createKey(gameId, aKey, bKey))) {
+                  if (!contains(hasStarted, createKey(saveId, aKey, bKey))) {
                     return;
                   }
 
-                  endCollision(target, createKey(gameId, aKey, bKey), callbackDelegate);
+                  endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate);
 
                   collided = true;
                 }

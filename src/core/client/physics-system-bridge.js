@@ -14,13 +14,13 @@ module.exports = {
   deps: ['DefinePlugin', 'PhysicsMap', 'StateTracker', 'PhysicsSystem', 'StateAccess'],
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
-    function wireupDynamic (gameId, physicsKey, sourceKey) {
-      physicsSystem().register(gameId, physicsKey, sourceKey, state().for(gameId).unwrap(sourceKey));
-      tracker().onChangeOf(sourceKey, physicsSystem().updated(gameId, sourceKey));
+    function wireupDynamic (saveId, physicsKey, sourceKey) {
+      physicsSystem().register(saveId, physicsKey, sourceKey, state().for(saveId).unwrap(sourceKey));
+      tracker().onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey));
     }
 
-    function wireupStatic (gameId, physicsKey, source) {
-      physicsSystem().register(gameId, physicsKey, 'static' + sequence.next('static-physics'), source);
+    function wireupStatic (saveId, physicsKey, source) {
+      physicsSystem().register(saveId, physicsKey, 'static' + sequence.next('static-physics'), source);
     }
 
     function OnClientReady (mode) {
@@ -54,17 +54,17 @@ module.exports = {
 
         var newState = {};
         each(changes, function (stateKey) {
-          var gameState = state.unwrap(stateKey);
+          var saveState = state.unwrap(stateKey);
           var physicsState = physicsSystem().get(stateKey);
 
-          set(newState, stateKey, replaceIfPresent(gameState, physicsState));
+          set(newState, stateKey, replaceIfPresent(saveState, physicsState));
         });
 
         return newState;
       };
     }
 
-    define()('OnClientReady', ['GameMode'], OnClientReady);
+    define()('OnClientReady', ['SaveMode'], OnClientReady);
     define()('OnPhysicsFrame', OnPhysicsFrame);
   }
 };

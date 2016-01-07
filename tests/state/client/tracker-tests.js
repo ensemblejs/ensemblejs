@@ -375,7 +375,7 @@ describe('StateTracker', function () {
 
 	describe('on packet', function () {
 		it('should update the latest server state', function () {
-			onIncomingServerPacket({id: 1, gameState: {prop: 'c'}});
+			onIncomingServerPacket({id: 1, saveState: {prop: 'c'}});
 			expect(plugin.deps().CurrentServerState().get(the('prop'))).toEqual('c');
 		});
 	});

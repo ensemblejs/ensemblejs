@@ -30,7 +30,7 @@ describe('the socket client', function () {
 	  createFakeDom(html, function (window) {
 	  	sut = makeTestible('core/client/socket-client', {
 				Window: window,
-				GameMode: 'arcade',
+				SaveMode: 'arcade',
 				ServerUrl: 'http://ensemblejs.com',
 				On: fakeOn,
 				Time: fakeTime,
@@ -68,10 +68,10 @@ describe('the socket client', function () {
 			expect(io.connect.firstCall.args[0]).toEqual('http://ensemblejs.com/arcade/primary');
 		});
 
-		it('should send gameId', function () {
+		it('should send saveId', function () {
 			client.connect();
 
-			expect(socket.emit.firstCall.args[0]).toEqual('gameId');
+			expect(socket.emit.firstCall.args[0]).toEqual('saveId');
 			expect(socket.emit.callCount).toEqual(1);
 		});
 	});

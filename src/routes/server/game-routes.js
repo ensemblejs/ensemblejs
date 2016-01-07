@@ -10,8 +10,6 @@ var each = require('lodash').each;
 
 function buildJson (project, player) {
   var json = {
-    name: project.name,
-    modes: project.modes,
     game: {
       id: project.id,
       name: project.name,
@@ -29,7 +27,7 @@ function buildJson (project, player) {
     }]
   };
 
-   each(project.modes, function(mode) {
+  each(project.modes, function(mode) {
     json.links.push({
       name: mode,
       what: '/save/new',

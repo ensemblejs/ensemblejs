@@ -9,7 +9,7 @@ module.exports = {
   func: function CollisionDetectionBridge (define, maps, collisionDetectionSystem) {
 
     function OnPhysicsFrame (mode) {
-      return function callSystemWithRelevantMapsAndGameId (state, delta) {
+      return function callSystemWithRelevantMapsAndSaveId (state, delta) {
         var changes = [];
 
         forEachMode(maps(), mode(), function (map) {
@@ -29,6 +29,6 @@ module.exports = {
       };
     }
 
-    define()('OnPhysicsFrame', ['GameMode'], OnPhysicsFrame);
+    define()('OnPhysicsFrame', ['SaveMode'], OnPhysicsFrame);
   }
 };

@@ -36,11 +36,11 @@ function callEachPlugin (plugins, params) {
   });
 }
 
-function callEachWithMutation (plugins, mutator, gameId, params) {
+function callEachWithMutation (plugins, mutator, saveId, params) {
   params = params || [];
 
   each(plugins, function eachWithMutation (callback) {
-    mutator()(gameId, callback.apply(undefined, params));
+    mutator()(saveId, callback.apply(undefined, params));
   });
 }
 
@@ -51,11 +51,15 @@ function callForMode (plugins, mode, params) {
   });
 }
 
-function callForModeWithMutation (plugins, mutator, game, params) {
-  var forMode = filterPluginsByMode(plugins, game.mode);
+function callForModeWithMutation (plugins, mutator, save, params) {
+  var forMode = filterPluginsByMode(plugins, save.mode);
   each(forMode, function callEachAndMutate (plugin) {
-    mutator()(game.id, last(plugin).apply(undefined, params));
+    mutator()(save.id, last(plugin).apply(undefined, params));
   });
+}
+
+function stripMode(pluginAndMode) {
+  return last(pluginAndMode);
 }
 
 module.exports = {
@@ -65,5 +69,6 @@ module.exports = {
   callForModeWithMutation: callForModeWithMutation,
   filterPluginsByMode: filterPluginsByMode,
   isApplicable: isApplicable,
-  forEachMode: forEachMode
+  forEachMode: forEachMode,
+  stripMode: stripMode
 };

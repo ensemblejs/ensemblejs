@@ -1,8 +1,9 @@
 'use strict';
 
 var expect = require('expect');
+var sinon = require('sinon');
 var makeTestible = require('../support').makeTestible;
-var logger = require('../fake/logger');
+var logger = require('../../src/logging/server/logger').logger;
 
 describe('physics map validator', function () {
   function makeValidator(map) {
@@ -13,7 +14,11 @@ describe('physics map validator', function () {
   }
 
   beforeEach(function () {
-    logger.error.reset();
+    sinon.spy(logger, 'error');
+  });
+
+  afterEach(function () {
+    logger.error.restore();
   });
 
   it('runs on server start', function () {
@@ -38,7 +43,7 @@ describe('physics map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['PhysicsMap entry "key" must have at least one entry.']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key'}, 'PhysicsMap entry must have at least one entry.']);
     expect(logger.error.callCount).toEqual(1);
   });
 
@@ -47,7 +52,7 @@ describe('physics map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['PhysicsMap entry "key" must have either strings or object sources.']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key'}, 'PhysicsMap entry must have either strings or object sources.']);
     expect(logger.error.callCount).toEqual(3);
   });
 
@@ -56,7 +61,7 @@ describe('physics map validator', function () {
     var validator = makeValidator(map);
     validator.OnServerStart()();
 
-    expect(logger.error.firstCall.args).toEqual(['PhysicsMap entry "key" must have at least one entry.']);
+    expect(logger.error.firstCall.args).toEqual([{key: 'key'}, 'PhysicsMap entry must have at least one entry.']);
     expect(logger.error.callCount).toEqual(1);
   });
 });

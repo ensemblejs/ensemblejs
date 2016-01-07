@@ -18,7 +18,7 @@ module.exports = {
     var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
     var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
 
-    define()('OnClientReady', ['GameMode'], function OnGameReady (mode) {
+    define()('OnClientReady', ['SaveMode'], function OnClientReady (mode) {
       return function loadTriggerMaps () {
 
         function loadMapsForMode (map) {

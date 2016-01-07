@@ -1,13 +1,21 @@
 'use strict';
 
 var expect = require('expect');
-var fakeLogger = require('../fake/logger');
-var config = require('../../src/util/config').get(fakeLogger);
+var sinon = require('sinon');
+
+var logger = require('../../src/logging/server/logger').logger;
+var config = require('../../src/util/config').get();
 
 describe('config', function () {
   beforeEach(function () {
+    sinon.spy(logger, 'error');
+
     config.ensemble.minPlayers = 1;
     config.ensemble.maxPlayers = 1;
+  });
+
+  afterEach(function () {
+    logger.error.restore();
   });
 
   it('should return the property as defined in the config', function () {
@@ -46,13 +54,13 @@ describe('config', function () {
     });
 
     it('should log an error if the minPlayers is more than the maxPlayers', function () {
-      fakeLogger.error.reset();
+      logger.error.reset();
       expect(config.minPlayers('invalid')).toEqual(2);
-      expect(fakeLogger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
+      expect(logger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
 
-      fakeLogger.error.reset();
+      logger.error.reset();
       expect(config.maxPlayers('invalid')).toEqual(1);
-      expect(fakeLogger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
+      expect(logger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
     });
   });
 });

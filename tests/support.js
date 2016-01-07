@@ -41,6 +41,7 @@ function plugin () {
 }
 
 function makeTestible(pathToModule, explicitDeps) {
+  explicitDeps = explicitDeps || {};
   var deps = [];
   var support = plugin();
   var requiredPlugin = require(pathToSrc + pathToModule);
@@ -76,6 +77,9 @@ function gameScopedState (stateCallback) {
           return stateCallback()[namespace][key];
         }
       };
+    },
+    get: function (key) {
+      return stateCallback()[key];
     }
   };
 }

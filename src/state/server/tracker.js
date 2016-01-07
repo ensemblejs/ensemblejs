@@ -9,11 +9,12 @@ var clone = require('lodash').clone;
 var find = require('lodash').find;
 var where = require('lodash').where;
 var get = require('lodash').get;
+var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'StateTracker',
-  deps: ['DefinePlugin', 'Logger'],
-  func: function StateTracker (define, logger) {
+  deps: ['DefinePlugin'],
+  func: function StateTracker (define) {
     var priorState;
     var currentState;
     var changes = [];
@@ -42,78 +43,78 @@ module.exports = {
       callback.apply(undefined, args);
     }
 
-    function hasChanged (f, gameId) {
+    function hasChanged (f, saveId) {
       if (priorState === undefined) { return true; }
 
-      return !isEqual(f(priorState[gameId]), f(currentState[gameId]));
+      return !isEqual(f(priorState[saveId]), f(currentState[saveId]));
     }
 
-    function currentValue (f, gameId) {
+    function currentValue (f, saveId) {
       if (currentState === undefined) {
         return undefined;
       }
 
-      return f(currentState[gameId]);
+      return f(currentState[saveId]);
     }
 
-    function priorValue (f, gameId) {
+    function priorValue (f, saveId) {
       if (priorState === undefined) {
         return undefined;
       }
 
-      return f(priorState[gameId]);
+      return f(priorState[saveId]);
     }
 
-    function currentElement (f, model, gameId) {
+    function currentElement (f, model, saveId) {
       if (currentState === undefined) {
         return undefined;
       }
 
-      return find(f(currentState[gameId]), {id: model.id});
+      return find(f(currentState[saveId]), {id: model.id});
     }
 
-    function priorElement (f, model, gameId) {
+    function priorElement (f, model, saveId) {
       if (priorState === undefined) {
         return undefined;
       }
 
-      return find(f(priorState[gameId]), {id: model.id});
+      return find(f(priorState[saveId]), {id: model.id});
     }
 
-    function elementAdded (f, model, gameId) {
-      return (where(f(priorState[gameId]), {id: model.id}).length === 0);
+    function elementAdded (f, model, saveId) {
+      return (where(f(priorState[saveId]), {id: model.id}).length === 0);
     }
 
-    function elementRemoved (f, model, gameId) {
-      return (where(f(currentState[gameId]), {id: model.id}).length === 0);
+    function elementRemoved (f, model, saveId) {
+      return (where(f(currentState[saveId]), {id: model.id}).length === 0);
     }
 
-    function elementChanged (f, model, gameId) {
+    function elementChanged (f, model, saveId) {
       if (priorState === undefined) { return true; }
 
-      var current = where(f(currentState[gameId]), {id: model.id});
-      var prior = where(f(priorState[gameId]), {id: model.id});
+      var current = where(f(currentState[saveId]), {id: model.id});
+      var prior = where(f(priorState[saveId]), {id: model.id});
       return !isEqual(current, prior);
     }
 
     function handleObjects (change) {
-      if (hasChanged(change.focus, change.gameId)) {
+      if (hasChanged(change.focus, change.saveId)) {
         if (!change.when) {
           invokeCallback(
             change.callback,
-            currentValue(change.focus, change.gameId),
-            priorValue(change.focus, change.gameId),
+            currentValue(change.focus, change.saveId),
+            priorValue(change.focus, change.saveId),
             change.data
           );
 
           return;
         }
 
-        if (change.when(currentValue(change.focus, change.gameId))) {
+        if (change.when(currentValue(change.focus, change.saveId))) {
           invokeCallback(
             change.callback,
-            currentValue(change.focus, change.gameId),
-            priorValue(change.focus, change.gameId),
+            currentValue(change.focus, change.saveId),
+            priorValue(change.focus, change.saveId),
             change.data
           );
         }
@@ -121,12 +122,12 @@ module.exports = {
     }
 
     function handleArrays (change) {
-      each(change.operatesOn(change.focus, change.gameId), function (model) {
-        if (change.detectionFunc(change.focus, model, change.gameId)) {
+      each(change.operatesOn(change.focus, change.saveId), function (model) {
+        if (change.detectionFunc(change.focus, model, change.saveId)) {
           invokeCallbackWithId(
             change.callback,
-            currentElement(change.focus, model, change.gameId),
-            priorElement(change.focus, model, change.gameId),
+            currentElement(change.focus, model, change.saveId),
+            priorElement(change.focus, model, change.saveId),
             change.data
           );
         }
@@ -134,7 +135,7 @@ module.exports = {
     }
 
     function sendCurrentContentsNow (change) {
-      each(currentValue(change.focus, change.gameId), function(element) {
+      each(currentValue(change.focus, change.saveId), function(element) {
         invokeCallbackWithId(change.callback, element, undefined, change.data);
       });
     }
@@ -174,7 +175,7 @@ module.exports = {
       return function stateFromDotString (state) {
         var prop = get(state, model);
         if (prop === undefined) {
-          logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          logger.warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
         }
 
         return prop;
@@ -192,18 +193,18 @@ module.exports = {
     }
 
     return {
-      for: function filterTrackerByGameId (gameId) {
+      for: function filterTrackerBySaveId (saveId) {
 
         function onChangeOf (model, callback, data) {
           var change = {
-            gameId: gameId,
+            saveId: saveId,
             type: 'object',
             focus: functionifyDotStrings(model),
             callback: callback,
             data: data
           };
 
-          invokeCallback(callback, currentValue(change.focus, gameId), priorValue(change.focus, gameId), data);
+          invokeCallback(callback, currentValue(change.focus, saveId), priorValue(change.focus, saveId), data);
           changes.push(change);
         }
 
@@ -211,7 +212,7 @@ module.exports = {
           var when = functionifyIfRequired(condition);
 
           var change = {
-            gameId: gameId,
+            saveId: saveId,
             type: 'object',
             focus: functionifyDotStrings(model),
             'when': when,
@@ -220,11 +221,11 @@ module.exports = {
           };
 
 
-          if (change.when(currentValue(change.focus, gameId))) {
+          if (change.when(currentValue(change.focus, saveId))) {
             invokeCallback(
               change.callback,
-              currentValue(change.focus, gameId),
-              priorValue(change.focus, gameId),
+              currentValue(change.focus, saveId),
+              priorValue(change.focus, saveId),
               change.data
             );
           }
@@ -234,7 +235,7 @@ module.exports = {
 
         function onElementChanged (focusArray, callback, data) {
           var change = {
-            gameId: gameId,
+            saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
             callback: callback,
@@ -248,7 +249,7 @@ module.exports = {
 
         function onElementAdded (focusArray, onCallback, data) {
           var change = {
-            gameId: gameId,
+            saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
             callback: onCallback,
@@ -264,7 +265,7 @@ module.exports = {
 
         function onElementRemoved (focusArray, callback, data) {
           var change = {
-            gameId: gameId,
+            saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
             callback: callback,

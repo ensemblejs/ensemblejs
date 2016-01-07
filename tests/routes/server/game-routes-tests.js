@@ -5,38 +5,25 @@ var request = require('request');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
 var contains = require('lodash').contains;
-var fakeConfig = require('../../fake/config');
+var config = require('../../../src/util/config');
 var url = require('../../route-testing').url;
-var urlAsJson = require('../../route-testing').urlAsJson;
 
 describe('game routes', function () {
 	var onServerStart;
 	var onServerStop;
 
-	var GamePlayersDataModel = {
-    getSavesForGameAndPlayer: function (gameId, playerId, callback) {
-      callback([
-        {saveId: 1, gameId: 'tetris', playerId: 1234},
-        {saveId: 2, gameId: 'pong', playerId: 1234}
-      ]);
-    }
-  };
-  var ActualGameDataModel = {
-  	getGame: function (gameId, callback) {
-  		callback({
-  			_id: 'distributedlife+pong',
-  			name: 'Pong'
-  		});
-  	}
-  };
-  sinon.spy(GamePlayersDataModel, 'getSavesForGameAndPlayer');
-
-	before(function() {
-		fakeConfig.stub();
-		var routes = makeTestible('routes/server/game-routes', {
-			GamePlayersDataModel: GamePlayersDataModel,
-			ActualGameDataModel: ActualGameDataModel
+	beforeEach(function() {
+		sinon.stub(config, 'get').returns({
+			debug: {
+        develop: false
+      },
+      logging: {
+        expressBunyanLogger: {
+          excludes: []
+        }
+      }
 		});
+		var routes = makeTestible('routes/server/game-routes');
 		var sut = makeTestible('core/server/web-server', {
 			Routes: [routes[0]]
 		});
@@ -45,9 +32,9 @@ describe('game routes', function () {
 		onServerStop = sut[1].OnServerStop();
 	});
 
-	after(function () {
+	afterEach(function () {
+    config.get.restore();
     onServerStop();
-    fakeConfig.restore();
   });
 
 	describe('the index', function () {
@@ -57,11 +44,11 @@ describe('game routes', function () {
 		};
 
 		describe('when there is no game mode specified', function () {
-			before(function () {
-				onServerStart('../dummy', {modes: ['game']});
+			beforeEach(function () {
+				onServerStart('../dummy', {modes: ['default']});
 			});
 
-			after(function () {
+			afterEach(function () {
 				onServerStop();
 			});
 
@@ -70,7 +57,7 @@ describe('game routes', function () {
 					expect(res.statusCode).toEqual(200);
 
 					var json = JSON.parse(res.body);
-					expect(json.modes).toEqual(['game']);
+					expect(json.game.modes).toEqual(['default']);
 					done(err);
 				}).end();
 			});
@@ -98,7 +85,7 @@ describe('game routes', function () {
 						what: '/saves/new',
 						url: '/saves',
 						method: 'POST',
-						data: { mode: 'game' }
+						data: { mode: 'default' }
 					}));
 					done(err);
 				}).end();
@@ -106,11 +93,11 @@ describe('game routes', function () {
 		});
 
 		describe('when there is more than one game mode', function () {
-			before(function () {
+			beforeEach(function () {
 				onServerStart('../dummy',	{ modes: ['easy', 'hard']});
 			});
 
-			after(function () {
+			afterEach(function () {
 				onServerStop();
 			});
 
@@ -119,7 +106,7 @@ describe('game routes', function () {
 					expect(res.statusCode).toEqual(200);
 
 					var json = JSON.parse(res.body);
-					expect(json.modes).toEqual(['easy', 'hard']);
+					expect(json.game.modes).toEqual(['easy', 'hard']);
 					expect(contains(json.links, {
 						what: '/saves/new',
 						url: '/saves',

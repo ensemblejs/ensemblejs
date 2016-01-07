@@ -7,7 +7,7 @@ var buildContinueSaveJson = require('../json-builders/continue-save');
 function continueSave (savesList, on) {
   function loadSaveIfNotLoaded (save) {
     if (!save.loaded) {
-      on.loadGame(save);
+      on.loadSave(save);
     }
 
     return save;

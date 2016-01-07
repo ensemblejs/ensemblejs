@@ -4,8 +4,9 @@ var appRoot = require('app-root-path');
 var defaultsDeep = require('lodash').defaultsDeep;
 var select = require('lodash').select;
 var once = require('lodash').once;
+var logger = require('../logging/server/logger').logger;
 
-function getConfig (logger) {
+function getConfig () {
   var config = {};
 
   try {

@@ -4,7 +4,7 @@ var icon = require('../../public/partials/pause-icon.jade');
 
 module.exports = {
   type: 'PauseResume',
-  deps: ['On', '$', 'GameMode', 'DefinePlugin'],
+  deps: ['On', '$', 'SaveMode', 'DefinePlugin'],
   func: function PauseResume (on, $, mode, define) {
 
     function pause () {

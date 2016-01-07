@@ -6,7 +6,7 @@ var parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
   type: 'InputToAcknowledgementMapper',
-  deps: ['DefinePlugin', 'ActionMap', 'ClientAcknowledgements', 'GameMode', 'StateAccess'],
+  deps: ['DefinePlugin', 'ActionMap', 'ClientAcknowledgements', 'SaveMode', 'StateAccess'],
   func: function (define, actionMaps, acknowledgements, mode, state) {
     define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
       return function mapActionsToAcks (packet) {
@@ -21,7 +21,7 @@ module.exports = {
         var currentInput = {
           rawData: packet,
           playerId: packet.playerId,
-          game: {
+          save: {
             id: 'client',
             mode: mode()
           }

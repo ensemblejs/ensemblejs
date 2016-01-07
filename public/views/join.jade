@@ -1,7 +1,7 @@
-h1 #{name}
+h1 #{game.name}
 H2 Welcome
 p #{player.name}
 h2 Enter the secret code to join this game
-form(id="a", method="#{join.method}", action="#{join.uri}")
+form(id="a", method=join.method, action=join.uri)
   input(name="secret", value="" placeholder="Tell me a secret...")
   a(onclick="document.getElementById('a').submit()") #{join.name}

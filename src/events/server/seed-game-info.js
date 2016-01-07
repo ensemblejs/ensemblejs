@@ -1,12 +1,15 @@
 'use strict';
 
+var config = require('../../util/config');
+
 module.exports = {
-  type: 'OnNewGame',
-  func: function OnNewGame () {
-    return function seedGameInfo (game) {
+  type: 'OnNewSave',
+  func: function OnNewSave () {
+    return function seedSaveInfo (save) {
       return ['ensemble', {
-        gameId: game.id,
-        mode: game.mode
+        saveId: save.id,
+        gameId: config.get().game.id,
+        mode: save.mode
       }];
     };
   }

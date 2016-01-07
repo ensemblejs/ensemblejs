@@ -26,7 +26,7 @@ physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
 physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
 
 var data = {
-  'ensemble.gameId': 3,
+  'ensemble.saveId': 3,
   'ensemble.mode': 'arcade'
 };
 var state = {
@@ -89,7 +89,7 @@ describe('the collision detection bridge', function () {
       var onCollisionCallback = sinon.spy();
 
       beforeEach(function () {
-        cd.detectCollisions = function (map, gameId, callbackDelegate) {
+        cd.detectCollisions = function (map, saveId, callbackDelegate) {
           callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]});
         };
 

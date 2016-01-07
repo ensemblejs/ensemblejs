@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('../../util/config').get();
+var config = require('../../util/config');
 var saves = require('../../util/models/saves');
 var saveCommon = require('../../util/workflow/save-common');
 
@@ -9,7 +9,7 @@ module.exports = {
   func: function DebugRoutes () {
 
     function dumpSaveData (req, res) {
-      return saves.get(req.params.saveId)
+      return saves.getById(req.params.saveId)
         .then(saveCommon.errorIfSaveDoesNotExist)
         .then(function returnDataAsJson (save) {
           res.json(save);
@@ -17,7 +17,7 @@ module.exports = {
     }
 
     function configure (app) {
-      if (!config.debug.develop) {
+      if (!config.get().debug.develop) {
         return;
       }
 

@@ -1,6 +1,7 @@
 {
   "game": {
-    "title": "Not Set"
+    "id": "ensemble+notset",
+    "name": "Not Set"
   },
   "client": {
     "aspectRatio": 2.6,
@@ -34,8 +35,7 @@
       "CollisionDetectionSystem",
       "Config",
       "CurrentState",
-      "GamesDataModel",
-      "GamesList",
+      "SavesList",
       "LowestInputProcessed",
       "On",
       "OnIncomingClientInputPacket",

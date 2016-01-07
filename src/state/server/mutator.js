@@ -10,17 +10,20 @@ var each = require('lodash').each;
 var select = require('lodash').select;
 var get = require('lodash').get;
 
+var logger = require('../../logging/server/logger').logger;
+var saves = require('../../util/models/saves');
+
 var root = {};
 
 module.exports = {
   type: 'StateMutator',
-  deps: ['DefinePlugin', 'Logger', 'On'],
-  func: function StateMutator (define, logger, on) {
+  deps: ['DefinePlugin'],
+  func: function StateMutator (define) {
 
     define()('RawStateAccess', function RawStateAccess () {
       return {
-        for: function forGame (gameId) {
-          return root[gameId];
+        for: function forSave (saveId) {
+          return root[saveId];
         },
         all: function all () {
           return root;
@@ -28,29 +31,29 @@ module.exports = {
       };
     });
 
-    function resetGameOnLoad (state) {
+    function resetSaveOnLoad (state) {
       state.ensemble.waitingForPlayers = true;
       state.ensemble.paused = true;
 
       return state;
     }
 
-    define()('OnLoadGame', ['GamesDataModel'], function (games) {
-      return function loadGameFromDb (game) {
-        function store (state) {
-          root[game.id] = resetGameOnLoad(state);
+    define()('OnLoadSave', ['On'], function (on) {
+      return function loadSaveFromDb (save) {
+        function keepInMemory (state) {
+          root[save.id] = resetSaveOnLoad(state);
 
-          on().gameReady(game);
+          on().saveReady(save);
         }
 
-        games().get(game.id, store);
+        return saves.getById(save.id).then(keepInMemory);
       };
     });
 
     function accessState(node, key) {
       var prop = get(node, key);
       if (prop === undefined) {
-        logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+        logger.warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
       }
 
       return prop;
@@ -80,21 +83,21 @@ module.exports = {
 
     define()('StateAccess', function () {
       return {
-        for: function forGame (gameId) {
+        for: function forSave (saveId) {
           return {
             get: function getUsingDotString (key) {
-              return provideReadAccessToState(root[gameId])(key);
+              return provideReadAccessToState(root[saveId])(key);
             },
             unwrap: function unwrap (key) {
-              return accessAndCloneState(root[gameId], key);
+              return accessAndCloneState(root[saveId], key);
             },
             for: function forNamespace (namespace) {
               return {
                 get: function get (key) {
-                  return provideReadAccessToState(root[gameId][namespace])(key);
+                  return provideReadAccessToState(root[saveId][namespace])(key);
                 },
                 unwrap: function unwrap (key) {
-                  return accessAndCloneState(root[gameId][namespace], key);
+                  return accessAndCloneState(root[saveId][namespace], key);
                 },
               };
             },
@@ -103,18 +106,18 @@ module.exports = {
                 for: function forNamespace (namespace) {
                   return {
                     get: function get (key) {
-                      return provideReadAccessToState(root[gameId].player[playerId][namespace])(key);
+                      return provideReadAccessToState(root[saveId].player[playerId][namespace])(key);
                     },
                     unwrap: function unwrap (key) {
-                      return accessAndCloneState(root[gameId].player[playerId][namespace], key);
+                      return accessAndCloneState(root[saveId].player[playerId][namespace], key);
                     },
                   };
                 },
                 get: function get (key) {
-                  return provideReadAccessToState(root[gameId].player[playerId])(key);
+                  return provideReadAccessToState(root[saveId].player[playerId])(key);
                 },
                 unwrap: function unwrap (key) {
-                  return accessAndCloneState(root[gameId].player[playerId], key);
+                  return accessAndCloneState(root[saveId].player[playerId], key);
                 },
               };
             }
@@ -125,11 +128,11 @@ module.exports = {
 
     function isValidDotStringResult(result) {
       if (result.length !== 2) {
-        logger().error(result, 'Dot.String support for state mutation expects an array of length 2.');
+        logger.error(result, 'Dot.String support for state mutation expects an array of length 2.');
         return false;
       }
       if (!isString(result[0])) {
-        logger().error(result, 'Dot.String support for state mutation requires the first entry be a string.');
+        logger.error(result, 'Dot.String support for state mutation requires the first entry be a string.');
         return false;
       }
       if (result[1] === null) {
@@ -184,7 +187,7 @@ module.exports = {
       return result;
     }
 
-    function mutateNonArray (gameId, result) {
+    function mutateNonArray (saveId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
@@ -195,8 +198,8 @@ module.exports = {
 
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
-      root[gameId] = root[gameId] || {};
-      root[gameId] = merge(root[gameId], result, function mergeArrays (a, b) {
+      root[saveId] = root[saveId] || {};
+      root[saveId] = merge(root[saveId], result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
     }
@@ -205,21 +208,21 @@ module.exports = {
       return select(result, isArray).length === result.length;
     }
 
-    function mutateArrayOfArrays (gameId, result) {
-      each(result, function(resultItem) {
-        handleResult(gameId, resultItem);
-      });
-    }
-
-    function handleResult (gameId, result) {
+    function handleResult (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
 
+      function mutateArrayOfArrays (saveId, result) {
+        each(result, function(resultItem) {
+          handleResult(saveId, resultItem);
+        });
+      }
+
       if (isArrayOfArrays(result)) {
-        mutateArrayOfArrays(gameId, result);
+        mutateArrayOfArrays(saveId, result);
       } else {
-        mutateNonArray(gameId, result);
+        mutateNonArray(saveId, result);
       }
     }
 

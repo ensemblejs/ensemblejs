@@ -19,12 +19,13 @@ function shareSave (project, savesList) {
 
     function buildShareJson (save) {
       var json = {
-        name: project.name,
         game: buildGameHash(project),
         player: buildPlayerHash(player),
-        shareUrl: urlBuilder(hostname).saves(save.id).join(),
-        shortUrl: undefined,
-        secret: undefined,
+        shareInfo: {
+          fullUrl: urlBuilder(hostname).saves(save.id).join(),
+          shortUrl: undefined,
+          secret: undefined,
+        },
         links: [{
           what: '/save/continue',
           uri: urlBuilder(hostname).saves(save.id).continue(),
@@ -59,9 +60,9 @@ function shareSave (project, savesList) {
         };
       }
 
-      function addSecretToPayload (game) {
+      function addSecretToPayload (save) {
         return {
-          secret: game.ensemble.secret
+          secret: save.ensemble.secret
         };
       }
 
@@ -76,7 +77,7 @@ function shareSave (project, savesList) {
       var url = urlBuilder(hostname).saves(save.id).join();
       return Bluebird
         .all([
-          saves.get(save.id).then(addSecretToPayload),
+          saves.getById(save.id).then(addSecretToPayload),
           urlShortenerService.shorten(url).then(addShortUrlToLinks)
         ])
         .then(mergeResponses);

@@ -2,26 +2,27 @@
 
 var isEqual = require('lodash').isEqual;
 var logger = require('../../logging/server/logger').logger;
-var mongo = require('../mongo').setup(logger);
-var summaryFromSaveState = require('../adapter').summaryFromSaveState;
+var mongo = require('../mongo');
+var summarise = require('../adapters/save-adapter').summarise;
 
 var collection = 'saves';
 
-function all () {
-  return mongo.getAll(collection, summaryFromSaveState);
+function getByGame (gameId) {
+  var filter = { 'ensemble.gameId': gameId };
+  return mongo.getAllByFilter(collection, filter, summarise);
 }
 
-function get (saveId) {
+function getById (saveId) {
   return mongo.getById(collection, saveId);
 }
 
 function save (data, now) {
   if (!data) {
-    logger.error('Can\'t persist save. No data supplied');
+    logger.error({data: data, now: now}, 'Can\'t persist save. No data supplied');
     return;
   }
   if (!now) {
-    logger.error('Can\'t persist save. No timestamp supplied');
+    logger.error({data: data, now: now}, 'Can\'t persist save. No timestamp supplied');
     return;
   }
 
@@ -31,28 +32,30 @@ function save (data, now) {
   return mongo.store(collection, data);
 }
 
-function determineIfGameIsPublic(save) {
+function determineIfSaveIsPublic(save) {
   return isEqual(save.ensemble.secret, 'public');
 }
 
-function isSavePublic (saveId) {
-  return get(saveId).then(determineIfGameIsPublic);
+function isPublic (saveId) {
+  return getById(saveId).then(determineIfSaveIsPublic);
 }
 
 function isSecretCorrect (saveId, suppliedSecret) {
-  return get(saveId)
-    .then(function determineIfSecretIsCorrect(save) {
-      var a = save.ensemble.secret.toLowerCase();
-      var b = suppliedSecret.toLowerCase();
+  function determineIfSecretIsCorrect(save) {
+    var a = save.ensemble.secret.toLowerCase();
+    var b = suppliedSecret.toLowerCase();
 
-      return isEqual(a, b);
-    });
+    return isEqual(a, b);
+  }
+
+  return getById(saveId)
+    .then(determineIfSecretIsCorrect);
 }
 
 module.exports = {
-  all: all,
-  get: get,
+  getByGame: getByGame,
+  getById: getById,
   save: save,
   isSecretCorrect: isSecretCorrect,
-  isSavePublic: isSavePublic
+  isPublic: isPublic
 };

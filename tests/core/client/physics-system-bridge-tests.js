@@ -41,6 +41,17 @@ var defer = require('../../support').defer;
 var makeTestible = require('../../support').makeTestible;
 
 describe('physics system bridge', function () {
+  var sequenceStub;
+
+  beforeEach(function () {
+    var sequence = require('distributedlife-sequence');
+    sequenceStub = sinon.stub(sequence, 'next').returns('1');
+  });
+
+  afterEach(function () {
+    sequenceStub.restore();
+  });
+
   describe('on game ready', function () {
     describe('a physics map with one source key', function () {
       beforeEach(function () {

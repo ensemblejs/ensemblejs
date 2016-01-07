@@ -6,8 +6,7 @@ var Bluebird = require('bluebird');
 var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
-var log = require('../../route-testing').log;
-var fakeConfig = require('../../fake/config');
+var config = require('../../../src/util/config');
 var saves = require('../../../src/util/models/saves');
 
 describe('debug routes', function () {
@@ -17,7 +16,7 @@ describe('debug routes', function () {
   describe('/saves/:saveId/data', function () {
     describe('when debug enabled', function () {
       beforeEach(function() {
-        fakeConfig.stub({
+        sinon.stub(config, 'get').returns({
           debug: {
             develop: true
           },
@@ -29,7 +28,7 @@ describe('debug routes', function () {
         });
 
         var routes = makeTestible('routes/server/debug-routes');
-        sinon.stub(saves, 'get').returns(new Bluebird(function(resolve) {
+        sinon.stub(saves, 'getById').returns(new Bluebird(function(resolve) {
           resolve({ some: 'state' });
         }));
 
@@ -44,26 +43,33 @@ describe('debug routes', function () {
       });
 
       afterEach(function () {
-        saves.get.restore();
+        saves.getById.restore();
+        config.get.restore();
         onServerStop();
-        fakeConfig.restore();
       });
 
       it('should return the state of the game', function (done) {
         request(url('/saves/1234/data'), function (err, res) {
-          log(err);
-
           expect(res.statusCode).toEqual(200);
-          expect(saves.get.firstCall.args[0]).toEqual('1234');
+          expect(saves.getById.firstCall.args[0]).toEqual('1234');
           expect(JSON.parse(res.body)).toEqual({ some: 'state'});
-          done();
+          done(err);
         }).end();
       });
     });
 
     describe('when debug disabled', function () {
       beforeEach(function() {
-        fakeConfig.stub();
+        sinon.stub(config, 'get').returns({
+          debug: {
+            develop: false
+          },
+          logging: {
+            expressBunyanLogger: {
+              excludes: []
+            }
+          }
+        });
 
         var routes = makeTestible('routes/server/config-routes');
         var sut = makeTestible('core/server/web-server', {
@@ -77,16 +83,14 @@ describe('debug routes', function () {
       });
 
       afterEach(function () {
+        config.get.restore();
         onServerStop();
-        fakeConfig.restore();
       });
 
       it('should respond with a 404', function (done) {
         request(url('/saves/1234/data'), function (err, res) {
-          log(err);
-
           expect(res.statusCode).toEqual(404);
-          done();
+          done(err);
         }).end();
       });
     });

@@ -1,6 +1,6 @@
 include ../partials/links.jade
 
-h1 #{name}
+h1 #{game.name}
 p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
 H2=__('temp.greeting')
 p #{player.name}
@@ -13,6 +13,8 @@ ul
         +makeLink(link)
 h2 Continue A Game
 each link in links
-  if link.what === '/player/saves'
+  if link.what === '/game/player/saves'
     p
       +makeLink(link)
+
+script(src="/ensemble/js/util/anchor-post-form.js")

@@ -42,19 +42,19 @@ function addPlayerToSave (project, savesList, time) {
       .spread(saveCommon.redirectIfPlayerIsInSave)
       .spread(saveCommon.redirectIfSaveHasNoSpace)
       .spread(passThroughProjectAndTime)
-      .spread(function withPublicGames (save, player, hostname, project, time) {
-        return saves.isSavePublic(save.id)
+      .spread(function withPublicSaves (save, player, hostname, project, time) {
+        return saves.isPublic(save.id)
           .then(function addPlayerIsSaveIsPublic(saveIsPublic) {
             if (saveIsPublic) {
               return saveCommon.addPlayer(save, player, hostname, project, time.present())
-                .spread(saveCommon.redirectToContinueGame);
+                .spread(saveCommon.redirectToContinueSave);
             } else {
               return [save, player, hostname, project];
             }
           });
       })
       .spread(stopPassingProjectAndTimeThrough)
-      .spread(function withPrivateGames (save, player, hostname) {
+      .spread(function withPrivateSaves (save, player, hostname) {
         return restartPromiseChain(save, player, hostname)
           .spread(passThroughSecret)
           .spread(saveCommon.errorIfSecretIsNotSupplied)
@@ -62,7 +62,7 @@ function addPlayerToSave (project, savesList, time) {
           .spread(stopPassingSecretThrough)
           .spread(passThroughProjectAndTime)
           .spread(saveCommon.addPlayer)
-          .spread(saveCommon.redirectToContinueGame);
+          .spread(saveCommon.redirectToContinueSave);
       });
   };
 }

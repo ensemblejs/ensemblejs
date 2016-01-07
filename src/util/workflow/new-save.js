@@ -4,16 +4,16 @@ var uuid = require('node-uuid');
 var saveCommon = require('../workflow/save-common');
 var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
 
-function newSaveGame (project, on, time) {
+function newSave (project, on, time) {
 
-  function createNewSaveGame (mode) {
+  function createNewSave (mode) {
     var newSave = {
       id: uuid.v4(),
       mode: mode
     };
 
-    on.newGame(newSave);
-    on.gameReady(newSave);
+    on.newSave(newSave);
+    on.saveReady(newSave);
 
     return newSave;
   }
@@ -34,11 +34,11 @@ function newSaveGame (project, on, time) {
       .then(saveCommon.errorIfModeIsMissing)
       .then(passThroughProject)
       .spread(saveCommon.errorIfModeIsNotValid)
-      .spread(createNewSaveGame)
+      .spread(createNewSave)
       .then(passThroughPlayerAndHostnameAndProjectAndTime)
       .spread(saveCommon.addPlayer)
-      .spread(saveCommon.redirectToShareGame);
+      .spread(saveCommon.redirectToShareSave);
   };
 }
 
-module.exports = newSaveGame;
+module.exports = newSave;

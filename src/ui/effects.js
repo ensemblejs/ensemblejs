@@ -10,7 +10,7 @@ module.exports = {
     var effects = [];
 
     return function initialiseEffects () {
-      define()('OnRenderFrame', function OnRenderFrame () {
+      define()('OnPhysicsFrame', function OnRenderFrame () {
         return function tickEffects (delta) {
           each(effects, function (effect) {
             effect.tick(delta);

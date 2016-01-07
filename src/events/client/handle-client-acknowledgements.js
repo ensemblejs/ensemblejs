@@ -7,7 +7,7 @@ var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
   type: 'OnOutgoingClientPacket',
-  deps: ['AcknowledgementMap', 'GameMode', 'StateMutator', 'StateAccess'],
+  deps: ['AcknowledgementMap', 'SaveMode', 'StateMutator', 'StateAccess'],
   func: function OnOutgoingClientPacket (acknowledgementMaps, mode, mutate, state) {
 
     function filterUndefinedAckName (acknowledgementMaps, ack) {

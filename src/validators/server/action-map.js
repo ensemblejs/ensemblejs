@@ -4,6 +4,7 @@ var select = require('lodash').select;
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
 var isArray = require('lodash').isArray;
+var logger = require('../../logging/server/logger').logger;
 
 function filterByMissingProperty (records, prop) {
   return select(records, function(record) { return !record[prop]; });
@@ -55,28 +56,28 @@ function checkForShiftCtrlTab (records, key, callback) {
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['ActionMap', 'Logger'],
-  func: function ActionMapValidator (actionMaps, logger) {
+  deps: ['ActionMap'],
+  func: function ActionMapValidator (actionMaps) {
     return function validate () {
 
       function logMissingBothAckAndCall (key) {
-        logger().error('ActionMap "' + key + '" missing "call" or "ack" property');
+        logger.error({key: key}, 'ActionMap missing "call" or "ack" property');
       }
 
       function logNothingAndAck (key) {
-        logger().error('ActionMap "' + key + '" cannot use the "ack" property');
+        logger.error({key: key}, 'ActionMap cannot use the "ack" property');
       }
 
       function logMouseAndAck (key) {
-        logger().error('ActionMap "' + key + '" cannot use the "ack" property');
+        logger.error({key: key}, 'ActionMap cannot use the "ack" property');
       }
 
-      function logCtrlTabNotSupported () {
-        logger().error('ActionMap "tab" has "ctrl" modifier. This is not supported');
+      function logCtrlTabNotSupported (key) {
+        logger.error({key: key}, 'ActionMap "tab" has "ctrl" modifier. This is not supported');
       }
 
-      function logShiftCtrlTabNotSupported () {
-        logger().error('ActionMap "tab" has "ctrl+shift" modifier. This is not supported');
+      function logShiftCtrlTabNotSupported (key) {
+        logger.error({key: key}, 'ActionMap "tab" has "ctrl+shift" modifier. This is not supported');
       }
 
       each(actionMaps(), function (ackMap) {

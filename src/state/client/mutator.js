@@ -49,7 +49,7 @@ module.exports = {
 
     definePlugin()('StateAccess', function StateAccess () {
       return {
-        for: function forGame () {
+        for: function forSave () {
           return {
             get: function get (key) {
               return provideReadAccessToState(root)(key);
@@ -152,7 +152,7 @@ module.exports = {
       return false;
     }
 
-    function mutateNonArray (gameId, result) {
+    function mutateNonArray (saveId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
@@ -170,21 +170,21 @@ module.exports = {
       return select(result, isArray).length === result.length;
     }
 
-    function mutateArrayOfArrays (gameId, result) {
-      each(result, function(resultItem) {
-        handleResult(gameId, resultItem);
-      });
-    }
-
-    function handleResult (gameId, result) {
+    function handleResult (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
 
+      function mutateArrayOfArrays (saveId, result) {
+        each(result, function(resultItem) {
+          handleResult(saveId, resultItem);
+        });
+      }
+
       if (isArrayOfArrays(result)) {
-        mutateArrayOfArrays(gameId, result);
+        mutateArrayOfArrays(saveId, result);
       } else {
-        mutateNonArray(gameId, result);
+        mutateNonArray(saveId, result);
       }
     }
 

@@ -3,7 +3,7 @@
 module.exports = {
   type: 'OnPause',
   func: function OnPause () {
-    return function pauseGame () {
+    return function pauseSave () {
       return ['ensemble.paused', true];
     };
   }

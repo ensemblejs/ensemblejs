@@ -1,11 +1,11 @@
 'use strict';
 
-var appRoot = require('app-root-path');
-var frameworkInfo = require(appRoot + '/node_modules/ensemblejs/package.json');
+var frameworkInfo = require('./util/get-framework-info');
+
 var logger = require('./logging/server/logger').logger;
 var each = require('lodash').each;
 
-var config = require('./util/config').get(logger);
+var config = require('./util/config').get();
 logger.logLevel = config.logging.logLevel;
 
 var plugins = require('./plugins/plug-n-play').configure(
@@ -43,13 +43,13 @@ function runGameAtPath (path) {
   plugins.loadPath(path + '/js/maps');
 
   function publishStartServerEvent (exists) {
-    var project = {
-      modes: exists ? require(path + '/js/modes.json') : ['game'],
+    var game = {
+      modes: exists ? require(path + '/js/modes.json') : ['default'],
       id: config.game.id,
-      name: config.game.title
+      name: config.game.name
     };
 
-    plugins.get('On').serverStart(path, project);
+    plugins.get('On').serverStart(path, game);
   }
 
   require('fs').exists(path + '/js/modes.json', publishStartServerEvent);

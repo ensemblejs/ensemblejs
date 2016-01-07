@@ -192,7 +192,7 @@ module.exports = {
 
     define()('OnIncomingServerPacket', function StateTracker () {
       return function storeLatestServerState (packet) {
-        saveLatestServerState(packet.gameState);
+        saveLatestServerState(packet.saveState);
       };
     });
 

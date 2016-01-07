@@ -8,6 +8,7 @@ var unique = require('lodash').unique;
 var map = require('lodash').map;
 var contains = require('lodash').contains;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
+var logger = require('../../logging/server/logger').logger;
 
 function toggleAck (players, playerId) {
   if (contains(players, playerId)) {
@@ -18,11 +19,11 @@ function toggleAck (players, playerId) {
   }
 }
 
-function ackEvery (action, ack, game, onProgress, onComplete) {
+function ackEvery (action, ack, save, onProgress, onComplete) {
   onComplete(action);
 }
 
-function ackFirstOnly (action, ack, game, onProgress, onComplete) {
+function ackFirstOnly (action, ack, save, onProgress, onComplete) {
   if (action.fired) {
     return;
   }
@@ -34,52 +35,52 @@ function ackFirstOnly (action, ack, game, onProgress, onComplete) {
 
 module.exports = {
   type: 'AcknowledgementProcessing',
-  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'Logger', 'DefinePlugin'],
-  func: function AcknowledgementProcessing (config, mutate, state, acknowledgementMaps, logger, define) {
+  deps: ['Config', 'StateMutator', 'StateAccess', 'AcknowledgementMap', 'DefinePlugin'],
+  func: function AcknowledgementProcessing (config, mutate, state, acknowledgementMaps, define) {
 
     var serverAcks = [];
 
-    function ackOnceForAll (action, ack, game, onProgress, onComplete) {
+    function ackOnceForAll (action, ack, save, onProgress, onComplete) {
       action.players = action.players || [];
       action.fired = action.fired || false;
 
       if (action.fired) {
-        logger().trace(action, 'Action has already fired.');
+        logger.trace(action, 'Action has already fired.');
         return;
       }
 
       action.players = toggleAck(action.players, ack.playerId);
 
-      if (action.players.length === config().maxPlayers(game.mode)) {
-        logger().trace(action, 'Ack for player ' + ack.playerId + '.');
+      if (action.players.length === config().maxPlayers(save.mode)) {
+        logger.trace(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
 
-        logger().trace(action, 'All players have ack\'d.');
+        logger.trace(action, 'All players have ack\'d.');
         onComplete(action);
 
         action.fired = true;
         return true;
       } else {
-        logger().trace(action, 'Ack for player ' + ack.playerId + '.');
+        logger.trace(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
       }
     }
 
     function ackOnceAlreadyFired (action, ack) {
       if (action.fired) {
-        logger().trace(action, 'Action has already fired.');
+        logger.trace(action, 'Action has already fired.');
         return true;
       }
 
       if (contains(action.players, ack.playerId)) {
-        logger().trace(action, 'Player ' + ack.playerId + ' has already fired ack.');
+        logger.trace(action, 'Player ' + ack.playerId + ' has already fired ack.');
         return true;
       }
 
       return false;
     }
 
-    function ackOnceEach (action, ack, game, onProgress, onComplete) {
+    function ackOnceEach (action, ack, save, onProgress, onComplete) {
       action.players = action.players || [];
       action.fired = action.fired || false;
 
@@ -91,7 +92,7 @@ module.exports = {
       action.players = unique(action.players);
       onProgress(action);
 
-      if (action.players.length === config().maxPlayers(game.mode)) {
+      if (action.players.length === config().maxPlayers(save.mode)) {
         action.fired = true;
         onComplete(action);
       }
@@ -107,29 +108,29 @@ module.exports = {
     };
 
     define()('OnIncomingClientInputPacket', function () {
-      return function handleAcknowledgements (packet, game) {
-        var serverAcksForGame = select(serverAcks, {gameId: game.id});
-        serverAcks = reject(serverAcks, {gameId: game.id});
+      return function handleAcknowledgements (packet, save) {
+        var serverAcksForSave = select(serverAcks, {saveId: save.id});
+        serverAcks = reject(serverAcks, {saveId: save.id});
 
-        var acks = packet.pendingAcks.concat(serverAcksForGame);
+        var acks = packet.pendingAcks.concat(serverAcksForSave);
         acks = map(acks, function (ack) {
           ack.playerId = packet.playerId;
           return ack;
         });
 
         each(acks, function (ack) {
-          var byMode = filterPluginsByMode(acknowledgementMaps(), game.mode);
+          var byMode = filterPluginsByMode(acknowledgementMaps(), save.mode);
           var hasMatchingName = select(byMode, function(ackMap) {
             return last(ackMap)[ack.name];
           });
 
           function onProgress (action) {
-            logger().debug('Acknowledgement "' + ack.name + '" progressed.');
+            logger.debug('Acknowledgement "' + ack.name + '" progressed.');
 
             mutate()(
-              game.id,
+              save.id,
               action.onProgress(
-                state().for(game.id),
+                state().for(save.id),
                 ack,
                 action.players,
                 action.data
@@ -138,12 +139,12 @@ module.exports = {
           }
 
           function onComplete (action) {
-            logger().debug('Acknowledgement "' + ack.name + '" complete.');
+            logger.debug('Acknowledgement "' + ack.name + '" complete.');
 
             mutate()(
-              game.id,
+              save.id,
               action.onComplete(
-                state().for(game.id),
+                state().for(save.id),
                 ack,
                 action.data
               )
@@ -154,7 +155,7 @@ module.exports = {
             var actions = last(ackMap)[ack.name];
 
             each(actions, function (action) {
-              ackMapTypeCanFireHandler[action.type](action, ack, game, onProgress, onComplete);
+              ackMapTypeCanFireHandler[action.type](action, ack, save, onProgress, onComplete);
             });
           });
         });

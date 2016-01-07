@@ -7,8 +7,8 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewGame', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnGameReady', 'OnDatabaseReady', 'OnLoadGame'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onGameReady, onDatabaseReady, onLoadGame) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -35,46 +35,46 @@ module.exports = {
       callEachPlugin(onInput());
     }
 
-    function getState (gameId) {
-      return state().for(gameId);
+    function getState (saveId) {
+      return state().for(saveId);
     }
 
-    function connect (game) {
-      var params = [getState(game.id)];
-      callForMode(onConnect(), game.mode, params);
+    function connect (save) {
+      var params = [getState(save.id)];
+      callForMode(onConnect(), save.mode, params);
     }
 
-    function disconnect (game) {
-      var params = [getState(game.id)];
-      callForMode(onDisconnect(), game.mode, params);
+    function disconnect (save) {
+      var params = [getState(save.id)];
+      callForMode(onDisconnect(), save.mode, params);
     }
 
-    function newGame (game) {
-      callEachWithMutation(onNewGame(), mutator, game.id, [game]);
+    function newSave (save) {
+      callEachWithMutation(onNewSave(), mutator, save.id, [save]);
     }
 
-    function gameReady (game) {
-      callEachPlugin(onGameReady(), [game]);
+    function saveReady (save) {
+      callEachPlugin(onSaveReady(), [save]);
     }
 
-    function clientConnect (game, socket) {
-      var params = [getState(game.id), socket, game];
-      callForModeWithMutation(onClientConnect(), mutator, game, params);
+    function clientConnect (save, socket) {
+      var params = [getState(save.id), socket, save];
+      callForModeWithMutation(onClientConnect(), mutator, save, params);
     }
 
-    function clientDisconnect (game, socket) {
-      var params = [getState(game.id), socket, game];
-      callForModeWithMutation(onClientDisconnect(), mutator, game, params);
+    function clientDisconnect (save, socket) {
+      var params = [getState(save.id), socket, save];
+      callForModeWithMutation(onClientDisconnect(), mutator, save, params);
     }
 
-    function pause (game) {
-      var params = [getState(game.id)];
-      callForModeWithMutation(onPause(), mutator, game, params);
+    function pause (save) {
+      var params = [getState(save.id)];
+      callForModeWithMutation(onPause(), mutator, save, params);
     }
 
-    function resume (game) {
-      var params = [getState(game.id)];
-      callForModeWithMutation(onResume(), mutator, game, params);
+    function resume (save) {
+      var params = [getState(save.id)];
+      callForModeWithMutation(onResume(), mutator, save, params);
     }
 
     function clientStart (state, mode) {
@@ -82,9 +82,9 @@ module.exports = {
       callForMode(onClientReady(), mode, [dimensions().get(), player().id()]);
     }
 
-    function serverStart (path, project) {
-      callEachPlugin(onServerStart(), [path, project]);
-      callEachPlugin(onServerReady(), [path, project]);
+    function serverStart (path, save) {
+      callEachPlugin(onServerStart(), [path, save]);
+      callEachPlugin(onServerReady(), [path, save]);
     }
 
     function serverStop () {
@@ -107,24 +107,24 @@ module.exports = {
       callEachPlugin(onClientPlayerId(), [id]);
     }
 
-    function incomingClientInputPacket (packet, game) {
-      if (state().for(game.id).for('ensemble').get('paused')) {
+    function incomingClientInputPacket (packet, save) {
+      if (state().for(save.id).get('ensemble.paused')) {
         return;
       }
 
-      callEachPlugin(onIncomingClientInputPacket(), [packet, game]);
+      callEachPlugin(onIncomingClientInputPacket(), [packet, save]);
     }
 
-    function playerGroupChange (players, gameId) {
-      callEachPlugin(onPlayerGroupChange(), [players, gameId]);
+    function playerGroupChange (players, saveId) {
+      callEachPlugin(onPlayerGroupChange(), [players, saveId]);
     }
 
     function databaseReady () {
       callEachPlugin(onDatabaseReady());
     }
 
-    function loadGame (game) {
-      callEachPlugin(onLoadGame(), [game]);
+    function loadSave (save) {
+      callEachPlugin(onLoadSave(), [save]);
     }
 
     return {
@@ -136,13 +136,13 @@ module.exports = {
       databaseReady: databaseReady,
       disconnect: disconnect,
       error: error,
-      gameReady: gameReady,
+      saveReady: saveReady,
       incomingClientInputPacket: incomingClientInputPacket,
       incomingServerPacket: createOnServerPacketCallback(),
       input: input,
-      loadGame: loadGame,
+      loadSave: loadSave,
       mute: mute,
-      newGame: newGame,
+      newSave: newSave,
       outgoingClientPacket: outgoingClientPacket,
       outgoingServerPacket: outgoingServerPacket,
       pause: pause,

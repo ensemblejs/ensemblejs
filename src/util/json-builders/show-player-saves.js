@@ -1,6 +1,7 @@
 'use strict';
 
 var map = require('lodash').map;
+var buildGameHash = require('./game');
 
 function buildSaveLinks (saves) {
   return map(saves, function(save) {
@@ -13,8 +14,9 @@ function buildSaveLinks (saves) {
   });
 }
 
-function buildShowSavesJson (saves, player) {
+function buildShowSavesJson (saves, player, project) {
   return {
+    game: buildGameHash(project),
     player: {
       id: player._id,
       name: player.name

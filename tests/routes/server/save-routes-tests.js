@@ -6,28 +6,31 @@ var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
 var posturl = require('../../route-testing').posturl;
-var fakeConfig = new require('../../fake/config');
-var fakeOn = require('../../fake/on');
-var fakeTime = require('../../fake/time').at(0);
-var fakeGamesList = require('../../fake/games-list')('arcade');
+var config = require('../../../src/util/config');
+var on = require('../../fake/on');
+var time = require('../../fake/time').at(0);
+var savesList = require('../../fake/saves-list')('arcade');
 var Bluebird = require('bluebird');
 var saves = require('../../../src/util/models/saves');
-var savePlayers = require('../../../src/util/models/save-players');
+var savePlayers = require('../../../src/util/models/players-in-save');
+var urlShortener = require('../../../src/services/url-shortener');
 
 describe('save routes', function () {
   var onServerStart;
   var onServerStop;
 
   var isPlayerInSave;
-  var doesSaveHaveSpaceForPlayer;
+  var hasSpaceForPlayer;
   var isSecretCorrect;
-  var isSavePublic;
+  var isPublic;
   var uuid;
 
   var maxPlayers = 2;
 
+  var configStub;
+  var shortenerStub;
   beforeEach(function() {
-    fakeConfig.stub({
+    configStub = sinon.stub(config, 'get').returns({
       game: {
         title: 'my cool game'
       },
@@ -48,23 +51,26 @@ describe('save routes', function () {
     });
 
     isPlayerInSave = sinon.stub(savePlayers, 'isPlayerInSave');
-    doesSaveHaveSpaceForPlayer = sinon.stub(savePlayers, 'doesSaveHaveSpaceForPlayer');
+    hasSpaceForPlayer = sinon.stub(savePlayers, 'hasSpaceForPlayer');
     sinon.stub(savePlayers, 'addPlayer').returns(new Bluebird(function(resolve) {
       resolve();
     }));
     isSecretCorrect = sinon.stub(saves, 'isSecretCorrect');
-    isSavePublic = sinon.stub(saves, 'isSavePublic');
-    sinon.stub(saves, 'get').returns(new Bluebird(function(resolve) {
+    isPublic = sinon.stub(saves, 'isPublic');
+    sinon.stub(saves, 'getById').returns(new Bluebird(function(resolve) {
       resolve({ ensemble: {secret: 'public'}});
     }));
+    shortenerStub = sinon.stub(urlShortener, 'shorten').returns(
+      new Bluebird(function(resolve) {resolve(undefined);})
+    );
 
     uuid = require('node-uuid');
     sinon.stub(uuid, 'v4').returns('34242-324324');
 
     var routes = makeTestible('routes/server/save-routes', {
-      On: fakeOn,
-      Time: fakeTime,
-      GamesList: fakeGamesList
+      On: on,
+      Time: time,
+      SavesList: savesList
     });
     var sut = makeTestible('core/server/web-server', {
       Routes: [routes[0]]
@@ -80,15 +86,16 @@ describe('save routes', function () {
 
   afterEach(function () {
     isPlayerInSave.restore();
-    doesSaveHaveSpaceForPlayer.restore();
+    hasSpaceForPlayer.restore();
     isSecretCorrect.restore();
-    isSavePublic.restore();
-    saves.get.restore();
+    isPublic.restore();
+    saves.getById.restore();
     savePlayers.addPlayer.restore();
     uuid.v4.restore();
 
     onServerStop();
-    fakeConfig.restore();
+    configStub.restore();
+    shortenerStub.restore();
   });
 
   describe('GETS', function () {
@@ -96,12 +103,12 @@ describe('save routes', function () {
       var uri = '/saves/34242-324324';
 
       it('should return a 404 if the game does not exist', function (done) {
-        var original = fakeGamesList.get;
-        fakeGamesList.get = function () { return undefined; };
+        var original = savesList.get;
+        savesList.get = function () { return undefined; };
 
         request.get(url('/saves/1'), function (err, res) {
           expect(res.statusCode).toEqual(404);
-          fakeGamesList.get = original;
+          savesList.get = original;
           done();
         });
       });
@@ -147,12 +154,12 @@ describe('save routes', function () {
       var uri = '/saves/34242-324324/full';
 
       it('should return a 404 if the game does not exist', function (done) {
-        var original = fakeGamesList.get;
-        fakeGamesList.get = function () { return undefined; };
+        var original = savesList.get;
+        savesList.get = function () { return undefined; };
 
         request.get(url('/saves/1/full'), function (err, res) {
           expect(res.statusCode).toEqual(404);
-          fakeGamesList.get = original;
+          savesList.get = original;
           done(err);
         });
       });
@@ -196,7 +203,7 @@ describe('save routes', function () {
 
         describe('when the game is full', function () {
            beforeEach(function () {
-            doesSaveHaveSpaceForPlayer.returns(new Bluebird(function(resolve) {
+            hasSpaceForPlayer.returns(new Bluebird(function(resolve) {
               resolve(false);
             }));
           });
@@ -214,7 +221,7 @@ describe('save routes', function () {
 
         describe('when the game is not full', function () {
           beforeEach(function () {
-            doesSaveHaveSpaceForPlayer.returns(new Bluebird(function(resolve) {
+            hasSpaceForPlayer.returns(new Bluebird(function(resolve) {
               resolve(true);
             }));
           });
@@ -290,7 +297,9 @@ describe('save routes', function () {
           });
 
           it('should show the share page', function (done) {
+            console.log('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
             request.get(url(uri), function (err, res) {
+              console.log('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
               expect(res.statusCode).toEqual(200);
               expect(res.body).toInclude('share');
               done(err);
@@ -319,8 +328,8 @@ describe('save routes', function () {
 
   describe('POSTS', function () {
     beforeEach(function () {
-      fakeOn.newGame.reset();
-      fakeOn.gameReady.reset();
+      on.newSave.reset();
+      on.saveReady.reset();
     });
 
     describe('/saves', function () {
@@ -329,8 +338,8 @@ describe('save routes', function () {
       it('should report an error if the mode is not supplied', function (done) {
         request.post(posturl(uri, {}), function (err, res) {
           expect(res.statusCode).toEqual(400);
-          expect(fakeOn.newGame.called).toEqual(false);
-          expect(fakeOn.gameReady.called).toEqual(false);
+          expect(on.newSave.called).toEqual(false);
+          expect(on.saveReady.called).toEqual(false);
           done(err);
         });
       });
@@ -338,22 +347,22 @@ describe('save routes', function () {
       it('should report an error if the mode is invalid', function (done) {
         request.post(posturl(uri, { mode: 'endless '}), function (err, res) {
           expect(res.statusCode).toEqual(400);
-          expect(fakeOn.newGame.called).toEqual(false);
-          expect(fakeOn.gameReady.called).toEqual(false);
+          expect(on.newSave.called).toEqual(false);
+          expect(on.saveReady.called).toEqual(false);
           done(err);
         });
       });
 
       it('should emit the OnNewGame event', function (done) {
         request.post(posturl(uri, {mode: 'arcade'}), function (err) {
-          expect(fakeOn.newGame.called).toEqual(true);
+          expect(on.newSave.called).toEqual(true);
           done(err);
         });
       });
 
       it('should emit the OnGameReady event', function (done) {
         request.post(posturl(uri, {mode: 'arcade'}), function (err) {
-          expect(fakeOn.gameReady.called).toEqual(true);
+          expect(on.saveReady.called).toEqual(true);
           done(err);
         });
       });
@@ -399,7 +408,7 @@ describe('save routes', function () {
 
         describe('when the game is full', function () {
           beforeEach(function () {
-            doesSaveHaveSpaceForPlayer.returns(new Bluebird(function(resolve) {
+            hasSpaceForPlayer.returns(new Bluebird(function(resolve) {
               resolve(false);
             }));
           });
@@ -415,7 +424,7 @@ describe('save routes', function () {
 
         describe('when the game is not full', function () {
           beforeEach(function () {
-            doesSaveHaveSpaceForPlayer.returns(new Bluebird(function(resolve) {
+            hasSpaceForPlayer.returns(new Bluebird(function(resolve) {
               resolve(true);
             }));
           });
@@ -423,7 +432,7 @@ describe('save routes', function () {
           describe('when the game is public', function () {
             beforeEach(function () {
               savePlayers.addPlayer.reset();
-              isSavePublic.returns(new Bluebird(function(resolve) {
+              isPublic.returns(new Bluebird(function(resolve) {
                 resolve(true);
               }));
             });
@@ -448,7 +457,7 @@ describe('save routes', function () {
 
           describe('when the game is private', function () {
             beforeEach(function () {
-              isSavePublic.returns(new Bluebird(function(resolve) {
+              isPublic.returns(new Bluebird(function(resolve) {
                 resolve(false);
               }));
             });

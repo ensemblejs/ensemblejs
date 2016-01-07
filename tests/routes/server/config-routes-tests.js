@@ -3,6 +3,7 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
+var config = require('../../../src/util/config');
 var makeTestible = require('../../support').makeTestible;
 
 describe('config routes', function () {
@@ -21,20 +22,15 @@ describe('config routes', function () {
     console.error(err);
   }
 
-  var config;
-  var original;
-  before(function() {
-    config = require('../../../src/util/config');
-    original = config.get;
-    config.get = function () {
-      return {
-        logging: {
-          expressBunyanLogger: {
-            excludes: []
-          }
+  var configStub;
+  beforeEach(function() {
+    configStub = sinon.stub(config, 'get').returns({
+      logging: {
+        expressBunyanLogger: {
+          excludes: []
         }
-      };
-    };
+      }
+    });
 
     var routes = makeTestible('routes/server/config-routes');
     var sut = makeTestible('core/server/web-server', {
@@ -50,16 +46,16 @@ describe('config routes', function () {
     onServerStop = sut[1].OnServerStop();
   });
 
-  after(function () {
-    config.get = original;
+  afterEach(function () {
+    configStub.restore();
   });
 
   describe('get /config', function () {
-    before(function () {
+    beforeEach(function () {
       onServerStart('../dummy', {modes: ['game']});
     });
 
-    after(function () {
+    afterEach(function () {
       onServerStop();
     });
 

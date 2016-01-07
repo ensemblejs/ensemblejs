@@ -1,11 +1,11 @@
 'use strict';
 
 module.exports = {
-  type: 'OnNewGame',
+  type: 'OnNewSave',
   deps: ['MeaningfulRandom'],
-  func: function OnNewGame (random) {
-    return function setupRandomSeed (game) {
-      var seed = game.id;
+  func: function OnNewSave (random) {
+    return function setupRandomSeed (save) {
+      var seed = save.id;
       random().setup(seed);
 
       return ['ensemble.randomSeed', seed];

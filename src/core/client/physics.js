@@ -7,13 +7,13 @@ var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'GameMode', 'Config', 'Profiler'],
+  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'Profiler'],
   func: function PhysicsLoop (clientState, serverState, define, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, profiler) {
 
     var rate = profiler().timer('ensemblejs', 'client-physics', 'call-rate', 1);
     var priorStep = time().present();
 
-    var game = {
+    var save = {
       id: 'client',
       mode: mode()
     };
@@ -39,13 +39,13 @@ module.exports = {
         return;
       }
 
-      var gameState = state().for(game.id);
-      var opts = [gameState, delta];
+      var saveState = state().for(save.id);
+      var opts = [saveState, delta];
 
-      callEachWithMutation(beforeFrame(), mutator, game.id, opts);
+      callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-      if (!gameState.get('ensemble.waitingForPlayers')) {
-        callForModeWithMutation(onFrame(), mutator, game, opts);
+      if (!saveState.get('ensemble.waitingForPlayers')) {
+        callForModeWithMutation(onFrame(), mutator, save, opts);
       }
     }
 

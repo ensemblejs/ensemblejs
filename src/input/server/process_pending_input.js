@@ -11,10 +11,12 @@ var parseMouse = require('../../util/input-common').parseMouse;
 var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
+var logger = require('../../logging/server/logger').logger;
+
 module.exports = {
 	type: 'ProcessPendingInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
-	func: function(actionMaps, define, mutate, logger) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
+	func: function(actionMaps, define, mutate) {
 		var userInput = [];
 		var lowestInputProcessed = {};
 
@@ -57,10 +59,10 @@ module.exports = {
 
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
+							logger.debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
 
 							return mutate()(
-								currentInput.game.id,
+								currentInput.save.id,
 								action.call(state, data)
 							);
 						}
@@ -74,10 +76,10 @@ module.exports = {
 							return;
 						}
 
-						logger().debug('ActionMap "' + key + '" called');
+						logger.debug('ActionMap "' + key + '" called');
 
 						mutate()(
-				      currentInput.game.id,
+				      currentInput.save.id,
 				      callback(action.call, action.noEventKey, inputData)
 				    );
 					};
@@ -102,21 +104,21 @@ module.exports = {
 					parseSticks(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(stickCallback));
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
 
-					var forMode = filterPluginsByMode(actionMaps(), currentInput.game.mode);
+					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 
-					lowestInputProcessed[currentInput.game.id] = currentInput.rawData.id;
+					lowestInputProcessed[currentInput.save.id] = currentInput.rawData.id;
 				}
 
 				if (userInput.length > lengthOfInputStackAtStart) {
-					logger().warn('More input was received than processed.');
+					logger.warn('More input was received than processed.');
 				}
 			};
 		});
 
 		define()('LowestInputProcessed', function LowestInputProcessed () {
-			return function getFor (gameId) {
-				return lowestInputProcessed[gameId];
+			return function getFor (saveId) {
+				return lowestInputProcessed[saveId];
 			};
 		});
 
@@ -129,12 +131,12 @@ module.exports = {
 		});
 
 		define()('OnInput', function ProcessPendingInput () {
-			return function handle(rawData, timestamp, game) {
+			return function handle(rawData, timestamp, save) {
 				userInput.push({
 					rawData: rawData,
 					playerId: rawData.playerId,
 					timestamp: timestamp,
-					game: game
+					save: save
 				});
 			};
 		});

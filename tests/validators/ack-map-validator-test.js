@@ -1,8 +1,9 @@
 'use strict';
 
 var expect = require('expect');
+var sinon = require('sinon');
 var makeTestible = require('../support').makeTestible;
-var logger = require('../fake/logger');
+var logger = require('../../src/logging/server/logger').logger;
 
 function empty () {}
 
@@ -10,7 +11,11 @@ describe('ack map validator test', function () {
   var validator;
 
   beforeEach(function () {
-    logger.error.reset();
+    sinon.spy(logger, 'error');
+  });
+
+  afterEach(function () {
+    logger.error.restore();
   });
 
   it('runs on server start', function () {
@@ -65,15 +70,15 @@ describe('ack map validator test', function () {
     });
 
     it('should report errors for maps without onComplete handlers', function () {
-      expect(logger.error.firstCall.args).toEqual(['AcknowledgementMap "missingTarget" missing "onComplete" property']);
+      expect(logger.error.firstCall.args).toEqual([{key: 'missingTarget', property: 'onComplete'}, 'AcknowledgementMap missing property']);
     });
 
     it('should report errors for maps without types', function () {
-      expect(logger.error.secondCall.args).toEqual(['AcknowledgementMap "missingType" missing "type" property']);
+      expect(logger.error.secondCall.args).toEqual([{key: 'missingType'}, 'AcknowledgementMap missing "type" property']);
     });
 
     it('should report errors for maps without valid types', function () {
-      expect(logger.error.thirdCall.args).toEqual(['AcknowledgementMap "invalidType" has invalid "type" property of "derp"']);
+      expect(logger.error.thirdCall.args).toEqual([{key: 'invalidType', property: 'derp'}, 'AcknowledgementMap has invalid "type" property']);
     });
 
     it('should convert non-arrays to arrays', function () {
@@ -81,13 +86,13 @@ describe('ack map validator test', function () {
     });
 
     it('should support action maps with modes', function () {
-      expect(logger.error.getCall(3).args).toEqual(['AcknowledgementMap "invalid" missing "onComplete" property']);
+      expect(logger.error.getCall(3).args).toEqual([{key: 'invalid', property: 'onComplete'}, 'AcknowledgementMap missing property']);
     });
 
     it('should only allow onProgress on once-for-all type', function () {
-      expect(logger.error.getCall(5).args).toEqual(['AcknowledgementMap "progressOnceEach" can\'t use "onProgress" property']);
-      expect(logger.error.getCall(6).args).toEqual(['AcknowledgementMap "progressFirstOnly" can\'t use "onProgress" property']);
-      expect(logger.error.getCall(7).args).toEqual(['AcknowledgementMap "progressEvery" can\'t use "onProgress" property']);
+      expect(logger.error.getCall(5).args).toEqual([{key: 'progressOnceEach', property: 'onProgress'}, 'AcknowledgementMap can\'t use property']);
+      expect(logger.error.getCall(6).args).toEqual([{key: 'progressFirstOnly', property: 'onProgress'}, 'AcknowledgementMap can\'t use property']);
+      expect(logger.error.getCall(7).args).toEqual([{key: 'progressEvery', property: 'onProgress'}, 'AcknowledgementMap can\'t use property']);
     });
   });
 });

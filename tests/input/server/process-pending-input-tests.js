@@ -33,19 +33,13 @@ var rawData = {};
 var newUserInput;
 var update;
 var mutator = sinon.spy();
-var game = {
+var save = {
 	id: 1,
 	arcade: 'arcade'
 };
 var playerId = 2;
 
-var logger = {
-	filename: sinon.spy(),
-	debug: sinon.spy(),
-	info: sinon.spy(),
-	warn: sinon.spy(),
-	called: sinon.spy()
-};
+var logger = require('../../../src/logging/server/logger').logger;
 
 describe('Input Bindings', function() {
 	var clock;
@@ -110,19 +104,23 @@ describe('Input Bindings', function() {
 			]
 		}];
 
-		require('../../../src/input/server/process_pending_input.js').func(defer([actions]), defer(plugin.define), defer(mutator), defer(logger));
+		require('../../../src/input/server/process_pending_input.js').func(defer([actions]), defer(plugin.define), defer(mutator));
 		newUserInput = plugin.deps().OnInput();
 		update = plugin.deps().BeforePhysicsFrame();
+
+		sinon.spy(logger, 'debug');
 	});
 
 	afterEach(function () {
+		logger.debug.restore();
+
 		clock.restore();
 	});
 
 	describe('when no input has been received', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -148,7 +146,7 @@ describe('Input Bindings', function() {
 		describe('when no input is received while waiting for players', function () {
 			beforeEach(function() {
 				rawData = { playerId: playerId, keys: [], touches: [] };
-				newUserInput(rawData, undefined, game);
+				newUserInput(rawData, undefined, save);
 
 				model.waiting.reset();
 			});
@@ -180,7 +178,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
@@ -214,7 +212,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { playerId: playerId, keys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
 			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
@@ -241,7 +239,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { playerId: playerId, keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -255,7 +253,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, singlePressKeys: [{key: 'key'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -277,7 +275,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { playerId: playerId, singlePressKeys: [{key: 'KEY'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
 			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
@@ -304,7 +302,7 @@ describe('Input Bindings', function() {
 			mutator.reset();
 
 			rawData = { playerId: playerId, singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
@@ -318,7 +316,7 @@ describe('Input Bindings', function() {
 	describe('when key input is received but not bound', function () {
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should do nothing if there are no events bound to that key', function () {
@@ -334,7 +332,7 @@ describe('Input Bindings', function() {
 
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [{key: 'key'}, {key: 'not-waiting'}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 
 			model.waiting.reset();
 			model.keyEvent.reset();
@@ -354,7 +352,7 @@ describe('Input Bindings', function() {
 	describe('when touch input is received', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -378,7 +376,7 @@ describe('Input Bindings', function() {
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should do nothing if there are no events bound to touch', function () {
@@ -393,7 +391,7 @@ describe('Input Bindings', function() {
 
 		beforeEach(function() {
 			rawData = { playerId: playerId, touches: [{id: 0, x: 4, y: 5}] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 
 			model.waiting.reset();
 		});
@@ -407,7 +405,7 @@ describe('Input Bindings', function() {
 	describe('when mouse cursor input is received', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [], mouse: {x: 6, y: 7 }};
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
@@ -429,7 +427,7 @@ describe('Input Bindings', function() {
 			require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
 			newUserInput = plugin.deps().OnInput();
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should not call any matching functions with the touch coordinates', function() {
@@ -442,7 +440,7 @@ describe('Input Bindings', function() {
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
 			rawData = { playerId: playerId, singlePressKeys: [{key: 'button1'}], touches: [] };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
@@ -462,7 +460,7 @@ describe('Input Bindings', function() {
 
 		beforeEach(function() {
 			rawData = { playerId: playerId, keys: [], mouse: {x: 6, y: 7 } };
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 
 			model.waiting.reset();
 		});
@@ -480,7 +478,7 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now(), game, playerId);
+			newUserInput(rawData, Date.now(), save, playerId);
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
@@ -508,7 +506,7 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, Date.now(), game, playerId);
+			newUserInput(rawData, Date.now(), save, playerId);
 		});
 
 		it('should not call any matching functions with direction vector and the fource', function () {
@@ -527,7 +525,7 @@ describe('Input Bindings', function() {
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};
-			newUserInput(rawData, undefined, game);
+			newUserInput(rawData, undefined, save);
 
 			model.waiting.reset();
 		});

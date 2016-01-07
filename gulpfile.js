@@ -16,17 +16,32 @@ var coveralls = require('gulp-coveralls');
 var nsp = require('gulp-nsp');
 var spawn = require('child_process').spawn;
 var gutil = require('gulp-util');
+var exec = require('child_process').exec;
+var mkdirp = require('mkdirp');
+
+var runCommand = function(command) {
+  exec(command, function (err, stdout, stderr) {
+    console.log(stdout);
+    console.error(stderr);
+    if (err !== null) {
+      console.error('exec error: ' + err);
+    }
+  });
+};
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
-  coveragejs: ['ensemble.js', 'src/**/*.js', '!src/debug/**/*.js'],
+  coveragejs: ['ensemble.js', 'src/**/*.js', '!src/debug/**/*.js', '!src/metrics/**/*.js', '!src/logging/**/*.js'],
   scss: ['src/scss/**/*.scss'],
   cssSrc: ['src/css/**/*.css'],
-  css: ['public/css/*.css'],
-  tests: ['tests/**/*.js'],
+  deleteOnClean: ['public/css/*.css', 'data/db', 'data/logs'],
+  tests: ['tests/*.js', 'tests/**/*.js'],
   jsToCopy: [
     'node_modules/clipboard/dist/clipboard.min.js',
     'bower_components/qrcode.js/qrcode.js'
+  ],
+  retirePathsToIgnore: [
+    'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'
   ]
 };
 
@@ -36,10 +51,11 @@ var onError = function (error) {
     throw error;
 };
 
-gulp.task('delete-gen-css', function (cb) {
-    del(paths.css, cb);
+gulp.task('delete-paths', function (cb) {
+    del(paths.deleteOnClean, cb);
 });
-gulp.task('clean', ['delete-gen-css']);
+
+gulp.task('clean', ['delete-paths']);
 
 gulp.task('lint-code', function () {
     gulp.src(paths.js)
@@ -99,12 +115,22 @@ gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);
 });
 
+gulp.task('mongo-start', function() {
+  mkdirp('data/db');
+  mkdirp('data/logs');
+  runCommand('mongod --fork --dbpath data/db --logpath data/logs/mongo.log');
+});
+
+gulp.task('mongo-stop', function() {
+  runCommand('mongo admin --eval "db.shutdownServer();"');
+});
+
 gulp.task('nsp', function (done) {
   nsp({package: __dirname + '/package.json'}, done);
 });
 
 gulp.task('retire', function() {
-  var child = spawn('retire', ['--ignore', 'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'], {cwd: process.cwd()});
+  var child = spawn('retire', ['--ignore', paths.retirePathsToIgnore], {cwd: process.cwd()});
 
   child.stdout.setEncoding('utf8');
   child.stdout.on('data', function (data) {

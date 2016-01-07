@@ -41,7 +41,7 @@ describe('trigger maps', function () {
   describe('when they have no keys', function () {
     beforeEach(function () {
       var v = makeValidator([]);
-      v.OnGameReady()(game);
+      v.OnSaveReady()(game);
     });
 
     it('should do nothing', function () {
@@ -63,7 +63,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ onChangeOf: callback, data: ['a', 1]}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -79,7 +79,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ eq: {some: 'state'}, call: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -103,7 +103,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ onChangeOf: callback, data: 'a'}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -119,7 +119,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ eq: 4, call: callback, data: 1}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -143,7 +143,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ lt: 4, call: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -166,7 +166,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ lte: 4, call: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -189,7 +189,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ gt: 4, call: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -212,7 +212,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ gte: 4, call: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -237,7 +237,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ onElementAdded: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -253,7 +253,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ onElementRemoved: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
@@ -269,7 +269,7 @@ describe('trigger maps', function () {
           var v = makeValidator([['*', {
             'some-state': [{ onElementChanged: callback}]
           }]]);
-          v.OnGameReady()(game);
+          v.OnSaveReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -293,7 +293,7 @@ describe('trigger maps', function () {
       }];
 
       var v = makeValidator([arcade, endless]);
-      v.OnGameReady()(game);
+      v.OnSaveReady()(game);
     });
 
     it('should setup bindings for "arcade" mode', function () {

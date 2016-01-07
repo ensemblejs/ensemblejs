@@ -1,21 +1,21 @@
 'use strict';
 
+var logger = require('../../logging/server/logger').logger;
 var seedrandom = require('seedrandom');
 
 module.exports = {
   type: 'MeaningfulRandom',
-  deps: ['Logger', 'DefinePlugin'],
-  func: function MeaningfulRandom (logger) {
+  func: function MeaningfulRandom () {
     var generators = {};
 
     function setup (seed) {
-      logger().ensureNotNull(seed, 'Random.seed called without seed');
+      logger.ensureNotNull(seed, 'Random.seed called without seed');
 
       generators[seed] = seedrandom(seed, {state: true});
     }
 
     function number(state) {
-      var seed = state.for('ensemble').get('randomSeed');
+      var seed = state.get('ensemble.randomSeed');
       var n = generators[seed]();
 
       return n;

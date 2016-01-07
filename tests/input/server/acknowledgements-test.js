@@ -26,8 +26,8 @@ function hasResponse () {
   return { state: 'changed' };
 }
 
-var fakeLogger = require('../../fake/logger');
-var config = require('../../../src/util/config').get(fakeLogger);
+var logger = require('../../../src/logging/server/logger').logger;
+var config = require('../../../src/util/config').get();
 
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
@@ -37,13 +37,12 @@ describe('acknowledgements', function () {
       maxPlayers: 3
     };
 
-    fakeLogger.error.reset();
+    sinon.spy(logger, 'error');
 
     var acknowledgements = makeTestible('input/server/acknowledgements', {
       Config: config,
       StateMutator: mutate,
       StateAccess: fakeState,
-      Logger: fakeLogger,
       AcknowledgementMap: [['*', {
         'ack-every': [{onComplete: ackEvery, type: 'every'}],
         'ack-once-for-all': [{
@@ -66,6 +65,10 @@ describe('acknowledgements', function () {
     });
 
     onIncomingClientInputPacket = acknowledgements[1].OnIncomingClientInputPacket();
+  });
+
+  afterEach(function () {
+    logger.error.restore();
   });
 
   describe('ack every', function () {
@@ -247,12 +250,16 @@ describe('acknowledgements', function () {
     var player1 = { pendingAcks: [{ name: 'mutate-this'}], playerId: 1 };
 
     beforeEach(function () {
-      fakeLogger.debug.reset();
+      sinon.spy(logger, 'debug');
       mutate.reset();
       ackEvery.reset();
 
       onIncomingClientInputPacket(player1, game);
     });
+
+    afterEach(function () {
+      logger.debug.restore();
+    })
 
     it('should mutate the response of the callback', function () {
       expect(mutate.called).toBe(true);
@@ -268,11 +275,11 @@ describe('acknowledgements', function () {
     });
 
     it('should log the firing of the callback', function () {
-      expect(fakeLogger.debug.firstCall.args).toEqual(['Acknowledgement "mutate-this" complete.']);
+      expect(logger.debug.firstCall.args).toEqual(['Acknowledgement "mutate-this" complete.']);
     });
 
     it('should log the progress of the callback', function () {
-      expect(fakeLogger.debug.lastCall.args).toEqual(['Acknowledgement "mutate-this" progressed.']);
+      expect(logger.debug.lastCall.args).toEqual(['Acknowledgement "mutate-this" progressed.']);
     });
   });
 });

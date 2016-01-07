@@ -6,12 +6,14 @@ var merge = require('lodash').merge;
 var each = require('lodash').each;
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
-var ensemblePackageInfo = require(appRoot + '/node_modules/ensemblejs/package.json');
+var ensemblePackageInfo = require('../../util/get-framework-info');
+var config = require('../../util/config');
+var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'Metrics',
-  deps: ['Logger', 'Commit'],
-  func: function Metrics (logger, commit) {
+  deps: ['Commit'],
+  func: function Metrics (commit) {
     var mixpanel;
 
     function mixpanelConfigured() {
@@ -31,7 +33,7 @@ module.exports = {
 
     function setupTargets () {
       if (mixpanelConfigured()) {
-        logger().info('Metrics target Mixpanel configured');
+        logger.info('Metrics target Mixpanel configured');
         mixpanel = Mixpanel.init(process.env.MIXPANEL_KEY);
       }
     }
@@ -40,7 +42,8 @@ module.exports = {
 
     function game () {
       return {
-        'game-name': packageInfo.name,
+        'game-id': config.get().game.id,
+        'game-name': config.get().game.name,
         'game-version': packageInfo.version,
         'game-commit': commit().sha
       };
@@ -115,7 +118,7 @@ module.exports = {
         var event = merge(buildBasicEventData(data), platformDetailed());
 
         postToMixpanel(name, event);
-        logger().error(event, name);
+        logger.error(event, name);
       }
     };
   }
