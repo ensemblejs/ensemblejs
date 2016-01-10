@@ -7,14 +7,34 @@ var expressBunyanLogger = require('express-bunyan-logger');
 var each = require('lodash').each;
 var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
+var expressSession = require('express-session');
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['SocketServer', 'DefinePlugin', 'Routes', 'UUID', 'WebServerMiddleware', 'WebSessions'],
-  func: function (socket, define, routes, uuid, middleware, session) {
+  deps: ['SocketServer', 'DefinePlugin', 'Routes', 'UUID', 'WebServerMiddleware'],
+  func: function (socket, define, routes, uuid, middleware) {
     var server;
+    var session;
 
     var pathToPublic = __dirname + '/../../../public';
+
+    function configureSession () {
+      if (process.env.NODE_ENV === 'production') {
+        if (!process.env.ENSEMBLE_SESSION_SECRET) {
+          logger.error('No session secret. Set ENSEMBLE_SESSION_SECRET');
+        }
+      }
+      var sessionSecret = process.env.ENSEMBLE_SESSION_SECRET || 'ensemblejs';
+
+      session = expressSession({
+        genid: uuid().gen,
+        secret: sessionSecret,
+        resave: true,
+        saveUninitialized: true
+      });
+
+      return session;
+    }
 
     function configureApp (assetPath, project) {
       var app = express();
@@ -35,8 +55,10 @@ module.exports = {
       app.use(require('cookie-parser')());
       app.set('views', ['game/views/pages', pathToPublic + '/views']);
       app.set('view options', {layout: false});
-      app.engine('jade', require('jade').__express);
+      app.engine('jade', require('pug').__express);
       app.disable('x-powered-by');
+
+      app.use(configureSession());
 
       each(middleware(), function (f) {
         app.use(f);
@@ -73,7 +95,7 @@ module.exports = {
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, project.modes, session());
+      socket().start(server, project.modes, session);
     }
 
     define()('OnServerStop', function () {

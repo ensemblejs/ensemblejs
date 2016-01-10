@@ -1,17 +1,17 @@
 'use strict';
 
-var frameworkInfo = require('./util/get-framework-info');
+var frameworkInfo = require('./src/util/get-framework-info');
 
-var logger = require('./logging/server/logger').logger;
+var logger = require('./src/logging/server/logger').logger;
 var each = require('lodash').each;
 
-var config = require('./util/config').get();
+var config = require('./src/util/config').get();
 logger.logLevel = config.logging.logLevel;
 
-var plugins = require('./plugins/plug-n-play').configure(
+var plugins = require('./src/plugins/plug-n-play').configure(
   logger,
-  require('./conf/array-plugins'),
-  require('./conf/default-mode-plugins'),
+  require('./src/conf/array-plugins'),
+  require('./src/conf/default-mode-plugins'),
   config.logging.silencedPlugins
 );
 
@@ -30,8 +30,8 @@ var foldersToLoad = [
 ];
 
 each(foldersToLoad, function loadFolder (folder) {
-  plugins.loadFrameworkPath(__dirname + '/' + folder + '/shared');
-  plugins.loadFrameworkPath(__dirname + '/' + folder + '/server');
+  plugins.loadFrameworkPath(__dirname + '/src/' + folder + '/shared');
+  plugins.loadFrameworkPath(__dirname + '/src/' + folder + '/server');
 });
 
 function runGameAtPath (path) {

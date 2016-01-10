@@ -18,16 +18,10 @@ var spawn = require('child_process').spawn;
 var gutil = require('gulp-util');
 var exec = require('child_process').exec;
 var mkdirp = require('mkdirp');
+var babel = require('gulp-babel');
 
-var runCommand = function(command) {
-  exec(command, function (err, stdout, stderr) {
-    console.log(stdout);
-    console.error(stderr);
-    if (err !== null) {
-      console.error('exec error: ' + err);
-    }
-  });
-};
+var onError = require('./tasks/util/error');
+var runCommand = require('./tasks/util/run-command');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
@@ -43,12 +37,6 @@ var paths = {
   retirePathsToIgnore: [
     'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'
   ]
-};
-
-var onError = function (error) {
-    console.log(error);
-    this.emit('end');
-    throw error;
 };
 
 gulp.task('delete-paths', function (cb) {
@@ -71,7 +59,7 @@ gulp.task('lint-scss', function () {
 });
 gulp.task('lint', ['lint-code', 'lint-scss']);
 
-gulp.task('test', function (cb) {
+gulp.task('test', ['mongo-start'], function (cb) {
     gulp.src(paths.coveragejs)
         .pipe(plumber({errorHandler: onError}))
         .pipe(istanbul({includeUntested: true}))
@@ -109,7 +97,12 @@ gulp.task('copy-vendor-js', function () {
        .pipe(plumber({errorHandler: onError}))
        .pipe(gulp.dest('public/js/3rd-party'));
 });
-gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js']);
+gulp.task('copy-entrypoints', function () {
+  return gulp.src(['src/client.js', 'src/server.js'])
+    .pipe(babel())
+    .pipe(gulp.dest('./'));
+})
+gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js', 'copy-entrypoints']);
 
 gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);
@@ -121,9 +114,11 @@ gulp.task('mongo-start', function() {
   runCommand('mongod --fork --dbpath data/db --logpath data/logs/mongo.log');
 });
 
-gulp.task('mongo-stop', function() {
+gulp.task('mongo-stop', ['test'], function() {
   runCommand('mongo admin --eval "db.shutdownServer();"');
 });
+
+gulp.task('finish', ['mongo-stop']);
 
 gulp.task('nsp', function (done) {
   nsp({package: __dirname + '/package.json'}, done);
@@ -145,4 +140,4 @@ gulp.task('retire', function() {
 
 gulp.task('vuln', ['nsp', 'retire']);
 
-gulp.task('default', ['lint', 'test', 'build', 'vuln']);
+gulp.task('default', ['lint', 'test', 'build', 'vuln', 'finish']);
