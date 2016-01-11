@@ -2,11 +2,12 @@
 
 var Bluebird = require('bluebird');
 
-function redirectTo (uri) {
+function redirectTo (uri, explainationToUser) {
   return Bluebird.reject({
     reason: 'redirect',
     data: {
-      uri: uri
+      uri: uri,
+      explainationToUser: explainationToUser
     }
   });
 }

@@ -13,8 +13,16 @@ function joinSave (project, savesList) {
       return [save, req.player, hostname];
     }
 
-    function passThroughProject (save, player) {
-      return [save, player, project];
+    function passThroughProject (save, player, hostname) {
+      return [save, player, hostname, project];
+    }
+
+    function addFlashMessages (json) {
+      json.info = req.flash('info');
+      json.warning = req.flash('warning');
+      json.error = req.flash('error');
+
+      return json;
     }
 
     return kickstartPromiseChain(savesList.get(req.params.saveId))
@@ -23,7 +31,8 @@ function joinSave (project, savesList) {
       .spread(saveCommon.redirectIfPlayerIsInSave)
       .spread(saveCommon.redirectIfSaveHasNoSpace)
       .spread(passThroughProject)
-      .spread(joinSaveJsonBuilder);
+      .spread(joinSaveJsonBuilder)
+      .then(addFlashMessages);
   };
 }
 

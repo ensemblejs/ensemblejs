@@ -2,7 +2,7 @@
 
 var urlBuilder = require('../url-builder');
 
-function buildJson (save, player, project) {
+function buildJson (save, player, hostname, project) {
   return {
     game: {
       name: project.name,
@@ -13,7 +13,7 @@ function buildJson (save, player, project) {
     join: {
       method: 'POST',
       what: '/save/join',
-      uri: urlBuilder().saves(save.id).join(),
+      uri: urlBuilder(hostname).saves(save.id).join(),
       name: 'Join Save'
     }
   };

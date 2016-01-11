@@ -8,6 +8,7 @@ var each = require('lodash').each;
 var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
 var expressSession = require('express-session');
+var flash = require('connect-flash');
 
 module.exports = {
   type: 'OnServerStart',
@@ -59,6 +60,8 @@ module.exports = {
       app.disable('x-powered-by');
 
       app.use(configureSession());
+
+      app.use(flash());
 
       each(middleware(), function (f) {
         app.use(f);

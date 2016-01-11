@@ -33,7 +33,7 @@ function redirectIfPlayerIsNotInSave (save, player, hostname) {
     .then(function (playerIsInSave) {
       if (!playerIsInSave) {
         logger.info('Player not in save. Must join.');
-        return redirectTo(urlBuilder(hostname).saves(save.id).join());
+        return redirectTo(urlBuilder(hostname).saves(save.id).join(), 'Player not in save. Must join.');
       }
 
       return [save, player, hostname];
@@ -77,7 +77,7 @@ function redirectIfSecretIsIncorrect (save, player, hostname, secret) {
     .then(function (secretIsCorrect) {
       if (!secretIsCorrect) {
         logger.info('Secret is incorrect.');
-        return redirectTo(urlBuilder(hostname).saves(save.id).join());
+        return redirectTo(urlBuilder(hostname).saves(save.id).join(), 'Secret is incorrect.');
       }
 
       return [save, player, hostname];
