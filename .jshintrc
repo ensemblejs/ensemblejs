@@ -19,6 +19,7 @@
 	"maxparams": false,
 	"maxdepth": 2,
 	"maxcomplexity": 5,
+	"esversion": 6,
 	"node": true,
 	"globals": {
 	    "describe": false,

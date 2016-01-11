@@ -78,7 +78,7 @@ describe('the player model', function () {
     });
 
     it('should report an error if there is no timestamp', function () {
-      players.save(undefined, 0);
+      players.save({id: 1}, undefined);
 
       expect(logger.error.called).toBe(true);
     });

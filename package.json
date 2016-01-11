@@ -35,7 +35,6 @@
     "client.js",
     "server.js",
     "config/",
-    "ensemble.js",
     "locales/",
     "public/",
     "src/",
@@ -43,6 +42,14 @@
   ],
   "browserify": {
     "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015"
+          ]
+        }
+      ],
       "require-globify",
       [
         "pugify",
@@ -59,6 +66,10 @@
   },
   "dependencies": {
     "app-root-path": "^1.0.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-es2015-node4": "^2.0.2",
+    "babel-register": "^6.3.13",
+    "babelify": "^7.2.0",
     "bitly": "^4.1.1",
     "bluebird": "^2.10.2",
     "body-parser": "^1.13.2",
@@ -125,23 +136,26 @@
   },
   "devDependencies": {
     "async": "^1.3.0",
+    "babel-istanbul": "^0.6.0",
+    "babel-preset-es2015-node4": "^2.0.2",
     "expect": "^1.7.0",
     "fake-fs": "^0.5.0",
     "fs": "0.0.2",
     "gulp": "^3.9.0",
-    "gulp-babel": "^6.1.1",
     "gulp-clean": "^0.3.1",
     "gulp-coveralls": "^0.1.4",
     "gulp-csslint": "^0.1.5",
     "gulp-develop-server": "^0.4.3",
     "gulp-ignore": "^1.2.1",
     "gulp-istanbul": "^0.10.0",
-    "gulp-jshint": "^1.11.2",
+    "gulp-jshint": "^2.0.0",
     "gulp-livereload": "^3.8.0",
     "gulp-minify-css": "^1.2.0",
     "gulp-notify": "^2.2.0",
     "gulp-scss-lint": "^0.2.1",
+    "gulp-sequence": "^0.4.4",
     "gulp-uglify": "^1.2.0",
+    "isparta": "^4.0.0",
     "jsdom": "^3.1.2",
     "jshint": "^2.9.1-rc2",
     "jshint-stylish": "^2.0.1",

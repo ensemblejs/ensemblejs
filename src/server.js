@@ -1,40 +1,27 @@
 'use strict';
 
-var frameworkInfo = require('./src/util/get-framework-info');
+var frameworkInfo = require('./util/get-framework-info');
 
-var logger = require('./src/logging/server/logger').logger;
-var each = require('lodash').each;
+var logger = require('./logging/server/logger').logger;
+import each from 'lodash/collection/each';
 
-var config = require('./src/util/config').get();
+var config = require('./util/config').get();
 logger.logLevel = config.logging.logLevel;
 
-var plugins = require('./src/plugins/plug-n-play').configure(
-  logger,
-  require('./src/conf/array-plugins'),
-  require('./src/conf/default-mode-plugins'),
-  config.logging.silencedPlugins
-);
+var plugins = require('./plugins/plug-n-play').configure(logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), config.logging.silencedPlugins);
 
-plugins.load({ type: 'Config', func: function Config () { return config; }});
+plugins.load({ type: 'Config', func: function Config() {
+    return config;
+  } });
 
-var foldersToLoad = [
-  'metrics',
-  'core',
-  'middleware',
-  'routes',
-  'input',
-  'events',
-  'state',
-  'validators',
-  'debug',
-];
+var foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'debug'];
 
-each(foldersToLoad, function loadFolder (folder) {
-  plugins.loadFrameworkPath(__dirname + '/src/' + folder + '/shared');
-  plugins.loadFrameworkPath(__dirname + '/src/' + folder + '/server');
+each(foldersToLoad, function loadFolder(folder) {
+  plugins.loadFrameworkPath(__dirname + '/' + folder + '/shared');
+  plugins.loadFrameworkPath(__dirname + '/' + folder + '/server');
 });
 
-function runGameAtPath (path) {
+function runGameAtPath(path) {
   logger.info('ensemblejs@' + frameworkInfo.version + ' started.');
 
   plugins.loadPath(path + '/js/logic');
@@ -42,7 +29,7 @@ function runGameAtPath (path) {
   plugins.loadPath(path + '/js/events');
   plugins.loadPath(path + '/js/maps');
 
-  function publishStartServerEvent (exists) {
+  function publishStartServerEvent(exists) {
     var game = {
       modes: exists ? require(path + '/js/modes.json') : ['default'],
       id: config.game.id,

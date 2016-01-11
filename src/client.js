@@ -1,47 +1,42 @@
 'use strict';
 
-var logging = require('./src/logging/client/logger');
-var Promise = require('bluebird');
-var request = Promise.promisify(require('request'));
-var packageInfo = require('./package.json');
-var each = require('lodash').each;
+var logging = require('./logging/client/logger');
+var Bluebird = require('bluebird');
+var request = Bluebird.promisify(require('request'));
+var packageInfo = require('../package.json');
+import each from 'lodash/collection/each';
 
 var folders = [];
 
-var plugins = require('./src/plugins/plug-n-play').configure(
-  logging.logger,
-  require('./src/conf/array-plugins'),
-  require('./src/conf/default-mode-plugins'),
-  require('./src/conf/client-silenced-plugins')
-);
+var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), require('./conf/client-silenced-plugins'));
 
-plugins.set('Window', window);
+plugins.set('Window', window); //jshint ignore:line
 
-function getConfig (response, body) {
+function getConfig(response, body) {
   plugins.load({
     type: 'Config',
-    func: function Config () {
+    func: function Config() {
       var config = JSON.parse(body);
-      config.nothing = function nothing () {};
+      config.nothing = function nothing() {};
 
       return config;
     }
   });
 }
 
-function setLogLevel () {
+function setLogLevel() {
   var config = plugins.get('Config');
 
   logging.setLogLevel(config.logging.logLevel);
 }
 
-function loadFolder (folder, namespace) {
+function loadFolder(folder, namespace) {
   namespace = namespace || 'ensemblejs';
 
-  folders.push({items: folder, namespace: namespace});
+  folders.push({ items: folder, namespace: namespace });
 }
 
-function logErrors (error) {
+function logErrors(error) {
   logging.logger.error(error);
 }
 
@@ -50,52 +45,48 @@ function runTheClient() {
 }
 
 function loadModules() {
-  each(folders, function loadEachFolder (folder) {
-    each(folder.items, function loadEachItem (item) {
+  each(folders, function loadEachFolder(folder) {
+    each(folder.items, function loadEachItem(item) {
       plugins.load(item, folder.namespace);
     });
   });
 }
 
-function run () {
+function run() {
   console.log('ensemblejs-client@' + packageInfo.version + ' started.');
 
-  request(plugins.get('ServerUrl') + '/config').spread(getConfig)
-    .then(setLogLevel)
-    .then(loadModules)
-    .then(runTheClient)
-    .error(logErrors);
+  request(plugins.get('ServerUrl') + '/config').spread(getConfig).then(setLogLevel).then(loadModules).then(runTheClient).error(logErrors);
 }
 
-function loadClientFolder (folder) {
+function loadClientFolder(folder) {
   loadFolder(folder, 'Game');
 }
 
-function loadDefaults () {
+function loadDefaults() {
   plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
-  loadFolder(require('./src/metrics/shared/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/metrics/client/*.js', {mode: 'hash'} ));
+  loadFolder(require('./metrics/shared/*.js', { mode: 'hash' }));
+  loadFolder(require('./metrics/client/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/core/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/core/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./core/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./core/client/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/input/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/input/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./input/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./input/client/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/events/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/events/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./events/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./events/client/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/state/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/state/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./state/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./state/client/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/ui/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./ui/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/validators/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/validators/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./validators/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./validators/client/**/*.js', { mode: 'hash' }));
 
-  loadFolder(require('./src/debug/shared/**/*.js', {mode: 'hash'} ));
-  loadFolder(require('./src/debug/client/**/*.js', {mode: 'hash'} ));
+  loadFolder(require('./debug/shared/**/*.js', { mode: 'hash' }));
+  loadFolder(require('./debug/client/**/*.js', { mode: 'hash' }));
 }
 
 module.exports = {

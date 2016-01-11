@@ -9,7 +9,7 @@ function empty () {}
 
 describe('collision map validator', function () {
   function makeValidator(map) {
-    return makeTestible('validators/shared/collision-maps', {
+    return makeTestible('validators/server/collision-maps', {
       CollisionMap: [map],
       Logger: logger
     })[1];

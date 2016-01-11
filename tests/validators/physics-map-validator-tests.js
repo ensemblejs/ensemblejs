@@ -7,7 +7,7 @@ var logger = require('../../src/logging/server/logger').logger;
 
 describe('physics map validator', function () {
   function makeValidator(map) {
-    return makeTestible('validators/shared/physics-map', {
+    return makeTestible('validators/server/physics-map', {
       PhysicsMap: [map],
       Logger: logger
     })[1];

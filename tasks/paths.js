@@ -17,5 +17,8 @@ module.exports = {
     build: 'build/',
     dist: 'dist/',
     clean: ['build/**', 'dist/**']
-  }
+  },
+  retirePathsToIgnore: [
+    'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'
+  ]
 };

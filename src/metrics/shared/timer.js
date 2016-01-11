@@ -49,12 +49,6 @@ module.exports = {
         veryFirstTime = veryFirstTime || startTime;
       }
 
-      function stop () {
-        var duration = time().present() - startTime;
-
-        add(duration);
-      }
-
       function add (duration) {
         if (counter === frequency) {
           samples.push(duration);
@@ -62,6 +56,12 @@ module.exports = {
           counter = 0;
         }
         counter += 1;
+      }
+
+      function stop () {
+        var duration = time().present() - startTime;
+
+        add(duration);
       }
 
       function results () {

@@ -18,11 +18,11 @@ function getByKey (key, keyType) {
 function save (player, now) {
   if (!player) {
     logger.error({player: player, now: now}, 'Cannot save player. Nothing to save.');
-    return Bluebird.reject();
+    return Bluebird.reject('Cannot save player. Nothing to save.');
   }
   if (!now) {
     logger.error({player: player, now: now}, 'Cannot save player. No timestamp supplied.');
-    return Bluebird.reject();
+    return Bluebird.reject('Cannot save player. No timestamp supplied.');
   }
 
   player.updated = now;

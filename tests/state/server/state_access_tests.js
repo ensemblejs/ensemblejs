@@ -45,19 +45,6 @@ describe('state access', function () {
     expect(state.for(1).get('controller')('child.age')).toEqual(5);
   });
 
-  it('should not allow state mutation through the access', function () {
-    try {
-      //jshint: disable
-      state.for(1).for('controller').get('start') = 999;
-    } catch (Error) {}
-    try {
-      //jshint: disable
-      state.for(1).get('controller.start') = 999;
-    } catch (Error) {}
-
-    expect(state.for(1).for('controller').get('start')).toNotEqual(999);
-  });
-
   it('should not allow mutable state on nested objects', function () {
     try {
       state.for(1).for('controller').get('child').age = 21;

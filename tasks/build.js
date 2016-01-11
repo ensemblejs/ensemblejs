@@ -56,6 +56,7 @@ function addTasks (gulp) {
     var browserified = transform(function(filename) {
       return browserify(filename)
         .exclude('mongodb')
+        .transform(require('babelify'), {'presets': ['es2015']})
         .transform(require('require-globify'))
         .transform(require('pugify'), {
           compileDebug: true,

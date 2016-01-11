@@ -1,5 +1,6 @@
 'use strict';
 
+require('babel-register');
 var gulp = require('gulp');
 var mocha = require('gulp-mocha');
 var jshint = require('gulp-jshint');
@@ -13,15 +14,10 @@ var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
 var istanbul = require('gulp-istanbul');
 var coveralls = require('gulp-coveralls');
-var nsp = require('gulp-nsp');
-var spawn = require('child_process').spawn;
-var gutil = require('gulp-util');
-var exec = require('child_process').exec;
-var mkdirp = require('mkdirp');
-var babel = require('gulp-babel');
+var isparta = require('isparta');
+var gulpSequence = require('gulp-sequence');
 
 var onError = require('./tasks/util/error');
-var runCommand = require('./tasks/util/run-command');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
@@ -33,11 +29,11 @@ var paths = {
   jsToCopy: [
     'node_modules/clipboard/dist/clipboard.min.js',
     'bower_components/qrcode.js/qrcode.js'
-  ],
-  retirePathsToIgnore: [
-    'node_modules/browserify/node_modules/insert-module-globals/node_modules/lexical-scope/bench'
   ]
 };
+
+require('./tasks/mongo')(gulp);
+require('./tasks/vuln')(gulp);
 
 gulp.task('delete-paths', function (cb) {
     del(paths.deleteOnClean, cb);
@@ -59,13 +55,16 @@ gulp.task('lint-scss', function () {
 });
 gulp.task('lint', ['lint-code', 'lint-scss']);
 
-gulp.task('test', ['mongo-start'], function (cb) {
+gulp.task('run-tests', function (cb) {
     gulp.src(paths.coveragejs)
         .pipe(plumber({errorHandler: onError}))
-        .pipe(istanbul({includeUntested: true}))
+        .pipe(istanbul({
+          instrumenter: isparta.Instrumenter,
+          includeUntested: true
+        }))
         .pipe(istanbul.hookRequire())
         .on('finish', function () {
-            gulp.src(paths.tests)
+            gulp.src(paths.tests, {read: false})
                 .pipe(mocha({reporter: 'spec'}))
                 .pipe(istanbul.writeReports({reporters: ['json-summary', 'text', 'lcov', 'text-summary']}))
                 .on('end', cb);
@@ -97,47 +96,17 @@ gulp.task('copy-vendor-js', function () {
        .pipe(plumber({errorHandler: onError}))
        .pipe(gulp.dest('public/js/3rd-party'));
 });
-gulp.task('copy-entrypoints', function () {
-  return gulp.src(['src/client.js', 'src/server.js'])
-    .pipe(babel())
-    .pipe(gulp.dest('./'));
-})
-gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js', 'copy-entrypoints']);
+
+gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js']);
 
 gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);
 });
 
-gulp.task('mongo-start', function() {
-  mkdirp('data/db');
-  mkdirp('data/logs');
-  runCommand('mongod --fork --dbpath data/db --logpath data/logs/mongo.log');
-});
+gulp.task('test', gulpSequence(
+  'mongo:start', 'run-tests', 'mongo:stop')
+);
 
-gulp.task('mongo-stop', ['test'], function() {
-  runCommand('mongo admin --eval "db.shutdownServer();"');
-});
-
-gulp.task('finish', ['mongo-stop']);
-
-gulp.task('nsp', function (done) {
-  nsp({package: __dirname + '/package.json'}, done);
-});
-
-gulp.task('retire', function() {
-  var child = spawn('retire', ['--ignore', paths.retirePathsToIgnore], {cwd: process.cwd()});
-
-  child.stdout.setEncoding('utf8');
-  child.stdout.on('data', function (data) {
-      gutil.log(data);
-  });
-
-  child.stderr.setEncoding('utf8');
-  child.stderr.on('data', function (data) {
-      gutil.log(gutil.colors.red(data));
-  });
-});
-
-gulp.task('vuln', ['nsp', 'retire']);
-
-gulp.task('default', ['lint', 'test', 'build', 'vuln', 'finish']);
+gulp.task('default', gulpSequence(
+  ['lint', 'test', 'build', 'vuln'], 'mongo:stop'
+));
