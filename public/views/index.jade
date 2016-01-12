@@ -1,20 +1,25 @@
-include ../partials/links.jade
+extends ../layouts/non-game-page.jade
 
-h1 #{game.name}
-p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
-H2=__('temp.greeting')
-p #{player.name}
-h2 Get Playing
-p This game supports the following game modes:
-ul
-  each link in links.length ? links : ['This game has no modes']
-    if link.what === '/save/new'
-      li
+block title
+  title #{game.name}
+
+block content
+  h1 #{game.name}
+  p The ensemblejs framework generates this page. If you want your own splash page then you create an index.jade in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
+  H2=__('temp.greeting')
+  p #{player.name}
+  h2 Get Playing
+  p This game supports the following game modes:
+  ul
+    each link in links.length ? links : ['This game has no modes']
+      if link.what === '/save/new'
+        li
+          +makeLink(link)
+  h2 Continue A Game
+  each link in links
+    if link.what === '/game/player/saves'
+      p
         +makeLink(link)
-h2 Continue A Game
-each link in links
-  if link.what === '/game/player/saves'
-    p
-      +makeLink(link)
 
-script(src="/ensemble/js/util/anchor-post-form.js")
+append scripts
+  script(src="/ensemble/js/util/anchor-post-form.js")

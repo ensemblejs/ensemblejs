@@ -1,17 +1,12 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    link(rel="stylesheet", href="/ensemble/css/normalize.min.css")
-    link(rel="stylesheet", href="/ensemble/css/ensemble.min.css")
-    if dashboard || debugMode
-      link(rel="stylesheet", href="/ensemble/css/dashboard.min.css")
-    link(rel="stylesheet", href="/game/css/game.min.css")
-  body
-    #paused.paused-layer
-    #canvas.canvas
-      #input.input
-    #overlay.overlay
-      .icons
-    script(src="/game/js/client/common.min.js")
-    script(src="/game/js/client/" + mode + ".min.js")
+extends ../layouts/game-page.jade
+
+block content
+  #paused.paused-layer
+  #canvas.canvas
+    #input.input
+  #overlay.overlay
+    .icons
+
+append scripts
+  script(src="/game/js/client/common.min.js")
+  script(src="/game/js/client/" + mode + ".min.js")
