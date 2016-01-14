@@ -32,8 +32,8 @@ describe('player routes', function () {
 
       getSaves = sinon.stub(savePlayers, 'getByGameAndPlayer');
       getSaves.returns([
-        {saveId: 1, gameId: 'distributedlife+tetris', playerId: 1234},
-        {saveId: 2, gameId: 'distributedlife+pong', playerId: 1234}
+        {saveId: 1, gameId: 'distributedlife+tetris', playerId: 'p1234'},
+        {saveId: 2, gameId: 'distributedlife+pong', playerId: 'p1234'}
       ]);
 
       var routes = makeTestible('routes/server/player-routes');
@@ -50,7 +50,7 @@ describe('player routes', function () {
         modes: ['game']
       });
 
-      opts = url('/players/1234/saves');
+      opts = url('/players/p1234/saves');
       opts.headers = {
         'Accept': 'application/json'
       };
@@ -66,15 +66,14 @@ describe('player routes', function () {
       request(opts, function (err, res) {
         expect(res.statusCode).toEqual(200);
         expect(savePlayers.getByGameAndPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
-        expect(savePlayers.getByGameAndPlayer.firstCall.args[1]).toEqual('1234');
+        expect(savePlayers.getByGameAndPlayer.firstCall.args[1]).toEqual('p1234');
         expect(JSON.parse(res.body)).toEqual({
           game: {
             id: 'distributedlife+pong',
             name: 'Pong'
           },
           player: {
-            id: '1234',
-            name: 'Ryan'
+            id: 'p1234'
           },
           saves: [
             {method: 'GET', name: 1, uri: '/saves/1', what: '/save/continue'},

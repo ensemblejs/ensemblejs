@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function (req, res, next) {
-  req.player = {
-    _id: 'p1234'
+  req.device = {
+    _id: 'd1234'
   };
   next();
 };

@@ -3,6 +3,7 @@
 var each = require('lodash').each;
 var sinon = require('sinon');
 
+var fakeDetermineDeviceId = require('./fake/determine-device-id');
 var fakeDeterminePlayerId = require('./fake/determine-player-id');
 var fakeI18n = require('./fake/i18n');
 
@@ -48,7 +49,7 @@ export function makeTestible(pathToModule, explicitDeps = {}) {
   var defaultStubs = {
     'DefinePlugin': support.define,
     'SocketServer': { start: sinon.spy(), stop: sinon.spy() },
-    'WebServerMiddleware': [fakeDeterminePlayerId, fakeI18n],
+    'WebServerMiddleware': [fakeDetermineDeviceId, fakeDeterminePlayerId, fakeI18n],
     'Routes': []
   };
 

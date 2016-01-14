@@ -441,7 +441,7 @@ describe('save routes', function () {
               request.post(posturl(uri, {secret: 'correct'}), function (err) {
                 expect(savePlayers.addPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
                 expect(savePlayers.addPlayer.firstCall.args[1]).toEqual('34242-324324');
-                expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('1234');
+                expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('p1234');
                 done(err);
               });
             });
@@ -499,7 +499,7 @@ describe('save routes', function () {
                 request.post(posturl(uri, {secret: 'correct'}), function (err) {
                   expect(savePlayers.addPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
                   expect(savePlayers.addPlayer.firstCall.args[1]).toEqual('34242-324324');
-                  expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('1234');
+                  expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('p1234');
                   done(err);
                 });
               });

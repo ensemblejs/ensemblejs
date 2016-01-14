@@ -17,24 +17,19 @@ function IdentifyingPlayersAndDevices (define, time) {
         return;
       }
 
-      function handleGetDevice (device) {
-        function handleSaveDevice (id) {
-          getDeviceById(id).then(handleGetDevice);
-        }
-
+      function createDeviceIfNoneFound(device) {
         if (!device) {
-          var newDevice = {
-            _id: req.sessionID
-          };
-
-          saveDevice(newDevice, time().present()).then(handleSaveDevice);
-        } else {
-          req.device = device;
-          next();
+          return saveDevice({ _id: req.sessionID }, time().present())
+            .then(deviceId => getDeviceById(deviceId) );
         }
+
+        return device;
       }
 
-      getDeviceById(req.sessionID).then(handleGetDevice);
+      return getDeviceById(req.sessionID)
+        .then(createDeviceIfNoneFound)
+        .then(device => req.device = device)
+        .then(() => next());
     };
   });
 
@@ -67,30 +62,34 @@ function IdentifyingPlayersAndDevices (define, time) {
         return;
       }
 
+      function createAndLinkToDeviceIfNoPlayers (players) {
+        if (players.length === 0) {
+          return createPlayerAndLinkToDevice(req.device._id);
+        }
+
+        return players;
+      }
+
+      function logErrorIfMoreThanOnePlayerAssociatedWithDevice (players) {
+        if (players.length > 1) {
+          logger.error(
+            {
+              reqId: req.id,
+              device: req.device,
+              players: pluck(players, '_id')
+            },
+            'More than one player associated with device.'
+          );
+
+          return Bluebird.reject('Too many players on the dance floor.');
+        }
+
+        return players;
+      }
+
       return getPlayerByDevice(req.device._id)
-        .then(function handleNoPlayers (players) {
-          if (players.length === 0) {
-            return createPlayerAndLinkToDevice(req.device._id);
-          }
-
-          return players;
-        })
-        .then(function handleMultiplePlayers (players) {
-          if (players.length > 1) {
-            logger.error(
-              {
-                reqId: req.id,
-                device: req.device,
-                players: pluck(players, '_id')
-              },
-              'More than one player associated with device.'
-            );
-
-            return Bluebird.reject('Too many players on the dance floor.');
-          }
-
-          return players;
-        })
+        .then(createAndLinkToDeviceIfNoPlayers)
+        .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
         .then(players => req.player = first(players))
         .then(() => next())
         .catch(err => res.status(500).send(err));
