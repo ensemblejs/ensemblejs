@@ -4,9 +4,11 @@ var MongoClient = require('mongodb').MongoClient;
 var Bluebird = require('bluebird');
 var logger = require('../logging/server/logger').logger;
 
+import config from './config';
+
 var db;
 
-function connect (endpoint) {
+function connect (endpoint = config.get().mongo.endpoint) {
   return new Bluebird (function (resolve, reject) {
     MongoClient.connect(endpoint, function(err, conn) {
       if (err) {
@@ -56,7 +58,7 @@ function store (collection, data) {
     return id;
   })
   .catch(function (err) {
-    logger.error({err: err, collection: collection}, 'Unable to save.');
+    logger.error({err: err, collection: collection, data: data}, 'Unable to save.');
   });
 }
 
@@ -124,7 +126,7 @@ function getById (collection, id) {
       }
     });
   }).catch(function (err) {
-    logger.error({err: err, collection: collection}, 'Unable to get by id.');
+    logger.error({err: err, collection: collection, id: id}, 'Unable to get by id.');
   });
 }
 
