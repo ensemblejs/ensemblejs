@@ -2,7 +2,7 @@
 
 var appRoot = require('app-root-path');
 var packageInfo = require(appRoot + '/package.json');
-var logger = require('bunyan').createLogger({
+export let logger = require('bunyan').createLogger({
   name: packageInfo.name,
   version: packageInfo.version,
   streams: [
@@ -20,6 +20,6 @@ function socket (socketInfo, eventData, eventName) {
 
 logger.socket = socket;
 
-module.exports = {
+export default {
   logger: logger
 };
