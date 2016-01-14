@@ -24,14 +24,17 @@ describe('StateTracker', function () {
   var callback2 = sinon.spy();
   var afterPhysicsFrame;
   var onServerReady;
+  var deps;
 
   beforeEach(function () {
     callback.reset();
     callback2.reset();
     plugin.reset();
     tracker = require(modulePath).func(defer(plugin.define), defer(logger));
-    afterPhysicsFrame = plugin.deps().AfterPhysicsFrame(defer(rawStateAccess));
-    onServerReady = plugin.deps().OnServerReady(defer(rawStateAccess));
+
+    deps = plugin.deps();
+    afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
+    onServerReady = deps.OnServerReady(defer(rawStateAccess));
 
     tracker = tracker.for(1);
   });
@@ -276,7 +279,8 @@ describe('StateTracker', function () {
         tracker = require(modulePath).func(defer(plugin.define), defer(logger));
         tracker = tracker.for(1);
 
-        afterPhysicsFrame = plugin.deps().AfterPhysicsFrame(defer(rawStateAccess));
+        deps = plugin.deps();
+        afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
 
         forceCurrentRawState({ 1: { numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] }});
         afterPhysicsFrame();
@@ -363,10 +367,12 @@ describe('StateTracker', function () {
     var game2Callback = sinon.spy();
     var t1;
     var t2;
+    var deps;
 
     beforeEach(function () {
       tracker = require(modulePath).func(defer(plugin.define), defer(logger));
-      afterPhysicsFrame = plugin.deps().AfterPhysicsFrame(defer(rawStateAccess));
+      deps = plugin.deps();
+      afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
       t1 = tracker.for(1);
       t2 = tracker.for(2);
 

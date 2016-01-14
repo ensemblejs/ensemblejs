@@ -8,21 +8,19 @@ var fakeI18n = require('./fake/i18n');
 
 var pathToSrc = '../src/';
 
-function defer (dep) {
+export function defer (dep) {
   return function wrapDep () {
     return dep;
   };
 }
 
-function plugin () {
+export function plugin () {
   var deps = {};
 
-  function define (type, a, b) {
-    if (arguments.length === 2) {
-      deps[type] = a;
-    } else {
-      deps[type] = b;
-    }
+  function define (type) {
+    let dep = arguments[arguments.length - 1];
+
+    deps[type] = deps[type] ? [deps[type]].concat(dep) : dep;
   }
 
   function reset () {
@@ -30,7 +28,9 @@ function plugin () {
   }
 
   function get () {
-    return deps;
+    let theDeps = deps;
+    reset();
+    return theDeps;
   }
 
   return {
@@ -40,8 +40,7 @@ function plugin () {
   };
 }
 
-function makeTestible(pathToModule, explicitDeps) {
-  explicitDeps = explicitDeps || {};
+export function makeTestible(pathToModule, explicitDeps = {}) {
   var deps = [];
   var support = plugin();
   var requiredPlugin = require(pathToSrc + pathToModule);
@@ -53,7 +52,7 @@ function makeTestible(pathToModule, explicitDeps) {
     'Routes': []
   };
 
-  each(requiredPlugin.deps, function (dep) {
+  each(requiredPlugin.deps, dep => {
     if (explicitDeps[dep]) {
       deps.push(defer(explicitDeps[dep]));
       return;
@@ -69,7 +68,7 @@ function makeTestible(pathToModule, explicitDeps) {
   return [requiredPlugin.func.apply(undefined, deps), support.deps()];
 }
 
-function gameScopedState (stateCallback) {
+export function gameScopedState (stateCallback) {
   return {
     for: function (namespace) {
       return {
@@ -84,16 +83,8 @@ function gameScopedState (stateCallback) {
   };
 }
 
-function DynamicPluginLoader (plugins) {
+export function DynamicPluginLoader (plugins) {
   return {
     get: function (name) { return plugins[name]; }
   };
 }
-
-module.exports = {
-  makeTestible: makeTestible,
-  defer: defer,
-  plugin: plugin,
-  gameScopedState: gameScopedState,
-  DynamicPluginLoader: DynamicPluginLoader
-};

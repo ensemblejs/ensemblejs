@@ -3,6 +3,7 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
+var plugin = require('../../support').plugin;
 var createFakeDom = require('../../fake/dom');
 
 var socket = require('../../fake/socket').socket;
@@ -25,6 +26,8 @@ describe('the socket client', function () {
 		sinon.spy(io, 'connect');
 	});
 
+	var deps = plugin();
+
 	beforeEach(function (done) {
 		var html = '<html><body><div id="element">With content.</div></body></html>';
 	  createFakeDom(html, function (window) {
@@ -32,6 +35,7 @@ describe('the socket client', function () {
 				Window: window,
 				SaveMode: 'arcade',
 				ServerUrl: 'http://ensemblejs.com',
+				DefinePlugin: deps.define,
 				On: fakeOn,
 				Time: fakeTime,
 				$: fake$wrapper
@@ -78,10 +82,12 @@ describe('the socket client', function () {
 
 	describe('once connected', function () {
 		beforeEach(function () {
+			deps.reset();
 			client.connect();
 
-			onOutgoingClientPacket = sut[1].OnOutgoingClientPacket();
-			onIncomingServerPacket = sut[1].OnIncomingServerPacket();
+			var ourDeps = deps.deps();
+			onOutgoingClientPacket = ourDeps.OnOutgoingClientPacket();
+			onIncomingServerPacket = ourDeps.OnIncomingServerPacket();
 		});
 
 		describe('on startTime', function () {

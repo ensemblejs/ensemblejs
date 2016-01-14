@@ -34,8 +34,9 @@ var dimensions = {};
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(mutatorPlugins.define));
-var rawStateAccess = mutatorPlugins.deps().RawStateAccess();
-var stateAccess = mutatorPlugins.deps().StateAccess();
+var mutatorPluginsDeps = mutatorPlugins.deps();
+var rawStateAccess = mutatorPluginsDeps.RawStateAccess();
+var stateAccess = mutatorPluginsDeps.StateAccess();
 
 
 var config = {
@@ -54,14 +55,16 @@ var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(d
 var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
-var currentState = trackerPlugins.deps().CurrentState();
-onClientStart.push(trackerPlugins.deps().OnClientStart(defer(rawStateAccess)));
-onOutgoingClientPacket.push(inputQueuePlugins.deps().OnOutgoingClientPacket());
-onIncomingServerPacket.push(trackerPlugins.deps().OnIncomingServerPacket());
-onIncomingServerPacket.push(inputQueuePlugins.deps().OnIncomingServerPacket());
+var trackerPluginsDeps = trackerPlugins.deps();
+var currentState = trackerPluginsDeps.CurrentState();
+onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
+var inputQueuePluginsDeps = inputQueuePlugins.deps();
+onOutgoingClientPacket.push(inputQueuePluginsDeps.OnOutgoingClientPacket());
+onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket());
+onIncomingServerPacket.push(inputQueuePluginsDeps.OnIncomingServerPacket());
 beforePhysicsFrame.push(processPendingInput);
-afterPhysicsFrame.push(trackerPlugins.deps().AfterPhysicsFrame(defer(rawStateAccess)));
-afterPhysicsFrame.push(inputQueuePlugins.deps().AfterPhysicsFrame());
+afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
+afterPhysicsFrame.push(inputQueuePluginsDeps.AfterPhysicsFrame());
 
 var clientState = {
   get: function () {return false;}

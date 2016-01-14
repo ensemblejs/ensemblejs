@@ -105,8 +105,9 @@ describe('Input Bindings', function() {
 		}];
 
 		require('../../../src/input/server/process_pending_input.js').func(defer([actions]), defer(plugin.define), defer(mutator));
-		newUserInput = plugin.deps().OnInput();
-		update = plugin.deps().BeforePhysicsFrame();
+		var deps = plugin.deps();
+		newUserInput = deps.OnInput();
+		update = deps.BeforePhysicsFrame();
 
 		sinon.spy(logger, 'debug');
 	});
@@ -161,8 +162,9 @@ describe('Input Bindings', function() {
 			beforeEach(function() {
 				require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
-				newUserInput = plugin.deps().OnInput();
-				update = plugin.deps().BeforePhysicsFrame();
+				var deps = plugin.deps();
+				newUserInput = deps.OnInput();
+				update = deps.BeforePhysicsFrame();
 
 				mutator.reset();
 			});

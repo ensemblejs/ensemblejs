@@ -35,15 +35,19 @@ describe('StateTracker', function () {
 	var afterPhysicsFrame;
 	var onClientStart;
 	var onIncomingServerPacket;
+	var deps;
 
 	beforeEach(function () {
 		callback.reset();
 		callback2.reset();
 		plugin.reset();
 		tracker = require(modulePath).func(defer(plugin.define), defer(logger));
-		afterPhysicsFrame = plugin.deps().AfterPhysicsFrame(defer(rawStateAccess));
-		onClientStart = plugin.deps().OnClientStart(defer(rawStateAccess));
-		onIncomingServerPacket = plugin.deps().OnIncomingServerPacket();
+
+		deps = plugin.deps();
+
+		afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
+		onClientStart = deps.OnClientStart(defer(rawStateAccess));
+		onIncomingServerPacket = deps.OnIncomingServerPacket();
 	});
 
 	describe('working with property', function () {
@@ -369,14 +373,14 @@ describe('StateTracker', function () {
 	describe('on setup', function () {
 		it('should update the latest server state', function () {
 			onClientStart({prop: 'a'});
-			expect(plugin.deps().CurrentServerState().get(the('prop'))).toEqual('a');
+			expect(deps.CurrentServerState().get(the('prop'))).toEqual('a');
 		});
 	});
 
 	describe('on packet', function () {
 		it('should update the latest server state', function () {
 			onIncomingServerPacket({id: 1, saveState: {prop: 'c'}});
-			expect(plugin.deps().CurrentServerState().get(the('prop'))).toEqual('c');
+			expect(deps.CurrentServerState().get(the('prop'))).toEqual('c');
 		});
 	});
 
@@ -384,7 +388,7 @@ describe('StateTracker', function () {
 		it('should return the current value', function() {
 			forceCurrentRawState({property: 'unchanged'});
 			afterPhysicsFrame();
-			expect(plugin.deps().CurrentState().get(the('property'))).toEqual('unchanged');
+			expect(deps.CurrentState().get(the('property'))).toEqual('unchanged');
 		});
 	});
 });
