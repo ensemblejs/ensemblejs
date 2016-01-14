@@ -89,6 +89,8 @@ function loadDefaults() {
   loadFolder(require('./debug/client/**/*.js', { mode: 'hash' }));
 }
 
+loadDefaults();
+
 module.exports = {
   load: logging.logger.deprecate('load', 'Plugins are loaded automatically.'),
   set: plugins.set,
