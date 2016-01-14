@@ -37,6 +37,22 @@ module.exports = {
       return session;
     }
 
+    function configureErrorHandlers (app) {
+      app.use(function(req, res) {
+        res.sendStatus(404);
+      });
+
+      app.use(function(err, req, res, next) {
+        if (!config.debug.develop) {
+          res.status(500).send('Well, this is awkward.');
+        } else {
+          res.status(500).send(err.message);
+        }
+
+        next(err);
+      });
+    }
+
     function configureApp (assetPath, project) {
       var app = express();
 
@@ -71,29 +87,13 @@ module.exports = {
         route.configure(app, project);
       });
 
+      configureErrorHandlers(app);
+
       return app;
-    }
-
-    function configureErrorHandlers (app) {
-      app.use(function(req, res) {
-        res.sendStatus(404);
-      });
-
-      app.use(function(err, req, res, next) {
-        if (!config.debug.develop) {
-          res.status(500).send('Well, this is awkward.');
-        } else {
-          res.status(500).send(err.message);
-        }
-
-        next(err);
-      });
     }
 
     function start (assetPath, project) {
       var app = configureApp(assetPath, project);
-
-      configureErrorHandlers(app);
 
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
