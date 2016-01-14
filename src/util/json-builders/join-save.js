@@ -7,9 +7,6 @@ function buildJson (save, player, hostname, project) {
     game: {
       name: project.name,
     },
-    player: {
-      name: player.name
-    },
     join: {
       method: 'POST',
       what: '/save/join',

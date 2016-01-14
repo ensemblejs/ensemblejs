@@ -25,7 +25,7 @@ describe('determining the device', () => {
       })
       .finally(done);
 
-    determineDeviceId = middleware[1].WebServiceMiddleware[0]();
+    determineDeviceId = middleware[1].WebServerMiddleware[0]();
   });
 
   afterEach(() => {

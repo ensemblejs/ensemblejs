@@ -16,8 +16,7 @@ function buildJson (project, player) {
       modes: project.modes
     },
     player: {
-      id: player._id,
-      name: player.name
+      id: player._id
     },
     links: [{
       name: 'Click here to see your saved games',

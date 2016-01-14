@@ -18,8 +18,7 @@ function buildShowSavesJson (saves, player, project) {
   return {
     game: buildGameHash(project),
     player: {
-      id: player._id,
-      name: player.name
+      id: player._id
     },
     saves: buildSaveLinks(saves)
   };

@@ -8,7 +8,7 @@ import {pluck} from 'lodash/collection';
 import Bluebird from 'bluebird';
 
 function IdentifyingPlayersAndDevices (define, time) {
-  define()('WebServiceMiddleware', () => {
+  define()('WebServerMiddleware', () => {
     return function determineDeviceId (req, res, next) {
 
       if(!req.sessionID) {
@@ -38,7 +38,7 @@ function IdentifyingPlayersAndDevices (define, time) {
       .then(() => [player, deviceId]);
   }
 
-  define()('WebServiceMiddleware', ['UUID'], (uuid) => {
+  define()('WebServerMiddleware', ['UUID'], (uuid) => {
     function createPlayerAndLinkToDevice (deviceId) {
       var id = uuid().gen();
       return savePlayer({_id: id}, time().present())

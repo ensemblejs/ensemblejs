@@ -27,7 +27,7 @@ describe('identifying the player', function () {
       .then(() => { return mongo.removeAll('player_devices'); })
       .finally(done);
 
-    determinePlayerId = middleware[1].WebServiceMiddleware[1](defer(uuid));
+    determinePlayerId = middleware[1].WebServerMiddleware[1](defer(uuid));
   });
 
   afterEach(() => {
