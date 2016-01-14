@@ -1,21 +1,37 @@
 'use strict';
 
-var logger = require('../../logging/server/logger').logger;
-var mongo = require('../mongo');
-var Bluebird = require('bluebird');
-var collection = 'players';
+import {logger} from '../../logging/server/logger';
+import mongo from '../mongo';
+import Bluebird from 'bluebird';
 
-function getById (playerId) {
+const collection = 'players';
+const playersAndDevices = 'player_devices';
+
+export function getById (playerId) {
   return mongo.getById(collection, playerId);
 }
 
-function getByKey (key, keyType) {
+function mapPlayerDeviceToPlayers (playerDevice) {
+  return getById(playerDevice.playerId);
+}
+
+export function getByDevice (deviceId) {
+  return mongo.getAllByFilter(playersAndDevices, {deviceId: deviceId}, mapPlayerDeviceToPlayers)
+  .then(promises => {
+    return Bluebird.all(promises);
+  });
+}
+export function linkToDevice(playerId, deviceId) {
+  return mongo.store(playersAndDevices, {playerId : playerId, deviceId: deviceId});
+}
+
+export function getByKey (key, keyType) {
   var filter = { key: key, keyType: keyType};
 
   return mongo.getOneByFilter(collection, filter);
 }
 
-function save (player, now) {
+export function save (player, now) {
   if (!player) {
     logger.error({player: player, now: now}, 'Cannot save player. Nothing to save.');
     return Bluebird.reject('Cannot save player. Nothing to save.');
@@ -30,7 +46,7 @@ function save (player, now) {
   return mongo.store(collection, player);
 }
 
-module.exports = {
+export default  {
   getById: getById,
   getByKey: getByKey,
   save: save

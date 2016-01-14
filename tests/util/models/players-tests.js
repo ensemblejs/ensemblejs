@@ -3,38 +3,36 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var mongo = require('../../../src/util/mongo');
-var config = require('../../../src/util/config');
-var logger = require('../../../src/logging/server/logger').logger;
+import {logger} from '../../../src/logging/server/logger';
 var players = require('../../../src/util/models/players');
 
-describe('the player model', function () {
-  beforeEach(function (done) {
+describe('the player model', () => {
+  beforeEach(done => {
     mongo
-      .connect(config.get().mongo.endpoint)
-      .then(function () {
-        return mongo.removeAll('players');
-      })
+      .connect()
+      .then(() => { return mongo.removeAll('players'); })
+      .then(() => { return mongo.removeAll('player_devices'); })
       .then(done)
       .catch(done);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     mongo.disconnect();
   });
 
 
-  describe('getById', function () {
-    beforeEach(function (done) {
+  describe('getById', () => {
+    beforeEach(done => {
       mongo.store('players', {
         _id: 2,
         herp: 'derp'
       })
-      .then(function () {
+      .then(() => {
         done();
       });
     });
 
-    it('should return the record', function (done) {
+    it('should return the record', done => {
       players.getById(2).then(function (save) {
         expect(save).toEqual({ _id: 2, herp: 'derp'});
       })
@@ -42,19 +40,39 @@ describe('the player model', function () {
     });
   });
 
-  describe('getByKey', function () {
-    beforeEach(function (done) {
+  describe('getByDevice', () => {
+    beforeEach(done => {
+      mongo.store('players', { _id: 'p1234' })
+      .then(() => {
+        mongo.store('player_devices', {
+          _id: 'pd1234', playerId: 'p1234', deviceId: 'd1234'
+        });
+      })
+      .then(() => { done(); });
+    });
+
+    it('should return all players with that device', done => {
+      players.getByDevice('d1234').then(players => {
+        expect(players.length).toEqual(1);
+        expect(players).toEqual([{ _id: 'p1234'}]);
+      })
+      .then(done).catch(done);
+    });
+  });
+
+  describe('getByKey', () => {
+    beforeEach(done => {
       mongo.store('players', {
         _id: 3,
         key: 'aaaa',
         keyType: 'sessionId'
       })
-      .then(function () {
+      .then(() => {
         done();
       });
     });
 
-    it('should return the record', function (done) {
+    it('should return the record', done => {
       players.getByKey('aaaa', 'sessionId').then(function (save) {
         expect(save).toEqual({ _id: 3, key: 'aaaa', keyType: 'sessionId'});
       })
@@ -62,29 +80,29 @@ describe('the player model', function () {
     });
   });
 
-  describe('save', function () {
-    beforeEach(function () {
+  describe('save', () => {
+    beforeEach(() => {
       sinon.spy(logger, 'error');
     });
 
-    afterEach(function () {
+    afterEach(() => {
       logger.error.restore();
     });
 
-    it('should report an error if there is nothing to save', function () {
+    it('should report an error if there is nothing to save', () => {
       players.save(undefined, 0);
 
       expect(logger.error.called).toBe(true);
     });
 
-    it('should report an error if there is no timestamp', function () {
+    it('should report an error if there is no timestamp', () => {
       players.save({id: 1}, undefined);
 
       expect(logger.error.called).toBe(true);
     });
 
-    it('should save the record', function (done) {
-      players.save({_id: 3, herp: 'derp'}, 15).then(function () {
+    it('should save the record', done => {
+      players.save({_id: 3, herp: 'derp'}, 15).then(() => {
         return players.getById(3);
       })
       .then(function (save) {
@@ -93,8 +111,8 @@ describe('the player model', function () {
       .then(done).catch(done);
     });
 
-    it('should update the timestamp', function (done) {
-      players.save({_id: 3}, 15).then(function () {
+    it('should update the timestamp', done => {
+      players.save({_id: 3}, 15).then(() => {
         return players.getById(3);
       })
       .then(function (save) {

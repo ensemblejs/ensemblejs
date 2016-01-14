@@ -3,7 +3,7 @@
 var MongoClient = require('mongodb').MongoClient;
 var Bluebird = require('bluebird');
 var logger = require('../logging/server/logger').logger;
-
+import uuid from 'node-uuid';
 import config from './config';
 
 var db;
@@ -37,7 +37,7 @@ function isConnected () {
 }
 
 function store (collection, data) {
-  var filter = { _id: data._id };
+  var filter = { _id: data._id || uuid.v4() };
   var opts = { upsert: true };
 
   return new Bluebird (function (resolve, reject) {
@@ -98,7 +98,7 @@ function getAllByFilter (collection, filter, adapter) {
       }
     });
   }).catch(function (err) {
-    logger.error({err: err, collection: collection}, 'Unable to get by filter.');
+    logger.error({err: err, collection: collection, filter: filter}, 'Unable to get by filter.');
   });
 }
 

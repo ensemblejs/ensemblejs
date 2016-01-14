@@ -53,20 +53,16 @@ describe('determining the device', () => {
       logger.error.restore();
     });
 
-    it('should return a 500', done => {
+    it('should return a 500', () => {
       determineDeviceId(req, res, () => {
         expect(res.status.firstCall.args).toEqual([500]);
         expect(send.called).toBe(true);
-
-        done();
       });
     });
 
-    it('should report an error', function (done) {
+    it('should report an error', () => {
       determineDeviceId(req, res, () => {
         expect(logger.error.called).toBe(true);
-
-        done();
       });
     });
   });
