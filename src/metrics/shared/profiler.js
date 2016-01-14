@@ -30,7 +30,7 @@ module.exports = {
       });
       wildcard = select(configuredTimers, function(t) {
         return includes(t, '*');
-      }).map(function(t) {
+      }).map(function removeWildcard(t) {
         return t.replace('*', '');
       });
 
