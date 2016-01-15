@@ -1,9 +1,10 @@
 'use strict';
 
-var select = require('lodash').select;
-var first = require('lodash').first;
-var map = require('lodash').map;
-var playerSource = require('../../util/models/players');
+import {first} from 'lodash/array';
+import {map, select} from 'lodash/collection';
+import Bluebird from 'bluebird';
+
+var playersStore = require('../../util/models/players');
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 
@@ -13,8 +14,8 @@ module.exports = {
   func: function PlayerConnections (define, on) {
     var connections = [];
 
-    function filterBySaveAndSession (saveId, sessionId) {
-      return select(connections, {saveId: saveId, sessionId: sessionId});
+    function filterBySaveAnPlayer (saveId, playerId) {
+      return select(connections, {saveId: saveId, playerId: playerId});
     }
 
     function connectedPlayers (saveId) {
@@ -25,15 +26,15 @@ module.exports = {
       return select(connections, { saveId: saveId });
     }
 
-    function exists (saveId, sessionId) {
-      return filterBySaveAndSession(saveId, sessionId).length > 0;
+    function exists (saveId, playerId) {
+      return filterBySaveAnPlayer(saveId, playerId).length > 0;
     }
 
-    function get (saveId, sessionId) {
-      return first(filterBySaveAndSession(saveId, sessionId));
+    function get (saveId, playerId) {
+      return first(filterBySaveAnPlayer(saveId, playerId));
     }
 
-    function add (maxPlayers, saveId, sessionId) {
+    function add (maxPlayers, saveId, playerId) {
       var inSave = select(connections, {saveId: saveId});
       if (inSave.length === maxPlayers) {
         return;
@@ -41,30 +42,29 @@ module.exports = {
 
       connections.push({
         saveId: saveId,
-        sessionId: sessionId,
-        playerId: undefined,
+        playerId: playerId,
         status: 'online',
         number: inSave.length + 1
       });
     }
 
-    function createNewPlayer (save, sessionId) {
-      add(config.get().maxPlayers(save.mode), save.id, sessionId);
+    function createNewPlayer (save, playerId) {
+      add(config.get().maxPlayers(save.mode), save.id, playerId);
     }
 
-    function markPlayerAsOnline (saveId, sessionId) {
-      var connection = get(saveId, sessionId);
+    function markPlayerAsOnline (saveId, playerId) {
+      var connection = get(saveId, playerId);
       connection.status = 'online';
     }
 
-    function addPlayer (save, sessionId) {
-      if (!exists(save.id, sessionId)) {
-        createNewPlayer(save, sessionId);
+    function addPlayer (save, playerId) {
+      if (!exists(save.id, playerId)) {
+        createNewPlayer(save, playerId);
       } else {
-        markPlayerAsOnline(save.id, sessionId);
+        markPlayerAsOnline(save.id, playerId);
       }
 
-      var connection = get(save.id, sessionId);
+      var connection = get(save.id, playerId);
       if (!connection) {
         return undefined;
       }
@@ -75,14 +75,14 @@ module.exports = {
     function getPlayers (save) {
       var players = map(savePlayers(save.id), function (connection) {
         return {
-          id: connection.number,
+          number: connection.number,
           status: connection.status
         };
       });
 
       var maxPlayers = config.get().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
-        players.push({id: i, status: 'not-joined'});
+        players.push({number: i, status: 'not-joined'});
       }
 
       return players;
@@ -96,22 +96,38 @@ module.exports = {
       return (connectedCount(save.id) < config.get().minPlayers(save.mode));
     }
 
+    function redirectIfMoreThanOnePlayer (players) {
+      if (players.length > 1) {
+        return Bluebird.reject('Too many players on the dance floor');
+      }
+
+      return players[0];
+    }
+
+    function redirectIfNoPlayer (players) {
+      if (players.length === 0) {
+        return Bluebird.reject('No players for device');
+      }
+
+      return players;
+    }
+
     define()('OnClientConnect', function PlayerConnections () {
-      return function determinePlayerId (state, socket, save) {
-        var sessionId = socket.request.sessionID;
-        var playerNumber = addPlayer(save, sessionId);
-        socket.emit('playerNumber', playerNumber);
+      return function determinePlayerNumber (state, socket, save) {
+        var deviceId = socket.request.sessionID;
 
-        playerSource.getByKey(sessionId, 'sessionId').then(function (player) {
-          var connection = get(save.id, socket.request.sessionID);
-          connection.playerId = player._id;
-        });
-
-        on().playerGroupChange(getPlayers(save), save.id);
-
-        return [
-          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-        ];
+        return playersStore.getByDevice(deviceId)
+          .then(redirectIfNoPlayer)
+          .then(redirectIfMoreThanOnePlayer)
+          .then(player => addPlayer(save, player._id))
+          .then(playerNumber => socket.emit('playerNumber', playerNumber))
+          .then(() => on().playerGroupChange(getPlayers(save), save.id))
+          .then(() => {
+            return [
+              'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
+            ];
+          })
+          .catch(err => socket.emit('error', err));
       };
     });
 

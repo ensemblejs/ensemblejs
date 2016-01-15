@@ -13,6 +13,8 @@ var get = require('lodash').get;
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
 
+import Bluebird from 'bluebird';
+
 var root = {};
 
 module.exports = {
@@ -208,6 +210,10 @@ module.exports = {
       return select(result, isArray).length === result.length;
     }
 
+    function isPromise (result) {
+      return (result instanceof Bluebird);
+    }
+
     function handleResult (saveId, result) {
       if (ignoreResult(result)) {
         return false;
@@ -221,6 +227,8 @@ module.exports = {
 
       if (isArrayOfArrays(result)) {
         mutateArrayOfArrays(saveId, result);
+      } else if (isPromise(result)) {
+        return result.then(value => handleResult(saveId, value));
       } else {
         mutateNonArray(saveId, result);
       }

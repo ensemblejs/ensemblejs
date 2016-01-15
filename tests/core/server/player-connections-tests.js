@@ -1,5 +1,6 @@
 'use strict';
 
+import Bluebird from 'bluebird';
 var sinon = require('sinon');
 var expect = require('expect');
 var makeTestible = require('../../support').makeTestible;
@@ -18,12 +19,14 @@ describe('players connecting', function () {
   var onClientConnect;
   var onClientDisconnect;
 
+  var getByDevice;
   beforeEach(function () {
     var module = makeTestible('core/server/player-connections', {
       On: fakeOn
     });
 
-    sinon.spy(players, 'getByKey');
+    getByDevice = sinon.stub(players, 'getByDevice');
+    getByDevice.returns(Bluebird.resolve([{_id: 1}]));
     sinon.stub(config, 'get').returns({
       game: {
         id: 1
@@ -41,42 +44,56 @@ describe('players connecting', function () {
 
   afterEach(function () {
     config.get.restore();
-    players.getByKey.restore();
+    getByDevice.restore();
   });
 
   describe('when a player connects', function () {
-    beforeEach(function () {
-      onClientConnect(undefined, player1, save1);
+    beforeEach(done => {
+      onClientConnect(undefined, player1, save1)
+        .then(() => done())
+        .catch(() => done());
     });
 
-    it('should add a new player connection', function () {
-      expect(connectedCount(save1.id)).toEqual(1);
-    });
+    it('should send an error if no player found');
+    it('should send an error if more than one player per device');
 
-    it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
-    });
-
-    it('should partion players into games', function () {
-      onClientConnect(undefined, player2, save1);
-      onClientConnect(undefined, player1, save2);
-
-      expect(connectedCount(save1.id)).toEqual(2);
-      expect(connectedCount(save2.id)).toEqual(1);
-    });
-
-    describe('when the same player connects again on a different client', function () {
-
-      beforeEach(function () {
-        onClientConnect(undefined, player1, save1);
-      });
-
-      it('should not add a new player connection', function () {
+    describe('with a player', function () {
+      it('should add a new player connection', function () {
         expect(connectedCount(save1.id)).toEqual(1);
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+      });
+
+      it('should partion players into games', function (done) {
+        onClientConnect(undefined, player2, save1)
+          .then(() => {
+            expect(connectedCount(save1.id)).toEqual(2);
+          })
+          .then(() => onClientConnect(undefined, player1, save2) )
+          .then(() => {
+            expect(connectedCount(save2.id)).toEqual(1);
+          })
+          .then(() => done() )
+          .catch(() => done() );
+      });
+
+      describe('when the same player connects again on a different client', function () {
+
+        beforeEach(function (done) {
+          onClientConnect(undefined, player1, save1)
+            .then(() => done() )
+            .catch(() => done() );
+        });
+
+        it('should not add a new player connection', function () {
+          expect(connectedCount(save1.id)).toEqual(1);
+        });
+
+        it('should publish the players and their status in the game', function () {
+          expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        });
       });
     });
 
@@ -88,18 +105,20 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'offline'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
     });
 
     describe('when the same player reconnects after disconnecting', function () {
 
-      beforeEach(function () {
+      beforeEach(function (done) {
         onClientDisconnect(undefined, player1, save1);
 
         fakeOn.playerGroupChange.reset();
 
-        onClientConnect(undefined, player1, save1);
+        onClientConnect(undefined, player1, save1)
+          .then(() => done())
+          .catch(() => done() );
       });
 
       it('should not add a new player connection', function () {
@@ -107,15 +126,19 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'not-joined'}, {id: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
     });
 
     describe('when the maxPlayers is exceeded', function () {
-      beforeEach(function () {
-        onClientConnect(undefined, player1, save1);
-        onClientConnect(undefined, player2, save1);
-        onClientConnect(undefined, player3, save1);
+      beforeEach(function (done) {
+        onClientConnect(undefined, player1, save1)
+          .then(() => getByDevice.returns(Bluebird.resolve([{_id: 2}])))
+          .then(() => onClientConnect(undefined, player2, save1))
+          .then(() => getByDevice.returns(Bluebird.resolve([{_id: 3}])))
+          .then(() => onClientConnect(undefined, player3, save1))
+          .then(() => done())
+          .catch(() => done() );
       });
 
       it('should not add a new player connection', function () {
@@ -125,48 +148,77 @@ describe('players connecting', function () {
   });
 
   describe('when a second player connects', function () {
-    beforeEach(function () {
-      onClientConnect(undefined, player1, save1);
+    beforeEach(function (done) {
+      getByDevice.returns(Bluebird.resolve([{_id: 1}]));
 
-      fakeOn.playerGroupChange.reset();
-
-      onClientConnect(undefined, player2, save1);
+      onClientConnect(undefined, player1, save1)
+        .then(() => fakeOn.playerGroupChange.reset())
+        .then(() => getByDevice.returns(Bluebird.resolve([{_id: 2}])))
+        .then(() => onClientConnect(undefined, player2, save1))
+        .then(() => done())
+        .catch(() => done());
     });
 
     it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ id: 1, status: 'online'}, {id: 2, status: 'online'}, {id: 3, status: 'not-joined'}], 1]);
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'online'}, {number: 3, status: 'not-joined'}], 1]);
     });
   });
 
   describe('when the number of connected players gets above the minimum', function () {
-    it('should set waitingForPlayers to false', function () {
-      expect(onClientConnect(undefined, player1, save1)).toEqual(['ensemble.waitingForPlayers', true]);
-      expect(onClientConnect(undefined, player2, save1)).toEqual(['ensemble.waitingForPlayers', false]);
+    it('should set waitingForPlayers to false', function (done) {
+      onClientConnect(undefined, player1, save1)
+        .then(result => {
+          expect(result).toEqual(['ensemble.waitingForPlayers', true]);
+        })
+        .then(() => onClientConnect(undefined, player2, save1) )
+        .then(result => {
+          expect(result).toEqual(['ensemble.waitingForPlayers', false]);
+        })
+        .then(() => done())
+        .catch(() => done() );
     });
   });
 
   describe('when the number of connected players falls below the minimum', function () {
-    it('should set waitingForPlayers to true', function () {
-      expect(onClientConnect(undefined, player1, save1)).toEqual(['ensemble.waitingForPlayers', true]);
-      expect(onClientConnect(undefined, player2, save1)).toEqual(['ensemble.waitingForPlayers', false]);
-      expect(onClientDisconnect(undefined, player2, save1)).toEqual(['ensemble.waitingForPlayers', true]);
+    it('should set waitingForPlayers to true', function (done) {
+      onClientConnect(undefined, player1, save1)
+        .then(result => {
+          expect(result).toEqual(['ensemble.waitingForPlayers', true]);
+        })
+        .then(() => onClientConnect(undefined, player2, save1) )
+        .then(result => {
+          expect(result).toEqual(['ensemble.waitingForPlayers', false]);
+        })
+        .then(() => onClientDisconnect(undefined, player2, save1) )
+        .then(result => {
+          expect(result).toEqual(['ensemble.waitingForPlayers', true]);
+        })
+        .then(() => done())
+        .catch(() => done());
     });
   });
 
   describe('connectedCount', function () {
-    it('should count the number of online player connections', function () {
-      onClientConnect(undefined, player1, save1);
-      onClientConnect(undefined, player2, save1);
-      expect(connectedCount(save1.id)).toEqual(2);
+    it('should count the number of online player connections', done => {
+      onClientConnect(undefined, player1, save1)
+        .then(() => onClientConnect(undefined, player2, save1) )
+        .then(() => {
+          expect(connectedCount(save1.id)).toEqual(2);
+        })
+        .then(() => done() )
+        .catch(() => done() );
     });
 
-    it('should keep each games player count separate', function () {
-      onClientConnect(undefined, player1, save1);
-      onClientConnect(undefined, player1, save2);
-      onClientConnect(undefined, player2, save2);
-
-      expect(connectedCount(save1.id)).toEqual(1);
-      expect(connectedCount(save2.id)).toEqual(2);
+    it('should keep each games player count separate', done => {
+      onClientConnect(undefined, player1, save1)
+        .then(() => onClientConnect(undefined, player1, save2))
+        .then(() => onClientConnect(undefined, player2, save2))
+        .then(() => {
+          expect(connectedCount(save1.id)).toEqual(1);
+          expect(connectedCount(save2.id)).toEqual(2);
+        })
+        .then(() => done() )
+        .catch(() => done() );
     });
   });
 });

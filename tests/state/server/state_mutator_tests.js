@@ -80,6 +80,22 @@ describe('state mutator', function () {
     expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
   });
 
+  it('should work with promises', function (done) {
+    stateMutator(1, Bluebird.resolve(['controller.score', 2]))
+      .then(() => {
+        expect(state.for(1).for('controller').get('score')).toEqual(2);
+        done();
+      });
+  });
+
+  it('should work with rejected promises', function (done) {
+    stateMutator(1, Bluebird.reject())
+      .catch(() => {
+        expect(state.for(1).for('controller').get('score')).toEqual(0);
+        done();
+      });
+  });
+
   it('should work with removing elements from arrays', function () {
     stateMutator(1, {
       controller: {

@@ -25,12 +25,6 @@ export function linkToDevice(playerId, deviceId) {
   return mongo.store(playersAndDevices, {playerId : playerId, deviceId: deviceId});
 }
 
-export function getByKey (key, keyType) {
-  var filter = { key: key, keyType: keyType};
-
-  return mongo.getOneByFilter(collection, filter);
-}
-
 export function save (player, now) {
   if (!player) {
     logger.error({player: player, now: now}, 'Cannot save player. Nothing to save.');
@@ -48,6 +42,5 @@ export function save (player, now) {
 
 export default  {
   getById: getById,
-  getByKey: getByKey,
   save: save
 };

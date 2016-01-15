@@ -60,26 +60,6 @@ describe('the player model', () => {
     });
   });
 
-  describe('getByKey', () => {
-    beforeEach(done => {
-      mongo.store('players', {
-        _id: 3,
-        key: 'aaaa',
-        keyType: 'sessionId'
-      })
-      .then(() => {
-        done();
-      });
-    });
-
-    it('should return the record', done => {
-      players.getByKey('aaaa', 'sessionId').then(function (save) {
-        expect(save).toEqual({ _id: 3, key: 'aaaa', keyType: 'sessionId'});
-      })
-      .then(done).catch(done);
-    });
-  });
-
   describe('save', () => {
     beforeEach(() => {
       sinon.spy(logger, 'error');
