@@ -65,6 +65,52 @@ module.exports = {
       };
     });
 
+    function setupNonPlayableClient (socket) {
+      sockets[socket.id] = socket;
+
+      var socketInfo = {
+        socketId: socket.id,
+        sessionId: socket.request.sessionID,
+        address: socket.handshake.address
+      };
+      logger.info(socketInfo, 'Socket Connected');
+
+      socket.emit('startTime', time().present());
+
+      function sendSave (saveId) {
+        clientSockets[saveId] = clientSockets[saveId] || [];
+        clientSockets[saveId].push(socket.id);
+
+        var save = saves().get(saveId);
+
+        function publishDisconnect() {
+          on().clientDisconnect(save, socket);
+        }
+
+        function error (data) {
+          on().error(data);
+        }
+
+        function addLogging (eventName, eventCallback) {
+          return function withLogging () {
+            logger.socket(socketInfo, arguments, eventName);
+            eventCallback.apply(this, arguments);
+          };
+        }
+
+        socket.on('disconnect', addLogging('disconnect', publishDisconnect));
+        socket.on('error', addLogging('error', error));
+
+        on().clientConnect(save, socket);
+
+        socket.emit('initialState', rawStateAccess().for(save.id));
+
+        startUpdateClientLoop(save, socket.id);
+      }
+
+      socket.on('saveId', sendSave);
+    }
+
     function setupPlayableClient (socket) {
       sockets[socket.id] = socket;
 
@@ -135,6 +181,7 @@ module.exports = {
 
       each(modes, function eachMode (mode) {
         io.of('/' + mode + '/primary').on('connection', setupPlayableClient);
+        io.of('/' + mode + '/observer').on('connection', setupNonPlayableClient);
       });
     }
 

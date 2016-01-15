@@ -1,15 +1,18 @@
 'use strict';
 
 var io = require('socket.io-client');
-var last = require('lodash').last;
+import {last} from 'lodash/array';
+import {contains} from 'lodash/collection';
+
+import {supportsInput, supportsOutput} from '../../util/device-mode'
 
 module.exports = {
   type: 'SocketClient',
-  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$'],
-  func: function SocketClient (window, mode, host, on, define, time, $) {
+  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$', 'DeviceMode'],
+  func: function SocketClient (window, mode, host, on, define, time, $, deviceMode) {
 
     function url () {
-      return host() + '/' + mode() + '/primary';
+      return host() + '/' + mode() + '/' + deviceMode();
     }
 
     function connect () {
@@ -44,22 +47,26 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
-      $()(window()).on('blur', function () { socket.emit('pause'); });
-      $()(window()).on('mousedown', function () { socket.emit('unpause'); });
-      $()(window()).on('keydown', function () { socket.emit('unpause'); });
-      $()(window()).on('touchstart', function () { socket.emit('unpause'); });
+      if (contains(supportsInput, deviceMode())) {
+        $()(window()).on('blur', function () { socket.emit('pause'); });
+        $()(window()).on('mousedown', function () { socket.emit('unpause'); });
+        $()(window()).on('keydown', function () { socket.emit('unpause'); });
+        $()(window()).on('touchstart', function () { socket.emit('unpause'); });
 
-      define()('OnOutgoingClientPacket', function SocketClient () {
-        return function sendPacketToServer (packet) {
-          socket.emit('input', packet);
-        };
-      });
+        define()('OnOutgoingClientPacket', function SocketClient () {
+          return function sendPacketToServer (packet) {
+            socket.emit('input', packet);
+          };
+        });
+      }
 
-      define()('OnIncomingServerPacket', function SocketClient () {
-        return function ackPacket (packet) {
-          socket.emit('ack', packet.id);
-        };
-      });
+      if (contains(supportsOutput, deviceMode())) {
+        define()('OnIncomingServerPacket', function SocketClient () {
+          return function ackPacket (packet) {
+            socket.emit('ack', packet.id);
+          };
+        });
+      }
     }
 
     return {

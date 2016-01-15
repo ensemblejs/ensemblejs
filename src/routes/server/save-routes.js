@@ -25,7 +25,7 @@ module.exports = {
       ));
 
       app.get('/saves/:saveId', get(
-        continueSave(savesList(), on()), 'primary.jade')
+        continueSave(savesList(), on()), 'game.jade')
       );
       app.get('/saves/:saveId/join', get(
         joinSave(project, savesList()), 'join.jade')

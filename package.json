@@ -21,7 +21,8 @@
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
   "contributors": [
-    "Andy Shaw <shawry@shawry.com>"
+    "Andy Shaw <shawry@shawry.com>",
+    "Pam Rucinque <pamela.rucinque@gmail.com>"
   ],
   "bugs": {
     "url": "https://github.com/ensemblejs/ensemble/issues"

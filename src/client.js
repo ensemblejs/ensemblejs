@@ -1,16 +1,19 @@
 'use strict';
 
+//jshint browser:true
+
 var logging = require('./logging/client/logger');
 var Bluebird = require('bluebird');
 var request = Bluebird.promisify(require('request'));
 var packageInfo = require('../package.json');
-import each from 'lodash/collection/each';
+import {each} from 'lodash/collection';
 
 var folders = [];
 
 var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), require('./conf/client-silenced-plugins'));
 
-plugins.set('Window', window); //jshint ignore:line
+plugins.set('Window', window);
+plugins.set('DeviceMode', deviceMode || 'observer');//jshint ignore:line
 
 function getConfig(response, body) {
   plugins.load({
@@ -25,14 +28,10 @@ function getConfig(response, body) {
 }
 
 function setLogLevel() {
-  var config = plugins.get('Config');
-
-  logging.setLogLevel(config.logging.logLevel);
+  logging.setLogLevel(plugins.get('Config').logging.logLevel);
 }
 
-function loadFolder(folder, namespace) {
-  namespace = namespace || 'ensemblejs';
-
+function loadFolder(folder, namespace = 'ensemblejs') {
   folders.push({ items: folder, namespace: namespace });
 }
 
@@ -50,16 +49,6 @@ function loadModules() {
       plugins.load(item, folder.namespace);
     });
   });
-}
-
-function run() {
-  console.log('ensemblejs-client@' + packageInfo.version + ' started.');
-
-  request(plugins.get('ServerUrl') + '/config').spread(getConfig).then(setLogLevel).then(loadModules).then(runTheClient).error(logErrors);
-}
-
-function loadClientFolder(folder) {
-  loadFolder(folder, 'Game');
 }
 
 function loadDefaults() {
@@ -91,11 +80,20 @@ function loadDefaults() {
 
 loadDefaults();
 
-module.exports = {
-  load: logging.logger.deprecate('load', 'Plugins are loaded automatically.'),
-  set: plugins.set,
-  setLogLevel: logging.setLogLevel,
-  run: run,
+export function run() {
+  console.log('ensemblejs-client@' + packageInfo.version + ' started.');
+
+  request(plugins.get('ServerUrl') + '/config').spread(getConfig).then(setLogLevel).then(loadModules).then(runTheClient).error(logErrors);
+}
+
+export function loadClientFolder(folder) {
+  loadFolder(folder, 'Game');
+}
+
+export let set = plugins.set;
+
+export default {
   loadClientFolder: loadClientFolder,
-  loadDefaults: loadDefaults
+  run: run,
+  set: plugins.set
 };

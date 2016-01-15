@@ -1,7 +1,7 @@
 'use strict';
 
-var entryPoint = require('ensemblejs/client');
-entryPoint.loadClientFolder(require('../game/js/logic/**/*.js', {mode: 'hash'} ));
-entryPoint.loadClientFolder(require('../game/js/maps/**/*.js', {mode: 'hash'} ));
-entryPoint.loadClientFolder(require('../game/js/events/**/*.js', {mode: 'hash' }));
-entryPoint.loadClientFolder(require('../game/js/views/**/*.js', {mode: 'hash' }));
+import {loadClientFolder, set, run} from 'ensemblejs/client';
+loadClientFolder(require('../game/js/logic/**/*.js', {mode: 'hash'} ));
+loadClientFolder(require('../game/js/maps/**/*.js', {mode: 'hash'} ));
+loadClientFolder(require('../game/js/events/**/*.js', {mode: 'hash' }));
+loadClientFolder(require('../game/js/views/**/*.js', {mode: 'hash' }));

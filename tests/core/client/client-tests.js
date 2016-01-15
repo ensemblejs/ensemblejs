@@ -38,7 +38,8 @@ describe('the socket client', function () {
 				DefinePlugin: deps.define,
 				On: fakeOn,
 				Time: fakeTime,
-				$: fake$wrapper
+				$: fake$wrapper,
+				DeviceMode: 'primary'
 			});
 			client = sut[0];
 	  }, done);

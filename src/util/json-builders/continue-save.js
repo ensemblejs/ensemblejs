@@ -2,9 +2,10 @@
 
 var config = require('../../util/config').get();
 
-function buildJson (save) {
+function buildJson (saveMode, deviceMode) {
   return {
-    mode: save.mode,
+    saveMode: saveMode,
+    deviceMode: deviceMode,
     dashboard: config.ensemble.dashboard,
     debugMode: config.debug.enabled
   };
