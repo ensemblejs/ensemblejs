@@ -4,7 +4,7 @@ var io = require('socket.io-client');
 import {last} from 'lodash/array';
 import {contains} from 'lodash/collection';
 
-import {supportsInput, supportsOutput} from '../../util/device-mode'
+import {supportsInput, supportsOutput} from '../../util/device-mode';
 
 module.exports = {
   type: 'SocketClient',

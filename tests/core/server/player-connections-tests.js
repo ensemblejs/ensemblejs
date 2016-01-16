@@ -98,10 +98,11 @@ describe('players connecting', function () {
     });
 
     describe('when a player disconnects', function () {
-      beforeEach(function () {
+      beforeEach(function (done) {
         fakeOn.playerGroupChange.reset();
 
-        onClientDisconnect(undefined, player1, save1);
+        onClientDisconnect(undefined, player1, save1)
+          .then(() => done());
       });
 
       it('should publish the players and their status in the game', function () {
@@ -112,13 +113,11 @@ describe('players connecting', function () {
     describe('when the same player reconnects after disconnecting', function () {
 
       beforeEach(function (done) {
-        onClientDisconnect(undefined, player1, save1);
-
-        fakeOn.playerGroupChange.reset();
-
-        onClientConnect(undefined, player1, save1)
+        onClientDisconnect(undefined, player1, save1)
+          .then(() => fakeOn.playerGroupChange.reset())
+          .then(() => onClientConnect(undefined, player1, save1))
           .then(() => done())
-          .catch(() => done() );
+          .catch(() => done());
       });
 
       it('should not add a new player connection', function () {
@@ -202,9 +201,7 @@ describe('players connecting', function () {
     it('should count the number of online player connections', done => {
       onClientConnect(undefined, player1, save1)
         .then(() => onClientConnect(undefined, player2, save1) )
-        .then(() => {
-          expect(connectedCount(save1.id)).toEqual(2);
-        })
+        .then(() => expect(connectedCount(save1.id)).toEqual(2))
         .then(() => done() )
         .catch(() => done() );
     });

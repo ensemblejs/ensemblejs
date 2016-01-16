@@ -18,6 +18,7 @@ var isparta = require('isparta');
 var gulpSequence = require('gulp-sequence');
 
 var onError = require('./tasks/util/error');
+var runCommand = require('./tasks/util/run-command');
 
 var paths = {
   js: ['ensemble.js', 'src/**/*.js'],
@@ -97,7 +98,11 @@ gulp.task('copy-vendor-js', function () {
        .pipe(gulp.dest('public/js/3rd-party'));
 });
 
-gulp.task('build', ['build-styles', 'copy-css', 'copy-vendor-js']);
+gulp.task('modernizr', function () {
+  return runCommand('modernizr -u -c config/modernizr-config.json -d public/js/3rd-party/');
+});
+
+gulp.task('build', ['build-styles', 'copy-css', 'modernizr', 'copy-vendor-js']);
 
 gulp.task('watch', function () {
   gulp.watch(paths.scss, ['build']);
