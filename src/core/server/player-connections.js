@@ -112,6 +112,14 @@ module.exports = {
       return players;
     }
 
+    function logErrorIfNoConnectionFound (connection) {
+      if (!connection) {
+        Bluebird.reject('Connection not found when disconnecting player.');
+      }
+
+      return connection;
+    }
+
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerNumber (state, socket, save) {
         var deviceId = socket.request.sessionID;
@@ -133,18 +141,21 @@ module.exports = {
 
     define()('OnClientDisconnect', function PlayerConnections () {
       return function indicatePlayerAsDisconnected (state, socket, save) {
-        var connection = get(save.id, socket.request.sessionID);
-        if (!connection) {
-          logger.error({socket: socket, save: save}, 'Connection not found when disconnecting player.');
-        }
+        var deviceId = socket.request.sessionID;
 
-        connection.status = 'offline';
-
-        on().playerGroupChange(getPlayers(save), save.id);
-
-        return [
-          'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-        ];
+        return playersStore.getByDevice(deviceId)
+          .then(redirectIfNoPlayer)
+          .then(redirectIfMoreThanOnePlayer)
+          .then(player => get(save.id, player._id))
+          .then(logErrorIfNoConnectionFound)
+          .then(connection => connection.status = 'offline')
+          .then(() => on().playerGroupChange(getPlayers(save), save.id))
+          .then(() => {
+            return [
+              'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
+            ];
+          })
+          .catch(err => logger.error({socket: socket, save: save}, err));
       };
     });
 
