@@ -58,7 +58,7 @@ function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, ca
       }
 
       function callTarget(action) {
-        callback(currentInput, key, action);
+        callback(currentInput, key, action, {force: keyInfo.force || 1});
       }
 
       function rejectOrSelectOnRelease (handler) {
@@ -145,8 +145,7 @@ function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
     function callTarget(action) {
       callback(currentInput, key, action, {
         x: data.x,
-        y: data.y,
-        force: data.force
+        y: data.y
       });
     }
 
