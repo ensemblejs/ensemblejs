@@ -13,6 +13,7 @@ var folders = [];
 var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), require('./conf/client-silenced-plugins'));
 
 plugins.set('Window', window);
+plugins.set('Modernizr', Modernizr);
 plugins.set('DeviceMode', deviceMode || 'observer');//jshint ignore:line
 
 function getConfig(response, body) {

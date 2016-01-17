@@ -130,12 +130,15 @@ module.exports = {
           .then(player => addPlayer(save, player._id))
           .then(playerNumber => socket.emit('playerNumber', playerNumber))
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
-          .then(() => {
+          .catch(err => {
+            logger.error({deviceId: deviceId, save: save}, err);
+            socket.emit('error', err);
+          })
+          .finally(() => {
             return [
               'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
             ];
-          })
-          .catch(err => socket.emit('error', err));
+          });
       };
     });
 
@@ -150,12 +153,12 @@ module.exports = {
           .then(logErrorIfNoConnectionFound)
           .then(connection => connection.status = 'offline')
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
-          .then(() => {
+          .catch(err => logger.error({deviceId: deviceId, save: save}, err))
+          .finally(() => {
             return [
               'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
             ];
-          })
-          .catch(err => logger.error({socket: socket, save: save}, err));
+          });
       };
     });
 
