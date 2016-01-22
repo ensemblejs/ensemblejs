@@ -43,8 +43,8 @@ function ActionMap () {
   var actionMap = { nothing: [] };
 
   each(keys, function eachKey (key) {
-    actionMap[key] = [{call: createKeyDownFunc(key), noEventKey: key}];
-    actionMap.nothing.push({call: createKeyUpFunc(key), noEventKey: key});
+    actionMap[key] = [{call: createKeyDownFunc(key), noEventKey: key, whenWaiting: true}];
+    actionMap.nothing.push({call: createKeyUpFunc(key), noEventKey: key, whenWaiting: true});
 
     each(modifiers, function eachModifier (modifier) {
       var modifiedKey = modifier.join('_') + '_' + key;
@@ -56,11 +56,13 @@ function ActionMap () {
       actionMap[key].push({
         call: createKeyDownFunc(modifiedKey),
         noEventKey: modifiedKey,
-        modifiers: modifier
+        modifiers: modifier,
+        whenWaiting: true
       });
       actionMap.nothing.push({
         call: createKeyUpFunc(modifiedKey),
-        noEventKey: modifiedKey
+        noEventKey: modifiedKey,
+        whenWaiting: true
       });
     });
   });

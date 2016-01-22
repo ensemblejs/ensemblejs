@@ -9,8 +9,8 @@ var interval = require('../../util/interval');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
-  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin'],
-  func: function BeforePhysicsFrame (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define) {
+  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config'],
+  func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config) {
 
     var lastPacket = {};
     var playerId;
@@ -57,6 +57,7 @@ module.exports = {
       };
     });
 
-    return interval.execute(buildPacketToSendToServer).about(120).timesPer.second();
+    // return interval.execute(buildPacketToSendToServer).about(60).timesPer.second();
+    return interval.execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).second();
   }
 };

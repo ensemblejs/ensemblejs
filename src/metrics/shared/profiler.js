@@ -7,13 +7,13 @@ var startsWith = require('lodash').startsWith;
 
 module.exports = {
   type: 'Profiler',
-  deps: ['DefinePlugin', 'Config', 'Timer'],
-  func: function Profiler (define, config, timer) {
+  deps: ['DefinePlugin', 'Config', 'Timer', 'Metrics'],
+  func: function Profiler (define, config, timer, metrics) {
     var timers = [];
     var exact = [];
     var wildcard = [
-      'ensemblejs:',
-      'Game:',
+      'ensemblejs.',
+      'Game.',
     ];
 
     function shouldMeasureKey (key) {
@@ -50,7 +50,8 @@ module.exports = {
     define()('OnDisconnect', function Profiler () {
       return function printTimingResults () {
         each(timers, function print (timingData) {
-          console.log(timingData.results());
+          console.log(timingData.results(false, true));
+          metrics().profile(timingData.key, timingData.results(true));
         });
       };
     });
@@ -58,17 +59,16 @@ module.exports = {
     define()('OnServerStop', function Profiler () {
       return function printTimingResults () {
         each(timers, function print (timingData) {
-          console.log(timingData.results());
+          console.log(timingData.results(false, true));
+          metrics().profile(timingData.key, timingData.results(true));
         });
       };
     });
 
     function wrapTimer (namespace, plugin, name, frequency) {
-      var key = [namespace, plugin, name].join(':');
       var t = timer().make(namespace, plugin, name, frequency);
 
-      if (shouldMeasureKey(key)) {
-        t.key = key;
+      if (shouldMeasureKey(t.key)) {
         timers.push(t);
       }
 

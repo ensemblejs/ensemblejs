@@ -46,35 +46,35 @@ module.exports = {
       action.fired = action.fired || false;
 
       if (action.fired) {
-        logger.trace(action, 'Action has already fired.');
+        logger.debug(action, 'Action has already fired.');
         return;
       }
 
       action.players = toggleAck(action.players, ack.playerId);
 
       if (action.players.length === config.get().maxPlayers(save.mode)) {
-        logger.trace(action, 'Ack for player ' + ack.playerId + '.');
+        logger.debug(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
 
-        logger.trace(action, 'All players have ack\'d.');
+        logger.debug(action, 'All players have ack\'d.');
         onComplete(action);
 
         action.fired = true;
         return true;
       } else {
-        logger.trace(action, 'Ack for player ' + ack.playerId + '.');
+        logger.debug(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
       }
     }
 
     function ackOnceAlreadyFired (action, ack) {
       if (action.fired) {
-        logger.trace(action, 'Action has already fired.');
+        logger.debug(action, 'Action has already fired.');
         return true;
       }
 
       if (contains(action.players, ack.playerId)) {
-        logger.trace(action, 'Player ' + ack.playerId + ' has already fired ack.');
+        logger.debug(action, 'Player ' + ack.playerId + ' has already fired ack.');
         return true;
       }
 
@@ -126,7 +126,7 @@ module.exports = {
           });
 
           function onProgress (action) {
-            logger.debug('Acknowledgement "' + ack.name + '" progressed.');
+            logger.debug({ack: ack}, 'Acknowledgement progressed.');
 
             mutate()(
               save.id,
@@ -140,7 +140,7 @@ module.exports = {
           }
 
           function onComplete (action) {
-            logger.debug('Acknowledgement "' + ack.name + '" complete.');
+            logger.debug({ack: ack}, 'Acknowledgement progressed.');
 
             mutate()(
               save.id,

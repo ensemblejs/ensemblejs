@@ -16,11 +16,11 @@ var logger = require('../../logging/server/logger').logger;
 module.exports = {
 	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
-	func: function(actionMaps, define, mutate) {
+	func: function Server (actionMaps, define, mutate) {
 		var userInput = [];
 		var lowestInputProcessed = {};
 
-		define()('BeforePhysicsFrame', function () {
+		define()('BeforePhysicsFrame', function ProcessPendingInputServer () {
 
 			return function processPendingInput (state, delta) {
 				var currentInput;
@@ -28,9 +28,9 @@ module.exports = {
 				var data;
 				var waitingForPlayers = state.get('ensemble.waitingForPlayers');
 
-				function keyAndKeypressCallback(target, noEventKey) {
+				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, data);
+					return target(state, inputData.force, data);
 				}
 
 				function touchCallback(target, noEventKey, inputData) {
@@ -40,7 +40,7 @@ module.exports = {
 
 				function stickCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, inputData.x, inputData.y, inputData.force, data);
+					return target(state, inputData.x, inputData.y, data);
 				}
 
 				function mouseCallback(target, noEventKey, inputData) {
@@ -131,10 +131,10 @@ module.exports = {
 		});
 
 		define()('OnInput', function ProcessPendingInput () {
-			return function handle(rawData, timestamp, save) {
+			return function handle(packet, timestamp, save) {
 				userInput.push({
-					rawData: rawData,
-					playerId: rawData.playerId,
+					rawData: packet,
+					playerId: packet.playerId,
 					timestamp: timestamp,
 					save: save
 				});

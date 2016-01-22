@@ -55,7 +55,7 @@ function createTimer (prefix, plugin, func) {
 
   if (profiler && timer) {
     func = func || 'anonymous';
-    return profiler.timer(prefix, plugin, func, 100);
+    return profiler.timer(prefix, plugin, func, 1);
   } else {
     return undefined;
   }
@@ -110,7 +110,7 @@ function addLoggingToPlugin (module, prefix, args) {
   var plugin = module.func.apply(undefined, args);
 
   if (plugin instanceof Function) {
-    return wrapOriginalFunction(plugin, undefined, prefix, module.type);
+    return wrapOriginalFunction(plugin, module.name, prefix, module.type);
   }
   if (plugin instanceof Array) {
     return wrapEachElementOfArray(plugin, prefix, module.type);
@@ -152,6 +152,7 @@ function load (module, prefix) {
   module = loadSensibleDefaults(module);
 
   prefix = prefix || 'ensemblejs';
+  module.name = logging.extractFunctionNameFromCode(module.func);
 
   log.loaded(prefix, module.type, module.func);
 

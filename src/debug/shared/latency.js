@@ -25,7 +25,7 @@ function StateSeed () {
   };
 }
 
-function BeforePhysicsFrame (internalState) {
+var BeforePhysicsFrame = function DebugLatency (internalState) {
   return function updateServerTime () {
     var socketServerStats = filterInternalState(internalState, 'SocketServer');
     if (socketServerStats.length === 0) {
@@ -36,7 +36,7 @@ function BeforePhysicsFrame (internalState) {
       'ensembleDebug.latency', first(pluck(socketServerStats, 'latency'))()
     ];
   };
-}
+};
 
 function OnClientReady ($, tracker) {
   function updateLatency (latency) {
@@ -100,7 +100,7 @@ function OnClientReady ($, tracker) {
 }
 
 module.exports = {
-  type: 'Latency',
+  type: 'DebugLatency',
   deps: ['Config', 'DefinePlugin'],
   func: function Latency (config, define) {
     if (!config().debug.network) {

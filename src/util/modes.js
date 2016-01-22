@@ -8,10 +8,11 @@ var select = require('lodash').select;
 var each = require('lodash').each;
 
 function isApplicable (mode, plugin) {
-  if (isArray(first(plugin))) {
-    return intersection(['*', mode], first(plugin)).length > 0;
+  var pluginMode = first(plugin);
+  if (isArray(pluginMode)) {
+    return intersection(['*', mode], pluginMode).length > 0;
   } else {
-    return intersection(['*', mode], [first(plugin)]).length > 0;
+    return intersection(['*', mode], [pluginMode]).length > 0;
   }
 }
 
@@ -23,9 +24,10 @@ function filterPluginsByMode (plugins, mode) {
 
 function forEachMode (plugins, mode, callback) {
   var forMode = filterPluginsByMode(plugins, mode);
-  each(forMode, function callEachAndMutate (plugin) {
-    callback(last(plugin));
-  });
+
+  for (let i = 0; i < forMode.length; i += 1) {
+    callback(last(forMode[i]));
+  }
 }
 
 function callEachPlugin (plugins, params) {

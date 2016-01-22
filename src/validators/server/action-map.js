@@ -19,13 +19,13 @@ function checkForAckOrCall (records, key, callback) {
 }
 
 function checkForNothingAndAck (records, key, callback) {
-  if (key === 'nothing' && select(records, 'ack')) {
+  if (key === 'nothing' && select(records, 'ack').length > 0) {
     callback(key);
   }
 }
 
 function checkForMouseAndAck (records, key, callback) {
-  if (key === 'mouse' && select(records, 'ack')) {
+  if (key === 'mouse' && select(records, 'ack').length > 0) {
     callback(key);
   }
 }

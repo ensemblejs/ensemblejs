@@ -1,6 +1,6 @@
 {
   "name": "ensemblejs",
-  "version": "6.0.0",
+  "version": "6.0.0-develop",
   "description": "The ensemble game framework",
   "repository": {
     "type": "git",
@@ -94,6 +94,7 @@
     "express-session": "^1.11.3",
     "factor-bundle": "^2.5.0",
     "frameguard": "^1.0.0",
+    "gamepad-api-mappings": "^1.1.0",
     "git-repo-info": "^1.1.2",
     "gulp-autoprefixer": "^2.3.1",
     "gulp-flatten": "^0.1.1",
@@ -112,8 +113,8 @@
     "ioredis": "^1.14.0",
     "jade": "^1.11.0",
     "lodash": "^3.10.0",
-    "mixpanel": "^0.3.1",
     "mkdirp": "^0.5.1",
+    "moment": "^2.11.1",
     "mongodb": "^2.1.1",
     "morgan": "^1.6.1",
     "node-uuid": "^1.4.3",

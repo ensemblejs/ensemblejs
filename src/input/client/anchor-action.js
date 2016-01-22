@@ -1,11 +1,14 @@
 'use strict';
 
 var each = require('lodash').each;
+var contains = require('lodash').contains;
+let logger = require('../../logging/client/logger').logger;
+import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'DefinePlugin', '$'],
-  func: function InputCapture (window, define, $) {
+  deps: ['Window', 'DefinePlugin', '$', 'DeviceMode'],
+  func: function InputCapture (window, define, $, deviceMode) {
     var keys = {};
     var singlePressKeys = {};
 
@@ -67,6 +70,11 @@ module.exports = {
     }
 
     function bindToElement (element) {
+      if (!contains(supportsInput, deviceMode())) {
+        logger.warn({element: element}, 'AnchorAction add called on display that does not support input');
+        return;
+      }
+
       element.each(addBindings);
     }
 

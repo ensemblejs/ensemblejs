@@ -1,6 +1,5 @@
 'use strict';
 
-var Mixpanel = require('mixpanel');
 var os = require('os');
 var merge = require('lodash').merge;
 var each = require('lodash').each;
@@ -9,55 +8,51 @@ var packageInfo = require(appRoot + '/package.json');
 var ensemblePackageInfo = require('../../util/get-framework-info');
 var config = require('../../util/config');
 var logger = require('../../logging/server/logger').logger;
+var request = require('request');
+var moment = require('moment');
+
+var endpoint = config.get().measure.endpoint;
+var appId = config.get().game.id;
+
+function post (event, url = `${endpoint}/event/${appId}`) {
+  request.post({
+    headers: {'content-type' : 'application/json'},
+    url: url,
+    body: JSON.stringify(event)
+  }, function (err) {
+    if (err) {
+      logger.error({err: err}, 'Failed posting event');
+    }
+  });
+}
+
+function postProfileData (profileData) {
+  post(profileData, `${endpoint}/profile/${appId}`);
+}
 
 module.exports = {
   type: 'Metrics',
-  deps: ['Commit'],
-  func: function Metrics (commit) {
-    var mixpanel;
+  deps: ['Commit', 'Time'],
+  func: function Metrics (commit, time) {
 
-    function mixpanelConfigured() {
-      return process.env.MIXPANEL_KEY !== undefined;
-    }
-
-    function postToMixpanel (name, event) {
-      if (!mixpanelConfigured()) {
-        return;
-      }
-
-      //jshint camelcase: false
-      event.distinct_id = event.source;
-
-      mixpanel.track(name, event);
-    }
-
-    function setupTargets () {
-      if (mixpanelConfigured()) {
-        logger.info('Metrics target Mixpanel configured');
-        mixpanel = Mixpanel.init(process.env.MIXPANEL_KEY);
-      }
-    }
-
-    setupTargets();
-
-    function game () {
-      return {
-        'game-id': config.get().game.id,
-        'game-name': config.get().game.name,
-        'game-version': packageInfo.version,
-        'game-commit': commit().sha
-      };
-    }
+    var startTime;
+    var startTimeUnix = moment().unix();
 
     function identity () {
       return {
-        'source': os.hostname()
+        'source': os.hostname(),
+        'commit': commit().sha,
+        'start-time': startTime,
+        'timestamp': moment(),
+        'timestamp-unix': startTimeUnix,
+        'time-at-start': time().atStart(),
+        'up-time': time().sinceStart(),
+        'ensemble-version': ensemblePackageInfo.version,
       };
     }
 
     function platform () {
       return {
-        'ensemble-version': ensemblePackageInfo.version,
         'server-node-version': process.version,
         'server-os': os.type(),
         'server-os-version': os.release(),
@@ -94,31 +89,41 @@ module.exports = {
     }
 
     function buildBasicEventData (data) {
+      startTime = startTime || time().present();
       var event = data || {};
 
       event = merge(event, identity());
-      event = merge(event, game());
       event = merge(event, platform());
 
       return event;
     }
 
     return {
-      major: function track (name, data) {
-         var event = merge(buildBasicEventData(data), platformDetailed());
+      profile: function profile (name, data = {}) {
+        var profileData = data;
+        profileData = merge(profileData, identity());
+        profileData = merge(profileData, {name: 'profile'});
 
-        postToMixpanel(name, event);
+        postProfileData(profileData);
+      },
+      major: function major (name, data) {
+         var event = merge(buildBasicEventData(data), platformDetailed());
+         event.name = name;
+
+         post(event);
       },
       track: function track (name, data) {
         var event = buildBasicEventData(data);
+        event.name = name;
 
-        postToMixpanel(name, event);
+        post(event);
       },
       error: function error (name, data) {
         var event = merge(buildBasicEventData(data), platformDetailed());
+        event.name = name;
 
-        postToMixpanel(name, event);
-        logger.error(event, name);
+        post(event);
+        logger.error({data: data}, name);
       }
     };
   }

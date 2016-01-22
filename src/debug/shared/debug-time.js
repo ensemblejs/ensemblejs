@@ -37,7 +37,7 @@ module.exports = {
       return ['ensembleDebug', ensembleDebug];
     }
 
-    define()('BeforePhysicsFrame', function BeforePhysicsFrame () {
+    define()('BeforePhysicsFrame', function DebugTime () {
       return updateTime;
     });
 

@@ -47,11 +47,26 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
+      var pause = function pause () {};
+      var resume = function resume () {};
+      var toggle = function toggle () {};
+
       if (contains(supportsInput, deviceMode())) {
-        $()(window()).on('blur', function () { socket.emit('pause'); });
-        $()(window()).on('mousedown', function () { socket.emit('unpause'); });
-        $()(window()).on('keydown', function () { socket.emit('unpause'); });
-        $()(window()).on('touchstart', function () { socket.emit('unpause'); });
+        pause = function pause () {
+          socket.emit('pause');
+        };
+        resume = function resume () {
+          socket.emit('unpause');
+        };
+        toggle = function toggle (state) {
+          console.log('toggle pause');
+          return state.get('ensemble.paused') ? resume() : pause();
+        };
+
+        $()(window()).on('blur', function () { pause(); });
+        $()(window()).on('mousedown', function () { resume(); });
+        $()(window()).on('keydown', function () { resume(); });
+        $()(window()).on('touchstart', function () { resume(); });
 
         define()('OnOutgoingClientPacket', function SocketClient () {
           return function sendPacketToServer (packet) {
@@ -67,6 +82,14 @@ module.exports = {
           };
         });
       }
+
+      define()('PauseBehaviour', function () {
+        return {
+          pause: pause,
+          resume: resume,
+          toggle: toggle
+        };
+      });
     }
 
     return {

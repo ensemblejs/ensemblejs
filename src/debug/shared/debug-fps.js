@@ -16,7 +16,7 @@ function StateSeed () {
   };
 }
 
-function BeforePhysicsFrame (internalState) {
+var BeforePhysicsFrame = function DebugCore (internalState) {
   return function updateData () {
     var ensembleDebug = {};
 
@@ -37,7 +37,7 @@ function BeforePhysicsFrame (internalState) {
 
     return ['ensembleDebug', ensembleDebug];
   };
-}
+};
 
 function OnClientReady ($, tracker) {
   function updateFps (results) {

@@ -1,9 +1,12 @@
 'use strict';
 
+import {contains} from 'lodash/collection';
+import {supportsInput} from '../../util/device-mode';
+
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'Config', 'DefinePlugin', '$'],
-  func: function InputCapture (window, config, define, $) {
+  deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
+  func: function InputCapture (window, config, define, $, deviceMode) {
     var pluck = require('lodash').pluck;
     var reject = require('lodash').reject;
     var each = require('lodash').each;
@@ -54,6 +57,10 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function TouchInputCapture () {
+        if (!contains(supportsInput, deviceMode())) {
+          return;
+        }
+
         bindToWindowEvents();
       };
     });

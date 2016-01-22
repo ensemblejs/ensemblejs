@@ -1,8 +1,7 @@
 'use strict';
 
-var each = require('lodash').each;
-var select = require('lodash').select;
 var last = require('lodash').last;
+var contains = require('lodash').contains;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
@@ -13,9 +12,32 @@ var parseSticks = require('../../util/input-common').parseSticks;
 module.exports = {
 	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
-	func: function ProcessPendingInput (actionMaps, define, mutate, logger) {
+	func: function Client (actionMaps, define, mutate, logger) {
 
-		define()('BeforePhysicsFrame', ['InputQueue'], function ProcessPendingInput (inputQueue) {
+		define()('InternalState', ['InputQueue'], function (inputQueue) {
+			return {
+				OnInputClient: {
+					queueLength: function () { return inputQueue().length(); },
+				}
+			};
+		});
+
+		var keys;
+		var touches;
+		var stick;
+		var mouse;
+		var noInput;
+		define()('OnClientReady', ['Profiler'], function (profiler) {
+			return function setupProfiling () {
+				keys = profiler().timer('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.keys', 1);
+				touches = profiler().timer('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.touches', 1);
+				stick = profiler().timer('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.stick', 1);
+				mouse = profiler().timer('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.mouse', 1);
+				noInput = profiler().timer('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.noInput', 1);
+			};
+		});
+
+		define()('BeforePhysicsFrame', ['InputQueue'], function ProcessPendingInputClient (inputQueue) {
 
 			return function processPendingInput (state, delta) {
 				var currentInput;
@@ -23,9 +45,9 @@ module.exports = {
 				var data;
 				var waitingForPlayers = state.get('ensemble.waitingForPlayers');
 
-				function keyAndKeypressCallback(target, noEventKey) {
+				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, data);
+					return target(state, inputData.force, data);
 				}
 
 				function touchCallback(target, noEventKey, inputData) {
@@ -35,7 +57,7 @@ module.exports = {
 
 				function stickCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, inputData.x, inputData.y, inputData.force, data);
+					return target(state, inputData.x, inputData.y, data);
 				}
 
 				function mouseCallback(target, noEventKey, inputData) {
@@ -43,23 +65,28 @@ module.exports = {
 				}
 
 				function runNoInputHandlers(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
-
-					var suitableActions = actionMap.nothing;
-					if (waitingForPlayers) {
-						suitableActions = select(suitableActions, { whenWaiting: true });
+					const actionMap = last(actionMapDefinition);
+					if (!actionMap.nothing) {
+						return;
 					}
 
-					each(suitableActions, function(action) {
-						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							logger().debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
-
-							return mutate()(
-								currentInput.save.id,
-								action.call(state, data)
-							);
+					const length = actionMap.nothing.length;
+					for (let i = 0; i < length; i+= 1) {
+						const action = actionMap.nothing[i];
+						if (waitingForPlayers && !action.whenWaiting) {
+							return;
 						}
-					});
+						if (contains(somethingHasReceivedInput, action.noEventKey)) {
+							return;
+						}
+
+						logger().debug({action: action}, 'ActionMap called');
+
+						mutate()(
+							currentInput.save.id,
+							action.call(state, data)
+						);
+					}
 				}
 
 				function createOnMatchingCallback (callback) {
@@ -69,7 +96,7 @@ module.exports = {
 							return;
 						}
 
-						logger().debug('ActionMap "' + key + '" called');
+						logger().debug({key: key}, 'ActionMap called');
 
 						mutate()(
 				      currentInput.save.id,
@@ -77,6 +104,11 @@ module.exports = {
 				    );
 					};
 				}
+
+				var onMatchingKeyAndKeypressCallback = createOnMatchingCallback(keyAndKeypressCallback);
+				var onMatchingTouchCallback = createOnMatchingCallback(touchCallback);
+				var onMatchingStickCallback = createOnMatchingCallback(stickCallback);
+				var onMatchingMouseCallback = createOnMatchingCallback(mouseCallback);
 
 				var lengthOfInputStackAtStart = inputQueue().length();
 				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
@@ -92,13 +124,28 @@ module.exports = {
 						delta: delta
 					};
 
-					parseKeysAndKeypresses(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(keyAndKeypressCallback));
-					parseTouches(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(touchCallback));
-					parseSticks(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(stickCallback));
-					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
+					keys.fromHere();
+					parseKeysAndKeypresses(actionMaps(), currentInput, waitingForPlayers, onMatchingKeyAndKeypressCallback);
+					keys.toHere();
 
+					touches.fromHere();
+					parseTouches(actionMaps(), currentInput, waitingForPlayers, onMatchingTouchCallback);
+					touches.toHere();
+
+					stick.fromHere();
+					parseSticks(actionMaps(), currentInput, waitingForPlayers, onMatchingStickCallback);
+					stick.toHere();
+
+					mouse.fromHere();
+					parseMouse(actionMaps(), currentInput, waitingForPlayers, onMatchingMouseCallback);
+					mouse.toHere();
+
+					noInput.fromHere();
 					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
-					each(forMode, runNoInputHandlers);
+					for (let i = 0; i < forMode.length; i += 1) {
+						runNoInputHandlers(forMode[i]);
+					}
+					noInput.toHere();
 				}
 			};
 		});

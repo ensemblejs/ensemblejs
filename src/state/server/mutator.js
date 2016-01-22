@@ -9,6 +9,7 @@ var merge = require('lodash').merge;
 var each = require('lodash').each;
 var select = require('lodash').select;
 var get = require('lodash').get;
+var set = require('lodash').set;
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
@@ -147,23 +148,6 @@ module.exports = {
       return true;
     }
 
-    function isLastPart(index, dotStringParts) {
-      return (index + 1 === dotStringParts.length);
-    }
-
-    function mapDotStringResultToObject (result) {
-      var newResult = {};
-      var dotStringParts = result[0].split('.');
-
-      var currentNode = newResult;
-      each(dotStringParts, function (part, index) {
-        currentNode[part] = isLastPart(index, dotStringParts) ? result[1] : {};
-        currentNode = currentNode[part];
-      });
-
-      return newResult;
-    }
-
     function ignoreResult (result) {
       if (result === undefined) {
         return true;
@@ -195,7 +179,7 @@ module.exports = {
           return;
         }
 
-        result = mapDotStringResultToObject(result);
+        result = set({}, result[0], result[1]);
       }
 
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);

@@ -6,15 +6,16 @@ var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var isString = require('lodash').isString;
 var merge = require('lodash').merge;
-var each = require('lodash').each;
 var select = require('lodash').select;
 var get = require('lodash').get;
+var set = require('lodash').set;
 
 module.exports = {
   type: 'StateMutator',
-  deps: ['DefinePlugin', 'Logger'],
-  func: function StateMutator (definePlugin, logger) {
+  deps: ['DefinePlugin', 'Logger', 'Profiler'],
+  func: function Client (define, logger, profiler) {
     var root = {};
+    var thisFrame = {};
 
     function accessState(node, key) {
       var prop = get(node, key);
@@ -47,7 +48,7 @@ module.exports = {
       }
     }
 
-    definePlugin()('StateAccess', function StateAccess () {
+    define()('StateAccess', function StateAccess () {
       return {
         for: function forSave () {
           return {
@@ -92,10 +93,31 @@ module.exports = {
       };
     });
 
-    definePlugin()('RawStateAccess', function RawStateAccess () {
+    define()('RawStateAccess', function RawStateAccess () {
       return {
         get: function get () { return root; },
         resetTo: function resetTo (newState) { root = newState; }
+      };
+    });
+
+    // var profilers = {};
+    // profilers.isValidDotStringResult = profiler().timer('ensemblejs', 'StateMutator', 'Client.isValidDotStringResult', 1);
+    // profilers.applyPartialMerge = profiler().timer('ensemblejs', 'StateMutator', 'Client.applyPartialMerge', 1);
+    // profilers.applyMajorMerge = profiler().timer('ensemblejs', 'StateMutator', 'Client.applyMajorMerge', 1);
+    // profilers.isArrayOfArrays = profiler().timer('ensemblejs', 'StateMutator', 'Client.isArrayOfArrays', 1);
+    // profilers.ignoreResult = profiler().timer('ensemblejs', 'StateMutator', 'Client.ignoreResult', 1);
+    // profilers.set = profiler().timer('ensemblejs', 'StateMutator', 'Client.set', 1);
+
+    define()('AfterPhysicsFrame', function RawStateAccess () {
+      return function mergeResultsFromLastFrame () {
+        // profilers.applyMajorMerge.fromHere();
+
+        root = merge(root, thisFrame, function mergeArrays (a, b) {
+          return isArray(a) ? b : undefined;
+        });
+        thisFrame = {};
+
+        // profilers.applyMajorMerge.toHere();
       };
     });
 
@@ -104,35 +126,18 @@ module.exports = {
         logger().error(result, 'Dot.String support for state mutation expects an array of length 2.');
         return false;
       }
-      if (!isString(result[0])) {
-        logger().error(result, 'Dot.String support for state mutation requires the first entry be a string.');
-        return false;
-      }
       if (result[1] === null) {
         return false;
       }
       if (isEqual(result[1], {})) {
         return false;
       }
+      if (!isString(result[0])) {
+        logger().error(result, 'Dot.String support for state mutation requires the first entry be a string.');
+        return false;
+      }
 
       return true;
-    }
-
-    function isLastPart(index, dotStringParts) {
-      return (index + 1 === dotStringParts.length);
-    }
-
-    function mapDotStringResultToObject (result) {
-      var newResult = {};
-      var dotStringParts = result[0].split('.');
-
-      var currentNode = newResult;
-      each(dotStringParts, function (part, index) {
-        currentNode[part] = isLastPart(index, dotStringParts) ? result[1] : {};
-        currentNode = currentNode[part];
-      });
-
-      return newResult;
     }
 
     function ignoreResult (result) {
@@ -154,39 +159,56 @@ module.exports = {
 
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {
+        // profilers.isValidDotStringResult.fromHere();
+
         if (!isValidDotStringResult(result)) {
+          // profilers.isValidDotStringResult.toHere();
           return;
         }
+        // profilers.isValidDotStringResult.toHere();
 
-        result = mapDotStringResultToObject(result);
+        // profilers.set.fromHere();
+        result = set({}, result[0], result[1]);
+        // profilers.set.toHere();
       }
 
-      root = merge(root, result, function mergeArrays (a, b) {
+      // profilers.applyPartialMerge.fromHere();
+      thisFrame = merge(thisFrame, result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
+      // profilers.applyPartialMerge.toHere();
     }
 
     function isArrayOfArrays (result) {
       return select(result, isArray).length === result.length;
     }
 
-    function handleResult (saveId, result) {
-      if (ignoreResult(result)) {
-        return false;
-      }
-
-      function mutateArrayOfArrays (saveId, result) {
-        each(result, function(resultItem) {
-          handleResult(saveId, resultItem);
-        });
-      }
-
-      if (isArrayOfArrays(result)) {
-        mutateArrayOfArrays(saveId, result);
-      } else {
-        mutateNonArray(saveId, result);
+    var handleResult;
+    function mutateArrayOfArrays (saveId, result) {
+      for(let i = 0; i < result.length; i += 1) {
+        handleResult(saveId, result[i]);
       }
     }
+
+    handleResult = function handleResult (saveId, result) {
+      // profilers.ignoreResult.fromHere();
+      if (ignoreResult(result)) {
+        // profilers.ignoreResult.toHere();
+        return false;
+      }
+      // profilers.ignoreResult.toHere();
+
+      // profilers.isArrayOfArrays.fromHere();
+      if (isArrayOfArrays(result)) {
+        // profilers.isArrayOfArrays.toHere();
+
+        mutateArrayOfArrays(saveId, result);
+      } else {
+        // profilers.isArrayOfArrays.toHere();
+
+        mutateNonArray(saveId, result);
+      }
+    };
 
     return handleResult;
   }

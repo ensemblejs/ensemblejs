@@ -23,5 +23,6 @@
   "StateAccess",
   "StateMutator",
   "StateTracker",
-  "Time"
+  "Time",
+  "Timer"
 ]

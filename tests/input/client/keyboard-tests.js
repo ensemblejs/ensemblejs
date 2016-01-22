@@ -46,62 +46,62 @@ describe('the keyboard input capture plugin', function () {
 			it('should register the key as a key', function () {
 				fake$.savedEvents().keydown[0]({which: 32 });
 
-				expect(keyboard().keys).toEqual([{key: 'space', modifiers: []}]);
+				expect(keyboard().keys).toEqual([{key: 'space', modifiers: [], force: 1}]);
 			});
 
 			it('should send ctrl modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, ctrlKey: true });
 
-				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['ctrl']}]);
+				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['ctrl'], force: 1}]);
 			});
 
 			it('should send shift modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, shiftKey: true });
 
-				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['shift']}]);
+				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['shift'], force: 1}]);
 			});
 
 			it('should send alt modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, altKey: true });
 
-				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['alt']}]);
+				expect(keyboard().keys).toEqual([{key: 'a', modifiers: ['alt'], force: 1}]);
 			});
 
 			it('should continue to register the mouse click on subsequent calls to getCurrentState', function () {
 				fake$.savedEvents().keydown[0]({which: 32 });
 
-				expect(keyboard().keys).toEqual([{key: 'space', modifiers: []}]);
-				expect(keyboard().keys).toEqual([{key: 'space', modifiers: []}]);
+				expect(keyboard().keys).toEqual([{key: 'space', modifiers: [], force: 1}]);
+				expect(keyboard().keys).toEqual([{key: 'space', modifiers: [], force: 1}]);
 			});
 
 			it('should register the key as a single press key', function () {
 				fake$.savedEvents().keydown[0]({which: 32 });
 
-				expect(keyboard().singlePressKeys).toEqual([{key: 'space', modifiers: []}]);
+				expect(keyboard().singlePressKeys).toEqual([{key: 'space', modifiers: [], force: 1}]);
 			});
 
 			it('should send ctrl modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, ctrlKey: true });
 
-				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['ctrl']}]);
+				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['ctrl'], force: 1}]);
 			});
 
 			it('should send shift modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, shiftKey: true });
 
-				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['shift']}]);
+				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['shift'], force: 1}]);
 			});
 
 			it('should send alt modifiers', function () {
 				fake$.savedEvents().keydown[0]({which: 97, altKey: true });
 
-				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['alt']}]);
+				expect(keyboard().singlePressKeys).toEqual([{key: 'a', modifiers: ['alt'], force: 1}]);
 			});
 
 			it('should remove the single press key after get the current state', function () {
 				fake$.savedEvents().keydown[0]({which: 32 });
 
-				expect(keyboard().singlePressKeys).toEqual([{key: 'space', modifiers: []}]);
+				expect(keyboard().singlePressKeys).toEqual([{key: 'space', modifiers: [], force: 1}]);
 				expect(keyboard().singlePressKeys).toEqual([]);
 			});
 		});

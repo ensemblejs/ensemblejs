@@ -9,3 +9,4 @@ vendor
 .bundle/bower_components
 bower_components/
 .bundle/
+data

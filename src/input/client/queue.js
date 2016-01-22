@@ -17,7 +17,7 @@ module.exports = {
 
     define()('OnIncomingServerPacket', function OnIncomingServerPacket () {
       return function handle (packet) {
-        highestProcessedMessage = packet.highestProcessedMessage;
+        highestProcessedMessage = packet.highestProcessedMessage || 0;
       };
     });
 

@@ -2,11 +2,13 @@
 
 var each = require('lodash').each;
 var include = require('lodash').include;
+var contains = require('lodash').contains;
+import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'DefinePlugin', '$'],
-  func: function InputCapture (window, define, $) {
+  deps: ['Window', 'DefinePlugin', '$', 'DeviceMode'],
+  func: function InputCapture (window, define, $, deviceMode) {
     var keys = {};
     var singlePressKeys = {};
 
@@ -151,6 +153,10 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function KeyboardInputCapture () {
+        if (!contains(supportsInput, deviceMode())) {
+          return;
+        }
+
         bindToWindowEvents();
       };
     });
@@ -161,7 +167,7 @@ module.exports = {
       var keysToSend = [];
       each(keys, function (value, key) {
         if (value) {
-          keysToSend.push({key: key, modifiers: value});
+          keysToSend.push({key: key, force: 1, modifiers: value});
         }
       });
       inputData.keys = keysToSend;
@@ -169,7 +175,7 @@ module.exports = {
       var singlePressKeysToSend = [];
       each(singlePressKeys, function (value, key) {
         if (value) {
-          singlePressKeysToSend.push({key: key, modifiers: value});
+          singlePressKeysToSend.push({key: key, force: 1, modifiers: value});
         }
         singlePressKeys[key] = false;
       });

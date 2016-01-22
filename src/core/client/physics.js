@@ -10,7 +10,7 @@ module.exports = {
   deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'Profiler'],
   func: function PhysicsLoop (clientState, serverState, define, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, profiler) {
 
-    var rate = profiler().timer('ensemblejs', 'client-physics', 'call-rate', 1);
+    // var rate = profiler().timer('ensemblejs', 'client-physics', 'call-rate', 1);
     var priorStep = time().present();
 
     var save = {
@@ -21,8 +21,8 @@ module.exports = {
     define()('InternalState', function PhysicsLoop () {
       return {
         PhysicsLoop: {
-          now: function now () { return time().present(); },
-          callRate: function callRate () { return rate.results(); }
+          now: function now () { return time().present(); }
+          // callRate: function callRate () { return rate.results(); }
         }
       };
     });
@@ -61,7 +61,7 @@ module.exports = {
       var now = time().present();
 
       if (shouldRunPhysicsEngine()) {
-        rate.track(doRunning, [now]);
+        doRunning(now);
       } else {
         doPaused(now);
       }

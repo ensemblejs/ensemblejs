@@ -16,6 +16,24 @@ function extractFunctionNameFromCode (code) {
 
   var name = code.toString();
   var start = name.indexOf(' ') + 1;
+  var finish = name.indexOf('(');
+
+  var extracedName = name.substring(start, finish);
+  if (extracedName.length === 0) {
+    return 'anonymous';
+  }
+
+  return extracedName;
+}
+
+
+function extractFunctionNameWithParamsFromCode (code) {
+  if (!code) {
+    return 'anonymous';
+  }
+
+  var name = code.toString();
+  var start = name.indexOf(' ') + 1;
   var finish = name.indexOf(')') + 1;
 
   var extracedName = name.substring(start, finish);
@@ -28,13 +46,13 @@ function extractFunctionNameFromCode (code) {
 
 function loaded (namespace, type, func) {
   log.info([
-    namespace, ':', type, ':', extractFunctionNameFromCode(func),  ' loaded.'
+    namespace, ':', type, ':', extractFunctionNameWithParamsFromCode(func),  ' loaded.'
     ].join('')
   );
 }
 
 function called (args, namespace, module, code) {
-  var n = [namespace, module, extractFunctionNameFromCode(code)].join(':');
+  var n = [namespace, module, extractFunctionNameWithParamsFromCode(code)].join(':');
 
   if (contains(lowerToTrace, module)) {
     log.trace(args, n);
@@ -45,7 +63,7 @@ function called (args, namespace, module, code) {
 }
 
 function trace (args, filename, code) {
-  log.trace(args, filename + ':' + extractFunctionNameFromCode(code));
+  log.trace(args, filename + ':' + extractFunctionNameWithParamsFromCode(code));
 }
 
 function discard () {}
@@ -114,6 +132,7 @@ function setTraceOnly (traceOnly) {
 }
 
 module.exports = {
+  extractFunctionNameFromCode: extractFunctionNameFromCode,
   setupLogger: setupLogger,
   traceOnly: setTraceOnly
 };

@@ -16,9 +16,9 @@ module.exports = {
 
     function reposition (dims) {
       if (dims.orientation === 'landscape') {
-        $()('.fullscreen').css('top', '0').css('right', '0');
+        $()('.fullscreen.icon').css('top', '0').css('right', '0');
       } else {
-        $()('.fullscreen').css('right', '0').css('top', '0');
+        $()('.fullscreen.icon').css('right', '0').css('top', '0');
       }
     }
 
@@ -27,7 +27,7 @@ module.exports = {
         $()('.icons').append(icon());
         reposition(dims);
 
-        $()('.fullscreen').on('click', toggleFullscreen);
+        $()('.fullscreen.icon').on('click', toggleFullscreen);
       };
     });
 

@@ -120,6 +120,11 @@ module.exports = {
       return connection;
     }
 
+    function redirectIfPlayerIsNotInSave (player) {
+      //TODO: implement this
+      return player;
+    }
+
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerNumber (state, socket, save) {
         var deviceId = socket.request.sessionID;
@@ -127,6 +132,7 @@ module.exports = {
         return playersStore.getByDevice(deviceId)
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
+          .then(redirectIfPlayerIsNotInSave)
           .then(player => addPlayer(save, player._id))
           .then(playerNumber => socket.emit('playerNumber', playerNumber))
           .then(() => on().playerGroupChange(getPlayers(save), save.id))

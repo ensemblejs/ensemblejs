@@ -9,11 +9,16 @@
     "element": "canvas",
     "inputElement": "input",
     "physicsUpdateLoop": 15,
-    "clientSidePrediction": true
+    "clientSidePrediction": true,
+    "input": {
+      "gamepad": {
+        "deadzoneCalculation": "linked"
+      }
+    }
   },
   "server": {
     "physicsUpdateLoop": 15,
-    "pushUpdateFrequencyMs": 45
+    "pushUpdateFrequency": 45
   },
   "ensemble": {
     "minPlayers": 1,
@@ -68,13 +73,21 @@
     "develop": false,
     "enabled": false,
     "fps": false,
-    "input": false,
+    "input": true,
     "multiplayer": false,
     "network": false,
-    "startOpen": false,
-    "time": false
+    "startOpen": true,
+    "time": false,
+    "gamepad": true
   },
   "measure": {
-    "timers": []
+    "endpoint": "http://localhost:4000",
+    "frequency": 1,
+    "timers": [
+      "ensemblejs.BeforePhysicsFrame.ProcessPendingInput*"
+    ],
+    "timersIgnored": [
+      "ensemblejs.StateMutator.Client*"
+    ]
   }
 }

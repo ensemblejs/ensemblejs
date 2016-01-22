@@ -14,7 +14,7 @@ function updatePosition (state, x, y) {
 
 function ActionMap () {
   return {
-    cursor: [{target: updatePosition}]
+    cursor: [{call: updatePosition, whenWaiting: true}]
   };
 }
 

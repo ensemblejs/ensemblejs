@@ -33,7 +33,7 @@ function toggleHud (state) {
 
 function ActionMap () {
   return {
-    '`': [{call: toggleHud, onRelease: true}]
+    '`': [{call: toggleHud, onRelease: true, whenWaiting: true}]
   };
 }
 

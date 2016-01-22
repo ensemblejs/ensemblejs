@@ -17,6 +17,7 @@ function create (saveId, physicsKey, sourceKey, initialState) {
 
 function updated (saveId, sourceKey) {
   return function calledWhenUpdated (current) {
+    console.log(saveId, sourceKey, current);
     physicsThings[saveId][sourceKey] = autoResolve(current);
   };
 }

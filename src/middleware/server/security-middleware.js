@@ -37,13 +37,13 @@ module.exports = {
     define()('WebServerMiddleware', function SecurityMiddleware () {
       //jshint quotmark:false
       var reportOnly = process.env.NODE_ENV !== 'production';
-      var connectSrc = process.env.NODE_ENV === 'production' ? ["'self'"] : ["'self'", 'ws://localhost:3000'];
+      var connectSrc = process.env.NODE_ENV === 'production' ? ["'self'"] : ["'self'", 'ws://localhost:3000', 'http://localhost:4000'];
 
       return csp({
         directives: {
           defaultSrc: ["'self'"],
           sandbox: ['allow-forms', 'allow-scripts'],
-          reportUri: 'https://hooks.slack.com/services/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',
+          reportUri: 'http://localhost:4000/event/csp',
           objectSrc: [],
           connectSrc: connectSrc
         },

@@ -3,6 +3,7 @@
 var sortBy = require('lodash').sortBy;
 var first = require('lodash').first;
 var last = require('lodash').last;
+var reduce = require('lodash').reduce;
 
 function getPercentile (percentile, values) {
   if (values.length === 0) {
@@ -33,15 +34,16 @@ function calculateRate (samples, veryFirstTime, now, frequency) {
 
 module.exports = {
   type: 'Timer',
-  deps: ['Time'],
-  func: function Timer (time) {
+  deps: ['Time', 'Config'],
+  func: function Timer (time, config) {
 
-    function make (namespace, plugin, name, frequency) {
+    function make (namespace, plugin, name, frequency = config().measure.frequency) {
       var samples = [];
       var totalDuration = 0;
       var counter = 0;
       var startTime;
       var veryFirstTime;
+      var veryLastTime;
 
       function start () {
         startTime = time().present();
@@ -56,6 +58,8 @@ module.exports = {
           counter = 0;
         }
         counter += 1;
+
+        veryLastTime = time().present();
       }
 
       function stop () {
@@ -64,23 +68,34 @@ module.exports = {
         add(duration);
       }
 
-      function results () {
-        samples = sortBy(samples);
-
-        return {
-          namespace: namespace,
-          plugin: plugin,
-          name: name,
+      function results (includeSamples = false, calculate = false) {
+        var theNumbers = {
+          key: `${namespace}.${plugin}.${name}`,
           frequency: frequency,
           samples: samples.length,
-          min: first(samples),
-          max: last(samples),
-          '50th': getPercentile(0.5, samples),
-          '75th': getPercentile(0.75, samples),
-          '95th': getPercentile(0.95, samples),
-          '99th': getPercentile(0.99, samples),
-          rate: calculateRate(samples, veryFirstTime, time().present(), frequency)
+          raw: includeSamples ? samples : undefined,
+          veryFirstTime: veryFirstTime,
+          veryLastTime: veryLastTime,
+          appRuntime: time().sinceStart(),
         };
+
+        if (calculate) {
+          var sortedSamples = sortBy(samples);
+          var total = reduce(samples, (sum, n) => sum + n, 0);
+
+          theNumbers.min = first(sortedSamples);
+          theNumbers.max = last(sortedSamples);
+          theNumbers['50th'] = getPercentile(0.5, sortedSamples);
+          theNumbers['75th'] = getPercentile(0.75, sortedSamples);
+          theNumbers['95th'] = getPercentile(0.95, sortedSamples);
+          theNumbers['99th'] = getPercentile(0.99, sortedSamples);
+          theNumbers.rate = calculateRate(samples, veryFirstTime, time().present(), frequency);
+          theNumbers.average = total / samples.length;
+          theNumbers.total = total;
+          theNumbers.percentOfRuntime = total / theNumbers.appRuntime;
+        }
+
+        return theNumbers;
       }
 
       function track (f, args) {
@@ -92,6 +107,7 @@ module.exports = {
       }
 
       var timerObject = {
+        key: `${namespace}.${plugin}.${name}`,
         fromHere: start,
         toHere: stop,
         manual: add,

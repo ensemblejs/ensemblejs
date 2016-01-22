@@ -109,11 +109,11 @@ describe('Input Bindings', function() {
 		newUserInput = deps.OnInput();
 		update = deps.BeforePhysicsFrame();
 
-		sinon.spy(logger, 'debug');
+		sinon.spy(logger, 'info');
 	});
 
 	afterEach(function () {
-		logger.debug.restore();
+		logger.info.restore();
 
 		clock.restore();
 	});
@@ -130,10 +130,10 @@ describe('Input Bindings', function() {
 			expect(mutator.called).toBe(true);
 		});
 
-		it('should log a debug message', function() {
-			logger.debug.reset();
+		it('should log a info message', function() {
+			logger.info.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual(['ActionMap "nothing" with key: "model" called']);
+			expect(logger.info.firstCall.args).toEqual(['ActionMap "nothing" with key: "model" called']);
 		});
 
 		it('should pass in the standard event data', function () {
@@ -196,15 +196,15 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
 
-		it('should log a debug message', function() {
-			logger.debug.reset();
+		it('should log an info message', function() {
+			logger.info.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual(['ActionMap "key" called']);
+			expect(logger.info.firstCall.args).toEqual(['ActionMap "key" called']);
 		});
 
 		it('should ignore the key case', function () {
@@ -217,7 +217,7 @@ describe('Input Bindings', function() {
 			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -226,7 +226,7 @@ describe('Input Bindings', function() {
 
 			update(state, 16);
 
-			expect(model.keyEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
@@ -265,7 +265,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -280,7 +280,7 @@ describe('Input Bindings', function() {
 			newUserInput(rawData, undefined, save);
 			update(state, 16);
 
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -289,7 +289,7 @@ describe('Input Bindings', function() {
 			update(state, 16);
 
 			expect(model.keyEvent.called).toBe(false);
-			expect(model.keyPressEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -362,10 +362,10 @@ describe('Input Bindings', function() {
 			expect(model.noEvent.called).toBe(false);
 		});
 
-		it('should log a debug message', function() {
-			logger.debug.reset();
+		it('should log an info message', function() {
+			logger.info.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual(['ActionMap "touch0" called']);
+			expect(logger.info.firstCall.args).toEqual(['ActionMap "touch0" called']);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
@@ -416,10 +416,10 @@ describe('Input Bindings', function() {
 			expect(mutator.called).toBe(true);
 		});
 
-		it('should log a debug message', function() {
-			logger.debug.reset();
+		it('should log an info message', function() {
+			logger.info.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual(['ActionMap "cursor" called']);
+			expect(logger.info.firstCall.args).toEqual(['ActionMap "cursor" called']);
 		});
 	});
 
@@ -452,7 +452,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			update(state, 16);
-			expect(model.mouseClickEvent.firstCall.args).toEqual([state, {timestamp: undefined, playerId: 2, delta: 16}]);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([state, 1, {timestamp: undefined, playerId: 2, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -477,24 +477,24 @@ describe('Input Bindings', function() {
 		beforeEach(function() {
 			rawData = {
 				playerId: playerId,
-				leftStick: {x: 0.1, y: 1.0, force: 0.5},
-				rightStick: {x: 0.9, y: 0.3, force: 1.0}
+				leftStick: {x: 0.1, y: 1.0},
+				rightStick: {x: 0.9, y: 0.3}
 			};
 			newUserInput(rawData, Date.now(), save, playerId);
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
 			update(state, 16);
-			expect(model.leftStickEvent.firstCall.args).toEqual([state, 0.1, 1.0, 0.5, {timestamp: Date.now(), playerId: 2, delta: 16}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([state, 0.9, 0.3, 1.0, {timestamp: Date.now(), playerId: 2, delta: 16}]);
+			expect(model.leftStickEvent.firstCall.args).toEqual([state, 0.1, 1.0, {timestamp: Date.now(), playerId: 2, delta: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([state, 0.9, 0.3, {timestamp: Date.now(), playerId: 2, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 
-		it('should log a debug message', function() {
-			logger.debug.reset();
+		it('should log an info message', function() {
+			logger.info.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual(['ActionMap "leftStick" called']);
-			expect(logger.debug.secondCall.args).toEqual(['ActionMap "rightStick" called']);
+			expect(logger.info.firstCall.args).toEqual(['ActionMap "leftStick" called']);
+			expect(logger.info.secondCall.args).toEqual(['ActionMap "rightStick" called']);
 		});
 	});
 
