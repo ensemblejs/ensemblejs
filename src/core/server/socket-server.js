@@ -16,8 +16,8 @@ module.exports = {
     var intervals = [];
     var clientSockets = {};
 
-    function packetHasNotChanged (current, prior) {
-      return isEqual(current.saveState, prior.saveState);
+    function skipThisPacket (current, prior) {
+      return isEqual(current, prior);
     }
 
     function startUpdateClientLoop (save, socketId) {
@@ -25,17 +25,17 @@ module.exports = {
 
       function updateClient () {
         var packet = {
-          saveState: rawStateAccess().for(save.id)
+          saveState: rawStateAccess().for(save.id),
+          highestProcessedMessage: lowestInputProcessed()(save.id)
         };
 
-        if (packetHasNotChanged(packet, lastPacket)) {
+        if (skipThisPacket(packet, lastPacket)) {
           return;
         }
 
         lastPacket = cloneDeep(packet);
 
         packet.id = sequence.next('server-origin-messages');
-        packet.highestProcessedMessage = lowestInputProcessed()(save.id);
         packet.timestamp = time().present();
 
         on().outgoingServerPacket(socketId, packet);
