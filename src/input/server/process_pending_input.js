@@ -50,16 +50,14 @@ module.exports = {
 				function runNoInputHandlers(actionMapDefinition) {
 					var actionMap = last(actionMapDefinition);
 
-					var suitableActions = actionMap.nothing;
+					var suitableActions = reject(actionMap.nothing, 'ack');
 					if (waitingForPlayers) {
-						suitableActions = select(suitableActions, { whenWaiting: true });
+						suitableActions = select(suitableActions, 'whenWaiting');
 					}
-
-					suitableActions = reject(suitableActions, 'ack');
 
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							logger.debug('ActionMap "nothing" with key: "' + action.noEventKey + '" called');
+							logger.debug({action: action}, 'ActionMap "nothing" called');
 
 							return mutate()(
 								currentInput.save.id,
@@ -76,7 +74,7 @@ module.exports = {
 							return;
 						}
 
-						logger.debug('ActionMap "' + key + '" called');
+						logger.debug({action: action}, 'ActionMap called');
 
 						mutate()(
 				      currentInput.save.id,

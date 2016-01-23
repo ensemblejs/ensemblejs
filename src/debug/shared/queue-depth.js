@@ -32,8 +32,8 @@ var BeforePhysicsFrame = function DebugQueueDepth (internalState) {
 };
 
 function OnClientReady(tracker, $) {
-  function updateScreen (id, queueDepth, cssId) {
-    $()(`#${cssId} .value`).text(queueDepth);
+  function updateScreen (current, prior, cssId) {
+    $()(`#${cssId} .value`).text(current);
   }
 
   return function setup () {

@@ -1,19 +1,14 @@
 'use strict';
 
 var config = require('../../util/config');
-var saves = require('../../util/models/saves');
-var saveCommon = require('../../util/workflow/save-common');
 
 module.exports = {
   type: 'Routes',
-  func: function DebugRoutes () {
+  deps: ['RawStateAccess'],
+  func: function DebugRoutes (raw) {
 
     function dumpSaveData (req, res) {
-      return saves.getById(req.params.saveId)
-        .then(saveCommon.errorIfSaveDoesNotExist)
-        .then(function returnDataAsJson (save) {
-          res.json(save);
-        });
+      res.json(raw().for(req.params.saveId));
     }
 
     function configure (app) {
