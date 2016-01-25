@@ -141,11 +141,13 @@ module.exports = {
 					mouse.toHere();
 
 					noInput.fromHere();
-					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
+					let forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					for (let i = 0; i < forMode.length; i += 1) {
 						runNoInputHandlers(forMode[i]);
 					}
 					noInput.toHere();
+
+					// currentInput.postState =
 				}
 			};
 		});

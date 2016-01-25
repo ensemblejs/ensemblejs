@@ -59,7 +59,7 @@ module.exports = {
       return {
         ServerSideEngine: {
           now: function () { return time().present(); },
-          callRate: function callRate () { return rate.results(); }
+          callRate: function callRate () { return rate.results().rate; }
         }
       };
     });

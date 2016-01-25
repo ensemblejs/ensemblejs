@@ -22,7 +22,7 @@ module.exports = {
       return {
         RenderLoop: {
           fps: function frameRateResults () {
-            return fps.results();
+            return fps.results().rate;
           }
         }
       };

@@ -36,7 +36,6 @@ module.exports = {
   func: function Metrics (commit, time) {
 
     var startTime;
-    var startTimeUnix = moment().unix();
 
     function identity () {
       return {
@@ -44,8 +43,7 @@ module.exports = {
         'commit': commit().sha,
         'start-time': startTime,
         'timestamp': moment(),
-        'timestamp-unix': startTimeUnix,
-        'time-at-start': time().atStart(),
+        'timestamp-unix': time().atStart(),
         'up-time': time().sinceStart(),
         'ensemble-version': ensemblePackageInfo.version,
       };

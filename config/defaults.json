@@ -72,7 +72,7 @@
   "debug": {
     "develop": false,
     "enabled": false,
-    "fps": true,
+    "fps": false,
     "input": false,
     "multiplayer": false,
     "network": false,

@@ -182,7 +182,6 @@ module.exports = {
     });
 
     define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
-
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());
         detectChangesAndNotifyObservers();

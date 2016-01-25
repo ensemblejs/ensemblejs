@@ -9,9 +9,6 @@ function StateSeed () {
   return {
     ensembleDebug: {
       latency: {
-        namespace: 'ensemblejs',
-        plugin: 'socket',
-        name: 'latency',
         frequency: 0,
         samples: 0,
         min: 0,
@@ -107,8 +104,8 @@ module.exports = {
       return;
     }
 
-    define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
-    define()('BeforePhysicsFrame', ['InternalState'], BeforePhysicsFrame);
-    define()('StateSeed', StateSeed);
+    // define()('OnClientReady', ['$', 'StateTracker'], OnClientReady);
+    // define()('BeforePhysicsFrame', ['InternalState'], BeforePhysicsFrame);
+    // define()('StateSeed', StateSeed);
   }
 };

@@ -3,17 +3,14 @@
 var first = require('lodash').first;
 var pluck = require('lodash').pluck;
 var filterInternalState = require('../../util/internal-state').filter;
-var defaultProfilerResults = require('../../util/profiler').defaultProfilerResults;
-var updateProfilerResults = require('../../util/profiler').updateProfilerResults;
+var round = require('round-precision');
 
 function StateSeed () {
-  return {
-    ensembleDebug: {
-      fps: defaultProfilerResults('ensemblejs', 'render-loop', 'fps'),
-      clientPhysicsCallRate: defaultProfilerResults('ensemblejs', 'client-physics', 'call-rate'),
-      serverPhysicsCallRate: defaultProfilerResults('ensemblejs', 'server-physics', 'call-rate')
-    }
-  };
+  return ['ensembleDebug', {
+    fps: 0,
+    clientPhysicsCallRate: 0,
+    serverPhysicsCallRate: 0
+  }];
 }
 
 var BeforePhysicsFrame = function DebugCore (internalState) {
@@ -40,39 +37,31 @@ var BeforePhysicsFrame = function DebugCore (internalState) {
 };
 
 function OnClientReady ($, tracker) {
-  function updateFps (results) {
-    updateProfilerResults($, 'debug-fps', results);
-  }
-
-  function updateClientPhysicsLoop (results) {
-    updateProfilerResults($, 'debug-client-physics', results);
-  }
-
-  function updateServerPhysicsLoop (results) {
-    updateProfilerResults($, 'debug-server-physics', results);
+  function updateWidget (current, prior, cssId) {
+    $()(`#${cssId} .value`).text(round(current, 1));
   }
 
   return function setupDebugOverlay () {
-    var profiler = require('../../../public/partials/dashboard/profiler.jade');
+    var widget = require('../../../public/partials/dashboard/rect-small.jade');
 
-    $()('#debug').append(profiler({
+    $()('#debug').append(widget({
       id: 'debug-fps',
       title: 'FPS'
     }));
 
-    $()('#debug').append(profiler({
+    $()('#debug').append(widget({
       id: 'debug-client-physics',
       title: 'Client Physics'
     }));
 
-    $()('#debug').append(profiler({
+    $()('#debug').append(widget({
       id: 'debug-server-physics',
       title: 'Server Physics'
     }));
 
-    tracker().onChangeOf('ensembleDebug.fps', updateFps);
-    tracker().onChangeOf('ensembleDebug.clientPhysicsCallRate', updateClientPhysicsLoop);
-    tracker().onChangeOf('ensembleDebug.serverPhysicsCallRate', updateServerPhysicsLoop);
+    tracker().onChangeOf('ensembleDebug.fps', updateWidget, ['debug-fps']);
+    tracker().onChangeOf('ensembleDebug.clientPhysicsCallRate', updateWidget, ['debug-client-physics']);
+    tracker().onChangeOf('ensembleDebug.serverPhysicsCallRate', updateWidget, ['debug-server-physics']);
   };
 }
 

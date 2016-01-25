@@ -47,8 +47,10 @@ module.exports = {
       return removeTimersNotConfigured;
     });
 
-    define()('OnDisconnect', function Profiler () {
+    define()('OnDisconnect', ['Time'], function Profiler (time) {
       return function printTimingResults () {
+        console.log(`Timestamp of run: ${time().atStart()}`);
+
         each(timers, function print (timingData) {
           console.log(timingData.results(false, true));
           metrics().profile(timingData.key, timingData.results(true));
@@ -56,8 +58,10 @@ module.exports = {
       };
     });
 
-    define()('OnServerStop', function Profiler () {
+    define()('OnServerStop', ['Time'], function Profiler (time) {
       return function printTimingResults () {
+        console.log(`Timestamp of run: ${time().atStart()}`);
+
         each(timers, function print (timingData) {
           console.log(timingData.results(false, true));
           metrics().profile(timingData.key, timingData.results(true));

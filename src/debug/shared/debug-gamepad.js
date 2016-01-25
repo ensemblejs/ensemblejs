@@ -4,9 +4,18 @@ let each = require('lodash').each;
 let reject = require('lodash').reject;
 let select = require('lodash').select;
 let merge = require('lodash').merge;
+let round = require('round-precision');
 
 function StateSeed () {
-  return { ensembleDebug: { buttons: [] } };
+  return {
+    ensembleDebug: {
+      buttons: [],
+      'left-trigger': 0,
+      'right-trigger': 0,
+      leftStick: {x: 0, y: 0},
+      rightStick: {x: 0, y: 0}
+    }
+  };
 }
 
 function createKeyDownFunc (key) {
@@ -32,6 +41,38 @@ function createKeyUpFunc (key) {
   };
 }
 
+function setForceLeft (state, force = 0) {
+  return ['ensembleDebug.left-trigger', force];
+}
+
+function zeroForceLeft () {
+  return ['ensembleDebug.left-trigger', 0];
+}
+
+function setForceRight (state, force = 0) {
+  return ['ensembleDebug.right-trigger', force];
+}
+
+function zeroForceRight () {
+  return ['ensembleDebug.right-trigger', 0];
+}
+
+function setLeftStick (state, x, y) {
+  return ['ensembleDebug.leftStick', {x: x, y: y}];
+}
+
+function setRightStick (state, x, y) {
+  return ['ensembleDebug.rightStick', {x: x, y: y}];
+}
+
+function zeroLeftStick () {
+  return ['ensembleDebug.leftStick', {x: 0, y: 0}];
+}
+
+function zeroRightStick () {
+  return ['ensembleDebug.rightStick', {x: 0, y: 0}];
+}
+
 const keys = ['up', 'down', 'left', 'right', 'start-forward', 'select-back', 'left-stick-button', 'right-stick-button', 'home', 'left-shoulder', 'right-shoulder', 'face-top', 'face-bottom', 'face-left', 'face-right'];
 
 function ActionMap () {
@@ -40,6 +81,34 @@ function ActionMap () {
   each(keys, function eachKey (key) {
     actionMap[key] = [{call: createKeyDownFunc(key), noEventKey: key, whenWaiting: true}];
     actionMap.nothing.push({call: createKeyUpFunc(key), noEventKey: key, whenWaiting: true});
+  });
+
+  actionMap['left-trigger'] = [{
+    call: setForceLeft, whenWaiting: true, noEventKey: 'left-trigger'
+  }];
+  actionMap.nothing.push({
+    call: zeroForceLeft, noEventKey: 'left-trigger', whenWaiting: true
+  });
+
+  actionMap['right-trigger'] = [{
+    call: setForceRight, whenWaiting: true, noEventKey: 'right-trigger'
+  }];
+  actionMap.nothing.push({
+    call: zeroForceRight, noEventKey: 'right-trigger', whenWaiting: true
+  });
+
+  actionMap.leftStick = [{
+    call: setLeftStick, whenWaiting: true, noEventKey: 'left-stick'
+  }];
+  actionMap.nothing.push({
+    call: zeroLeftStick, whenWaiting: true, noEventKey: 'left-stick'
+  });
+
+  actionMap.rightStick = [{
+    call: setRightStick, whenWaiting: true, noEventKey: 'right-stick'
+  }];
+  actionMap.nothing.push({
+    call: zeroRightStick, whenWaiting: true, noEventKey: 'right-stick'
   });
 
   return actionMap;
@@ -71,16 +140,34 @@ function OnClientReady (tracker, $) {
   function addKey (id, value, makeCssId) {
     const partial = require('../../../public/partials/dashboard/rect-small.jade');
 
-    var json = {
-      id: makeCssId(id)
-    };
+    var json = { id: makeCssId(id) };
     json = merge(json, jsonForPartial(value), true);
 
     $()('#gamepad').append(partial(json));
   }
 
-  function removeKey (id, makeCssId) {
+  function removeKey (id, priorValue, makeCssId) {
     $()(`#${makeCssId(id)}`).remove();
+  }
+
+  function setLeftTriggerForce (current) {
+    $()('#left-trigger-force .value').text(round(current, 2));
+  }
+
+  function setRightTriggerForce (current) {
+    $()('#right-trigger-force .value').text(round(current, 2));
+  }
+
+  function setLeftStick (current) {
+    $()('#left-stick .value').text(
+      `${round(current.x, 2)}, ${round(current.y, 2)}`
+    );
+  }
+
+  function setRightStick (current) {
+    $()('#right-stick .value').text(
+      `${round(current.x, 2)}, ${round(current.y, 2)}`
+    );
   }
 
   return function setupKeyStateDebugView () {
@@ -90,11 +177,41 @@ function OnClientReady (tracker, $) {
 
     tracker().onElementAdded('ensembleDebug.buttons', addKey, [makeCssId]);
     tracker().onElementRemoved('ensembleDebug.buttons', removeKey, [makeCssId]);
+
+    const partial = require('../../../public/partials/dashboard/rect-small.jade');
+
+    var leftTrigger = {
+      id: 'left-trigger-force',
+      title: 'Left Trigger',
+      value: 0
+    };
+    var rightTrigger = {
+      id: 'right-trigger-force',
+      title: 'Right Trigger',
+      value: 0
+    };
+    var leftStick = {
+      id: 'left-stick',
+      title: 'Left Stick',
+      value: '0, 0'
+    };
+    var rightStick = {
+      id: 'right-stick',
+      title: 'Right Stick',
+      value: '0, 0'
+    };
+
+    $()('#gamepad').append(partial(leftTrigger));
+    $()('#gamepad').append(partial(rightTrigger));
+    $()('#gamepad').append(partial(leftStick));
+    $()('#gamepad').append(partial(rightStick));
+
+    tracker().onChangeOf('ensembleDebug.left-trigger', setLeftTriggerForce);
+    tracker().onChangeOf('ensembleDebug.right-trigger', setRightTriggerForce);
+    tracker().onChangeOf('ensembleDebug.leftStick', setLeftStick);
+    tracker().onChangeOf('ensembleDebug.rightStick', setRightStick);
   };
 }
-
-
-
 
 module.exports = {
   type: 'DebugKeyState',

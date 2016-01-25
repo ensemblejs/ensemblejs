@@ -3,13 +3,13 @@
 var io = require('socket.io-client');
 import {last} from 'lodash/array';
 import {contains} from 'lodash/collection';
-
+import {plugin, get, define} from '../../plugins/plug-n-play';
 import {supportsInput, supportsOutput} from '../../util/device-mode';
 
 module.exports = {
   type: 'SocketClient',
-  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'DefinePlugin', 'Time', '$', 'DeviceMode'],
-  func: function SocketClient (window, mode, host, on, define, time, $, deviceMode) {
+  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode'],
+  func: function SocketClient (window, mode, host, on, time, $, deviceMode) {
 
     function url () {
       return host() + '/' + mode() + '/' + deviceMode();
@@ -47,28 +47,21 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
-      var pause = function pause () {};
-      var resume = function resume () {};
-      var toggle = function toggle () {};
-
       if (contains(supportsInput, deviceMode())) {
-        pause = function pause () {
-          socket.emit('pause');
-        };
-        resume = function resume () {
-          socket.emit('unpause');
-        };
-        toggle = function toggle (state) {
-          console.log('toggle pause');
-          return state.get('ensemble.paused') ? resume() : pause();
-        };
+        $()(window()).on('blur', function pauseOnBlue () {
+          plugin('PauseBehaviour').pause();
+        });
+        $()(window()).on('mousedown', function unpauseOnMouseDown () {
+          plugin('PauseBehaviour').unpause();
+        });
+        $()(window()).on('keydown', function unpauseOnKeyDown () {
+          get('PauseBehaviour', 'unpause')();
+        });
+        $()(window()).on('touchstart', function upauseOnTouch () {
+          get('PauseBehaviour', 'unpause')();
+        });
 
-        $()(window()).on('blur', function () { pause(); });
-        $()(window()).on('mousedown', function () { resume(); });
-        $()(window()).on('keydown', function () { resume(); });
-        $()(window()).on('touchstart', function () { resume(); });
-
-        define()('OnOutgoingClientPacket', function SocketClient () {
+        define('OnOutgoingClientPacket', function SocketClient () {
           return function sendPacketToServer (packet) {
             socket.emit('input', packet);
           };
@@ -76,18 +69,32 @@ module.exports = {
       }
 
       if (contains(supportsOutput, deviceMode())) {
-        define()('OnIncomingServerPacket', function SocketClient () {
+        define('OnIncomingServerPacket', function SocketClient () {
           return function ackPacket (packet) {
             socket.emit('ack', packet.id);
           };
         });
       }
 
-      define()('PauseBehaviour', function () {
+      define('PauseBehaviour', function PauseBehaviour () {
         return {
-          pause: pause,
-          resume: resume,
-          toggle: toggle
+          pause: function pause () {
+            if (contains(supportsInput, deviceMode())) {
+              socket.emit('pause');
+            }
+          },
+          unpause: function unpause () {
+            if (contains(supportsInput, deviceMode())) {
+              socket.emit('unpause');
+            }
+          },
+          toggle: function toggle (state) {
+            if (state.get('ensemble.paused')) {
+              this.unpause();
+            } else {
+              this.pause();
+            }
+          }
         };
       });
     }

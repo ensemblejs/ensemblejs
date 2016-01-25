@@ -3,6 +3,7 @@
 var sortBy = require('lodash').sortBy;
 var first = require('lodash').first;
 var last = require('lodash').last;
+var map = require('lodash').map;
 var reduce = require('lodash').reduce;
 
 function getPercentile (percentile, values) {
@@ -59,6 +60,7 @@ module.exports = {
         }
         counter += 1;
 
+        veryFirstTime = veryFirstTime || time().present();
         veryLastTime = time().present();
       }
 
@@ -76,12 +78,33 @@ module.exports = {
           raw: includeSamples ? samples : undefined,
           veryFirstTime: veryFirstTime,
           veryLastTime: veryLastTime,
+          rate: calculateRate(samples, veryFirstTime, time().present(), frequency),
           appRuntime: time().sinceStart(),
         };
 
+        function sum (set) {
+          return reduce(set, (sum, n) => sum + n, 0);
+        }
+
+        function average (set) {
+          return sum(set) / set.length;
+        }
+
+        function squareDiff (set) {
+          var avg = average(set);
+
+          return map(set, function (value) {
+            var diff = value - avg;
+            return diff * diff;
+          });
+        }
+
+        function stddev (set) {
+          return Math.sqrt(average(squareDiff(set)));
+        }
+
         if (calculate) {
           var sortedSamples = sortBy(samples);
-          var total = reduce(samples, (sum, n) => sum + n, 0);
 
           theNumbers.min = first(sortedSamples);
           theNumbers.max = last(sortedSamples);
@@ -89,10 +112,10 @@ module.exports = {
           theNumbers['75th'] = getPercentile(0.75, sortedSamples);
           theNumbers['95th'] = getPercentile(0.95, sortedSamples);
           theNumbers['99th'] = getPercentile(0.99, sortedSamples);
-          theNumbers.rate = calculateRate(samples, veryFirstTime, time().present(), frequency);
-          theNumbers.average = total / samples.length;
-          theNumbers.total = total;
-          theNumbers.percentOfRuntime = total / theNumbers.appRuntime;
+          theNumbers.average = average(samples);
+          theNumbers.total = sum(samples);
+          theNumbers.percentOfRuntime = sum(samples) / theNumbers.appRuntime;
+          theNumbers.standardDeviation = stddev(samples);
         }
 
         return theNumbers;
