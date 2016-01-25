@@ -14,9 +14,7 @@ function addTasks (gulp) {
     var child = spawn('retire', ['--ignore', paths.retirePathsToIgnore, '--nocache'], {cwd: process.cwd()});
 
     child.stdout.setEncoding('utf8');
-    child.stdout.on('data', function (data) {
-        gutil.log(data);
-    });
+    child.stdout.on('data', gutil.log);
 
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', function (data) {

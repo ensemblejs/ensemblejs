@@ -9,6 +9,13 @@ function addTasks (gulp) {
   });
 
   gulp.task('project:clean', ['delete-targets', 'mongo:reset']);
+
+
+  gulp.task('framework:delete-paths', function (cb) {
+      del(paths.framework.clean, cb);
+  });
+
+  gulp.task('framework:clean', ['framework:delete-paths']);
 }
 
 module.exports = addTasks;
