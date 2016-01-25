@@ -12,7 +12,7 @@
     "clientSidePrediction": true,
     "input": {
       "gamepad": {
-        "deadzoneCalculation": "linked"
+        "deadzoneCalculation": "scaled-radial"
       }
     }
   },
@@ -72,8 +72,8 @@
   "debug": {
     "develop": false,
     "enabled": false,
-    "fps": false,
-    "input": true,
+    "fps": true,
+    "input": false,
     "multiplayer": false,
     "network": false,
     "startOpen": true,
@@ -84,10 +84,10 @@
     "endpoint": "http://localhost:4000",
     "frequency": 1,
     "timers": [
-      "ensemblejs.BeforePhysicsFrame.ProcessPendingInput*"
+      "ensemblejs.StateMutator.*",
+      "ensemblejs.socket.*"
     ],
     "timersIgnored": [
-      "ensemblejs.StateMutator.Client*"
     ]
   }
 }

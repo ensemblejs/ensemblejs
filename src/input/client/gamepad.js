@@ -2,16 +2,16 @@
 
 import {each, map, contains} from 'lodash/collection';
 import {without} from 'lodash/array';
-import {getMapping, deadZones as deadZonesTable, getForce, getLinkedForce} from 'gamepad-api-mappings';
+import {getMapping, deadZones as deadZonesTable, pickDeadzone, getScaledAxial} from 'gamepad-api-mappings';
 import {supportsInput} from '../../util/device-mode';
+import {get, define} from '../../plugins/plug-n-play';
 
 let logger = require('../../logging/client/logger').logger;
-let roundPrecision = require('round-precision');
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['DefinePlugin', 'Modernizr', 'Window', 'Config', 'DeviceMode'],
-  func: function (define, modernizr, window, config, deviceMode) {
+  deps: ['Modernizr', 'Window', 'Config', 'DeviceMode'],
+  func: function (modernizr, window, config, deviceMode) {
     const hasEvents = ('ongamepadconnected' in window);
 
     let controllers = {};
@@ -37,7 +37,7 @@ module.exports = {
       }
     }
 
-    define()('OnClientStart', function () {
+    define('OnClientStart', function () {
       return function KeyboardInputCapture () {
         if (!modernizr().gamepads) {
           return;
@@ -52,11 +52,13 @@ module.exports = {
       };
     });
 
-    // define()('ActionMap', ['PauseBehaviour'], function (behaviour) {
-    //   return {
-    //     'start-forward': [{call: behaviour.toggle, whenWaiting: true}]
-    //   };
-    // });
+    define('ActionMap', function () {
+      return {
+        'start-forward': [{
+          call: get('PauseBehaviour', 'toggle'), whenWaiting: true
+        }]
+      };
+    });
 
     return function getCurrentState () {
       if (!hasEvents) {
@@ -80,40 +82,34 @@ module.exports = {
           }
 
           let key = deviceMap.buttons[index];
-          let force = getForce(button.value, deadZones[key]);
+          let force = getScaledAxial(button.value, deadZones[key]);
           inputData.keys.push({
             key: key,
-            force: roundPrecision(force, 2)
+            force: force
           });
         });
 
-        var axes = map(controller.axes, axis => {
-          return roundPrecision(axis, 2);
-        });
+        var axes = map(controller.axes, axis => axis);
 
         each(deviceMap.axes, (axis, index) => {
           if (axis.id === 'leftStick' || axis.id === 'rightStick') {
             inputData[axis.id][axis.prop] = axes[index];
           } else {
-            let force = getForce(axes[index], deadZones[axis.id]);
+            let force = getScaledAxial(axes[index], deadZones[axis.id]);
             if (force > 0) {
               inputData.keys.push({
                 key: axis.id,
-                force: roundPrecision(force, 2)
+                force: force
               });
             }
           }
         });
 
-        // if (config().client.input.gamepad.deadzoneCalculation === 'linked') {
-          inputData.leftStick = getLinkedForce(inputData.leftStick, deadZones.leftStick);
-          inputData.rightStick = getLinkedForce(inputData.rightStick, deadZones.rightStick);
-        // } else {
-        //   inputData.leftStick.x = getForce(inputData.leftStick.x, deadZones.leftStick);
-        //   inputData.leftStick.y = getForce(inputData.leftStick.y, deadZones.leftStick);
-        //   inputData.rightStick.x = getForce(inputData.rightStick.x, deadZones.rightStick);
-        //   inputData.rightStick.y = getForce(inputData.rightStick.y, deadZones.rightStick);
-        // }
+        if (config().client.input.gamepad.deadzoneCalculation) {
+          const method = config().client.input.gamepad.deadzoneCalculation;
+          inputData.leftStick = pickDeadzone(method)(inputData.leftStick, deadZones.leftStick);
+          inputData.rightStick = pickDeadzone(method)(inputData.rightStick, deadZones.rightStick);
+        }
       }));
 
       return inputData;

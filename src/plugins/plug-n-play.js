@@ -13,12 +13,24 @@ var plugins = {};
 var defaultModes = [];
 var traceOnly = [];
 
-function get (name) {
+export function plugin (name) {
   if (!plugins[name]) {
+    log.error({module: module}, 'Plugin not found.');
     throw new Error('No plugin defined for: "' + name + '"');
   }
 
   return plugins[name];
+}
+
+export function get (p, f) {
+  return function () {
+    if (!plugin(p)[f]) {
+      log.error({plugin: p.keys(), f: f}, 'Attempted to execute function not found on plugin.');
+      return;
+    }
+
+    return plugin(p)[f](...arguments);
+  };
 }
 
 function getIfExists (name) {
@@ -31,7 +43,7 @@ function deferredDependency (deferred) {
       throw new Error('Incorrect use of deferred dependency. You\'re using: dep(p1, p2), when you should be using: dep()(p1, p2).');
     }
 
-    return get(deferred);
+    return plugin(deferred);
   };
 }
 
@@ -123,17 +135,14 @@ function addLoggingToPlugin (module, prefix, args) {
 }
 
 function checkModuleValidity (module) {
-  if (!module.type) {
-    throw new Error('Attempted to load plugin without type');
-  }
   if (!isString(module.type)) {
-    throw new Error('Attempted to load plugin "' + module.type + '" with invalid type. It must be a string.');
+    log.error({plugin: module}, 'Attempted to load plugin with invalid type. It must be a string.');
   }
   if (!module.func) {
-    throw new Error('Attempted to load plugin "' + module.type + '" without function');
+    log.error({plugin: module}, 'Attempted to load plugin without function');
   }
   if (!isFunction(module.func)) {
-    throw new Error('Attempted to load plugin "' + module.type + '" with invalid function.');
+    log.error({plugin: module}, 'Attempted to load plugin with invalid function.');
   }
 }
 
@@ -147,12 +156,17 @@ function loadSensibleDefaults (module) {
 }
 
 function load (module, prefix) {
+  if (!module.type) {
+    return;
+  }
+
   checkModuleValidity(module);
 
   module = loadSensibleDefaults(module);
 
   prefix = prefix || 'ensemblejs';
-  module.name = logging.extractFunctionNameFromCode(module.func);
+  // module.name = logging.extractFunctionNameFromCode(module.func);
+  module.name = module.func.name;
 
   log.loaded(prefix, module.type, module.func);
 
@@ -169,7 +183,7 @@ function load (module, prefix) {
     plugins[module.type].push(preparedPlugin);
   } else {
     if (plugins[module.type]) {
-      log.warn('Plugin "' + module.type + '" has been loaded more than once. The latter calls will replace the former.');
+      log.warn({plugin: module}, 'Plugin has been loaded more than once. The latter calls will replace the former.');
     }
 
     plugins[module.type] = preparedPlugin;
@@ -188,7 +202,7 @@ function set (name, thing) {
   plugins[name] = thing;
 }
 
-function define (type, deps, func) {
+function addPluginBoilerplate (type, deps, func) {
   if (deps instanceof Function) {
     return {
       type: type,
@@ -203,7 +217,11 @@ function define (type, deps, func) {
   }
 }
 
-function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
+export function define (type, deps, func) {
+  load(addPluginBoilerplate(type, deps, func));
+}
+
+export function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
   log = logging.setupLogger(logger);
 
   arrays = arrays || [];
@@ -223,9 +241,7 @@ function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
   load({
     type: 'DefinePlugin',
     func: function DefinePlugin () {
-      return function loadDefinedPlugin (type, deps, func) {
-        load(define(type, deps, func));
-      };
+      return define;
     }
   });
 
@@ -233,7 +249,7 @@ function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
     type: 'DynamicPluginLoader',
     func: function DynamicPluginLoader () {
       return {
-        get: get
+        get: plugin
       };
     }
   });
@@ -243,10 +259,6 @@ function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
     loadFrameworkPath: loadFrameworkPath,
     loadPath: loadGameDevCode,
     set: set,
-    get: get
+    get: plugin
   };
 }
-
-module.exports = {
-  configure: configure
-};
