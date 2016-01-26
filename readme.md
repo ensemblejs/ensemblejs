@@ -10,6 +10,7 @@
 6. install version of node listed in .node-version
 7. `brew install mongo`
 7. `npm i`
-8. `npm test`
+8. `cd node_modules && ln -nsf ../src && cd..`
+8. `gulp`
 
 9. `npm i jshint -g`
