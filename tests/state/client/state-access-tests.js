@@ -2,12 +2,13 @@
 
 var expect = require('expect');
 
+import {plugin} from '../../../src/plugins/plug-n-play';
 var defer = require('../../support').defer;
-var plugin = require('../../support').plugin();
 var fakeLogger = require('../../fake/logger');
 
-var stateMutator = require('../../../src/state/client/mutator').func(defer(plugin.define), defer(fakeLogger));
-var state = plugin.deps().StateAccess();
+var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeLogger));
+var state = plugin('StateAccess');
+var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
 describe('state access', function () {
   beforeEach(function () {
@@ -28,6 +29,8 @@ describe('state access', function () {
         3: { controller: { score: 34 } }
       }
     });
+
+    afterPhysicsFrame();
   });
 
   it('should return the value you asked for', function () {

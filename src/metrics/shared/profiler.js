@@ -1,86 +1,71 @@
 'use strict';
 
-var select = require('lodash').select;
-var each = require('lodash').each;
-var includes = require('lodash').includes;
-var startsWith = require('lodash').startsWith;
+import {select, each, includes, startsWith} from 'lodash';
+import define from '../../plugins/plug-n-play';
+import {plugin} from '../../plugins/plug-n-play';
+import {make as makeTimer} from '../../metrics/shared/timer';
 
-module.exports = {
-  type: 'Profiler',
-  deps: ['DefinePlugin', 'Config', 'Timer', 'Metrics'],
-  func: function Profiler (define, config, timer, metrics) {
-    var timers = [];
-    var exact = [];
-    var wildcard = [
-      'ensemblejs.',
-      'Game.',
-    ];
+let timers = [];
+let exact = [];
+let wildcard = [
+  'ensemblejs.',
+  'Game.',
+];
 
-    function shouldMeasureKey (key) {
-      return includes(exact, key) || select(wildcard, function(t) {
-          return startsWith(key, t);
-        }).length > 0;
-    }
+function shouldMeasureKey (key) {
+  return includes(exact, key) ||
+         select(wildcard, t => startsWith(key, t)).length > 0;
+}
 
-    function removeTimersNotConfigured () {
-      var configuredTimers = config().measure.timers;
+function removeTimersNotConfigured () {
+  let configuredTimers = plugin('Config').measure.timers;
 
-      exact = select(configuredTimers, function(t) {
-        return !includes(t, '*');
-      });
-      wildcard = select(configuredTimers, function(t) {
-        return includes(t, '*');
-      }).map(function removeWildcard(t) {
-        return t.replace('*', '');
-      });
+  exact = select(configuredTimers, t => !includes(t, '*'));
+  wildcard = select(configuredTimers, t => includes(t, '*')).map(t => t.replace('*', ''));
 
-      timers = select(timers, function(timerData) {
-        return shouldMeasureKey(timerData.key);
-      });
-    }
+  timers = select(timers, timerData => shouldMeasureKey(timerData.key));
+}
 
-    define()('OnServerStart', function Profiler () {
-      return removeTimersNotConfigured;
-    });
+export default function timer (namespace, type, name, frequency) {
+  let t = makeTimer(namespace, type, name, frequency);
 
-    define()('OnClientStart', function Profiler () {
-      return removeTimersNotConfigured;
-    });
-
-    define()('OnDisconnect', ['Time'], function Profiler (time) {
-      return function printTimingResults () {
-        console.log(`Timestamp of run: ${time().atStart()}`);
-
-        each(timers, function print (timingData) {
-          console.log(timingData.results(false, true));
-          metrics().profile(timingData.key, timingData.results(true));
-        });
-      };
-    });
-
-    define()('OnServerStop', ['Time'], function Profiler (time) {
-      return function printTimingResults () {
-        console.log(`Timestamp of run: ${time().atStart()}`);
-
-        each(timers, function print (timingData) {
-          console.log(timingData.results(false, true));
-          metrics().profile(timingData.key, timingData.results(true));
-        });
-      };
-    });
-
-    function wrapTimer (namespace, plugin, name, frequency) {
-      var t = timer().make(namespace, plugin, name, frequency);
-
-      if (shouldMeasureKey(t.key)) {
-        timers.push(t);
-      }
-
-      return t;
-    }
-
-    return {
-      timer: wrapTimer
-    };
+  if (shouldMeasureKey(t.key)) {
+    timers.push(t);
   }
-};
+
+  return t;
+}
+
+define('Profiler', function Profiler () {
+  return { timer: timer };
+});
+
+define('OnServerStart', function Profiler () {
+  return removeTimersNotConfigured;
+});
+
+define('OnClientStart', function Profiler () {
+  return removeTimersNotConfigured;
+});
+
+define('OnDisconnect', ['Time', 'Logger'], function Profiler (time, logger) {
+  return function printTimingResults () {
+    logger().info(`Timestamp of run: ${time().atStart()}`);
+
+    each(timers, function print (timingData) {
+      console.log(timingData.results(false, true));
+      plugin('metrics').profile(timingData.key, timingData.results(true));
+    });
+  };
+});
+
+define('OnServerStop', ['Time', 'Logger'], function Profiler (time, logger) {
+  return function printTimingResults () {
+    logger().info(`Timestamp of run: ${time().atStart()}`);
+
+    each(timers, function print (timingData) {
+      console.log(timingData.results(false, true));
+      plugin('metrics').profile(timingData.key, timingData.results(true));
+    });
+  };
+});

@@ -297,9 +297,7 @@ describe('save routes', function () {
           });
 
           it('should show the share page', function (done) {
-            console.log('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
             request.get(url(uri), function (err, res) {
-              console.log('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
               expect(res.statusCode).toEqual(200);
               expect(res.body).toInclude('share');
               done(err);

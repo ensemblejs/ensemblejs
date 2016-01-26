@@ -28,7 +28,7 @@ function addTasks (gulp) {
       .pipe(istanbul.hookRequire())
       .on('finish', function () {
           gulp.src(paths.framework.tests, {read: false})
-            .pipe(mocha({reporter: 'spec'}))
+            .pipe(mocha({ reporter: 'spec' }))
             .pipe(istanbul.writeReports({
               reporters: ['json-summary', 'text', 'lcov', 'text-summary']
             }))

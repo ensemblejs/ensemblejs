@@ -4,14 +4,31 @@ var expect = require('expect');
 var sinon = require('sinon');
 var each = require('lodash').each;
 
+var logger = require('../../fake/logger');
+import define from '../../../src/plugins/plug-n-play';
+import {configure, plugin} from '../../../src/plugins/plug-n-play';
+configure(logger);
+
+var config = {
+  client: {
+    clientSidePrediction: true,
+    physicsUpdateLoop: 15
+  }
+};
+define('Config', function Config() {
+  return config;
+});
+
+var fakeTime = require('../../fake/time').at(2000);
+define('Time', function Time () {
+  return fakeTime;
+});
+
 var defer = require('../../support').defer;
 var trackerPlugins = require('../../support').plugin();
-var mutatorPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var physicsEnginePlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
-var fakeTime = require('../../fake/time').at(2000);
-var logger = require('../../fake/logger');
 var profiler = {
   timer: function () {
     return {
@@ -33,21 +50,13 @@ var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart,
 var dimensions = {};
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
-var mutator = require('../../../src/state/client/mutator').func(defer(mutatorPlugins.define));
-var mutatorPluginsDeps = mutatorPlugins.deps();
-var rawStateAccess = mutatorPluginsDeps.RawStateAccess();
-var stateAccess = mutatorPluginsDeps.StateAccess();
-
-
-var config = {
-  client: {
-    clientSidePrediction: true,
-    physicsUpdateLoop: 15
-  }
-};
+var mutator = require('../../../src/state/client/mutator').func(defer(logger));
+afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
+var rawStateAccess = plugin('RawStateAccess');
+var stateAccess = plugin('StateAccess');
 
 var mode = 'default';
-var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(config));
+var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(plugin('Config')));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
@@ -74,7 +83,7 @@ var serverState = {
   get: function () {return false;}
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(config), defer(profiler));
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(profiler));
 var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
 
 function tracking (state) { return state.namespace.tracking; }
@@ -256,19 +265,24 @@ describe('CSP: after on AfterPhysicsFrame', function () {
   describe('when disabled', function () {
     var logic = sinon.spy();
 
-   beforeEach(function () {
-      expect(inputQueue.length()).toEqual(1);
+    beforeEach(function () {
+      config.client.clientSidePrediction = true;
+      each(onIncomingServerPacket, code => code({id: 200}));
+      each(afterPhysicsFrame, code => code());
+      expect(inputQueue.length()).toEqual(0);
 
+      logic.reset();
       config.client.clientSidePrediction = false;
 
       onPhysicsFrame.push(['*', logic]);
-
       startPhysicsEngine();
 
       on.outgoingClientPacket({
         id: 1,
         keys: [{key: 'space'}]
       });
+
+      expect(inputQueue.length()).toEqual(0);
     });
 
     afterEach(function () {
@@ -276,12 +290,12 @@ describe('CSP: after on AfterPhysicsFrame', function () {
       onPhysicsFrame.pop();
     });
 
-    it('should not call onPhysicsFrame and afterPhysicsFrame', function () {
+    it('should not call onPhysicsFrame', function () {
       expect(logic.called).toEqual(false);
     });
 
-    it('should increase the input queue', function () {
-      expect(inputQueue.length()).toEqual(1);
+    it('should not increase the input queue', function () {
+      expect(inputQueue.length()).toEqual(0);
     });
   });
 });

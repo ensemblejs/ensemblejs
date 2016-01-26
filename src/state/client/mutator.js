@@ -1,19 +1,13 @@
 'use strict';
 
-var isObject = require('lodash').isObject;
-var isArray = require('lodash').isArray;
-var isEqual = require('lodash').isEqual;
-var cloneDeep = require('lodash').cloneDeep;
-var isString = require('lodash').isString;
-var merge = require('lodash').merge;
-var select = require('lodash').select;
-var get = require('lodash').get;
-var set = require('lodash').set;
+import {isObject, isArray, isEqual, cloneDeep, isString, merge, select, get, set} from 'lodash';
+import define from '../../plugins/plug-n-play';
+import timer from '../../metrics/shared/profiler';
 
 module.exports = {
   type: 'StateMutator',
-  deps: ['DefinePlugin', 'Logger', 'Profiler'],
-  func: function Client (define, logger, profiler) {
+  deps: ['Logger'],
+  func: function Client (logger) {
     var root = {};
     var thisFrame = {};
 
@@ -48,7 +42,7 @@ module.exports = {
       }
     }
 
-    define()('StateAccess', function StateAccess () {
+    define('StateAccess', function StateAccess () {
       return {
         for: function forSave () {
           return {
@@ -93,26 +87,22 @@ module.exports = {
       };
     });
 
-    define()('RawStateAccess', function RawStateAccess () {
+    define('RawStateAccess', function RawStateAccess () {
       return {
         get: function get () { return root; },
         resetTo: function resetTo (newState) { root = newState; }
       };
     });
 
-    // define()('ThisFrame', function ThisFrame () {
-    //   return thisFrame;
-    // });
-
     var profilers = {};
-    profilers.isValidDotStringResult = profiler().timer('ensemblejs', 'StateMutator', 'Client.isValidDotStringResult', 1);
-    profilers.applyPartialMerge = profiler().timer('ensemblejs', 'StateMutator', 'Client.applyPartialMerge', 1);
-    profilers.applyMajorMerge = profiler().timer('ensemblejs', 'StateMutator', 'Client.applyMajorMerge', 1);
-    profilers.isArrayOfArrays = profiler().timer('ensemblejs', 'StateMutator', 'Client.isArrayOfArrays', 1);
-    profilers.ignoreResult = profiler().timer('ensemblejs', 'StateMutator', 'Client.ignoreResult', 1);
-    profilers.set = profiler().timer('ensemblejs', 'StateMutator', 'Client.set', 1);
+    profilers.isValidDotStringResult = timer('ensemblejs', 'StateMutator', 'Client.isValidDotStringResult', 1);
+    profilers.applyPartialMerge = timer('ensemblejs', 'StateMutator', 'Client.applyPartialMerge', 1);
+    profilers.applyMajorMerge = timer('ensemblejs', 'StateMutator', 'Client.applyMajorMerge', 1);
+    profilers.isArrayOfArrays = timer('ensemblejs', 'StateMutator', 'Client.isArrayOfArrays', 1);
+    profilers.ignoreResult = timer('ensemblejs', 'StateMutator', 'Client.ignoreResult', 1);
+    profilers.set = timer('ensemblejs', 'StateMutator', 'Client.set', 1);
 
-    define()('AfterPhysicsFrame', function RawStateAccess () {
+    define('AfterPhysicsFrame', function RawStateAccess () {
       return function mergeResultsFromLastFrame () {
         profilers.applyMajorMerge.fromHere();
 

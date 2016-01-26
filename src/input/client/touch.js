@@ -1,25 +1,22 @@
 'use strict';
 
-import {contains} from 'lodash/collection';
-import {supportsInput} from '../../util/device-mode';
+import {pluck, reject, each, contains} from 'lodash';
+import {supportsInput} from 'src/util/device-mode';
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, config, define, $, deviceMode) {
-    var pluck = require('lodash').pluck;
-    var reject = require('lodash').reject;
-    var each = require('lodash').each;
 
-    var touches = [];
+    let touches = [];
 
     function bindToWindowEvents () {
-      var elementId = '#' + config().client.inputElement;
+      const elementId = `#${config().client.inputElement}`;
 
       $()(elementId).on('touchstart', function (e) {
         each(e.touches, function (touch) {
-          var x = touch.clientX - touch.target.offsetLeft;
-          var y = touch.clientY - touch.target.offsetTop;
+          let x = touch.clientX - touch.target.offsetLeft;
+          let y = touch.clientY - touch.target.offsetTop;
           touches.push({
             id: touch.identifier,
             x: x,
@@ -31,8 +28,8 @@ module.exports = {
 
       $()(elementId).on('touchmove', function (e) {
         each(e.touches, function (touch) {
-          var x = touch.clientX - touch.target.offsetLeft;
-          var y = touch.clientY - touch.target.offsetTop;
+          let x = touch.clientX - touch.target.offsetLeft;
+          let y = touch.clientY - touch.target.offsetTop;
           touches.push({
             id: touch.identifier,
             x: x,
@@ -43,7 +40,7 @@ module.exports = {
       });
 
       function endTouch (e) {
-        var ids = pluck(e.changedTouches, 'identifier');
+        let ids = pluck(e.changedTouches, 'identifier');
 
         touches = reject(touches, function (touch) {
           return ids.indexOf(touch.id) !== -1;
@@ -66,7 +63,7 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      var inputData = {
+      let inputData = {
         touches: touches
       };
 

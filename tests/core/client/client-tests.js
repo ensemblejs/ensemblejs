@@ -3,7 +3,6 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
-var plugin = require('../../support').plugin;
 var createFakeDom = require('../../fake/dom');
 
 var socket = require('../../fake/socket').socket;
@@ -14,6 +13,9 @@ var fakeOn = require('../../fake/on');
 
 var fake$ = require('../../fake/jquery').$;
 var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
+
+import {plugin} from 'src/plugins/plug-n-play';
+import {each} from 'lodash';
 
 describe('the socket client', function () {
 	var sut;
@@ -26,8 +28,6 @@ describe('the socket client', function () {
 		sinon.spy(io, 'connect');
 	});
 
-	var deps = plugin();
-
 	beforeEach(function (done) {
 		var html = '<html><body><div id="element">With content.</div></body></html>';
 	  createFakeDom(html, function (window) {
@@ -35,7 +35,6 @@ describe('the socket client', function () {
 				Window: window,
 				SaveMode: 'arcade',
 				ServerUrl: 'http://ensemblejs.com',
-				DefinePlugin: deps.define,
 				On: fakeOn,
 				Time: fakeTime,
 				$: fake$wrapper,
@@ -83,12 +82,10 @@ describe('the socket client', function () {
 
 	describe('once connected', function () {
 		beforeEach(function () {
-			deps.reset();
 			client.connect();
 
-			var ourDeps = deps.deps();
-			onOutgoingClientPacket = ourDeps.OnOutgoingClientPacket();
-			onIncomingServerPacket = ourDeps.OnIncomingServerPacket();
+			onOutgoingClientPacket = plugin('OnOutgoingClientPacket');
+			onIncomingServerPacket = plugin('OnIncomingServerPacket');
 		});
 
 		describe('on startTime', function () {
@@ -184,14 +181,13 @@ describe('the socket client', function () {
 		describe('on outgoing client packet', function () {
 			beforeEach(function () {
 				socket.emit.reset();
-				onOutgoingClientPacket({
-					outgoingPacket: true
-				});
+
+				each(onOutgoingClientPacket, code => code({ outgoingPacket: true }));
 			});
 
 			it('should send the packet to the server', function () {
-				expect(socket.emit.callCount).toEqual(1);
-				expect(socket.emit.firstCall.args).toEqual([
+				expect(socket.emit.callCount).toEqual(13);
+				expect(socket.emit.lastCall.args).toEqual([
 					'input',
 					{
 						outgoingPacket: true
@@ -203,14 +199,12 @@ describe('the socket client', function () {
 		describe('on incoming server packet', function () {
 			beforeEach(function () {
 				socket.emit.reset();
-				onIncomingServerPacket({
-					id: 50
-				});
+				each(onIncomingServerPacket, code => code({ id: 50 }));
 			});
 
 			it('should send an ack to the server', function () {
-				expect(socket.emit.callCount).toEqual(1);
-				expect(socket.emit.firstCall.args).toEqual([
+				expect(socket.emit.callCount).toEqual(14);
+				expect(socket.emit.lastCall.args).toEqual([
 					'ack', 50
 				]);
 			});

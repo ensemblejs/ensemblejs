@@ -46,35 +46,34 @@ module.exports = {
       action.fired = action.fired || false;
 
       if (action.fired) {
-        logger.debug(action, 'Action has already fired.');
+        logger.debug({action: action}, 'Action has already fired.');
         return;
       }
 
       action.players = toggleAck(action.players, ack.playerId);
 
+      logger.debug({action: action, ack: ack}, 'Ack for player progressed.');
       if (action.players.length === config.get().maxPlayers(save.mode)) {
-        logger.debug(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
 
-        logger.debug(action, 'All players have ack\'d.');
+        logger.debug({action: action}, 'All players have ack\'d.');
         onComplete(action);
 
         action.fired = true;
         return true;
       } else {
-        logger.debug(action, 'Ack for player ' + ack.playerId + '.');
         onProgress(action);
       }
     }
 
     function ackOnceAlreadyFired (action, ack) {
       if (action.fired) {
-        logger.debug(action, 'Action has already fired.');
+        logger.debug({action: action}, 'Action has already fired.');
         return true;
       }
 
       if (contains(action.players, ack.playerId)) {
-        logger.debug(action, 'Player ' + ack.playerId + ' has already fired ack.');
+        logger.debug({action: action, ack: ack}, 'Player has already fired ack.');
         return true;
       }
 
@@ -140,7 +139,7 @@ module.exports = {
           }
 
           function onComplete (action) {
-            logger.debug({ack: ack}, 'Acknowledgement progressed.');
+            logger.debug({ack: ack}, 'Acknowledgement complete.');
 
             mutate()(
               save.id,

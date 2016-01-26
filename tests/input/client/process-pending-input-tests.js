@@ -129,7 +129,7 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "nothing" with key: "model" called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'nothing'}, 'ActionMap called']);
 		});
 
 		it('should pass in the standard event data', function () {
@@ -202,7 +202,7 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "key" called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'key'}, 'ActionMap called']);
 		});
 
 		it('should ignore the key case', function () {
@@ -385,7 +385,7 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "touch0" called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'touch0'}, 'ActionMap called']);
 		});
 	});
 
@@ -441,7 +441,7 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "cursor" called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'cursor'}, 'ActionMap called']);
 		});
 	});
 
@@ -525,8 +525,8 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual(['ActionMap "leftStick" called']);
-			expect(fakeLogger.debug.secondCall.args).toEqual(['ActionMap "rightStick" called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'leftStick'}, 'ActionMap called']);
+			expect(fakeLogger.debug.secondCall.args).toEqual([{key: 'rightStick'}, 'ActionMap called']);
 		});
 	});
 

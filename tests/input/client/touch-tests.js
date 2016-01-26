@@ -29,7 +29,8 @@ describe('the touch input capture plugin', function () {
 						element: 'element'
 					}
 				},
-				$: fake$wrapper
+				$: fake$wrapper,
+				DeviceMode: 'primary'
 			});
 			touch = sut[0];
 			onClientStart = sut[1].OnClientStart();
@@ -46,6 +47,7 @@ describe('the touch input capture plugin', function () {
 		beforeEach(function () {
 			onClientStart();
 		});
+
 		describe('when a touch press starts', function() {
 			it('should register the touch event', function () {
 				fake$.savedEvents().touchstart[0]({

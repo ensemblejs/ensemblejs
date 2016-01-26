@@ -259,7 +259,7 @@ describe('acknowledgements', function () {
 
     afterEach(function () {
       logger.debug.restore();
-    })
+    });
 
     it('should mutate the response of the callback', function () {
       expect(mutate.called).toBe(true);
@@ -275,11 +275,12 @@ describe('acknowledgements', function () {
     });
 
     it('should log the firing of the callback', function () {
-      expect(logger.debug.firstCall.args).toEqual(['Acknowledgement "mutate-this" complete.']);
+      expect(logger.debug.firstCall.args).toEqual([{ack: {
+        name: 'mutate-this', playerId: 1 }}, 'Acknowledgement complete.']);
     });
 
     it('should log the progress of the callback', function () {
-      expect(logger.debug.lastCall.args).toEqual(['Acknowledgement "mutate-this" progressed.']);
+      expect(logger.debug.lastCall.args).toEqual([{ack: { name: 'mutate-this', playerId: 1}}, 'Acknowledgement progressed.']);
     });
   });
 });

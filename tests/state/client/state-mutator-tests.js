@@ -2,12 +2,13 @@
 
 var expect = require('expect');
 
+import {plugin} from '../../../src/plugins/plug-n-play';
 var defer = require('../../support').defer;
-var plugin = require('../../support').plugin();
 var logger = require('../../fake/logger');
 
-var stateMutator = require('../../../src/state/client/mutator.js').func(defer(plugin.define), defer(logger));
-var state = plugin.deps().StateAccess();
+var stateMutator = require('src/state/client/mutator').func(defer(logger));
+var state = plugin('StateAccess');
+var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
 describe('as before but return new objects with only the changed state', function () {
   beforeEach(function () {
@@ -31,6 +32,8 @@ describe('as before but return new objects with only the changed state', functio
         start: 0,
       }
     });
+
+    afterPhysicsFrame();
   });
 
   it('should allow a single value to mutate', function () {
@@ -43,6 +46,7 @@ describe('as before but return new objects with only the changed state', functio
         }
       }
     });
+    afterPhysicsFrame();
 
     expect(state.for().for('controller').get('state')).toBe('started');
     expect(state.for().for('controller').get('score')).toBe(0);
@@ -55,6 +59,7 @@ describe('as before but return new objects with only the changed state', functio
         list: [4, 3]
       }
     });
+    afterPhysicsFrame();
 
     expect(state.for().for('controller').get('list')).toEqual([4, 3]);
   });
@@ -65,22 +70,26 @@ describe('as before but return new objects with only the changed state', functio
         list: []
       }
     });
+    afterPhysicsFrame();
 
     expect(state.for().for('controller').get('list')).toEqual([]);
   });
 
   it('should do nothing with undefined', function () {
     stateMutator(1, undefined);
+    afterPhysicsFrame();
     expect(state.for().for('controller').get('state')).toBe('ready');
   });
 
   it('should do nothing with null', function () {
     stateMutator(1, null);
+    afterPhysicsFrame();
     expect(state.for().for('controller').get('state')).toBe('ready');
   });
 
   it('should do nothing with empty hashes', function () {
     stateMutator(1, {});
+    afterPhysicsFrame();
     expect(state.for().for('controller').get('state')).toBe('ready');
   });
 
@@ -90,12 +99,14 @@ describe('as before but return new objects with only the changed state', functio
         stateMutator(1, []);
         stateMutator(1, ['controller.child.age']);
         stateMutator(1, ['controller.child.age', 123, 'third']);
+        afterPhysicsFrame();
 
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should process arrays of arrays if the subarray is length 2', function () {
         stateMutator(1, [['controller.child.age', 123]]);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(123);
 
         stateMutator(1, [
@@ -103,6 +114,7 @@ describe('as before but return new objects with only the changed state', functio
           ['controller.start', 2],
           ['controller.score', 4],
         ]);
+        afterPhysicsFrame();
 
         expect(state.for().get('controller.child.age')).toBe(2321);
         expect(state.for().get('controller.start')).toBe(2);
@@ -113,23 +125,28 @@ describe('as before but return new objects with only the changed state', functio
     describe('arrays of length 2', function () {
       it('should do nothing if first element of array is not string', function () {
         stateMutator(1, [123, 'controller.child.age']);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
       it('should do nothing if second element of array is undefined', function () {
         stateMutator(1, ['controller.child.age', undefined]);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
       it('should do nothing if second element of array is null', function () {
         stateMutator(1, ['controller.child.age', null]);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
       it('should do nothing if second element of array is empty hash', function () {
         stateMutator(1, ['controller.child.age', {}]);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should unwrap dot strings into objects', function () {
         stateMutator(1, ['controller.child.age', 123]);
+        afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(123);
       });
     });

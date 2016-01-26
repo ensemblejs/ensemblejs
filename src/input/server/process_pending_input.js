@@ -57,7 +57,7 @@ module.exports = {
 
 					each(suitableActions, function(action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							logger.debug({action: action}, 'ActionMap "nothing" called');
+							logger.debug({key: 'nothing'}, 'ActionMap called');
 
 							return mutate()(
 								currentInput.save.id,
@@ -74,7 +74,7 @@ module.exports = {
 							return;
 						}
 
-						logger.debug({action: action}, 'ActionMap called');
+						logger.debug({key: key}, 'ActionMap called');
 
 						mutate()(
 				      currentInput.save.id,

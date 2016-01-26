@@ -29,7 +29,8 @@ describe('the mouse input capture plugin', function () {
 						element: 'element'
 					}
 				},
-				$: fake$wrapper
+				$: fake$wrapper,
+				DeviceMode: 'primary'
 			});
 			mouse = sut[0];
 			onClientStart = sut[1].OnClientStart();

@@ -2,16 +2,18 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var Bluebird = require('bluebird');
 var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
-var config = require('../../../src/util/config');
-var saves = require('../../../src/util/models/saves');
+var config = require('src/util/config');
 
 describe('debug routes', function () {
   var onServerStart;
   var onServerStop;
+
+  var rawStateAccess = {
+    for: function () { return { some: 'state' }; }
+  };
 
   describe('/saves/:saveId/data', function () {
     describe('when debug enabled', function () {
@@ -27,10 +29,10 @@ describe('debug routes', function () {
           }
         });
 
-        var routes = makeTestible('routes/server/debug-routes');
-        sinon.stub(saves, 'getById').returns(new Bluebird(function(resolve) {
-          resolve({ some: 'state' });
-        }));
+        var routes = makeTestible('routes/server/debug-routes', {
+          RawStateAccess: rawStateAccess
+        });
+        sinon.spy(rawStateAccess, 'for');
 
         var sut = makeTestible('core/server/web-server', {
           Routes: [routes[0]]
@@ -43,7 +45,7 @@ describe('debug routes', function () {
       });
 
       afterEach(function () {
-        saves.getById.restore();
+        rawStateAccess.for.restore();
         config.get.restore();
         onServerStop();
       });
@@ -51,7 +53,7 @@ describe('debug routes', function () {
       it('should return the state of the game', function (done) {
         request(url('/saves/1234/data'), function (err, res) {
           expect(res.statusCode).toEqual(200);
-          expect(saves.getById.firstCall.args[0]).toEqual('1234');
+          expect(rawStateAccess.for.firstCall.args[0]).toEqual('1234');
           expect(JSON.parse(res.body)).toEqual({ some: 'state'});
           done(err);
         }).end();

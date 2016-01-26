@@ -109,11 +109,11 @@ describe('Input Bindings', function() {
 		newUserInput = deps.OnInput();
 		update = deps.BeforePhysicsFrame();
 
-		sinon.spy(logger, 'info');
+		sinon.spy(logger, 'debug');
 	});
 
 	afterEach(function () {
-		logger.info.restore();
+		logger.debug.restore();
 
 		clock.restore();
 	});
@@ -131,9 +131,9 @@ describe('Input Bindings', function() {
 		});
 
 		it('should log a info message', function() {
-			logger.info.reset();
+			logger.debug.reset();
 			update(state, 16);
-			expect(logger.info.firstCall.args).toEqual(['ActionMap "nothing" with key: "model" called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'nothing'}, 'ActionMap called']);
 		});
 
 		it('should pass in the standard event data', function () {
@@ -202,9 +202,9 @@ describe('Input Bindings', function() {
 		});
 
 		it('should log an info message', function() {
-			logger.info.reset();
+			logger.debug.reset();
 			update(state, 16);
-			expect(logger.info.firstCall.args).toEqual(['ActionMap "key" called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'key'}, 'ActionMap called']);
 		});
 
 		it('should ignore the key case', function () {
@@ -363,9 +363,9 @@ describe('Input Bindings', function() {
 		});
 
 		it('should log an info message', function() {
-			logger.info.reset();
+			logger.debug.reset();
 			update(state, 16);
-			expect(logger.info.firstCall.args).toEqual(['ActionMap "touch0" called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'touch0'}, 'ActionMap called']);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
@@ -417,9 +417,9 @@ describe('Input Bindings', function() {
 		});
 
 		it('should log an info message', function() {
-			logger.info.reset();
+			logger.debug.reset();
 			update(state, 16);
-			expect(logger.info.firstCall.args).toEqual(['ActionMap "cursor" called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'cursor'}, 'ActionMap called']);
 		});
 	});
 
@@ -491,10 +491,10 @@ describe('Input Bindings', function() {
 		});
 
 		it('should log an info message', function() {
-			logger.info.reset();
+			logger.debug.reset();
 			update(state, 16);
-			expect(logger.info.firstCall.args).toEqual(['ActionMap "leftStick" called']);
-			expect(logger.info.secondCall.args).toEqual(['ActionMap "rightStick" called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'leftStick'}, 'ActionMap called']);
+			expect(logger.debug.secondCall.args).toEqual([{key: 'rightStick'}, 'ActionMap called']);
 		});
 	});
 

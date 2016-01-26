@@ -3,8 +3,9 @@
 var io = require('socket.io-client');
 import {last} from 'lodash/array';
 import {contains} from 'lodash/collection';
-import {plugin, get, define} from '../../plugins/plug-n-play';
-import {supportsInput, supportsOutput} from '../../util/device-mode';
+import define from 'src/plugins/plug-n-play';
+import {plugin, get} from 'src/plugins/plug-n-play';
+import {supportsInput, supportsOutput} from 'src/util/device-mode';
 
 module.exports = {
   type: 'SocketClient',
@@ -12,7 +13,7 @@ module.exports = {
   func: function SocketClient (window, mode, host, on, time, $, deviceMode) {
 
     function url () {
-      return host() + '/' + mode() + '/' + deviceMode();
+      return `${host()}/${mode()}/${deviceMode()}`;
     }
 
     function connect () {

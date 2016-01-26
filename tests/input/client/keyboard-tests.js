@@ -24,7 +24,8 @@ describe('the keyboard input capture plugin', function () {
 		createFakeDom(html, function (window) {
 	  	sut = makeTestible('input/client/keyboard', {
 				Window: window,
-				$: fake$wrapper
+				$: fake$wrapper,
+				DeviceMode: 'primary'
 			});
 			keyboard = sut[0];
 			onClientStart = sut[1].OnClientStart();

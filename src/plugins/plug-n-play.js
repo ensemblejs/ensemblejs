@@ -1,17 +1,18 @@
 'use strict';
 
-var loader = require('./folder-loader.js');
-var isArray = require('lodash').isArray;
-var isString = require('lodash').isString;
-var isFunction = require('lodash').isFunction;
-var each = require('lodash').each;
-var map = require('lodash').map;
-var contains = require('lodash').contains;
-var logging = require('../logging/shared/logger');
-var log;
-var plugins = {};
-var defaultModes = [];
-var traceOnly = [];
+let loader = require('./folder-loader.js');
+let isArray = require('lodash').isArray;
+let isString = require('lodash').isString;
+let isFunction = require('lodash').isFunction;
+let each = require('lodash').each;
+let map = require('lodash').map;
+let contains = require('lodash').contains;
+let logging = require('../logging/shared/logger');
+
+let log;
+let plugins = {};
+let defaultModes = [];
+let traceOnly = [];
 
 export function plugin (name) {
   if (!plugins[name]) {
@@ -20,6 +21,10 @@ export function plugin (name) {
   }
 
   return plugins[name];
+}
+
+export function unload (name) {
+  delete plugins[name];
 }
 
 export function get (p, f) {
@@ -65,7 +70,7 @@ function createTimer (prefix, plugin, func) {
   var profiler = getIfExists('Profiler');
   var timer = getIfExists('Timer');
 
-  if (profiler && timer) {
+  if (timer) {
     func = func || 'anonymous';
     return profiler.timer(prefix, plugin, func, 1);
   } else {
@@ -137,12 +142,15 @@ function addLoggingToPlugin (module, prefix, args) {
 function checkModuleValidity (module) {
   if (!isString(module.type)) {
     log.error({plugin: module}, 'Attempted to load plugin with invalid type. It must be a string.');
+    throw new Error('Attempted to load plugin with invalid type. It must be a string.');
   }
   if (!module.func) {
-    log.error({plugin: module}, 'Attempted to load plugin without function');
+    log.error({plugin: module}, 'Attempted to load plugin without function.');
+    throw new Error('Attempted to load plugin without function.');
   }
   if (!isFunction(module.func)) {
     log.error({plugin: module}, 'Attempted to load plugin with invalid function.');
+    throw new Error('Attempted to load plugin with invalid function.');
   }
 }
 
@@ -165,8 +173,7 @@ function load (module, prefix) {
   module = loadSensibleDefaults(module);
 
   prefix = prefix || 'ensemblejs';
-  // module.name = logging.extractFunctionNameFromCode(module.func);
-  module.name = module.func.name;
+  module.name = logging.extractFunctionNameFromCode(module.func);
 
   log.loaded(prefix, module.type, module.func);
 
@@ -202,7 +209,7 @@ function set (name, thing) {
   plugins[name] = thing;
 }
 
-function addPluginBoilerplate (type, deps, func) {
+export function boilerplate (type, deps, func) {
   if (deps instanceof Function) {
     return {
       type: type,
@@ -217,8 +224,8 @@ function addPluginBoilerplate (type, deps, func) {
   }
 }
 
-export function define (type, deps, func) {
-  load(addPluginBoilerplate(type, deps, func));
+export default function define (type, deps, func) {
+  load(boilerplate(type, deps, func));
 }
 
 export function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
