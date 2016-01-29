@@ -14,8 +14,7 @@ var fakeOn = require('../../fake/on');
 var fake$ = require('../../fake/jquery').$;
 var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 
-import {plugin} from 'src/plugins/plug-n-play';
-import {each} from 'lodash';
+import {plugin} from '../../../src/plugins/plug-n-play';
 
 describe('the socket client', function () {
 	var sut;
@@ -182,11 +181,11 @@ describe('the socket client', function () {
 			beforeEach(function () {
 				socket.emit.reset();
 
-				each(onOutgoingClientPacket, code => code({ outgoingPacket: true }));
+				onOutgoingClientPacket({ outgoingPacket: true });
 			});
 
 			it('should send the packet to the server', function () {
-				expect(socket.emit.callCount).toEqual(13);
+				expect(socket.emit.callCount).toEqual(1);
 				expect(socket.emit.lastCall.args).toEqual([
 					'input',
 					{
@@ -199,11 +198,11 @@ describe('the socket client', function () {
 		describe('on incoming server packet', function () {
 			beforeEach(function () {
 				socket.emit.reset();
-				each(onIncomingServerPacket, code => code({ id: 50 }));
+				onIncomingServerPacket({ id: 50 });
 			});
 
 			it('should send an ack to the server', function () {
-				expect(socket.emit.callCount).toEqual(14);
+				expect(socket.emit.callCount).toEqual(1);
 				expect(socket.emit.lastCall.args).toEqual([
 					'ack', 50
 				]);

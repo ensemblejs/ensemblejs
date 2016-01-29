@@ -135,7 +135,7 @@ function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
 function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
   var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
-  each(['leftStick', 'rightStick'], function(key) {
+  each(['left-stick', 'right-stick'], function(key) {
     if (currentInput.rawData[key] === undefined) {
       return;
     }

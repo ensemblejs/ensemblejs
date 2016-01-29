@@ -2,9 +2,10 @@
 
 import {each, map, contains} from 'lodash/collection';
 import {without} from 'lodash/array';
-import {getMapping, deadZones as deadZonesTable, pickDeadzone, getScaledAxial} from 'gamepad-api-mappings';
+import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axialScalar, normaliseResult} from 'gamepad-api-mappings';
 import {supportsInput} from '../../util/device-mode';
-import {get, define} from '../../plugins/plug-n-play';
+import define from '../../plugins/plug-n-play';
+import {get} from '../../plugins/plug-n-play';
 
 let logger = require('../../logging/client/logger').logger;
 
@@ -67,8 +68,8 @@ module.exports = {
 
       let inputData = {
         keys: [],
-        leftStick: {x: 0, y: 0},
-        rightStick: {x: 0, y: 0}
+        'left-stick': {x: 0, y: 0},
+        'right-stick': {x: 0, y: 0}
       };
 
       controllers = without(controllers, undefined);
@@ -82,7 +83,7 @@ module.exports = {
           }
 
           let key = deviceMap.buttons[index];
-          let force = getScaledAxial(button.value, deadZones[key]);
+          let force = axialScalar(button.value, deadZones[key], normaliseResult);
           inputData.keys.push({
             key: key,
             force: force
@@ -92,10 +93,10 @@ module.exports = {
         var axes = map(controller.axes, axis => axis);
 
         each(deviceMap.axes, (axis, index) => {
-          if (axis.id === 'leftStick' || axis.id === 'rightStick') {
+          if (axis.id === 'left-stick' || axis.id === 'right-stick') {
             inputData[axis.id][axis.prop] = axes[index];
           } else {
-            let force = getScaledAxial(axes[index], deadZones[axis.id]);
+            let force = axialScalar(axes[index], deadZones[axis.id], normaliseResult);
             if (force > 0) {
               inputData.keys.push({
                 key: axis.id,
@@ -105,10 +106,14 @@ module.exports = {
           }
         });
 
-        if (config().client.input.gamepad.deadzoneCalculation) {
-          const method = config().client.input.gamepad.deadzoneCalculation;
-          inputData.leftStick = pickDeadzone(method)(inputData.leftStick, deadZones.leftStick);
-          inputData.rightStick = pickDeadzone(method)(inputData.rightStick, deadZones.rightStick);
+        const algorithm = config().client.input.gamepad.deadzoneAlgorithm;
+        const mapper = config().client.input.gamepad.deadzoneMapper;
+
+        const deadzoneAlgorithm = getDeadzoneAlgorithm(algorithm, mapper);
+
+        if (algorithm) {
+          inputData['left-stick'] = deadzoneAlgorithm(inputData['left-stick'], deadZones['left-stick']);
+          inputData['right-stick'] = deadzoneAlgorithm(inputData['right-stick'], deadZones['right-stick']);
         }
       }));
 

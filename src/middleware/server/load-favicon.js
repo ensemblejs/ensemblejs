@@ -9,7 +9,7 @@ module.exports = {
   type: 'LoadFavIcon',
   deps: ['DefinePlugin'],
   func: function LoadFavIcon (define) {
-    define()('WebServerMiddleare', function () {
+    define()('WebServerMiddleware', function () {
 
       var pathToFavIcon = process.cwd() + '/game/favicon.ico';
       if (!fs.existsSync(pathToFavIcon)) {

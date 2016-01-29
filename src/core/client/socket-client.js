@@ -1,11 +1,10 @@
 'use strict';
 
 var io = require('socket.io-client');
-import {last} from 'lodash/array';
-import {contains} from 'lodash/collection';
-import define from 'src/plugins/plug-n-play';
-import {plugin, get} from 'src/plugins/plug-n-play';
-import {supportsInput, supportsOutput} from 'src/util/device-mode';
+import {last, contains} from 'lodash';
+import define from '../../plugins/plug-n-play';
+import {plugin, get} from '../../plugins/plug-n-play';
+import {supportsInput, supportsOutput} from '../../util/device-mode';
 
 module.exports = {
   type: 'SocketClient',

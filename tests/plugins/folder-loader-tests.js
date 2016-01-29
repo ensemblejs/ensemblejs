@@ -2,7 +2,7 @@
 
 var expect = require('expect');
 var async = require('async');
-var entityLoader = require('src/plugins/folder-loader.js');
+var entityLoader = require('../../src/plugins/folder-loader.js');
 var mkdir = require('fs').mkdir;
 var rmdir = require('fs').rmdir;
 var writeFile = require('fs').writeFile;

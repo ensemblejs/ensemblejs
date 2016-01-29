@@ -6,8 +6,8 @@ function addTasks (gulp) {
   require('./mongo')(gulp);
   require('./cleanup')(gulp);
   require('./prep')(gulp);
-  require('./test')(gulp);
-  require('./build')(gulp);
+  require('./project-test')(gulp);
+  require('./project-build')(gulp);
 
   gulp.task('watch', function () {
     gulp.watch(paths.scss, ['project:build:styles']);

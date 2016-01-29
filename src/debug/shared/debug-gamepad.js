@@ -12,8 +12,8 @@ function StateSeed () {
       buttons: [],
       'left-trigger': 0,
       'right-trigger': 0,
-      leftStick: {x: 0, y: 0},
-      rightStick: {x: 0, y: 0}
+      'left-stick': {x: 0, y: 0},
+      'right-stick': {x: 0, y: 0}
     }
   };
 }
@@ -58,19 +58,19 @@ function zeroForceRight () {
 }
 
 function setLeftStick (state, x, y) {
-  return ['ensembleDebug.leftStick', {x: x, y: y}];
+  return ['ensembleDebug.left-stick', {x: x, y: y}];
 }
 
 function setRightStick (state, x, y) {
-  return ['ensembleDebug.rightStick', {x: x, y: y}];
+  return ['ensembleDebug.right-stick', {x: x, y: y}];
 }
 
 function zeroLeftStick () {
-  return ['ensembleDebug.leftStick', {x: 0, y: 0}];
+  return ['ensembleDebug.left-stick', {x: 0, y: 0}];
 }
 
 function zeroRightStick () {
-  return ['ensembleDebug.rightStick', {x: 0, y: 0}];
+  return ['ensembleDebug.right-stick', {x: 0, y: 0}];
 }
 
 const keys = ['up', 'down', 'left', 'right', 'start-forward', 'select-back', 'left-stick-button', 'right-stick-button', 'home', 'left-shoulder', 'right-shoulder', 'face-top', 'face-bottom', 'face-left', 'face-right'];
@@ -97,14 +97,14 @@ function ActionMap () {
     call: zeroForceRight, noEventKey: 'right-trigger', whenWaiting: true
   });
 
-  actionMap.leftStick = [{
+  actionMap['left-stick'] = [{
     call: setLeftStick, whenWaiting: true, noEventKey: 'left-stick'
   }];
   actionMap.nothing.push({
     call: zeroLeftStick, whenWaiting: true, noEventKey: 'left-stick'
   });
 
-  actionMap.rightStick = [{
+  actionMap['right-stick'] = [{
     call: setRightStick, whenWaiting: true, noEventKey: 'right-stick'
   }];
   actionMap.nothing.push({
@@ -208,8 +208,8 @@ function OnClientReady (tracker, $) {
 
     tracker().onChangeOf('ensembleDebug.left-trigger', setLeftTriggerForce);
     tracker().onChangeOf('ensembleDebug.right-trigger', setRightTriggerForce);
-    tracker().onChangeOf('ensembleDebug.leftStick', setLeftStick);
-    tracker().onChangeOf('ensembleDebug.rightStick', setRightStick);
+    tracker().onChangeOf('ensembleDebug.left-stick', setLeftStick);
+    tracker().onChangeOf('ensembleDebug.right-stick', setRightStick);
   };
 }
 

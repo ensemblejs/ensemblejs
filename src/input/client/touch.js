@@ -1,7 +1,7 @@
 'use strict';
 
 import {pluck, reject, each, contains} from 'lodash';
-import {supportsInput} from 'src/util/device-mode';
+import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
   type: 'InputCapture',

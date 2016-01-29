@@ -3,7 +3,6 @@
 var each = require('lodash').each;
 var merge = require('lodash').merge;
 var isArray = require('lodash').isArray;
-// var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
 var interval = require('../../util/interval');
@@ -15,16 +14,6 @@ module.exports = {
 
     var playerId;
     var lastPacket = { mouse: {} };
-    // var atLeastOnePacketSent = false;
-    // var emptyPacketSansMouse = {
-    //   keys: [],
-    //   leftStick: { x: 0, y: 0},
-    //   mouse: {},
-    //   pendingAcks: [],
-    //   rightStick: { x: 0, y: 0},
-    //   singlePressKeys: [],
-    //   touches: []
-    // };
 
     function mergeArrays (a, b) {
       if (isArray(a)) {
@@ -33,16 +22,6 @@ module.exports = {
     }
 
     function paused (state) { return state.ensemble.paused; }
-
-    // function noNewInput (packet, emptyPacketSansMouse) {
-    //   return isEqual(packet, emptyPacketSansMouse);
-    // }
-
-    // function skippablePacket (packet, lastPacket, emptyPacketSansMouse) {
-    //   emptyPacketSansMouse.mouse = lastPacket.mouse;
-
-    //   return atLeastOnePacketSent && noNewInput(packet, emptyPacketSansMouse);
-    // }
 
     function buildPacket () {
       if (currentState().get(paused)) {
@@ -57,12 +36,7 @@ module.exports = {
         merge(packet, getCurrentState(), mergeArrays);
       });
 
-      // if (skippablePacket(packet, lastPacket, emptyPacketSansMouse)) {
-      //   return undefined;
-      // }
-
       lastPacket = cloneDeep(packet);
-      // atLeastOnePacketSent = true;
       packet.id = sequence.next('client-input');
       packet.playerId = playerId;
       packet.timestamp = time().present();

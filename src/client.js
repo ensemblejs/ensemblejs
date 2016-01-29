@@ -9,12 +9,14 @@ var packageInfo = require('../package.json');
 import {each} from 'lodash/collection';
 
 var folders = [];
+var gameFolders = [];
 
-var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), require('./conf/client-silenced-plugins'));
+var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('../config/array-plugins'), require('../config/default-mode-plugins'), require('../config/client-silenced-plugins'));
 
 plugins.set('Window', window);
 plugins.set('Modernizr', Modernizr);
 plugins.set('DeviceMode', deviceMode || 'observer');//jshint ignore:line
+plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
 function getConfig(response, body) {
   plugins.load({
@@ -36,8 +38,8 @@ function loadFolder(folder, namespace = 'ensemblejs') {
   folders.push({ items: folder, namespace: namespace });
 }
 
-function logErrors(error) {
-  logging.logger.error(error);
+function loadGameFolder(folder, namespace = 'Game') {
+  gameFolders.push({ items: folder, namespace: namespace });
 }
 
 function runTheClient() {
@@ -46,15 +48,15 @@ function runTheClient() {
 
 function loadModules() {
   each(folders, function loadEachFolder(folder) {
-    each(folder.items, function loadEachItem(item) {
-      plugins.load(item, folder.namespace);
-    });
+    each(folder.items, item => plugins.load(item, folder.namespace));
+  });
+
+  each(gameFolders, function loadEachFolder(folder) {
+    each(folder.items, item => plugins.load(item, folder.namespace));
   });
 }
 
 function loadDefaults() {
-  plugins.set('ServerUrl', plugins.get('Window').location.origin);
-
   loadFolder(require('./metrics/shared/*.js', { mode: 'hash' }));
   loadFolder(require('./metrics/client/*.js', { mode: 'hash' }));
 
@@ -79,16 +81,20 @@ function loadDefaults() {
   loadFolder(require('./debug/client/**/*.js', { mode: 'hash' }));
 }
 
-loadDefaults();
-
 export function run() {
   console.log('ensemblejs-client@' + packageInfo.version + ' started.');
 
-  request(plugins.get('ServerUrl') + '/config').spread(getConfig).then(setLogLevel).then(loadModules).then(runTheClient).error(logErrors);
+  request(plugins.get('ServerUrl') + '/config')
+    .spread(getConfig)
+    .then(setLogLevel)
+    .then(loadDefaults)
+    .then(loadModules)
+    .then(runTheClient)
+    .error(logging.logger.error);
 }
 
 export function loadClientFolder(folder) {
-  loadFolder(folder, 'Game');
+  loadGameFolder(folder);
 }
 
 export let set = plugins.set;

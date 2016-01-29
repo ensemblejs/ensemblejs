@@ -1,7 +1,7 @@
 'use strict';
 
 import {getById as getDeviceById, save as saveDevice} from '../../util/models/devices';
-import {logger} from '../../../src/logging/server/logger';
+import {logger} from '../../logging/server/logger';
 import {getById as getPlayerById, save as savePlayer, getByDevice as getPlayerByDevice, linkToDevice as linkPlayerToDevice}  from '../../util/models/players';
 import {first} from 'lodash/array';
 import {pluck} from 'lodash/collection';

@@ -14,10 +14,6 @@ var onError = require('./util/error');
 function addTasks (gulp) {
   require('./cleanup')(gulp);
 
-  gulp.task('project:test', ['project:clean'], function () {
-    gulp.src(paths.framework.tests).pipe(mocha({reporter: 'spec'}));
-  });
-
   gulp.task('framework:run-tests', function (cb) {
     gulp.src(paths.framework.coveragejs)
       .pipe(plumber({errorHandler: onError}))

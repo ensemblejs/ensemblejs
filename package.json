@@ -17,7 +17,8 @@
   "scripts": {
     "prestart": "gulp",
     "start": "gulp watch",
-    "test": "gulp test"
+    "test": "gulp test",
+    "prepublish": "babel src --out-dir lib --sourceMaps inline --comments --copy-files"
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
   "contributors": [
@@ -38,7 +39,7 @@
     "config/",
     "locales/",
     "public/",
-    "src/",
+    "lib/",
     "tasks/"
   ],
   "browserify": {
@@ -65,10 +66,14 @@
   "browserify-shim": {
     "window": "global:window"
   },
+  "peerDependencies": {
+    "gamepad-api-mappings": "^2.1.0"
+  },
   "dependencies": {
-    "app-root-path": "^1.0.0",
+    "app-root-path": "^1.2.0",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-node4": "^2.0.2",
+    "babel-preset-stage-0": "^6.3.13",
     "babel-register": "^6.3.13",
     "babelify": "^7.2.0",
     "bitly": "^4.1.1",
@@ -94,16 +99,20 @@
     "express-session": "^1.11.3",
     "factor-bundle": "^2.5.0",
     "frameguard": "^1.0.0",
-    "gamepad-api-mappings": "^2.1.0",
     "git-repo-info": "^1.1.2",
     "gulp-autoprefixer": "^2.3.1",
-    "gulp-flatten": "^0.1.1",
+    "gulp-csslint": "^0.2.0",
+    "gulp-develop-server": "^0.5.0",
+    "gulp-flatten": "^0.2.0",
+    "gulp-istanbul": "^0.10.3",
     "gulp-merge-json-sets": "^1.0.3",
+    "gulp-minify-css": "^1.2.3",
     "gulp-mocha": "^2.2.0",
     "gulp-nsp": "^2.2.1",
     "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-sass": "^2.1.1",
+    "gulp-scss-lint": "^0.3.9",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-util": "^3.0.7",
     "helmet-crossdomain": "^0.1.0",
@@ -114,6 +123,7 @@
     "jade": "^1.11.0",
     "lodash": "^3.10.0",
     "mkdirp": "^0.5.1",
+    "mocha": "^2.4.1",
     "moment": "^2.11.1",
     "mongodb": "^2.1.1",
     "morgan": "^1.6.1",
@@ -141,6 +151,7 @@
   },
   "devDependencies": {
     "async": "^1.3.0",
+    "babel-cli": "^6.4.5",
     "babel-istanbul": "^0.6.0",
     "babel-preset-es2015-node4": "^2.0.2",
     "expect": "^1.7.0",

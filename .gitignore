@@ -10,3 +10,4 @@ vendor
 bower_components/
 .bundle/
 data
+lib

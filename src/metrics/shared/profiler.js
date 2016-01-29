@@ -54,7 +54,7 @@ define('OnDisconnect', ['Time', 'Logger'], function Profiler (time, logger) {
 
     each(timers, function print (timingData) {
       console.log(timingData.results(false, true));
-      plugin('metrics').profile(timingData.key, timingData.results(true));
+      plugin('Metrics').profile(timingData.key, timingData.results(true));
     });
   };
 });
@@ -65,7 +65,7 @@ define('OnServerStop', ['Time', 'Logger'], function Profiler (time, logger) {
 
     each(timers, function print (timingData) {
       console.log(timingData.results(false, true));
-      plugin('metrics').profile(timingData.key, timingData.results(true));
+      plugin('Metrics').profile(timingData.key, timingData.results(true));
     });
   };
 });

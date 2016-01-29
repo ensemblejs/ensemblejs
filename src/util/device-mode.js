@@ -1,6 +1,6 @@
 'use strict';
 
-import {contains} from 'lodash/collection';
+import {contains} from 'lodash';
 
 const allDeviceModes = ['primary', 'observer'];
 export const supportsInput = ['primary'];

@@ -12,7 +12,8 @@
     "clientSidePrediction": true,
     "input": {
       "gamepad": {
-        "deadzoneCalculation": "scaled-radial"
+        "deadzoneAlgorithm": "radial",
+        "deadzoneMapper": "normalised"
       }
     }
   },

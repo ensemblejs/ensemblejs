@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('src/util/config');
+var config = require('../../util/config');
 
 module.exports = {
   type: 'Routes',

@@ -3,16 +3,14 @@
 var frameworkInfo = require('./util/get-framework-info');
 
 var logger = require('./logging/server/logger').logger;
-import each from 'lodash/collection/each';
+import {each} from 'lodash';
 
 var config = require('./util/config').get();
 logger.logLevel = config.logging.logLevel;
 
-var plugins = require('./plugins/plug-n-play').configure(logger, require('./conf/array-plugins'), require('./conf/default-mode-plugins'), config.logging.silencedPlugins);
+var plugins = require('./plugins/plug-n-play').configure(logger, require('../config/array-plugins'), require('../config/default-mode-plugins'), config.logging.silencedPlugins);
 
-plugins.load({ type: 'Config', func: function Config() {
-    return config;
-  } });
+plugins.load({ type: 'Config', func: function Config() { return config; }});
 
 var foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'debug'];
 

@@ -16,7 +16,7 @@ let traceOnly = [];
 
 export function plugin (name) {
   if (!plugins[name]) {
-    log.error({module: module}, 'Plugin not found.');
+    log.error({name: name, loaded: Object.keys(plugins)}, 'Plugin not found.');
     throw new Error('No plugin defined for: "' + name + '"');
   }
 
@@ -30,7 +30,7 @@ export function unload (name) {
 export function get (p, f) {
   return function () {
     if (!plugin(p)[f]) {
-      log.error({plugin: p.keys(), f: f}, 'Attempted to execute function not found on plugin.');
+      log.error({plugin: Object.keys(p), f: f}, 'Attempted to execute function not found on plugin.');
       return;
     }
 

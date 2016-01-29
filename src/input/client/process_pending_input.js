@@ -9,7 +9,7 @@ var parseMouse = require('../../util/input-common').parseMouse;
 var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
-// import {timer as profile} from 'src/metrics/shared/profiler';
+// import {timer as profile} from '../../metrics/shared/profiler';
 
 module.exports = {
 	type: 'ProcessPendingInput',

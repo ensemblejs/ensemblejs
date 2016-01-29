@@ -70,12 +70,8 @@ function buildGetRequestHandler (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
     .then(buildAcceptHash(page))
-    .then(function (acceptsHash) {
-      return getAcceptTypeHandler(req, acceptsHash);
-    })
-    .then(function (handler) {
-      handler(req, res);
-    })
+    .then(acceptsHash => getAcceptTypeHandler(req, acceptsHash))
+    .then(handler => handler(req, res))
     .catch(redirect, function applyRedirect (err) {
       if (err.data.explainationToUser) {
         req.flash('info', err.data.explainationToUser);

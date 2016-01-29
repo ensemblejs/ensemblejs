@@ -1,3 +1,4 @@
+
 'use strict';
 
 require('babel-register');
@@ -11,8 +12,8 @@ require('./tasks/mongo')(gulp);
 require('./tasks/vuln')(gulp);
 require('./tasks/cleanup')(gulp);
 require('./tasks/linting')(gulp);
-require('./tasks/test')(gulp);
-require('./tasks/build')(gulp);
+require('./tasks/framework-test')(gulp);
+require('./tasks/framework-build')(gulp);
 
 gulp.task('watch', function () {
   gulp.watch(paths.framework.scss, ['framework:build']);
