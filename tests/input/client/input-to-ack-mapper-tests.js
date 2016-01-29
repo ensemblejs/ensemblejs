@@ -37,13 +37,13 @@ var actions = [['*'], {
   'cursor': [
     {ack: 'cursor-notWaiting' }
   ],
-  'leftStick': [
-    {ack: 'leftStick-notWaiting' },
-    {ack: 'leftStick-whenWaiting', whenWaiting: true }
+  'left-stick': [
+    {ack: 'left-stick-notWaiting' },
+    {ack: 'left-stick-whenWaiting', whenWaiting: true }
   ],
-  'rightStick': [
-    {ack: 'rightStick-notWaiting' },
-    {ack: 'rightStick-whenWaiting', whenWaiting: true }
+  'right-stick': [
+    {ack: 'right-stick-notWaiting' },
+    {ack: 'right-stick-whenWaiting', whenWaiting: true }
   ],
 }];
 
@@ -230,26 +230,26 @@ describe('input to ack mapper', function () {
 
     it('should register an ack', function() {
       onOutgoingClientPacket({
-        leftStick: {x: 1, y: 1, force: 1}, rightStick: {x: 0, y: 1, force: 1}
+        'left-stick': {x: 1, y: 1, force: 1}, 'right-stick': {x: 0, y: 1, force: 1}
       });
 
       expect(acknowledgements.ack.callCount).toEqual(4);
-      expect(acknowledgements.ack.firstCall.args).toEqual(['leftStick-notWaiting']);
-      expect(acknowledgements.ack.secondCall.args).toEqual(['leftStick-whenWaiting']);
-      expect(acknowledgements.ack.thirdCall.args).toEqual(['rightStick-notWaiting']);
-      expect(acknowledgements.ack.lastCall.args).toEqual(['rightStick-whenWaiting']);
+      expect(acknowledgements.ack.firstCall.args).toEqual(['left-stick-notWaiting']);
+      expect(acknowledgements.ack.secondCall.args).toEqual(['left-stick-whenWaiting']);
+      expect(acknowledgements.ack.thirdCall.args).toEqual(['right-stick-notWaiting']);
+      expect(acknowledgements.ack.lastCall.args).toEqual(['right-stick-whenWaiting']);
     });
 
     it('should handle waiting for players', function() {
       waitingForPlayers = true;
 
       onOutgoingClientPacket({
-        leftStick: {x: 1, y: 1, force: 1}, rightStick: {x: 0, y: 1, force: 1}
+        'left-stick': {x: 1, y: 1, force: 1}, 'right-stick': {x: 0, y: 1, force: 1}
       });
 
       expect(acknowledgements.ack.callCount).toEqual(2);
-      expect(acknowledgements.ack.firstCall.args).toEqual(['leftStick-whenWaiting']);
-      expect(acknowledgements.ack.secondCall.args).toEqual(['rightStick-whenWaiting']);
+      expect(acknowledgements.ack.firstCall.args).toEqual(['left-stick-whenWaiting']);
+      expect(acknowledgements.ack.secondCall.args).toEqual(['right-stick-whenWaiting']);
     });
   });
 
@@ -270,7 +270,7 @@ describe('input to ack mapper', function () {
 
     it('should do nothing', function () {
       onOutgoingClientPacket({
-        leftStick: {x: 1, y: 1, force: 1}, rightStick: {x: 0, y: 1, force: 1}
+        'left-stick': {x: 1, y: 1, force: 1}, 'right-stick': {x: 0, y: 1, force: 1}
       });
       expect(acknowledgements.ack.called).toEqual(false);
     });

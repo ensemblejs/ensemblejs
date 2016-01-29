@@ -67,7 +67,7 @@
     "window": "global:window"
   },
   "peerDependencies": {
-    "gamepad-api-mappings": "^2.1.0"
+    "gamepad-api-mappings": "^3.0.0"
   },
   "dependencies": {
     "app-root-path": "^1.2.0",

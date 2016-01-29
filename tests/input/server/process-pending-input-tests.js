@@ -92,12 +92,12 @@ describe('Input Bindings', function() {
 				{call: model.waiting, noEventKey: 'model'},
 				{ack: 'dont-crash', whenWaiting: true}
 			],
-			'leftStick': [
+			'left-stick': [
 				{call: model.leftStickEvent, noEventKey: 'model', whenWaiting: true},
 				{call: model.waiting, noEventKey: 'model'},
 				{ack: 'dont-crash', whenWaiting: true}
 			],
-			'rightStick': [
+			'right-stick': [
 				{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true},
 				{call: model.waiting, noEventKey: 'model'},
 				{ack: 'dont-crash', whenWaiting: true}
@@ -477,8 +477,8 @@ describe('Input Bindings', function() {
 		beforeEach(function() {
 			rawData = {
 				playerId: playerId,
-				leftStick: {x: 0.1, y: 1.0},
-				rightStick: {x: 0.9, y: 0.3}
+				'left-stick': {x: 0.1, y: 1.0},
+				'right-stick': {x: 0.9, y: 0.3}
 			};
 			newUserInput(rawData, Date.now(), save, playerId);
 		});
@@ -493,8 +493,8 @@ describe('Input Bindings', function() {
 		it('should log an info message', function() {
 			logger.debug.reset();
 			update(state, 16);
-			expect(logger.debug.firstCall.args).toEqual([{key: 'leftStick'}, 'ActionMap called']);
-			expect(logger.debug.secondCall.args).toEqual([{key: 'rightStick'}, 'ActionMap called']);
+			expect(logger.debug.firstCall.args).toEqual([{key: 'left-stick'}, 'ActionMap called']);
+			expect(logger.debug.secondCall.args).toEqual([{key: 'right-stick'}, 'ActionMap called']);
 		});
 	});
 

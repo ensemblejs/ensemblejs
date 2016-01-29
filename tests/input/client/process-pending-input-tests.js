@@ -97,8 +97,8 @@ describe('Input Bindings', function() {
 			'touch0': [{call: model.touchEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
 			'cursor': [{call: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model' }],
 			'nothing': [{call: model.noEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
-			'leftStick': [{call: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
-			'rightStick': [{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'left-stick': [{call: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'right-stick': [{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
 		}];
 
 
@@ -505,8 +505,8 @@ describe('Input Bindings', function() {
 	describe('when stick input is received', function () {
 		beforeEach(function() {
 			rawData = {
-				leftStick: {x: 0.1, y: 1.0},
-				rightStick: {x: 0.9, y: 0.3}
+				'left-stick': {x: 0.1, y: 1.0},
+				'right-stick': {x: 0.9, y: 0.3}
 			};
 			newUserInput(rawData, Date.now(), save, playerId);
 		});
@@ -525,8 +525,8 @@ describe('Input Bindings', function() {
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
 			beforePhysicsFrame(currentState, 16);
-			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'leftStick'}, 'ActionMap called']);
-			expect(fakeLogger.debug.secondCall.args).toEqual([{key: 'rightStick'}, 'ActionMap called']);
+			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'left-stick'}, 'ActionMap called']);
+			expect(fakeLogger.debug.secondCall.args).toEqual([{key: 'right-stick'}, 'ActionMap called']);
 		});
 	});
 
@@ -535,8 +535,8 @@ describe('Input Bindings', function() {
 			require('../../../src/input/client/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()));
 			beforePhysicsFrame = plugin.deps().BeforePhysicsFrame(defer(inputQueue));
 			rawData = {
-				leftStick: {x: 0.1, y: 1.0, force: 0.5},
-				rightStick: {x: 0.9, y: 0.3, force: 1.0}
+				'left-stick': {x: 0.1, y: 1.0, force: 0.5},
+				'right-stick': {x: 0.9, y: 0.3, force: 1.0}
 			};
 			newUserInput(rawData, Date.now(), save, playerId);
 		});
@@ -557,8 +557,8 @@ describe('Input Bindings', function() {
 
 		beforeEach(function() {
 			rawData = {
-				leftStick: {x: 0.1, y: 1.0, force: 0.5},
-				rightStick: {x: 0.9, y: 0.3, force: 1.0}
+				'left-stick': {x: 0.1, y: 1.0, force: 0.5},
+				'right-stick': {x: 0.9, y: 0.3, force: 1.0}
 			};
 			newUserInput(rawData, undefined, save, playerId);
 
