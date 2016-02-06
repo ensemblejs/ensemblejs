@@ -7,7 +7,7 @@ var isEqual = require('lodash').isEqual;
 var isFunction = require('lodash').isFunction;
 var clone = require('lodash').clone;
 var find = require('lodash').find;
-var where = require('lodash').where;
+var filter = require('lodash').filter;
 var get = require('lodash').get;
 var logger = require('../../logging/server/logger').logger;
 
@@ -82,18 +82,18 @@ module.exports = {
     }
 
     function elementAdded (f, model, saveId) {
-      return (where(f(priorState[saveId]), {id: model.id}).length === 0);
+      return (filter(f(priorState[saveId]), {id: model.id}).length === 0);
     }
 
     function elementRemoved (f, model, saveId) {
-      return (where(f(currentState[saveId]), {id: model.id}).length === 0);
+      return (filter(f(currentState[saveId]), {id: model.id}).length === 0);
     }
 
     function elementChanged (f, model, saveId) {
       if (priorState === undefined) { return true; }
 
-      var current = where(f(currentState[saveId]), {id: model.id});
-      var prior = where(f(priorState[saveId]), {id: model.id});
+      var current = filter(f(currentState[saveId]), {id: model.id});
+      var prior = filter(f(priorState[saveId]), {id: model.id});
       return !isEqual(current, prior);
     }
 

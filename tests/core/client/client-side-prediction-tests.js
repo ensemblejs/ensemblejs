@@ -27,7 +27,6 @@ define('Time', function Time () {
 var defer = require('../../support').defer;
 var trackerPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
-var physicsEnginePlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var profiler = {
   timer: function () {
@@ -83,8 +82,8 @@ var serverState = {
   get: function () {return false;}
 };
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(physicsEnginePlugins.define), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(profiler));
-var stopPhysicsEngine = physicsEnginePlugins.deps().OnDisconnect();
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(profiler));
+var stopPhysicsEngine = plugin('OnDisconnect');
 
 function tracking (state) { return state.namespace.tracking; }
 function count (state) { return state.namespace.count; }

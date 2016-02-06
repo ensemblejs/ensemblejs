@@ -3,8 +3,7 @@
 import {getById as getDeviceById, save as saveDevice} from '../../util/models/devices';
 import {logger} from '../../logging/server/logger';
 import {getById as getPlayerById, save as savePlayer, getByDevice as getPlayerByDevice, linkToDevice as linkPlayerToDevice}  from '../../util/models/players';
-import {first} from 'lodash/array';
-import {pluck} from 'lodash/collection';
+import {first, map} from 'lodash';
 import Bluebird from 'bluebird';
 
 function IdentifyingPlayersAndDevices (define, time) {
@@ -76,7 +75,7 @@ function IdentifyingPlayersAndDevices (define, time) {
             {
               reqId: req.id,
               device: req.device,
-              players: pluck(players, '_id')
+              players: map(players, '_id')
             },
             'More than one player associated with device.'
           );

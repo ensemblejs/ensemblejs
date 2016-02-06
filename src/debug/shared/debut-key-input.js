@@ -2,7 +2,7 @@
 
 var each = require('lodash').each;
 var reject = require('lodash').reject;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 
 function StateSeed () {
   return { ensembleDebug: { keys: [] } };
@@ -12,7 +12,7 @@ function createKeyDownFunc (key) {
   return function (state) {
     var keys = state.get('ensembleDebug.keys');
 
-    if (select(keys, {id: key}).length > 0) {
+    if (filter(keys, {id: key}).length > 0) {
       return {};
     }
 

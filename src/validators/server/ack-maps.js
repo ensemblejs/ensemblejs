@@ -1,23 +1,23 @@
 'use strict';
 
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var reject = require('lodash').reject;
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var logger = require('../../logging/server/logger').logger;
 
 var validTypes = [ 'once-for-all', 'every', 'once-each', 'first-only'];
 
 function filterByMissingProperty (records, prop) {
-  return select(records, function(record) { return !record[prop]; });
+  return filter(records, function(record) { return !record[prop]; });
 }
 
 function filterByInvalidProperty (records, prop, valid) {
-  return select(records, function(record) {
+  return filter(records, function(record) {
     if (!record[prop]) { return false; }
 
-    return !contains(valid, record[prop]);
+    return !includes(valid, record[prop]);
   });
 }
 
@@ -43,7 +43,7 @@ function checkHasValidType (records, key, callback) {
 }
 
 function checkOnProgressType (records, key, callback) {
-  var hasOnProgress = select(records, 'onProgress');
+  var hasOnProgress = filter(records, 'onProgress');
   var hasOnProgressAndInvalidType = reject(hasOnProgress, {
     type: 'once-for-all'
   });

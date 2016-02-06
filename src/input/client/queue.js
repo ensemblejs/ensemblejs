@@ -1,8 +1,8 @@
 'use strict';
 
-var select = require('lodash').select;
-var pluck = require('lodash').pluck;
-var contains = require('lodash').contains;
+var filter = require('lodash').filter;
+var map = require('lodash').map;
+var includes = require('lodash').includes;
 
 module.exports = {
   type: 'InputQueue',
@@ -23,13 +23,13 @@ module.exports = {
 
     define()('AfterPhysicsFrame', function AfterPhysicsFrame () {
       return function removeInputHandledByServer () {
-        inputQueue = select(inputQueue, inputNotProcessedByServer);
+        inputQueue = filter(inputQueue, inputNotProcessedByServer);
       };
     });
 
     define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
       function packetAlreadyOnQueue (packet) {
-        return contains(pluck(inputQueue, 'id'), packet.id);
+        return includes(map(inputQueue, 'id'), packet.id);
       }
 
       return function putPacketOntoInputQueue (packet) {

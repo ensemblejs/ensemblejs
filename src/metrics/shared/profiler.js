@@ -1,6 +1,6 @@
 'use strict';
 
-import {select, each, includes, startsWith} from 'lodash';
+import {filter, each, includes, startsWith} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin} from '../../plugins/plug-n-play';
 import {make as makeTimer} from '../../metrics/shared/timer';
@@ -14,16 +14,16 @@ let wildcard = [
 
 function shouldMeasureKey (key) {
   return includes(exact, key) ||
-         select(wildcard, t => startsWith(key, t)).length > 0;
+         filter(wildcard, t => startsWith(key, t)).length > 0;
 }
 
 function removeTimersNotConfigured () {
   let configuredTimers = plugin('Config').measure.timers;
 
-  exact = select(configuredTimers, t => !includes(t, '*'));
-  wildcard = select(configuredTimers, t => includes(t, '*')).map(t => t.replace('*', ''));
+  exact = filter(configuredTimers, t => !includes(t, '*'));
+  wildcard = filter(configuredTimers, t => includes(t, '*')).map(t => t.replace('*', ''));
 
-  timers = select(timers, timerData => shouldMeasureKey(timerData.key));
+  timers = filter(timers, timerData => shouldMeasureKey(timerData.key));
 }
 
 export default function timer (namespace, type, name, frequency) {

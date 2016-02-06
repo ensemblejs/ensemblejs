@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 import {supportsInput} from '../../util/device-mode';
 
 function mouseMap () {
@@ -65,7 +65,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function MouseInputCapture () {
-        if (!contains(supportsInput, deviceMode())) {
+        if (!includes(supportsInput, deviceMode())) {
           return;
         }
 

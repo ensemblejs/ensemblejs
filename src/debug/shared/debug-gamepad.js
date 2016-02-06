@@ -2,7 +2,7 @@
 
 let each = require('lodash').each;
 let reject = require('lodash').reject;
-let select = require('lodash').select;
+let filter = require('lodash').filter;
 let merge = require('lodash').merge;
 let round = require('round-precision');
 
@@ -22,7 +22,7 @@ function createKeyDownFunc (key) {
   return function (state) {
     let keys = state.get('ensembleDebug.buttons');
 
-    if (select(keys, {id: key}).length > 0) {
+    if (filter(keys, {id: key}).length > 0) {
       return {};
     }
 

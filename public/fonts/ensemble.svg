@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>
+<json>
+<![CDATA[
+{
+	"fontFamily": "icomoon",
+	"majorVersion": 1,
+	"minorVersion": 0,
+	"copyright": "Ryan Boucher",
+	"designerURL": "",
+	"description": "Enssemblejs Logo",
+	"fontURL": "https://ensemblejs.com",
+	"version": "Version 1.0",
+	"fontId": "ensemble",
+	"psName": "ensemble",
+	"subFamily": "Regular",
+	"fullName": "ensemble"
+}
+]]>
+</json>
+</metadata>
+<defs>
+<font id="ensemble" horiz-adv-x="1024">
+<font-face units-per-em="1024" ascent="960" descent="-64" />
+<missing-glyph horiz-adv-x="1024" />
+<glyph unicode="&#x20;" horiz-adv-x="512" d="" />
+<glyph unicode="&#xe900;" glyph-name="ensemblejs" data-tags="ensemblejs-lines" horiz-adv-x="1067" d="M606.296 392.371l-208.13-122.050c-15.52-9.104-28.223-1.655-28.223 16.552v244.113c0 18.207 12.704 25.656 28.223 16.552l208.13-122.063c15.526-9.104 15.526-24.001 0-33.105zM942.461 481.938c-27.891 0-52.073-16.261-63.982-39.911h-170.045l-126.412 74.134c-25.955 15.228-68.44 40.143-94.395 55.371l-117.685 69.003v131.557c23.289 12.096 39.291 36.653 39.291 64.991 0 40.255-32.245 73.009-71.882 73.009-39.63 0-71.875-32.754-71.875-73.009 0-28.337 16.008-52.894 39.285-64.991v-557.891l-149.565-89.852c-10.162 5.595-21.79 8.779-34.135 8.779-39.637 0-71.882-32.76-71.882-73.015s32.245-73.009 71.882-73.009c39.63 0 71.875 32.754 71.875 73.009 0 3.257-0.287 6.429-0.691 9.567l239.306 143.773 56.075 32.873c25.949 15.228 68.434 40.143 94.389 55.364l126.425 74.128h170.045c11.909-23.643 36.084-39.898 63.975-39.898 39.63 0 71.882 32.754 71.882 73.009 0 40.262-32.252 73.009-71.882 73.009z" />
+</font></defs></svg>

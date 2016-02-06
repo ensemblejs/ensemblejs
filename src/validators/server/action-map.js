@@ -1,13 +1,13 @@
 'use strict';
 
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var each = require('lodash').each;
 var isEqual = require('lodash').isEqual;
 var isArray = require('lodash').isArray;
 var logger = require('../../logging/server/logger').logger;
 
 function filterByMissingProperty (records, prop) {
-  return select(records, function(record) { return !record[prop]; });
+  return filter(records, function(record) { return !record[prop]; });
 }
 
 function checkForAckOrCall (records, key, callback) {
@@ -19,13 +19,13 @@ function checkForAckOrCall (records, key, callback) {
 }
 
 function checkForNothingAndAck (records, key, callback) {
-  if (key === 'nothing' && select(records, 'ack').length > 0) {
+  if (key === 'nothing' && filter(records, 'ack').length > 0) {
     callback(key);
   }
 }
 
 function checkForMouseAndAck (records, key, callback) {
-  if (key === 'mouse' && select(records, 'ack').length > 0) {
+  if (key === 'mouse' && filter(records, 'ack').length > 0) {
     callback(key);
   }
 }

@@ -79,7 +79,8 @@
     "network": false,
     "startOpen": false,
     "time": false,
-    "gamepad": false
+    "gamepad": false,
+    "virtualGamepad": true
   },
   "measure": {
     "endpoint": "http://localhost:4000",

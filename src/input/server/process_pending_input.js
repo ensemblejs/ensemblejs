@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var reject = require('lodash').reject;
 var last = require('lodash').last;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
@@ -52,7 +52,7 @@ module.exports = {
 
 					var suitableActions = reject(actionMap.nothing, 'ack');
 					if (waitingForPlayers) {
-						suitableActions = select(suitableActions, 'whenWaiting');
+						suitableActions = filter(suitableActions, 'whenWaiting');
 					}
 
 					each(suitableActions, function(action) {

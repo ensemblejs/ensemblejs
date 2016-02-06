@@ -4,7 +4,7 @@ var expect = require('expect');
 var request = require('request');
 var sinon = require('sinon');
 var makeTestible = require('../../support').makeTestible;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var config = require('../../../src/util/config');
 var url = require('../../route-testing').url;
 
@@ -67,7 +67,7 @@ describe('game routes', function () {
 					expect(res.statusCode).toEqual(200);
 
 					var json = JSON.parse(res.body);
-					expect(contains(json.links, {
+					expect(includes(json.links, {
 						what: '/game/player/saves',
 						url: '/games/gameId/player/1234/saves',
 						method: 'GET'
@@ -81,7 +81,7 @@ describe('game routes', function () {
 					expect(res.statusCode).toEqual(200);
 
 					var json = JSON.parse(res.body);
-					expect(contains(json.links, {
+					expect(includes(json.links, {
 						what: '/saves/new',
 						url: '/saves',
 						method: 'POST',
@@ -107,13 +107,13 @@ describe('game routes', function () {
 
 					var json = JSON.parse(res.body);
 					expect(json.game.modes).toEqual(['easy', 'hard']);
-					expect(contains(json.links, {
+					expect(includes(json.links, {
 						what: '/saves/new',
 						url: '/saves',
 						method: 'POST',
 						data: { mode: 'easy' }
 					}));
-					expect(contains(json.links, {
+					expect(includes(json.links, {
 						what: '/saves/new',
 						url: '/saves',
 						method: 'POST',

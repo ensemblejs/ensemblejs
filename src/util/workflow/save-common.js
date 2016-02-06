@@ -1,6 +1,6 @@
 'use strict';
 
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var returnRequestError = require('./promise').returnRequestError;
 var config = require('../config');
 var saves = require('../models/saves');
@@ -108,7 +108,7 @@ function errorIfModeIsMissing(mode) {
 }
 
 function errorIfModeIsNotValid (mode, project) {
-  if (!contains(project.modes, mode)) {
+  if (!includes(project.modes, mode)) {
     return returnRequestError(400, 'Invalid mode. Supported modes are: ' + project.modes.join());
   }
 

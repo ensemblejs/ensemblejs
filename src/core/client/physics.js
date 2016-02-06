@@ -5,10 +5,12 @@ var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
+import define from '../../plugins/plug-n-play';
+
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'DefinePlugin', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'Profiler'],
-  func: function PhysicsLoop (clientState, serverState, define, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, profiler) {
+  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'Profiler'],
+  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, profiler) {
 
     var rate = profiler().timer('ensemblejs', 'client-physics', 'call-rate', 1);
     var priorStep = time().present();
@@ -18,7 +20,7 @@ module.exports = {
       mode: mode()
     };
 
-    define()('InternalState', function PhysicsLoop () {
+    define('InternalState', function PhysicsLoop () {
       return {
         PhysicsLoop: {
           now: function now () { return time().present(); },
@@ -35,10 +37,6 @@ module.exports = {
       var delta = (now - priorStep) / 1000;
       priorStep = now;
 
-      if (!config().client.clientSidePrediction) {
-        return;
-      }
-
       var saveState = state().for(save.id);
       var opts = [saveState, delta];
 
@@ -54,7 +52,11 @@ module.exports = {
     }
 
     function shouldRunPhysicsEngine () {
-      return (!clientState().get(paused) && !serverState().get(paused));
+      return (
+        !clientState().get(paused) &&
+        !serverState().get(paused) &&
+        config().client.clientSidePrediction
+      );
     }
 
     function step() {
@@ -70,7 +72,7 @@ module.exports = {
     }
 
     var ids = [];
-    define()('OnDisconnect', function PhysicsLoop () {
+    define('OnDisconnect', function PhysicsLoop () {
       return function stopPhysicsLoop () {
         each(ids, function (id) {
           clearInterval(id);

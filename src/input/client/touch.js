@@ -1,6 +1,6 @@
 'use strict';
 
-import {pluck, reject, each, contains} from 'lodash';
+import {map, reject, each, includes} from 'lodash';
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -40,7 +40,7 @@ module.exports = {
       });
 
       function endTouch (e) {
-        let ids = pluck(e.changedTouches, 'identifier');
+        let ids = map(e.changedTouches, 'identifier');
 
         touches = reject(touches, function (touch) {
           return ids.indexOf(touch.id) !== -1;
@@ -54,7 +54,10 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function TouchInputCapture () {
-        if (!contains(supportsInput, deviceMode())) {
+        if (!includes(supportsInput, deviceMode())) {
+          return;
+        }
+        if (deviceMode() === 'virtual-gamepad') {
           return;
         }
 

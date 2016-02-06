@@ -5,9 +5,9 @@ var isArray = require('lodash').isArray;
 var isString = require('lodash').isString;
 var isEqual = require('lodash').isEqual;
 var cloneDeep = require('lodash').cloneDeep;
-var merge = require('lodash').merge;
+var merge = require('lodash').mergeWith;
 var each = require('lodash').each;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var get = require('lodash').get;
 var set = require('lodash').set;
 
@@ -105,22 +105,24 @@ module.exports = {
               };
             },
             player: function forPlayer (playerId) {
+              var playerKey = `player${playerId}`;
+
               return {
                 for: function forNamespace (namespace) {
                   return {
                     get: function get (key) {
-                      return provideReadAccessToState(root[saveId].player[playerId][namespace])(key);
+                      return provideReadAccessToState(root[saveId][playerKey][namespace])(key);
                     },
                     unwrap: function unwrap (key) {
-                      return accessAndCloneState(root[saveId].player[playerId][namespace], key);
+                      return accessAndCloneState(root[saveId][playerKey][namespace], key);
                     },
                   };
                 },
                 get: function get (key) {
-                  return provideReadAccessToState(root[saveId].player[playerId])(key);
+                  return provideReadAccessToState(root[saveId][playerKey])(key);
                 },
                 unwrap: function unwrap (key) {
-                  return accessAndCloneState(root[saveId].player[playerId], key);
+                  return accessAndCloneState(root[saveId][playerKey], key);
                 },
               };
             }
@@ -185,13 +187,13 @@ module.exports = {
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
       root[saveId] = root[saveId] || {};
-      root[saveId] = merge(root[saveId], result, function mergeArrays (a, b) {
+      root[saveId] = merge(root[saveId], result, function(a, b) {
         return isArray(a) ? b : undefined;
       });
     }
 
     function isArrayOfArrays (result) {
-      return select(result, isArray).length === result.length;
+      return filter(result, isArray).length === result.length;
     }
 
     function isPromise (result) {

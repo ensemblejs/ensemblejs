@@ -1,7 +1,6 @@
 'use strict';
 
-import {first} from 'lodash/array';
-import {map, select} from 'lodash/collection';
+import {map, filter, first} from 'lodash';
 import Bluebird from 'bluebird';
 
 var playersStore = require('../../util/models/players');
@@ -15,15 +14,15 @@ module.exports = {
     var connections = [];
 
     function filterBySaveAnPlayer (saveId, playerId) {
-      return select(connections, {saveId: saveId, playerId: playerId});
+      return filter(connections, {saveId: saveId, playerId: playerId});
     }
 
     function connectedPlayers (saveId) {
-      return select(connections, { saveId: saveId, status: 'online' });
+      return filter(connections, { saveId: saveId, status: 'online' });
     }
 
     function savePlayers (saveId) {
-      return select(connections, { saveId: saveId });
+      return filter(connections, { saveId: saveId });
     }
 
     function exists (saveId, playerId) {
@@ -35,7 +34,7 @@ module.exports = {
     }
 
     function add (maxPlayers, saveId, playerId) {
-      var inSave = select(connections, {saveId: saveId});
+      var inSave = filter(connections, {saveId: saveId});
       if (inSave.length === maxPlayers) {
         return;
       }

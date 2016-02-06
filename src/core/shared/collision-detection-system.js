@@ -2,7 +2,7 @@
 
 var each = require('lodash').each;
 var remove = require('lodash').remove;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var test = require('distributedlife-sat').collision.test;
 
 module.exports = {
@@ -12,7 +12,7 @@ module.exports = {
     var hasStarted = [];
 
     function onCollision (target, collisionKey, callbackDelegate) {
-      if (contains(hasStarted, collisionKey)) {
+      if (includes(hasStarted, collisionKey)) {
         each(target.during, function (during) {
           callbackDelegate(during, target);
         });
@@ -63,7 +63,7 @@ module.exports = {
                 }
 
                 if (!test(a, b, createOnCollisionCallback)) {
-                  if (!contains(hasStarted, createKey(saveId, aKey, bKey))) {
+                  if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
                     return;
                   }
 

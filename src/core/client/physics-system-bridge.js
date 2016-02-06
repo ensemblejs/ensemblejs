@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var reject = require('lodash').reject;
 var isString = require('lodash').isString;
 var forEachMode = require('../../util/modes').forEachMode;
@@ -28,7 +28,7 @@ module.exports = {
       return function wireupPhysicsMap () {
         function loadPhysicsMap (map) {
           each(map, function(sources, physicsKey) {
-            each(select(sources, isString), function(sourceKey) {
+            each(filter(sources, isString), function(sourceKey) {
               wireupDynamic('client', physicsKey, sourceKey);
             });
             each(reject(sources, isString), function(sourceKey) {

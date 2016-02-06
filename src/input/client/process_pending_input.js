@@ -1,7 +1,7 @@
 'use strict';
 
 var last = require('lodash').last;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
@@ -78,7 +78,7 @@ module.exports = {
 						if (waitingForPlayers && !action.whenWaiting) {
 							return;
 						}
-						if (contains(somethingHasReceivedInput, action.noEventKey)) {
+						if (includes(somethingHasReceivedInput, action.noEventKey)) {
 							return;
 						}
 

@@ -82,7 +82,7 @@ function loadDefaults() {
 }
 
 export function run() {
-  console.log('ensemblejs-client@' + packageInfo.version + ' started.');
+  console.info('ensemblejs-client@' + packageInfo.version + ' started.');
 
   request(plugins.get('ServerUrl') + '/config')
     .spread(getConfig)

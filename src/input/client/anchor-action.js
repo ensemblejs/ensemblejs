@@ -1,7 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 let logger = require('../../logging/client/logger').logger;
 import {supportsInput} from '../../util/device-mode';
 
@@ -70,7 +70,7 @@ module.exports = {
     }
 
     function bindToElement (element) {
-      if (!contains(supportsInput, deviceMode())) {
+      if (!includes(supportsInput, deviceMode())) {
         logger.warn({element: element}, 'AnchorAction add called on display that does not support input');
         return;
       }

@@ -3,7 +3,7 @@
 var log;
 var lowerToTrace = [];
 
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 
 function filename (fullPath, dirname) {
   return fullPath.replace(dirname, '').replace('/', '');
@@ -54,10 +54,19 @@ function loaded (namespace, type, func) {
 function called (args, namespace, module, code) {
   var n = [namespace, module, extractFunctionNameWithParamsFromCode(code)].join(':');
 
-  if (contains(lowerToTrace, module)) {
+  if (includes(lowerToTrace, module)) {
     log.trace(args, n);
   } else {
-    log.info(n);
+    var background = 'white';
+    var text = 'black';
+    if (includes(n, ':On')) {
+      background = '#00b988';
+    }
+    if (includes(n, 'Game:')) {
+      background = 'lightgreen';
+    }
+
+    log.info(`%c${n}`, `background: ${background}; color: ${text};`);
     log.debug(args, n);
   }
 }

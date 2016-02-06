@@ -1,8 +1,7 @@
 'use strict';
 
 var each = require('lodash').each;
-var include = require('lodash').include;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -124,7 +123,7 @@ module.exports = {
       }
 
       $()(window().document).keydown(function keydown (e) {
-        if (include(ignore, e.keyIdentifier)) { return; }
+        if (includes(ignore, e.keyIdentifier)) { return; }
 
         var key = resolveKey(e);
         press(key, e.altKey, e.ctrlKey, e.shiftKey);
@@ -134,13 +133,13 @@ module.exports = {
           singlePress(key, e.altKey, e.ctrlKey, e.shiftKey);
         }
 
-        if (include(preventDefault, key)) {
+        if (includes(preventDefault, key)) {
           e.preventDefault();
         }
       });
 
       $()(window().document).keyup(function keyup (e) {
-        if (include(ignore, e.keyIdentifier)) { return; }
+        if (includes(ignore, e.keyIdentifier)) { return; }
 
         var key = resolveKey(e);
         if (!releasedByBlur[key]) {
@@ -153,7 +152,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function KeyboardInputCapture () {
-        if (!contains(supportsInput, deviceMode())) {
+        if (!includes(supportsInput, deviceMode())) {
           return;
         }
 

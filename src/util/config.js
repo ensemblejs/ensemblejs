@@ -2,7 +2,7 @@
 
 var appRoot = require('app-root-path');
 var defaultsDeep = require('lodash').defaultsDeep;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var once = require('lodash').once;
 var logger = require('../logging/server/logger').logger;
 
@@ -46,7 +46,7 @@ function getConfig () {
   }
 
   function anyDebugTrue () {
-    return select(config.debug, function (value) {
+    return filter(config.debug, function (value) {
       return value;
     }).length > 0;
   }

@@ -1,6 +1,6 @@
 'use strict';
 
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 var saveQueue = require('../../util/save-queue');
@@ -11,7 +11,7 @@ module.exports = {
   func: function MongoDbBridge (define, rawState, time) {
 
     function SaveCurrentState() {
-      if (!contains(['persistent', 'ephemeral'], config.get().ensemble.autoSaveBehaviour)) {
+      if (!includes(['persistent', 'ephemeral'], config.get().ensemble.autoSaveBehaviour)) {
         return config.get().nothing;
       }
 

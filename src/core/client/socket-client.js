@@ -1,10 +1,10 @@
 'use strict';
 
 var io = require('socket.io-client');
-import {last, contains} from 'lodash';
+import {last, includes} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get} from '../../plugins/plug-n-play';
-import {supportsInput, supportsOutput} from '../../util/device-mode';
+import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
   type: 'SocketClient',
@@ -47,44 +47,15 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
-      if (contains(supportsInput, deviceMode())) {
-        $()(window()).on('blur', function pauseOnBlue () {
-          plugin('PauseBehaviour').pause();
-        });
-        $()(window()).on('mousedown', function unpauseOnMouseDown () {
-          plugin('PauseBehaviour').unpause();
-        });
-        $()(window()).on('keydown', function unpauseOnKeyDown () {
-          get('PauseBehaviour', 'unpause')();
-        });
-        $()(window()).on('touchstart', function upauseOnTouch () {
-          get('PauseBehaviour', 'unpause')();
-        });
-
-        define('OnOutgoingClientPacket', function SocketClient () {
-          return function sendPacketToServer (packet) {
-            socket.emit('input', packet);
-          };
-        });
-      }
-
-      if (contains(supportsOutput, deviceMode())) {
-        define('OnIncomingServerPacket', function SocketClient () {
-          return function ackPacket (packet) {
-            socket.emit('ack', packet.id);
-          };
-        });
-      }
-
       define('PauseBehaviour', function PauseBehaviour () {
         return {
           pause: function pause () {
-            if (contains(supportsInput, deviceMode())) {
+            if (includes(supportsInput, deviceMode())) {
               socket.emit('pause');
             }
           },
           unpause: function unpause () {
-            if (contains(supportsInput, deviceMode())) {
+            if (includes(supportsInput, deviceMode())) {
               socket.emit('unpause');
             }
           },
@@ -95,6 +66,45 @@ module.exports = {
               this.pause();
             }
           }
+        };
+      });
+
+      function pauseIfHidden () {
+        if (window().document.hidden) {
+          if (get('PauseBehaviour', 'pause')) {
+            get('PauseBehaviour', 'pause')();
+          }
+        }
+      }
+
+      function pause () {
+        plugin('PauseBehaviour').pause();
+      }
+
+      function unpause () {
+        get('PauseBehaviour', 'unpause')();
+      }
+
+      if (includes(supportsInput, deviceMode())) {
+        $()(window()).on('blur', pause);
+        $()(window()).on('mousedown', unpause);
+        $()(window()).on('keydown', unpause);
+        $()(window()).on('touchstart', unpause);
+        $()(window().document).on('visibilitychange', pauseIfHidden);
+        $()(window().document).on('mozvisibilitychange', pauseIfHidden);
+        $()(window().document).on('msvisibilitychange', pauseIfHidden);
+        $()(window().document).on('webkitvisibilitychange', pauseIfHidden);
+
+        define('OnOutgoingClientPacket', function SocketClient () {
+          return function sendPacketToServer (packet) {
+            socket.emit('input', packet);
+          };
+        });
+      }
+
+      define('OnIncomingServerPacket', function SocketClient () {
+        return function ackPacketReceived (packet) {
+          socket.emit('ack', packet.id);
         };
       });
     }

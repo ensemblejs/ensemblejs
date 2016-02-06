@@ -12,6 +12,15 @@ html:full-screen {
   background-color: #222 !important;
 }
 
+@mixin noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* non-prefixed version, currently not supported by any browser */
+}
+
 .canvas {
   margin: 0 auto;
   z-index: -99999;
@@ -182,5 +191,131 @@ p {
       height: 64px;
       width: 64px;
     }
+  }
+}
+
+@font-face {
+    font-family: 'icomoon';
+    src:
+        url('/ensemble/fonts/ensemble.ttf?o7glsb') format('truetype'),
+        url('/ensemble/fonts/ensemble.woff?o7glsb') format('woff'),
+        url('/ensemble/fonts/ensemble.svg?o7glsb#ensemble') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@mixin icon {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'icomoon' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.virtual-gamepad {
+  .left-side {
+
+  }
+
+  .right-side {
+
+  }
+
+  .stick {
+    @include noselect;
+
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    background-color: white;
+    border: 1px dotted black;
+  }
+
+  .gamepad-button {
+    @include noselect;
+
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    border: 1px solid black;
+
+    font-size: 2rem;
+
+    margin: 0;
+    padding: 0;
+  }
+
+  .base-button { color: lightgrey; background-color: grey; }
+  .base-face-0 { color: lightgreen; background-color: darkgreen; }
+  .base-face-1 { color: lightblue; background-color: darkblue; }
+  .base-face-2 { color: pink; background-color: darkred; }
+  .base-face-3 { color: gold; background-color: darkorange; }
+  .base-face-4 { color: orchid; background-color: darkorchid; }
+  .base-face-5 { color: dodgerblue; background-color: skyblue; }
+  .base-home { @include icon; }
+  .base-up {
+    color: dodgerblue;
+    background-color: skyblue;
+    transform: rotate(-90deg);
+  }
+  .base-down {
+    color: dodgerblue;
+    background-color: skyblue;
+    transform: rotate(90deg);
+  }
+  .base-left {
+    color: dodgerblue;
+    background-color: skyblue;
+    transform: rotate(270deg);
+  }
+  .base-right {
+    color: dodgerblue;
+    background-color: skyblue;
+    transform: rotate(0deg);
+  }
+  .base-select-back {
+    transform: rotate(270deg);
+  }
+
+  .inverse-button { background-color: lightgrey; color: grey; }
+  .inverse-face-1 { background-color: lightblue; color: darkblue; }
+  .inverse-face-2 { background-color: pink; color: darkred; }
+  .inverse-face-3 { background-color: gold; color: darkorange; }
+  .inverse-face-4 { background-color: orchid; color: darkorchid; }
+  .inverse-face-5 { background-color: dodgerblue; color: skyblue; }
+  .inverse-home { @include icon; }
+  .inverse-up {
+    color: darkgreen;
+    background-color: lightgreen;
+    transform: rotate(-90deg);
+  }
+  .inverse-down {
+    color: darkblue;
+    background-color: lightblue;
+    transform: rotate(90deg);
+  }
+  .inverse-left {
+    color: darkred;
+    background-color: pink;
+    transform: rotate(270deg);
+  }
+  .inverse-right {
+    color: darkorange;
+    background-color: gold;
+    transform: rotate(0deg);
+  }
+  .inverse-select-back {
+    transform: rotate(270deg);
   }
 }

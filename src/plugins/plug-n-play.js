@@ -6,7 +6,7 @@ let isString = require('lodash').isString;
 let isFunction = require('lodash').isFunction;
 let each = require('lodash').each;
 let map = require('lodash').map;
-let contains = require('lodash').contains;
+let includes = require('lodash').includes;
 let logging = require('../logging/shared/logger');
 
 let log;
@@ -53,7 +53,7 @@ function deferredDependency (deferred) {
 }
 
 function setModesForPlugin (plugin, type) {
-  if (!contains(defaultModes, type)) {
+  if (!includes(defaultModes, type)) {
     return plugin;
   }
   if (!(plugin instanceof Array)) {
@@ -86,7 +86,7 @@ function wrapOriginalFunction (original, key, prefix, type) {
   var timer = createTimer(prefix, type, key);
 
   return function wrappedWithLoggingAndTimers () {
-    if (contains(traceOnly, type)) {
+    if (includes(traceOnly, type)) {
       log.subdue(arguments, prefix + ':' + type, original.toString());
     } else {
       log.plugin(arguments, prefix, type, original.toString());

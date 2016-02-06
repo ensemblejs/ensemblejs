@@ -1,13 +1,13 @@
 'use strict';
 
-import {contains} from 'lodash';
+import {includes} from 'lodash';
 
-const allDeviceModes = ['primary', 'observer'];
-export const supportsInput = ['primary'];
+const allDeviceModes = ['primary', 'observer', 'gamepad'];
+export const supportsInput = ['primary', 'gamepad'];
 export const supportsOutput = ['primary', 'observer'];
 
 export function determineDeviceMode (requestedDeviceMode = 'primary') {
-  if (!contains(allDeviceModes, requestedDeviceMode)) {
+  if (!includes(allDeviceModes, requestedDeviceMode)) {
     return 'observer';
   }
 

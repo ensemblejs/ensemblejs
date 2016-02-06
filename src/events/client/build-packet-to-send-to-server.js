@@ -57,6 +57,6 @@ module.exports = {
       };
     });
 
-    return interval.execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).seconds();
+    return interval.execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).milliseconds();
   }
 };

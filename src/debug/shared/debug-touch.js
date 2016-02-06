@@ -1,13 +1,13 @@
 'use strict';
 
 var reject = require('lodash').reject;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 
 function createAddTouch (i) {
   return function addTouch (state, x, y) {
     var touches = state.get('ensembleDebug.touches');
 
-    var existingTouch = select(touches, {id : i});
+    var existingTouch = filter(touches, {id : i});
     if (existingTouch.length > 0) {
       existingTouch[0].x = x;
       existingTouch[0].y = y;

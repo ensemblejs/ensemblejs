@@ -1,8 +1,8 @@
 'use strict';
 
-import {isObject, isArray, isEqual, cloneDeep, isString, merge, select, get, set} from 'lodash';
+import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set} from 'lodash';
 import define from '../../plugins/plug-n-play';
-import timer from '../../metrics/shared/profiler';
+// import timer from '../../metrics/shared/profiler';
 
 module.exports = {
   type: 'StateMutator',
@@ -63,22 +63,24 @@ module.exports = {
               };
             },
             player: function forPlayer (playerId) {
+              var playerKey = `player${playerId}`;
+
               return {
                 for: function forNamespace (namespace) {
                   return {
                     get: function get (key) {
-                      return provideReadAccessToState(root.player[playerId][namespace])(key);
+                      return provideReadAccessToState(root[playerKey][namespace])(key);
                     },
                     unwrap: function (key) {
-                      return accessAndCloneState(root.player[playerId][namespace], key);
+                      return accessAndCloneState(root[playerKey][namespace], key);
                     },
                   };
                 },
                 get: function get (key) {
-                  return provideReadAccessToState(root.player[playerId])(key);
+                  return provideReadAccessToState(root[playerKey])(key);
                 },
                 unwrap: function (key) {
-                  return accessAndCloneState(root.player[playerId], key);
+                  return accessAndCloneState(root[playerKey], key);
                 },
               };
             }
@@ -94,24 +96,23 @@ module.exports = {
       };
     });
 
-    var profilers = {};
-    profilers.isValidDotStringResult = timer('ensemblejs', 'StateMutator', 'Client.isValidDotStringResult', 1);
-    profilers.applyPartialMerge = timer('ensemblejs', 'StateMutator', 'Client.applyPartialMerge', 1);
-    profilers.applyMajorMerge = timer('ensemblejs', 'StateMutator', 'Client.applyMajorMerge', 1);
-    profilers.isArrayOfArrays = timer('ensemblejs', 'StateMutator', 'Client.isArrayOfArrays', 1);
-    profilers.ignoreResult = timer('ensemblejs', 'StateMutator', 'Client.ignoreResult', 1);
-    profilers.set = timer('ensemblejs', 'StateMutator', 'Client.set', 1);
+    // var profilers = {};
+    // profilers.isValidDotStringResult = timer('ensemblejs', 'StateMutator', 'Client.isValidDotStringResult', 1);
+    // profilers.applyPartialMerge = timer('ensemblejs', 'StateMutator', 'Client.applyPartialMerge', 1);
+    // profilers.applyMajorMerge = timer('ensemblejs', 'StateMutator', 'Client.applyMajorMerge', 1);
+    // profilers.isArrayOfArrays = timer('ensemblejs', 'StateMutator', 'Client.isArrayOfArrays', 1);
+    // profilers.ignoreResult = timer('ensemblejs', 'StateMutator', 'Client.ignoreResult', 1);
+    // profilers.set = timer('ensemblejs', 'StateMutator', 'Client.set', 1);
 
     define('AfterPhysicsFrame', function RawStateAccess () {
       return function mergeResultsFromLastFrame () {
-        profilers.applyMajorMerge.fromHere();
+        // profilers.applyMajorMerge.fromHere();
 
         root = merge(root, thisFrame, function mergeArrays (a, b) {
           return isArray(a) ? b : undefined;
         });
         thisFrame = {};
-
-        profilers.applyMajorMerge.toHere();
+        // profilers.applyMajorMerge.toHere();
       };
     });
 
@@ -153,28 +154,28 @@ module.exports = {
 
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {
-        profilers.isValidDotStringResult.fromHere();
+        // profilers.isValidDotStringResult.fromHere();
 
         if (!isValidDotStringResult(result)) {
-          profilers.isValidDotStringResult.toHere();
+          // profilers.isValidDotStringResult.toHere();
           return;
         }
-        profilers.isValidDotStringResult.toHere();
+        // profilers.isValidDotStringResult.toHere();
 
-        profilers.set.fromHere();
+        // profilers.set.fromHere();
         result = set({}, result[0], result[1]);
-        profilers.set.toHere();
+        // profilers.set.toHere();
       }
 
-      profilers.applyPartialMerge.fromHere();
+      // profilers.applyPartialMerge.fromHere();
       thisFrame = merge(thisFrame, result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
-      profilers.applyPartialMerge.toHere();
+      // profilers.applyPartialMerge.toHere();
     }
 
     function isArrayOfArrays (result) {
-      return select(result, isArray).length === result.length;
+      return filter(result, isArray).length === result.length;
     }
 
     var handleResult;
@@ -185,20 +186,20 @@ module.exports = {
     }
 
     handleResult = function handleResult (saveId, result) {
-      profilers.ignoreResult.fromHere();
+      // profilers.ignoreResult.fromHere();
       if (ignoreResult(result)) {
-        profilers.ignoreResult.toHere();
+        // profilers.ignoreResult.toHere();
         return false;
       }
-      profilers.ignoreResult.toHere();
+      // profilers.ignoreResult.toHere();
 
-      profilers.isArrayOfArrays.fromHere();
+      // profilers.isArrayOfArrays.fromHere();
       if (isArrayOfArrays(result)) {
-        profilers.isArrayOfArrays.toHere();
+        // profilers.isArrayOfArrays.toHere();
 
         mutateArrayOfArrays(saveId, result);
       } else {
-        profilers.isArrayOfArrays.toHere();
+        // profilers.isArrayOfArrays.toHere();
 
         mutateNonArray(saveId, result);
       }

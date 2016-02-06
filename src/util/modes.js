@@ -4,7 +4,7 @@ var intersection = require('lodash').intersection;
 var first = require('lodash').first;
 var isArray = require('lodash').isArray;
 var last = require('lodash').last;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var each = require('lodash').each;
 
 function isApplicable (mode, plugin) {
@@ -17,7 +17,7 @@ function isApplicable (mode, plugin) {
 }
 
 function filterPluginsByMode (plugins, mode) {
-  return select(plugins, function(plugin) {
+  return filter(plugins, function(plugin) {
     return isApplicable(mode, plugin);
   });
 }

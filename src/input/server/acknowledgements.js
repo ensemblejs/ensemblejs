@@ -2,17 +2,17 @@
 
 var each = require('lodash').each;
 var last = require('lodash').last;
-var select = require('lodash').select;
+var filter = require('lodash').filter;
 var reject = require('lodash').reject;
-var unique = require('lodash').unique;
+var unique = require('lodash').uniq;
 var map = require('lodash').map;
-var contains = require('lodash').contains;
+var includes = require('lodash').includes;
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 
 function toggleAck (players, playerId) {
-  if (contains(players, playerId)) {
+  if (includes(players, playerId)) {
     return unique(reject(players, function(n) { return n === playerId;}));
   } else {
     players.push(playerId);
@@ -72,7 +72,7 @@ module.exports = {
         return true;
       }
 
-      if (contains(action.players, ack.playerId)) {
+      if (includes(action.players, ack.playerId)) {
         logger.debug({action: action, ack: ack}, 'Player has already fired ack.');
         return true;
       }
@@ -109,7 +109,7 @@ module.exports = {
 
     define()('OnIncomingClientInputPacket', function () {
       return function handleAcknowledgements (packet, save) {
-        var serverAcksForSave = select(serverAcks, {saveId: save.id});
+        var serverAcksForSave = filter(serverAcks, {saveId: save.id});
         serverAcks = reject(serverAcks, {saveId: save.id});
 
         var acks = packet.pendingAcks.concat(serverAcksForSave);
@@ -120,7 +120,7 @@ module.exports = {
 
         each(acks, function (ack) {
           var byMode = filterPluginsByMode(acknowledgementMaps(), save.mode);
-          var hasMatchingName = select(byMode, function(ackMap) {
+          var hasMatchingName = filter(byMode, function(ackMap) {
             return last(ackMap)[ack.name];
           });
 

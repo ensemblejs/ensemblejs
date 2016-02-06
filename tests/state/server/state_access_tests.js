@@ -22,11 +22,9 @@ describe('state access', function () {
         }
       },
       arrayOfThings: [1, 2, 3],
-      player: {
-        1: { controller: { score: 10 } },
-        2: { controller: { score: 20 } },
-        3: { controller: { score: 34 } }
-      }
+      player1: { controller: { score: 10 } },
+      player2: { controller: { score: 20 } },
+      player3: { controller: { score: 34 } }
     });
   });
 

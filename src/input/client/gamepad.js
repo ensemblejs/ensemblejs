@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, map, contains} from 'lodash/collection';
+import {each, map, includes} from 'lodash/collection';
 import {without} from 'lodash/array';
 import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axialScalar, normaliseResult} from 'gamepad-api-mappings';
 import {supportsInput} from '../../util/device-mode';
@@ -43,7 +43,7 @@ module.exports = {
         if (!modernizr().gamepads) {
           return;
         }
-        if (!contains(supportsInput, deviceMode())) {
+        if (!includes(supportsInput, deviceMode())) {
           return;
         }
 
