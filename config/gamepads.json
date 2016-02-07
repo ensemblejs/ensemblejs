@@ -1,0 +1,10 @@
+{
+  "debug": {
+    "leftSide": ["left-stick"],
+    "rightSide": [
+      "face-0", "up", "down", "home", "start-forward", "select-back", "right",
+      "left", "face-1", "face-2", "face-3", "face-4", "face-5"
+    ],
+    "class": "virtual-gamepad"
+  }
+}

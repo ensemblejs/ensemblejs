@@ -14,7 +14,8 @@
       "gamepad": {
         "deadzoneAlgorithm": "radial",
         "deadzoneMapper": "normalised"
-      }
+      },
+      "virtualGamepad": "debug"
     }
   },
   "server": {

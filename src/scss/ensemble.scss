@@ -237,7 +237,10 @@ p {
     border: 1px dotted black;
   }
 
-  .gamepad-button {
+  .button {
+    color: lightgrey;
+    background-color: grey;
+
     @include noselect;
 
     flex: 0 1 auto;
@@ -256,7 +259,11 @@ p {
     padding: 0;
   }
 
-  .base-button { color: lightgrey; background-color: grey; }
+  @mixin inverse-button {
+    color: grey;
+    background-color: lightgrey;
+  }
+
   .base-face-0 { color: lightgreen; background-color: darkgreen; }
   .base-face-1 { color: lightblue; background-color: darkblue; }
   .base-face-2 { color: pink; background-color: darkred; }
@@ -277,7 +284,7 @@ p {
   .base-left {
     color: dodgerblue;
     background-color: skyblue;
-    transform: rotate(270deg);
+    transform: rotate(180deg);
   }
   .base-right {
     color: dodgerblue;
@@ -285,16 +292,15 @@ p {
     transform: rotate(0deg);
   }
   .base-select-back {
-    transform: rotate(270deg);
+    transform: rotate(180deg);
   }
 
-  .inverse-button { background-color: lightgrey; color: grey; }
   .inverse-face-1 { background-color: lightblue; color: darkblue; }
   .inverse-face-2 { background-color: pink; color: darkred; }
   .inverse-face-3 { background-color: gold; color: darkorange; }
   .inverse-face-4 { background-color: orchid; color: darkorchid; }
   .inverse-face-5 { background-color: dodgerblue; color: skyblue; }
-  .inverse-home { @include icon; }
+  .inverse-home { @include inverse-button; @include icon; }
   .inverse-up {
     color: darkgreen;
     background-color: lightgreen;
@@ -308,7 +314,7 @@ p {
   .inverse-left {
     color: darkred;
     background-color: pink;
-    transform: rotate(270deg);
+    transform: rotate(180deg);
   }
   .inverse-right {
     color: darkorange;
@@ -316,6 +322,10 @@ p {
     transform: rotate(0deg);
   }
   .inverse-select-back {
-    transform: rotate(270deg);
+    @include inverse-button;
+    transform: rotate(180deg);
+  }
+  .inverse-start-forward {
+    @include inverse-button;
   }
 }

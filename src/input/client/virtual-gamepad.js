@@ -1,47 +1,65 @@
 'use strict';
 
-import {each, isEqual, filter, remove} from 'lodash';
+import {each, isEqual, filter, remove, includes, reject} from 'lodash';
 import {radial} from 'gamepad-api-mappings';
 import define from '../../plugins/plug-n-play';
+
+var gamepads = require('../../../config/gamepads.json');
+
+const stickIds = ['left-stick', 'right-stick'];
+
+const labels = {
+  'left-stick': '',
+  'right-stick': '',
+  up: '►',
+  down: '►',
+  left: '►',
+  right: '►',
+  'start-forward': '►',
+  'select-back': '►',
+  'face-0': 'N',
+  'face-1': 'S',
+  'face-2': 'E',
+  'face-3': 'M',
+  'face-4': 'B',
+  'face-5': 'L',
+  'home': '&#xe900;'
+};
+
+function touchData (touch) {
+  const radius = touch.target.scrollWidth / 2;
+
+  return {
+    radius: radius,
+    x: (touch.clientX - touch.target.offsetLeft - radius) / radius,
+    y: (touch.clientY - touch.target.offsetTop - radius) / radius
+  };
+}
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', '$', 'DeviceMode'],
   func: function VirtualGamepad (window, config, $, deviceMode) {
-
-    const tempConfig = {
-      sticks: ['left-stick'],
-      buttons: ['start-forward', 'face-0', 'up', 'down']
-    };
-
     let keys = [];
     let singlePressKeys = [];
-    let leftStick = {x: 0, y: 0};
-    let rightStick = {x: 0, y: 0};
+    let sticks = {
+      'left-stick': {x: 0, y: 0},
+      'right-stick': {x: 0, y: 0}
+    };
+    var layout = gamepads[config().client.input.virtualGamepad];
 
-    function addVisual (elementId, x, y) {
-      $()(elementId).css('background-image', '-webkit-radial-gradient(' + x + 'px ' + y + 'px, circle cover, yellow, orange, red)');
+    function addVisual (stickId, x, y) {
+      $()(stickId).css('background-image', '-webkit-radial-gradient(' + x + 'px ' + y + 'px, circle cover, yellow, orange, red)');
     }
 
-    function removeVisual (elementId) {
-      $()(elementId).css('background-image', '');
+    function removeVisual (stickId) {
+      $()(stickId).css('background-image', '');
     }
 
-    function touchData (touch) {
-      const radius = touch.target.scrollWidth / 2;
+    function setupStickBindings (stickId) {
+      var domStickId = `#${stickId}`;
 
-      return {
-        radius: radius,
-        x: (touch.clientX - touch.target.offsetLeft - radius) / radius,
-        y: (touch.clientY - touch.target.offsetTop - radius) / radius
-      };
-    }
-
-    function bindToWindowEvents () {
-      const leftStickId = '#left-stick';
-      const startForward = '#start-forward';
-
-      $()(leftStickId).on('touchstart touchmove', function (e) {
+      $()(domStickId).on('touchstart touchmove', function (e) {
         let touches = filter(e.touches, touch => {
           return isEqual($()(touch.target).attr('id'), $()(e.target).attr('id'));
         });
@@ -53,48 +71,80 @@ module.exports = {
           let t = touchData(touch);
           let coord = radial(t);
 
-          leftStick = coord;
+          sticks[stickId] = coord;
 
-          addVisual(leftStickId, (coord.x * t.radius) + t.radius, (coord.y * t.radius) + t.radius);
+          addVisual(domStickId, (coord.x * t.radius) + t.radius, (coord.y * t.radius) + t.radius);
         });
       });
 
-      $()(leftStickId).on('touchend touchleave touchcancel', function () {
-        leftStick = {x: 0, y: 0};
+      $()(domStickId).on('touchend touchleave touchcancel', function () {
+        sticks['left-stick'] = {x: 0, y: 0};
 
-        removeVisual(leftStickId);
+        removeVisual(domStickId);
+      });
+    }
+
+    function pressButton (receiver, button) {
+      $()(receiver)
+        .addClass('inverse-' + button)
+        .removeClass('base-' + button);
+    }
+
+    function releaseButton (receiver, button) {
+      $()(receiver)
+        .addClass('base-' + button)
+        .removeClass('inverse-' + button);
+    }
+
+    function setupButtonBindings (buttonId) {
+      var domButtonId = `#${buttonId}`;
+
+      $()(domButtonId).on('touchstart', function (e) {
+        console.log('touchstart', buttonId);
+        keys.push(buttonId);
+        singlePressKeys.push(buttonId);
+
+        each(e.touches, touch => pressButton(touch.target, buttonId));
       });
 
-      function pressButton (receiver, button) {
-        $()(receiver)
-          .addClass('inverse-' + button)
-          .removeClass('base-' + button);
-      }
+      $()(domButtonId).on('touchmove', function (e) {
+        console.log('touchmove', buttonId);
+        keys.push(buttonId);
 
-      function releaseButton (receiver, button) {
-        $()(receiver)
-          .addClass('base-' + button)
-          .removeClass('inverse-' + button);
-      }
-
-      $()(startForward).on('touchstart', function (e) {
-        keys.push('face-0');
-        singlePressKeys.push('face-0');
-
-        each(e.touches, touch => pressButton(touch.target, 'button'));
+        each(e.touches, touch => pressButton(touch.target, buttonId));
       });
 
-      $()(startForward).on('touchmove', function (e) {
-        keys.push('face-0');
+      $()(domButtonId).on('touchend touchleave touchcancel', function (e) {
+        console.log('touchend', buttonId);
+        keys = remove(keys, buttonId);
+        singlePressKeys = remove(singlePressKeys, buttonId);
 
-        each(e.touches, touch => pressButton(touch.target, 'button'));
+        each(e.changedTouches, touch => releaseButton(touch.target, buttonId));
+      });
+    }
+
+    function bindToWindowEvents () {
+      const all = layout.leftSide.concat(layout.rightSide);
+      const padSticks = filter(all, c => includes(stickIds, c));
+      const padButtons = reject(all, c => includes(stickIds, c ));
+
+      each(padSticks, stick => setupStickBindings(stick));
+      each(padButtons, button => setupButtonBindings(button));
+    }
+
+    function setupController () {
+      $()('#virtual-gamepad').addClass(layout.class);
+
+      each(layout.leftSide, component => {
+        const cssClass = includes(stickIds, component) ? 'stick' : 'button';
+
+        $()('#left-side').append(`<div id="${component}" class="${cssClass} base-${component}">${labels[component]}</div>`);
       });
 
-      $()(startForward).on('touchend touchleave touchcancel', function (e) {
-        keys = remove(keys, 'face-0');
-        singlePressKeys = remove(singlePressKeys, 'face-0');
+      each(layout.rightSide, component => {
+        const cssClass = includes(stickIds, component) ? 'stick' : 'button';
 
-        each(e.changedTouches, touch => releaseButton(touch.target, 'button'));
+        $()('#right-side').append(`<div id="${component}" class="${cssClass} base-${component}">${labels[component]}</div>`);
       });
     }
 
@@ -104,14 +154,15 @@ module.exports = {
           return;
         }
 
+        setupController();
         bindToWindowEvents();
       };
     });
 
     return function getCurrentState () {
       let inputData = {
-        'left-stick': leftStick,
-        'right-stick': rightStick
+        'left-stick': sticks['left-stick'],
+        'right-stick': sticks['right-stick']
       };
 
       let keysToSend = [];
