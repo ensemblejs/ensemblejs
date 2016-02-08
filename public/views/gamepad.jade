@@ -1,0 +1,16 @@
+extends ../layouts/game-page.jade
+
+block content
+  #paused.paused-layer
+  #canvas.canvas
+  #overlay.overlay
+    .icons
+  #virtual-gamepad.virtual-gamepad.overlay
+    #left-side.left-side
+    #right-side.right-side
+
+append scripts
+  script(src="/ensemble/js/3rd-party/modernizr.js")
+  script(src="/ensemble/js/" + deviceMode + ".min.js")
+  script(src="/game/js/client/common.min.js")
+  script(src="/game/js/client/" + saveMode + ".min.js")

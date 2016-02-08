@@ -1,7 +1,6 @@
 'use strict';
 
-var keys = require('lodash').keys;
-var isNumber = require('lodash').isNumber;
+import {keys, isNumber, isFunction} from 'lodash';
 var returnRequestError = require('./workflow/promise').returnRequestError;
 
 function renderPage (page, opts) {
@@ -43,7 +42,6 @@ function isRequestError (error) {
   return isNumber(error.reason) && error.reason >= 400 && error.reason <= 499;
 }
 
-var keys = require('lodash').keys;
 function getSupportedContentType (req, acceptsHash) {
   return req.accepts(keys(acceptsHash));
 }
@@ -69,7 +67,7 @@ function buildAcceptHash (page) {
 function buildGetRequestHandler (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
-    .then(buildAcceptHash(page))
+    .then(buildAcceptHash((isFunction(page) ? page(req) : page)))
     .then(acceptsHash => getAcceptTypeHandler(req, acceptsHash))
     .then(handler => handler(req, res))
     .catch(redirect, function applyRedirect (err) {
@@ -109,5 +107,7 @@ module.exports = {
   buildJsonHandler: renderJson,
   buildRequestHandler: buildRequestHandler,
   buildGetRequestHandler: buildGetRequestHandler,
-  buildPostRequestHandler: buildPostRequestHandler
+  get: buildGetRequestHandler,
+  buildPostRequestHandler: buildPostRequestHandler,
+  post: buildPostRequestHandler
 };

@@ -100,7 +100,6 @@ module.exports = {
       var domButtonId = `#${buttonId}`;
 
       $()(domButtonId).on('touchstart', function (e) {
-        console.log('touchstart', buttonId);
         keys.push(buttonId);
         singlePressKeys.push(buttonId);
 
@@ -108,14 +107,12 @@ module.exports = {
       });
 
       $()(domButtonId).on('touchmove', function (e) {
-        console.log('touchmove', buttonId);
         keys.push(buttonId);
 
         each(e.touches, touch => pressButton(touch.target, buttonId));
       });
 
       $()(domButtonId).on('touchend touchleave touchcancel', function (e) {
-        console.log('touchend', buttonId);
         keys = remove(keys, buttonId);
         singlePressKeys = remove(singlePressKeys, buttonId);
 
