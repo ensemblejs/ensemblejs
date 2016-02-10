@@ -93,32 +93,32 @@ describe('the plugin manager', function() {
 		it('should log a plugin being loaded', function () {
 			pluginManager.load(myModuleReturnFunction);
 
-			expect(logger.loaded.firstCall.args[0]).toEqual('ensemblejs');
+			expect(logger.loaded.firstCall.args[0]).toEqual(' ensemblejs');
 			expect(logger.loaded.firstCall.args[1]).toEqual('RetFunction');
 		});
 
 		it('should report when a plugin\'s functions are executed', function () {
 			pluginManager.load(myModuleReturnFunction);
 			pluginManager.get('RetFunction')();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
 			expect(logger.plugin.firstCall.args[2]).toEqual('RetFunction');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnsObject);
 			pluginManager.get('RetObject').f();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
 			expect(logger.plugin.firstCall.args[2]).toEqual('RetObject');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnAnonymousFunction);
 			pluginManager.get('RetAnonymousFunction')();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
 			expect(logger.plugin.firstCall.args[2]).toEqual('RetAnonymousFunction');
 
 			logger.plugin.reset();
 			pluginManager.load(myModuleReturnModedFunction);
 			pluginManager.get('RetModedFunction')[1]();
-			expect(logger.plugin.firstCall.args[1]).toEqual('ensemblejs');
+			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
 			expect(logger.plugin.firstCall.args[2]).toEqual('RetModedFunction');
 		});
 

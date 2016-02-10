@@ -78,7 +78,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a comparison function', function () {
-          expect(tracker.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(true);
+          expect(tracker.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(false);
           expect(tracker.onChangeTo.firstCall.args[1]({some: 'derp'})).toEqual(false);
         });
       });

@@ -89,7 +89,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a comparison function', function () {
-          expect(trackerBindings.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(true);
+          expect(trackerBindings.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(false);
           expect(trackerBindings.onChangeTo.firstCall.args[1]({some: 'derp'})).toEqual(false);
         });
       });

@@ -97,12 +97,20 @@ describe('the socket server', function () {
 		});
 
 		it('should listen on /:mode/primary', function () {
-			expect(io.of.callCount).toEqual(2);
+			expect(io.of.callCount).toEqual(4);
 			expect(io.of.firstCall.args).toEqual(['/arcade/primary']);
 		});
 
 		it('should listen on /:mode/observer', function () {
 			expect(io.of.secondCall.args).toEqual(['/arcade/observer']);
+		});
+
+		it('should listen on /:mode/gamepad', function () {
+			expect(io.of.thirdCall.args).toEqual(['/arcade/gamepad']);
+		});
+
+		it('should listen on /:mode/mobile', function () {
+			expect(io.of.lastCall.args).toEqual(['/arcade/mobile']);
 		});
 	});
 

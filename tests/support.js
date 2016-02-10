@@ -6,6 +6,7 @@ var sinon = require('sinon');
 var fakeDetermineDeviceId = require('./fake/determine-device-id');
 var fakeDeterminePlayerId = require('./fake/determine-player-id');
 var fakeI18n = require('./fake/i18n');
+var fakeLogger = require('./fake/logger');
 
 var pathToSrc = '../src/';
 
@@ -50,7 +51,8 @@ export function makeTestible(pathToModule, explicitDeps = {}) {
     'DefinePlugin': support.define,
     'SocketServer': { start: sinon.spy(), stop: sinon.spy() },
     'WebServerMiddleware': [fakeDetermineDeviceId, fakeDeterminePlayerId, fakeI18n],
-    'Routes': []
+    'Routes': [],
+    'Logger': fakeLogger
   };
 
   each(requiredPlugin.deps, dep => {
