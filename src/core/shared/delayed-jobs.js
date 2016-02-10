@@ -61,6 +61,7 @@ module.exports = {
 
         var invoke = filter(jobs, ready);
         each(invoke, function callOnCompleteHandlerForReadyJobs (job) {
+          logger().info(job, 'Job Ready');
           var callback = dynamicPluginLoader().get(job.plugin)[job.method];
           mutate()(saveId, callback(state));
         });

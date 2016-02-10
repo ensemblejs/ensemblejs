@@ -4,6 +4,7 @@ var log;
 var lowerToTrace = [];
 
 var includes = require('lodash').includes;
+var isFunction = require('lodash').isFunction;
 
 function filename (fullPath, dirname) {
   return fullPath.replace(dirname, '').replace('/', '');
@@ -12,6 +13,10 @@ function filename (fullPath, dirname) {
 function extractFunctionNameFromCode (code) {
   if (!code) {
     return 'anonymous';
+  }
+
+  if (isFunction(code)) {
+    return code.name;
   }
 
   var name = code.toString();
@@ -45,28 +50,16 @@ function extractFunctionNameWithParamsFromCode (code) {
 }
 
 function loaded (namespace, type, func) {
-  log.info([
-    namespace, ':', type, ':', extractFunctionNameWithParamsFromCode(func),  ' loaded.'
-    ].join('')
-  );
+  log.info(`${namespace}:${type}:${extractFunctionNameFromCode(func)} loaded`);
 }
 
 function called (args, namespace, module, code) {
-  var n = [namespace, module, extractFunctionNameWithParamsFromCode(code)].join(':');
+  var n = `${namespace}:${module}:${extractFunctionNameFromCode(code)}`;
 
   if (includes(lowerToTrace, module)) {
     log.trace(args, n);
   } else {
-    var background = 'white';
-    var text = 'black';
-    if (includes(n, ':On')) {
-      background = '#00b988';
-    }
-    if (includes(n, 'Game:')) {
-      background = 'lightgreen';
-    }
-
-    log.info(`%c${n}`, `background: ${background}; color: ${text};`);
+    log.info(n);
     log.debug(args, n);
   }
 }

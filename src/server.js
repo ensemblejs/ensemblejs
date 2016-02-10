@@ -20,7 +20,7 @@ each(foldersToLoad, function loadFolder(folder) {
 });
 
 function runGameAtPath(path) {
-  logger.info('ensemblejs@' + frameworkInfo.version + ' started.');
+  logger.info('ensemblejs@' + frameworkInfo().version + ' started.');
 
   plugins.loadPath(path + '/js/logic');
   plugins.loadPath(path + '/js/state');

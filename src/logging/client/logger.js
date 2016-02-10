@@ -1,5 +1,7 @@
 'use strict';
 
+var includes = require('lodash').includes;
+
 function discard () {}
 
 var logger = {
@@ -10,24 +12,37 @@ var logger = {
     error: console.error.bind(console),
 };
 
+function info (msg) {
+    var background = 'white';
+    var text = 'black';
+    if (includes(msg, ':On')) {
+      background = '#00b988';
+    }
+    if (includes(msg, 'Game:')) {
+      background = 'lightgreen';
+    }
+
+    console.info(`%c${msg}`, `background: ${background}; color: ${text};`);
+}
+
 function traceLogging () {
     logger.trace = console.log.bind(console);
     logger.debug = console.log.bind(console);
-    logger.info = console.info.bind(console);
+    logger.info = info;
     logger.warn = console.warn.bind(console);
 }
 
 function debugLogging () {
     logger.trace = discard;
     logger.debug = console.log.bind(console);
-    logger.info = console.info.bind(console);
+    logger.info = info;
     logger.warn = console.warn.bind(console);
 }
 
 function infoLogging() {
     logger.trace = discard;
     logger.debug = discard;
-    logger.info = console.info.bind(console);
+    logger.info = info;
     logger.warn = console.warn.bind(console);
 }
 

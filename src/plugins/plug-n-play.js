@@ -66,12 +66,11 @@ function setModesForPlugin (plugin, type) {
   return plugin;
 }
 
-function createTimer (prefix, plugin, func) {
+function createTimer (prefix, plugin, func = 'anonymous') {
   var profiler = getIfExists('Profiler');
   var timer = getIfExists('Timer');
 
   if (timer) {
-    func = func || 'anonymous';
     return profiler.timer(prefix, plugin, func, 1);
   } else {
     return undefined;
@@ -87,9 +86,9 @@ function wrapOriginalFunction (original, key, prefix, type) {
 
   return function wrappedWithLoggingAndTimers () {
     if (includes(traceOnly, type)) {
-      log.subdue(arguments, prefix + ':' + type, original.toString());
+      log.subdue(arguments, prefix + ':' + type, original);
     } else {
-      log.plugin(arguments, prefix, type, original.toString());
+      log.plugin(arguments, prefix, type, original);
     }
 
     if (timer && isNotProfileExclusion(type)) {
@@ -163,7 +162,7 @@ function loadSensibleDefaults (module) {
   return module;
 }
 
-function load (module, prefix) {
+function load (module, prefix = ' ensemblejs') {
   if (!module.type) {
     return;
   }
@@ -171,8 +170,6 @@ function load (module, prefix) {
   checkModuleValidity(module);
 
   module = loadSensibleDefaults(module);
-
-  prefix = prefix || 'ensemblejs';
   module.name = logging.extractFunctionNameFromCode(module.func);
 
   log.loaded(prefix, module.type, module.func);
@@ -202,7 +199,7 @@ function loadGameDevCode (path) {
 }
 
 function loadFrameworkPath (path) {
-  loader.loadFromPath(path, load, 'ensemblejs');
+  loader.loadFromPath(path, load, ' ensemblejs');
 }
 
 function set (name, thing) {
