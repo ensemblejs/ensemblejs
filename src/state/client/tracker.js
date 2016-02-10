@@ -5,7 +5,7 @@ var isArray = require('lodash').isArray;
 var isString = require('lodash').isString;
 var isEqual = require('lodash').isEqual;
 var isFunction = require('lodash').isFunction;
-var clone = require('lodash').clone;
+var cloneDeep = require('lodash').cloneDeep;
 var filter = require('lodash').filter;
 var find = require('lodash').find;
 var get = require('lodash').get;
@@ -20,7 +20,7 @@ module.exports = {
     var changes = [];
 
     function invokeCallback (callback, currentModel, priorModel, data) {
-      var args = isArray(data) ? clone(data) : [data];
+      var args = isArray(data) ? cloneDeep(data) : [data];
 
       args.unshift(priorModel);
       args.unshift(currentModel);
@@ -29,7 +29,7 @@ module.exports = {
     }
 
     function invokeCallbackWithId (callback, currentModel, priorModel, data) {
-      var args = isArray(data) ? clone(data) : [data];
+      var args = isArray(data) ? cloneDeep(data) : [data];
 
       if (priorModel) {
         args.unshift(priorModel);
@@ -170,7 +170,7 @@ module.exports = {
     }
 
     function resetRawStateBackToLatestServer (rawState) {
-      rawState.resetTo(clone(latestServerState, true));
+      rawState.resetTo(cloneDeep(latestServerState));
     }
 
     define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {

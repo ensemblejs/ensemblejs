@@ -164,7 +164,6 @@ describe('CSP: after on AfterPhysicsFrame', function () {
 
     it('when run twice it should result in the same client state', function () {
       startPhysicsEngine();
-
       expect(currentState.get(tracking)).toEqual('after-game-logic');
       expect(currentState.get(count)).toEqual(1);
 
