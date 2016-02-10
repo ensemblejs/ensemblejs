@@ -80,8 +80,7 @@
     "network": false,
     "startOpen": false,
     "time": false,
-    "gamepad": false,
-    "virtualGamepad": true
+    "gamepad": false
   },
   "measure": {
     "endpoint": "http://localhost:4000",

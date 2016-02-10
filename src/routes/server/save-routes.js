@@ -17,6 +17,9 @@ function pickGameView (req) {
   if (req.query.deviceMode === 'gamepad') {
     return 'gamepad.jade';
   }
+  if (req.query.deviceMode === 'mobile') {
+    return 'mobile.jade';
+  }
 
   return 'game.jade';
 }

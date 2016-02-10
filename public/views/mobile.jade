@@ -3,9 +3,11 @@ extends ../layouts/game-page.jade
 block content
   #paused.paused-layer
   #canvas.canvas
-    #input.input
   #overlay.overlay
     .icons
+  #virtual-gamepad.virtual-gamepad.overlay
+    #left-side.left-side
+    #right-side.right-side
 
 append scripts
   script(src="/ensemble/js/3rd-party/modernizr.js")
