@@ -8,35 +8,15 @@ var logger = require('../../../src/logging/server/logger').logger;
 var saves = require('../../../src/util/models/saves');
 var config = require('../../../src/util/config');
 import {getById, getByGame, save, isPublic, isSecretCorrect} from '../../../src/util/models/saves';
+import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
 
 describe('save model', function () {
   beforeEach(done => {
-    database.create('saves')
-      .then(() => database.createView('saves', {
-        views: {
-          byGame: {
-            map: 'function(doc) { emit(doc.ensemble.gameId, doc); }'
-          }
-        }
-      }))
-      .then(() => database.create('saves_metadata'))
-      .then(() => database.createView('saves_metadata', {
-        views: {
-          byPlayer: {
-            map: 'function(doc) { if (doc.playerIds.length > 0) { for(var i in doc.playerIds) { emit([doc.id, doc.playerIds[i]], doc); } } }'
-          },
-          byGameAndPlayer: {
-            map: 'function(doc) { if (doc.playerIds.length > 0) { for(var i in doc.playerIds) { emit([doc.gameId, doc.playerIds[i]], doc); } } }'
-          }
-        }
-      }))
-      .finally(() => done());
+    bootstrap(database).finally(() => done());
   });
 
   afterEach(done => {
-    database.destroy('saves')
-      .then(() => database.destroy('saves_metadata'))
-      .finally(() => done());
+    strapboot(database).finally(() => done());
   });
 
   describe('get by game', function () {

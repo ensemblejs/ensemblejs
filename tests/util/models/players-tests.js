@@ -5,26 +5,15 @@ var sinon = require('sinon');
 import * as database from '../../../src/util/database';
 import {logger} from '../../../src/logging/server/logger';
 var players = require('../../../src/util/models/players');
+import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
 
 describe('the player model', () => {
   beforeEach(done => {
-    database.create('players')
-      .then(() => database.createView('players', {
-        language: 'javascript',
-        views: {
-          all: {
-            map: 'function(doc) { emit(null, doc) }'
-          },
-          byDevice: {
-            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], doc); } } }'
-          }
-        }
-      }))
-      .then(() => done());
+    bootstrap(database).finally(() => done());
   });
 
   afterEach(done => {
-    database.destroy('players').then(() => done());
+    strapboot(database).finally(() => done());
   });
 
   describe('getById', () => {

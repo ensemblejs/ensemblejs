@@ -35,7 +35,7 @@ describe('database integration', function () {
         beforeEach(function (done) {
           database.create('devices')
             .then(() => database.create('players'))
-            .then(() => database.create('games'))
+            .then(() => database.create('saves_metadata'))
             .then(() => database.create('saves'))
             .then(() => database.create.reset())
             .then(() => onServerStart())
@@ -45,13 +45,9 @@ describe('database integration', function () {
         afterEach(function (done) {
           database.destroy('devices')
             .then(database.destroy('players'))
-            .then(database.destroy('games'))
+            .then(database.destroy('saves_metadata'))
             .then(database.destroy('saves'))
             .then(() => done());
-        });
-
-        it('should do nothing', function () {
-          expect(database.create.called).toBe(false);
         });
 
         it('should emit an OnDatabaseReady event', function () {
@@ -67,25 +63,25 @@ describe('database integration', function () {
         afterEach(function (done) {
           database.destroy('devices')
             .then(() => database.destroy('players'))
-            .then(() => database.destroy('games'))
+            .then(() => database.destroy('saves_metadata'))
             .then(() => database.destroy('saves'))
             .then(() => done());
         });
 
-        it('should create the "devices" database', function () {
-          expect(database.create.firstCall.args).toEqual(['devices']);
+        it('should create the "saves" database', function () {
+          expect(database.create.firstCall.args).toEqual(['saves']);
+        });
+
+        it('should create the "saves_metadata" database', function () {
+          expect(database.create.secondCall.args).toEqual(['saves_metadata']);
         });
 
         it('should create the "players" database', function () {
-          expect(database.create.secondCall.args).toEqual(['players']);
+          expect(database.create.thirdCall.args).toEqual(['players']);
         });
 
-        it('should create the "games" database', function () {
-          expect(database.create.thirdCall.args).toEqual(['games']);
-        });
-
-        it('should create the "saves" database', function () {
-          expect(database.create.lastCall.args).toEqual(['saves']);
+        it('should create the "devices" database', function () {
+          expect(database.create.lastCall.args).toEqual(['devices']);
         });
 
         it('should emit an OnDatabaseReady event', function () {
@@ -108,7 +104,7 @@ describe('database integration', function () {
           database.create('devices')
             .then(() => database.create('players'))
             .then(() => database.create('saves'))
-            .then(() => database.create('games'))
+            .then(() => database.create('saves_metadata'))
             .then(() => database.create.reset())
             .then(() => onServerStart())
             .then(() => done());
@@ -118,7 +114,7 @@ describe('database integration', function () {
           database.destroy('devices')
             .then(() => database.destroy('players'))
             .then(() => database.destroy('saves'))
-            .then(() => database.destroy('games'))
+            .then(() => database.destroy('saves_metadata'))
             .then(() => done());
         });
 
@@ -157,13 +153,13 @@ describe('database integration', function () {
             .catch(done);
         });
 
-        it('should report an error if no "games" database exist', function (done) {
+        it('should report an error if no "saves_metadata" database exist', function (done) {
           database.create('devices')
             .then(() => database.create('players'))
             .then(() => onServerStart())
             .then(() => {
               expect(logger.error.firstCall.args).toEqual([
-                {database: 'games'}, 'Database does not exist.'
+                {database: 'saves_metadata'}, 'Database does not exist.'
               ]);
             })
             .then(() => database.destroy('players'))
@@ -176,14 +172,14 @@ describe('database integration', function () {
 
           database.create('devices')
             .then(() => database.create('players'))
-            .then(() => database.create('games'))
+            .then(() => database.create('saves_metadata'))
             .then(() => onServerStart())
             .then(() => {
               expect(logger.error.lastCall.args).toEqual([
                 {database: 'saves'}, 'Database does not exist.'
               ]);
             })
-            .then(() => database.destroy('games'))
+            .then(() => database.destroy('saves_metadata'))
             .then(() => database.destroy('players'))
             .then(() => database.destroy('devices'))
             .then(() => done())

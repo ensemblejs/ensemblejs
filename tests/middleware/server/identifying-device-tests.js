@@ -7,6 +7,7 @@ import {getById} from '../../../src/util/models/devices';
 import * as database from '../../../src/util/database';
 import * as fakeTime from '../../fake/time';
 import {logger} from '../../../src/logging/server/logger';
+import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
 
 let time = fakeTime.at(34);
 
@@ -18,27 +19,13 @@ describe('determining the device', () => {
         Time: time
     });
 
-    determineDeviceId = middleware[1].WebServerMiddleware[0]();
+    bootstrap(database).finally(() => done());
 
-    database.create('devices')
-      .then(() => database.create('players'))
-      .then(() => database.createView('players', {
-        views: {
-          all: {
-            map: 'function(doc) { emit(null, doc) }'
-          },
-          byDevice: {
-            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], null); } } }'
-          }
-        }
-      }))
-      .then(() => done());
+    determineDeviceId = middleware[1].WebServerMiddleware[0]();
   });
 
   afterEach(done => {
-    database.destroy('devices')
-      .then(() => database.destroy('players'))
-      .then(() => done());
+    strapboot(database).finally(() => done());
   });
 
   describe('when there is no sessionId', () => {

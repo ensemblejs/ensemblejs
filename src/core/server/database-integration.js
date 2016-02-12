@@ -1,7 +1,9 @@
 'use strict';
 
 var logger = require('../../logging/server/logger').logger;
-import {exists, isLocal, create}  from '../../util/database';
+import * as database  from '../../util/database';
+import {bootstrap} from '../../util/couch-bootstrap';
+
 import Bluebird from 'bluebird';
 
 module.exports = {
@@ -9,26 +11,30 @@ module.exports = {
   deps: ['DefinePlugin', 'RawStateAccess', 'On'],
   func: function DbBridge (define, rawState, on) {
 
-    function createIfMissingAndLocal (database) {
+    function errorIfMissing (bucket) {
       return function doCheck (result) {
-        if (!result && isLocal()) {
-          return create(database);
-        } else if (!result) {
-          return Bluebird.reject({database: database});
+        if (!result) {
+          return Bluebird.reject({database: bucket});
         }
       };
     }
 
     function CheckDatabasesExist () {
       return function doCheckForDatabases () {
-        return exists('devices')
-          .then(createIfMissingAndLocal('devices'))
-          .then(() => exists('players'))
-          .then(createIfMissingAndLocal('players'))
-          .then(() => exists('games'))
-          .then(createIfMissingAndLocal('games'))
-          .then(() => exists('saves'))
-          .then(createIfMissingAndLocal('saves'))
+        return new Bluebird(resolve => {
+          if (database.isLocal()) {
+            return bootstrap(database).then(resolve);
+          } else {
+            resolve();
+          }
+        }).then(() => database.exists('devices'))
+          .then(errorIfMissing('devices'))
+          .then(() => database.exists('players'))
+          .then(errorIfMissing('players'))
+          .then(() => database.exists('saves_metadata'))
+          .then(errorIfMissing('saves_metadata'))
+          .then(() => database.exists('saves'))
+          .then(errorIfMissing('saves'))
           .then(on().databaseReady)
           .catch(err => logger.error(err, 'Database does not exist.'));
       };

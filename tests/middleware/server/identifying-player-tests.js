@@ -7,6 +7,8 @@ import {logger} from '../../../src/logging/server/logger';
 import {makeTestible, defer} from '../../support';
 import * as fakeTime from '../../fake/time';
 import {getById, getByDevice} from '../../../src/util/models/players';
+import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
+
 let time = fakeTime.at(323);
 var uuid = {
   gen: () => { return 'p1234'; }
@@ -20,28 +22,13 @@ describe('identifying the player', function () {
         Time: time
     });
 
-    database.create('devices')
-      .then(() => database.create('players'))
-      .then(() => database.createView('players', {
-        language: 'javascript',
-        views: {
-          all: {
-            map: 'function(doc) { emit(null, doc) }'
-          },
-          byDevice: {
-            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], doc); } } }'
-          }
-        }
-      }))
-      .finally(done);
-
     determinePlayerId = middleware[1].WebServerMiddleware[1](defer(uuid));
+
+    bootstrap(database).finally(() => done());
   });
 
   afterEach(done => {
-    database.destroy('devices')
-      .then(() => database.destroy('players'))
-      .finally(done);
+    strapboot(database).finally(() => done());
   });
 
   describe('when there is no device id', function () {

@@ -5,16 +5,15 @@ import * as database from '../../../src/util/database';
 import * as devices from '../../../src/util/models/devices';
 import {logger} from '../../../src/logging/server/logger';
 import sinon from 'sinon';
+import {bootstrapDevices, strapbootDevices} from '../../../src/util/couch-bootstrap';
 
 describe('devices model', () => {
   beforeEach(done => {
-    database.create('devices')
-      .then(() => done())
-      .catch(done);
+    bootstrapDevices(database).then(() => done());
   });
 
   afterEach(done => {
-    return database.destroy('devices').then(() => done());
+    strapbootDevices(database).then(() => done());
   });
 
   describe('getById', () => {
@@ -23,9 +22,7 @@ describe('devices model', () => {
         id: '1',
         herp: 'derp'
       })
-      .then(() => {
-        done();
-      });
+      .then(() => done());
     });
 
     it('should return the device', (done) => {
