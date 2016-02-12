@@ -1,9 +1,7 @@
 'use strict';
 
-var first = require('lodash').first;
-var filter = require('lodash').filter;
-var reject = require('lodash').reject;
-var each = require('lodash').each;
+import {first, filter, reject, each} from 'lodash';
+import {summerise} from '../../util/adapters/save-adapter';
 var savesStore = require('../../util/models/saves');
 var config = require('../../util/config');
 
@@ -51,7 +49,7 @@ module.exports = {
           });
         }
 
-        savesStore.getByGame(config.get().game.id).then(registerAsUnloadedSave);
+        savesStore.getByGame(config.get().game.id, summerise).then(registerAsUnloadedSave);
       };
     });
 

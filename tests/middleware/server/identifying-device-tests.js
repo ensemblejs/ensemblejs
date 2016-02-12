@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import expect from 'expect';
 import {makeTestible} from '../../support';
 import {getById} from '../../../src/util/models/devices';
-import mongo from '../../../src/util/mongo';
+import * as database from '../../../src/util/database';
 import * as fakeTime from '../../fake/time';
 import {logger} from '../../../src/logging/server/logger';
 
@@ -18,18 +18,27 @@ describe('determining the device', () => {
         Time: time
     });
 
-    mongo
-      .connect()
-      .then(() => {
-        return mongo.removeAll('players');
-      })
-      .finally(done);
-
     determineDeviceId = middleware[1].WebServerMiddleware[0]();
+
+    database.create('devices')
+      .then(() => database.create('players'))
+      .then(() => database.createView('players', {
+        views: {
+          all: {
+            map: 'function(doc) { emit(null, doc) }'
+          },
+          byDevice: {
+            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], null); } } }'
+          }
+        }
+      }))
+      .then(() => done());
   });
 
-  afterEach(() => {
-    mongo.disconnect();
+  afterEach(done => {
+    database.destroy('devices')
+      .then(() => database.destroy('players'))
+      .then(() => done());
   });
 
   describe('when there is no sessionId', () => {
@@ -75,8 +84,8 @@ describe('determining the device', () => {
 
       determineDeviceId(req, res, () => {
         getById('s1234')
-          .then( device => {
-            expect(device._id = 's1234');
+          .then(device => {
+            expect(device.id = 's1234');
           })
           .then(done);
       });
@@ -86,7 +95,8 @@ describe('determining the device', () => {
       var req = {sessionID: 's1234'};
 
       determineDeviceId(req, res, () => {
-        expect(req.device).toEqual({ _id: 's1234', updated: 34 });
+        expect(req.device.id).toEqual('s1234');
+        expect(req.device.updated).toEqual(34);
         done();
       });
     });
@@ -94,20 +104,19 @@ describe('determining the device', () => {
 
   describe('when the sessionId is associated with a device', () => {
     beforeEach(done => {
-      mongo.store('devices', {
-        _id: 's3434',
+      database.store('devices', {
+        id: 's3434',
         updated: 3434
       })
-      .then(() => {
-        done();
-      });
+      .then(() => done());
     });
 
     it('should set the device on the request', (done) => {
       var req = {sessionID: 's3434'};
 
       determineDeviceId(req, {}, () => {
-        expect(req.device).toEqual({ _id: 's3434', updated: 3434 });
+        expect(req.device.id).toEqual('s3434');
+        expect(req.device.updated).toEqual(3434);
         done();
       });
     });

@@ -1,6 +1,6 @@
 'use strict';
 
-var savePlayers = require('../models/players-in-save');
+var saves = require('../models/saves');
 var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
 var buildShowSavesJson = require('../json-builders/show-player-saves');
 
@@ -12,7 +12,7 @@ function showPlayerSaves (project) {
     }
 
     return kickstartPromiseChain([project.id, req.params.playerId])
-      .spread(savePlayers.getByGameAndPlayer)
+      .spread(saves.getByGameAndPlayer)
       .then(passThroughPlayerAndProject)
       .spread(buildShowSavesJson);
   };

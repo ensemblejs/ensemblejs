@@ -1,28 +1,28 @@
 'use strict';
 
 import {logger} from '../../logging/server/logger';
-import mongo from '../mongo';
+import {get, view, store} from '../database';
 import Bluebird from 'bluebird';
+import {map} from 'lodash';
 
 const collection = 'players';
-const playersAndDevices = 'player_devices';
 
 export function getById (playerId) {
-  return mongo.getById(collection, playerId);
-}
-
-function mapPlayerDeviceToPlayers (playerDevice) {
-  return getById(playerDevice.playerId);
+  return get(collection, playerId);
 }
 
 export function getByDevice (deviceId) {
-  return mongo.getAllByFilter(playersAndDevices, {deviceId: deviceId}, mapPlayerDeviceToPlayers)
-  .then(promises => {
-    return Bluebird.all(promises);
-  });
+  return view(collection, 'byDevice', {
+    key: deviceId
+  }).then(set => map(set, 'value'));
 }
+
 export function linkToDevice(playerId, deviceId) {
-  return mongo.store(playersAndDevices, {playerId : playerId, deviceId: deviceId});
+  return get(collection, playerId)
+    .then(player => {
+      player.deviceIds.push(deviceId);
+      return store(collection, player);
+    });
 }
 
 export function save (player, now) {
@@ -37,10 +37,5 @@ export function save (player, now) {
 
   player.updated = now;
 
-  return mongo.store(collection, player);
+  return store(collection, player);
 }
-
-export default  {
-  getById: getById,
-  save: save
-};

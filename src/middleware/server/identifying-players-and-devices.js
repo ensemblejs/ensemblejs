@@ -2,7 +2,7 @@
 
 import {getById as getDeviceById, save as saveDevice} from '../../util/models/devices';
 import {logger} from '../../logging/server/logger';
-import {getById as getPlayerById, save as savePlayer, getByDevice as getPlayerByDevice, linkToDevice as linkPlayerToDevice}  from '../../util/models/players';
+import {getById as getPlayerById, save as savePlayer, getByDevice as getPlayerByDevice}  from '../../util/models/players';
 import {first, map} from 'lodash';
 import Bluebird from 'bluebird';
 
@@ -18,8 +18,8 @@ function IdentifyingPlayersAndDevices (define, time) {
 
       function createDeviceIfNoneFound(device) {
         if (!device) {
-          return saveDevice({ _id: req.sessionID }, time().present())
-            .then(deviceId => getDeviceById(deviceId) );
+          return saveDevice({ id: req.sessionID }, time().present())
+            .then(res => getDeviceById(res.id));
         }
 
         return device;
@@ -32,23 +32,15 @@ function IdentifyingPlayersAndDevices (define, time) {
     };
   });
 
-  function linkPlayerAndDevice(player, deviceId) {
-    return linkPlayerToDevice(player._id, deviceId)
-      .then(() => [player, deviceId]);
-  }
-
   define()('WebServerMiddleware', ['UUID'], (uuid) => {
     function createPlayerAndLinkToDevice (deviceId) {
-      var id = uuid().gen();
-      return savePlayer({_id: id}, time().present())
-        .then(id => getPlayerById(id))
-        .then(player => [player, deviceId])
-        .spread(linkPlayerAndDevice)
-        .spread(player => [player]);
+      return savePlayer({id: uuid().gen(), deviceIds: [deviceId]}, time().present())
+        .then(res => getPlayerById(res.id))
+        .then(player => [player]);
     }
 
     return function determinePlayerId (req, res, next) {
-      if(!req.device._id) {
+      if(!req.device.id) {
         logger.error(
           {
             reqId: req.id,
@@ -63,7 +55,7 @@ function IdentifyingPlayersAndDevices (define, time) {
 
       function createAndLinkToDeviceIfNoPlayers (players) {
         if (players.length === 0) {
-          return createPlayerAndLinkToDevice(req.device._id);
+          return createPlayerAndLinkToDevice(req.device.id);
         }
 
         return players;
@@ -75,7 +67,7 @@ function IdentifyingPlayersAndDevices (define, time) {
             {
               reqId: req.id,
               device: req.device,
-              players: map(players, '_id')
+              players: map(players, 'id')
             },
             'More than one player associated with device.'
           );
@@ -86,7 +78,7 @@ function IdentifyingPlayersAndDevices (define, time) {
         return players;
       }
 
-      return getPlayerByDevice(req.device._id)
+      return getPlayerByDevice(req.device.id)
         .then(createAndLinkToDeviceIfNoPlayers)
         .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
         .then(players => req.player = first(players))

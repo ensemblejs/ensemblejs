@@ -30,8 +30,12 @@
     "autoSaveBehaviour": "persistent",
     "locales": ["en"]
   },
-  "mongo": {
-    "endpoint": "mongodb://localhost:27017/ensemble"
+  "database": {
+    "host": "localhost",
+    "port": 5984,
+    "cache": true,
+    "raw": false,
+    "forceSave": true
   },
   "logging": {
     "logLevel": "warn",

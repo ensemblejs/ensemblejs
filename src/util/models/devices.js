@@ -1,12 +1,13 @@
 'use strict';
 
-import mongo from '../mongo';
+import {get, store} from '../database';
 import Bluebird from 'bluebird';
 var logger = require('../../logging/server/logger').logger;
-var collection = 'devices';
+
+const collection = 'devices';
 
 export function getById (deviceId) {
-  return mongo.getById(collection, deviceId);
+  return get(collection, deviceId);
 }
 
 export function save (device, now) {
@@ -21,5 +22,5 @@ export function save (device, now) {
 
   device.updated = now;
 
-  return mongo.store(collection, device);
+  return store(collection, device);
 }

@@ -1,22 +1,31 @@
 'use strict';
 
-var isEqual = require('lodash').isEqual;
 var logger = require('../../logging/server/logger').logger;
-var mongo = require('../mongo');
-var summarise = require('../adapters/save-adapter').summarise;
+var config = require('../config');
+import {get, view, store} from '../database';
+import {raw} from '../adapters/save-adapter';
+import {map, isEqual} from 'lodash';
 
 var collection = 'saves';
+var metadata_collection = 'saves_metadata';
 
-function getByGame (gameId) {
-  var filter = { 'ensemble.gameId': gameId };
-  return mongo.getAllByFilter(collection, filter, summarise);
+export function getByGame (gameId, adapter = raw) {
+  return view(collection, 'byGame', {
+    key: gameId
+  }).then(set => map(set, 'value')).then(set => map(set, adapter));
 }
 
-function getById (saveId) {
-  return mongo.getById(collection, saveId);
+export function getByGameAndPlayer (gameId, playerId, adapter = raw) {
+  return view(metadata_collection, 'byGameAndPlayer', {
+    key: [gameId, playerId]
+  }).then(set => map(set, 'value')).then(set => map(set, adapter));
 }
 
-function save (data, now) {
+export function getById (saveId) {
+  return get(collection, saveId);
+}
+
+export function save (data, now) {
   if (!data) {
     logger.error({data: data, now: now}, 'Can\'t persist save. No data supplied');
     return;
@@ -26,21 +35,30 @@ function save (data, now) {
     return;
   }
 
-  data._id = data._id || data.ensemble.saveId;
+  const secret = data.ensemble.secret;
+  delete data.ensemble.secret;
+  data.id = data.id || data.ensemble.saveId;
   data.updated = now;
 
-  return mongo.store(collection, data);
+  return store(collection, data)
+    .then(() => store(metadata_collection, {
+      id: data.id,
+      mode: data.ensemble.mode,
+      playerIds: [],
+      secret: secret,
+      updated: now
+    }));
 }
 
-function determineIfSaveIsPublic(save) {
+export function determineIfSaveIsPublic(save) {
   return isEqual(save.ensemble.secret, 'public');
 }
 
-function isPublic (saveId) {
+export function isPublic (saveId) {
   return getById(saveId).then(determineIfSaveIsPublic);
 }
 
-function isSecretCorrect (saveId, suppliedSecret) {
+export function isSecretCorrect (saveId, suppliedSecret) {
   function determineIfSecretIsCorrect(save) {
     var a = save.ensemble.secret.toLowerCase();
     var b = suppliedSecret.toLowerCase();
@@ -48,14 +66,53 @@ function isSecretCorrect (saveId, suppliedSecret) {
     return isEqual(a, b);
   }
 
-  return getById(saveId)
-    .then(determineIfSecretIsCorrect);
+  return getById(saveId).then(determineIfSecretIsCorrect);
 }
 
-module.exports = {
-  getByGame: getByGame,
-  getById: getById,
-  save: save,
-  isSecretCorrect: isSecretCorrect,
-  isPublic: isPublic
-};
+export function isPlayerInSave (saveId, playerId) {
+  return view(metadata_collection, 'byPlayer', {
+    key: [saveId, playerId]
+  }).then(set => set.length > 0);
+}
+
+export function addPlayer (saveId, playerId, now) {
+  if (!saveId) {
+    logger.error('Can\'t add player. No saveId supplied');
+    return;
+  }
+  if (!playerId) {
+    logger.error('Can\'t add player. No playerId supplied');
+    return;
+  }
+  if (!now) {
+    logger.error('Can\'t add player. No timestamp supplied');
+    return;
+  }
+
+  return get(metadata_collection, saveId)
+    .then(save => {
+      save.playerIds.push(playerId);
+      save.updated = now;
+
+      return store(metadata_collection, save);
+    })
+    .catch(() => {
+      let save = {
+        id: saveId,
+        playerIds: [playerId],
+        updated: now
+      };
+
+      return store(metadata_collection, save);
+    });
+}
+
+export function hasSpaceForPlayer (saveId) {
+  return get(metadata_collection, saveId)
+    .then(save => save.playerIds.length < config.get().maxPlayers(save.mode));
+}
+
+export function canPlayerJoin (saveId) {
+  return get(metadata_collection, saveId)
+    .then(save => save.secret === 'public'? hasSpaceForPlayer(saveId) : false);
+}

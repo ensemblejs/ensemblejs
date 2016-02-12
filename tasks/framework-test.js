@@ -37,7 +37,7 @@ function addTasks (gulp) {
   });
 
   gulp.task('framework:test', gulpSequence(
-    'mongo:start', 'framework:run-tests', 'mongo:stop')
+    'db:start', 'framework:run-tests', 'db:stop')
   );
 }
 

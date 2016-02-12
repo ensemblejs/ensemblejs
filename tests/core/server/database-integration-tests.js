@@ -2,104 +2,203 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var mongo = require('../../../src/util/mongo');
 var logger = require('../../../src/logging/server/logger').logger;
+import * as database from '../../../src/util/database';
 var on = require('../../fake/on');
-var time = require('../../fake/time').at(0);
-var Bluebird = require('bluebird');
 var makeTestible = require('../../support').makeTestible;
-var saves = require('../../../src/util/models/saves');
-var saveQueue = require('../../../src/util/save-queue');
 
 describe('database integration', function () {
 
   var onServerStart;
-  var onServerStop;
-  var onDatabaseReady;
 
   beforeEach(function () {
-    sinon.spy(mongo, 'disconnect');
-    sinon.stub(mongo, 'isConnected').returns(true);
+    sinon.spy(database, 'create');
     sinon.spy(logger, 'error');
-    sinon.stub(saves, 'save').returns(true);
 
     on.databaseReady.reset();
 
     var db = makeTestible('core/server/database-integration', {
-      On: on,
-      Time: time
+      On: on
     });
 
     onServerStart = db[1].OnServerStart();
-    onServerStop = db[1].OnServerStop();
-    onDatabaseReady = db[1].OnDatabaseReady();
   });
 
   afterEach(function () {
-    mongo.disconnect.restore();
-    mongo.isConnected.restore();
+    database.create.restore();
     logger.error.restore();
-    saves.save.restore();
   });
 
   describe('when the server starts', function () {
-    beforeEach(function (done) {
+    describe('when running locally', function () {
+      describe('when the databases exist', function () {
+        beforeEach(function (done) {
+          database.create('devices')
+            .then(() => database.create('players'))
+            .then(() => database.create('games'))
+            .then(() => database.create('saves'))
+            .then(() => database.create.reset())
+            .then(() => onServerStart())
+            .then(() => done());
+        });
 
-      sinon.stub(mongo, 'connect').returns(Bluebird.resolve());
+        afterEach(function (done) {
+          database.destroy('devices')
+            .then(database.destroy('players'))
+            .then(database.destroy('games'))
+            .then(database.destroy('saves'))
+            .then(() => done());
+        });
 
-      onServerStart().then(done);
+        it('should do nothing', function () {
+          expect(database.create.called).toBe(false);
+        });
+
+        it('should emit an OnDatabaseReady event', function () {
+          expect(on.databaseReady.called).toBe(true);
+        });
+      });
+
+      describe('when the databases dont exist', function () {
+        beforeEach(function (done) {
+          onServerStart().then(() => done());
+        });
+
+        afterEach(function (done) {
+          database.destroy('devices')
+            .then(() => database.destroy('players'))
+            .then(() => database.destroy('games'))
+            .then(() => database.destroy('saves'))
+            .then(() => done());
+        });
+
+        it('should create the "devices" database', function () {
+          expect(database.create.firstCall.args).toEqual(['devices']);
+        });
+
+        it('should create the "players" database', function () {
+          expect(database.create.secondCall.args).toEqual(['players']);
+        });
+
+        it('should create the "games" database', function () {
+          expect(database.create.thirdCall.args).toEqual(['games']);
+        });
+
+        it('should create the "saves" database', function () {
+          expect(database.create.lastCall.args).toEqual(['saves']);
+        });
+
+        it('should emit an OnDatabaseReady event', function () {
+          expect(on.databaseReady.called).toBe(true);
+        });
+      });
     });
 
-    afterEach(function () {
-      mongo.connect.restore();
-    });
+    describe('when not running locally', function () {
+      beforeEach(function () {
+        sinon.stub(database, 'isLocal').returns(false);
+      });
 
-    it('should connect to the database', function () {
-      expect(mongo.connect.called).toBe(true);
-    });
+       afterEach(function () {
+        database.isLocal.restore();
+      });
 
-    it('should emit an OnDatabaseReady event', function () {
-      expect(on.databaseReady.called).toBe(true);
-    });
+      describe('when the databases exist', function () {
+        beforeEach(function (done) {
+          database.create('devices')
+            .then(() => database.create('players'))
+            .then(() => database.create('saves'))
+            .then(() => database.create('games'))
+            .then(() => database.create.reset())
+            .then(() => onServerStart())
+            .then(() => done());
+        });
 
-    it('should log errors', function (done) {
-      mongo.connect.restore();
+        afterEach(function (done) {
+          database.destroy('devices')
+            .then(() => database.destroy('players'))
+            .then(() => database.destroy('saves'))
+            .then(() => database.destroy('games'))
+            .then(() => done());
+        });
 
-      sinon.stub(mongo, 'connect').returns(Bluebird.reject('Some error'));
+        it('should do nothing', function () {
+          expect(database.create.called).toBe(false);
+        });
 
-      onServerStart()
-        .finally(function () {
-          expect(logger.error.called).toBe(true);
-        })
-        .finally(done);
-    });
-  });
+        it('should emit an OnDatabaseReady event', function () {
+          expect(on.databaseReady.called).toBe(true);
+        });
+      });
 
-  describe('when the database is ready', function () {
-    beforeEach(function () {
-      saves.save.reset();
-      saveQueue.saveOrQueue({my: 'data'}, 15);
-      onDatabaseReady();
-    });
+      describe('when the databases dont exist', function () {
+        it('should report an error if no "devices" database exist', function (done) {
 
-    it('should flush pending saves to the database', function () {
-      expect(saves.save.firstCall.args).toEqual([{my: 'data'}, 15]);
-    });
-  });
+          onServerStart()
+            .then(() => {
+              expect(logger.error.firstCall.args).toEqual([
+                {database: 'devices'}, 'Database does not exist.'
+              ]);
+            })
+            .then(() => done())
+            .catch(done);
+        });
 
-  describe('when the server stops', function () {
-    beforeEach(function (done) {
-      saves.save.reset();
-      saveQueue.saveOrQueue({my: 'dataz'}, 35);
-      onServerStop().then(done).catch(done);
-    });
+        it('should report an error if no "players" database exist', function (done) {
+          database.create('devices')
+            .then(() => onServerStart())
+            .then(() => {
+              expect(logger.error.firstCall.args).toEqual([
+                {database: 'players'}, 'Database does not exist.'
+              ]);
+            })
+            .then(() => database.destroy('devices'))
+            .then(() => done())
+            .catch(done);
+        });
 
-    it('should flush pending saves to the database', function () {
-      expect(saves.save.firstCall.args).toEqual([{my: 'dataz'}, 35]);
-    });
+        it('should report an error if no "games" database exist', function (done) {
+          database.create('devices')
+            .then(() => database.create('players'))
+            .then(() => onServerStart())
+            .then(() => {
+              expect(logger.error.firstCall.args).toEqual([
+                {database: 'games'}, 'Database does not exist.'
+              ]);
+            })
+            .then(() => database.destroy('players'))
+            .then(() => database.destroy('devices'))
+            .then(() => done())
+            .catch(done);
+        });
 
-    it('should close the connection to the database', function () {
-      expect(mongo.disconnect.called).toBe(true);
+        it('should report an error if no "saves" database exist', function (done) {
+
+          database.create('devices')
+            .then(() => database.create('players'))
+            .then(() => database.create('games'))
+            .then(() => onServerStart())
+            .then(() => {
+              expect(logger.error.lastCall.args).toEqual([
+                {database: 'saves'}, 'Database does not exist.'
+              ]);
+            })
+            .then(() => database.destroy('games'))
+            .then(() => database.destroy('players'))
+            .then(() => database.destroy('devices'))
+            .then(() => done())
+            .catch(done);
+        });
+
+        it('should not emit an OnDatabaseReady event', function (done) {
+          onServerStart()
+            .then(() => {
+              expect(on.databaseReady.called).toBe(false);
+            })
+            .then(() => done())
+            .catch(done);
+        });
+      });
     });
   });
 });

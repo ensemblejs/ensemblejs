@@ -1,9 +1,9 @@
 'use strict';
 
-function summarise (save) {
-  return { id: save._id, mode: save.ensemble.mode };
+export function raw (save) {
+  return save;
 }
 
-module.exports = {
-  summarise: summarise
-};
+export function summarise (save) {
+  return { id: save.id, mode: save.ensemble.mode };
+}

@@ -11,3 +11,6 @@ bower_components/
 .bundle/
 data
 lib
+couchdb.stderr couchdb.stdout
+couchdb.stderr
+couchdb.stdout

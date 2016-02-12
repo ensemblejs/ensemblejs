@@ -2,12 +2,11 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var mongo = require('../../../src/util/mongo');
 var config = require('../../../src/util/config');
 var logger = require('../../../src/logging/server/logger').logger;
 var time = require('../../fake/time').at(0);
 var makeTestible = require('../../support').makeTestible;
-var saveQueue = require('../../../src/util/save-queue');
+var saves = require('../../../src/util/models/saves');
 
 describe('continual saving', function () {
   var onSaveReady;
@@ -18,9 +17,8 @@ describe('continual saving', function () {
   };
 
   beforeEach(function () {
-    sinon.stub(mongo, 'isConnected').returns(true);
     sinon.spy(logger, 'error');
-    sinon.stub(saveQueue, 'saveOrQueue').returns(true);
+    sinon.stub(saves, 'save');
 
     var db = makeTestible('core/server/continual-save', {
       RawStateAccess: rawStateAccess,
@@ -32,9 +30,8 @@ describe('continual saving', function () {
   });
 
   afterEach(function () {
-    mongo.isConnected.restore();
     logger.error.restore();
-    saveQueue.saveOrQueue.restore();
+    saves.save.restore();
   });
 
   describe('when a game is ready', function () {
@@ -43,7 +40,7 @@ describe('continual saving', function () {
     });
 
     it('should save an initial copy of the game', function () {
-      expect(saveQueue.saveOrQueue.firstCall.args).toEqual([{my: 'game'}, 0]);
+      expect(saves.save.firstCall.args).toEqual([{my: 'game'}, 0]);
     });
   });
 
@@ -70,7 +67,7 @@ describe('continual saving', function () {
       });
 
       it('should not save the game', function () {
-        expect(saveQueue.saveOrQueue.firstCall.args).toEqual([{my: 'game'}, 0]);
+        expect(saves.save.firstCall.args).toEqual([{my: 'game'}, 0]);
       });
     });
 
@@ -96,7 +93,7 @@ describe('continual saving', function () {
       });
 
       it('should not save the game', function () {
-        expect(saveQueue.saveOrQueue.firstCall.args).toEqual([{my: 'game'}, 0]);
+        expect(saves.save.firstCall.args).toEqual([{my: 'game'}, 0]);
       });
     });
 
@@ -123,7 +120,7 @@ describe('continual saving', function () {
       });
 
       it('should save the game', function () {
-        expect(saveQueue.saveOrQueue.called).toEqual(false);
+        expect(saves.save.called).toEqual(false);
       });
     });
   });

@@ -62,7 +62,6 @@ function addTasks (gulp) {
   gulp.task('project:build:code', ['project:prep', 'generate-entrypoints'], function() {
     var browserified = transform(function(filename) {
       return browserify(filename, {debug: true})
-        .exclude('mongodb')
         .transform(require('babelify'), {'presets': ['es2015']})
         .transform(require('require-globify'))
         .transform(require('pugify'), {

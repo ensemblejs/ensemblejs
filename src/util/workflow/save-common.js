@@ -4,7 +4,7 @@ var includes = require('lodash').includes;
 var returnRequestError = require('./promise').returnRequestError;
 var config = require('../config');
 var saves = require('../models/saves');
-var playersInSave = require('../models/players-in-save');
+var saves = require('../models/saves');
 var redirectTo = require('../workflow/promise').redirectTo;
 var urlBuilder = require('../url-builder');
 var logger = require('../../logging/server/logger').logger;
@@ -29,7 +29,7 @@ function redirectIfSinglePlayer (save, player, hostname) {
 }
 
 function redirectIfPlayerIsNotInSave (save, player, hostname) {
-  return playersInSave.isPlayerInSave(save.id, player._id)
+  return saves.isPlayerInSave(save.id, player.id)
     .then(function (playerIsInSave) {
       if (!playerIsInSave) {
         logger.info('Player not in save. Must join.');
@@ -41,7 +41,7 @@ function redirectIfPlayerIsNotInSave (save, player, hostname) {
 }
 
 function redirectIfSaveHasNoSpace (save, player, hostname) {
-  return playersInSave.hasSpaceForPlayer(save.id)
+  return saves.hasSpaceForPlayer(save.id)
     .then(function (saveHasSpace) {
       if (!saveHasSpace) {
         logger.info('Save is full.');
@@ -53,7 +53,7 @@ function redirectIfSaveHasNoSpace (save, player, hostname) {
 }
 
 function redirectIfPlayerIsInSave (save, player, hostname) {
-  return playersInSave.isPlayerInSave(save.id, player._id)
+  return saves.isPlayerInSave(save.id, player.id)
     .then(function (playerIsInSave) {
       if (playerIsInSave) {
         logger.info('Player is in save. Continuing.');
@@ -93,7 +93,7 @@ function redirectToShareSave (save, player, hostname) {
 }
 
 function addPlayer (save, player, hostname, project, now) {
-  return playersInSave.addPlayer(project.id, save.id, player._id, now)
+  return saves.addPlayer(save.id, player.id, now)
     .then(function discardReturnValueAndPassThroughParams() {
       return [save, player, hostname, project];
     });

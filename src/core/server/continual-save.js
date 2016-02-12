@@ -3,7 +3,7 @@
 var includes = require('lodash').includes;
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
-var saveQueue = require('../../util/save-queue');
+var saves = require('../../util/models/saves');
 
 module.exports = {
   type: 'ContinualSave',
@@ -18,13 +18,13 @@ module.exports = {
       logger.info('Enabled: "continual" save.');
 
       return function saveEveryFrame (state) {
-        saveQueue.saveOrQueue(rawState().for(state.get('ensemble.saveId')), time().present());
+        saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
       };
     }
 
     function InsertInitialCopyOfSave () {
       return function store (save) {
-        saveQueue.saveOrQueue(rawState().for(save.id), time().present());
+        saves.save(rawState().for(save.id), time().present());
       };
     }
 

@@ -7,7 +7,7 @@ var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
 var config = require('../../../src/util/config');
 
-var savePlayers = require('../../../src/util/models/players-in-save');
+var saves = require('../../../src/util/models/saves');
 
 describe('player routes', function () {
   var onServerStart;
@@ -30,10 +30,10 @@ describe('player routes', function () {
         }
       });
 
-      getSaves = sinon.stub(savePlayers, 'getByGameAndPlayer');
+      getSaves = sinon.stub(saves, 'getByGameAndPlayer');
       getSaves.returns([
-        {saveId: 1, gameId: 'distributedlife+tetris', playerId: 'p1234'},
-        {saveId: 2, gameId: 'distributedlife+pong', playerId: 'p1234'}
+        {id: '1', gameId: 'distributedlife+tetris', playerIds: ['p1234']},
+        {id: '2', gameId: 'distributedlife+pong', playerIds: ['p1234']}
       ]);
 
       var routes = makeTestible('routes/server/player-routes');
@@ -65,8 +65,8 @@ describe('player routes', function () {
     it('should return the player\'s saves', function (done) {
       request(opts, function (err, res) {
         expect(res.statusCode).toEqual(200);
-        expect(savePlayers.getByGameAndPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
-        expect(savePlayers.getByGameAndPlayer.firstCall.args[1]).toEqual('p1234');
+        expect(saves.getByGameAndPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
+        expect(saves.getByGameAndPlayer.firstCall.args[1]).toEqual('p1234');
         expect(JSON.parse(res.body)).toEqual({
           game: {
             id: 'distributedlife+pong',
@@ -76,8 +76,8 @@ describe('player routes', function () {
             id: 'p1234'
           },
           saves: [
-            {method: 'GET', name: 1, uri: '/saves/1', what: '/save/continue'},
-            {method: 'GET', name: 2, uri: '/saves/2', what: '/save/continue'}
+            {method: 'GET', name: '1', uri: '/saves/1', what: '/save/continue'},
+            {method: 'GET', name: '2', uri: '/saves/2', what: '/save/continue'}
           ]
         });
         done(err);

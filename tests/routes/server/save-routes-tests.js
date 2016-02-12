@@ -12,7 +12,6 @@ var time = require('../../fake/time').at(0);
 var savesList = require('../../fake/saves-list')('arcade');
 var Bluebird = require('bluebird');
 var saves = require('../../../src/util/models/saves');
-var savePlayers = require('../../../src/util/models/players-in-save');
 var urlShortener = require('../../../src/services/url-shortener');
 
 describe('save routes', function () {
@@ -50,9 +49,9 @@ describe('save routes', function () {
       }
     });
 
-    isPlayerInSave = sinon.stub(savePlayers, 'isPlayerInSave');
-    hasSpaceForPlayer = sinon.stub(savePlayers, 'hasSpaceForPlayer');
-    sinon.stub(savePlayers, 'addPlayer').returns(new Bluebird(function(resolve) {
+    isPlayerInSave = sinon.stub(saves, 'isPlayerInSave');
+    hasSpaceForPlayer = sinon.stub(saves, 'hasSpaceForPlayer');
+    sinon.stub(saves, 'addPlayer').returns(new Bluebird(function(resolve) {
       resolve();
     }));
     isSecretCorrect = sinon.stub(saves, 'isSecretCorrect');
@@ -90,7 +89,7 @@ describe('save routes', function () {
     isSecretCorrect.restore();
     isPublic.restore();
     saves.getById.restore();
-    savePlayers.addPlayer.restore();
+    saves.addPlayer.restore();
     uuid.v4.restore();
 
     onServerStop();
@@ -429,7 +428,7 @@ describe('save routes', function () {
 
           describe('when the game is public', function () {
             beforeEach(function () {
-              savePlayers.addPlayer.reset();
+              saves.addPlayer.reset();
               isPublic.returns(new Bluebird(function(resolve) {
                 resolve(true);
               }));
@@ -437,9 +436,8 @@ describe('save routes', function () {
 
             it('should add the player to the game', function (done) {
               request.post(posturl(uri, {secret: 'correct'}), function (err) {
-                expect(savePlayers.addPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
-                expect(savePlayers.addPlayer.firstCall.args[1]).toEqual('34242-324324');
-                expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('p1234');
+                expect(saves.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                expect(saves.addPlayer.firstCall.args[1]).toEqual('p1234');
                 done(err);
               });
             });
@@ -487,7 +485,7 @@ describe('save routes', function () {
 
             describe('when the secret is correct', function () {
               beforeEach(function () {
-                savePlayers.addPlayer.reset();
+                saves.addPlayer.reset();
                 isSecretCorrect.returns(new Bluebird(function(resolve) {
                   resolve(true);
                 }));
@@ -495,9 +493,8 @@ describe('save routes', function () {
 
               it('should add the player to the game', function (done) {
                 request.post(posturl(uri, {secret: 'correct'}), function (err) {
-                  expect(savePlayers.addPlayer.firstCall.args[0]).toEqual('distributedlife+pong');
-                  expect(savePlayers.addPlayer.firstCall.args[1]).toEqual('34242-324324');
-                  expect(savePlayers.addPlayer.firstCall.args[2]).toEqual('p1234');
+                  expect(saves.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                  expect(saves.addPlayer.firstCall.args[1]).toEqual('p1234');
                   done(err);
                 });
               });

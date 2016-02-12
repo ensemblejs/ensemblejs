@@ -2,29 +2,35 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var mongo = require('../../../src/util/mongo');
+import * as database from '../../../src/util/database';
 import {logger} from '../../../src/logging/server/logger';
 var players = require('../../../src/util/models/players');
 
 describe('the player model', () => {
   beforeEach(done => {
-    mongo
-      .connect()
-      .then(() => { return mongo.removeAll('players'); })
-      .then(() => { return mongo.removeAll('player_devices'); })
-      .then(done)
-      .catch(done);
+    database.create('players')
+      .then(() => database.createView('players', {
+        language: 'javascript',
+        views: {
+          all: {
+            map: 'function(doc) { emit(null, doc) }'
+          },
+          byDevice: {
+            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], doc); } } }'
+          }
+        }
+      }))
+      .then(() => done());
   });
 
-  afterEach(() => {
-    mongo.disconnect();
+  afterEach(done => {
+    database.destroy('players').then(() => done());
   });
-
 
   describe('getById', () => {
     beforeEach(done => {
-      mongo.store('players', {
-        _id: 2,
+      database.store('players', {
+        id: '2',
         herp: 'derp'
       })
       .then(() => {
@@ -33,8 +39,9 @@ describe('the player model', () => {
     });
 
     it('should return the record', done => {
-      players.getById(2).then(function (save) {
-        expect(save).toEqual({ _id: 2, herp: 'derp'});
+      players.getById('2').then(function (save) {
+        expect(save.id).toEqual('2');
+        expect(save.herp).toEqual('derp');
       })
       .then(done).catch(done);
     });
@@ -42,19 +49,15 @@ describe('the player model', () => {
 
   describe('getByDevice', () => {
     beforeEach(done => {
-      mongo.store('players', { _id: 'p1234' })
-      .then(() => {
-        mongo.store('player_devices', {
-          _id: 'pd1234', playerId: 'p1234', deviceId: 'd1234'
-        });
-      })
-      .then(() => { done(); });
+      database
+        .store('players', { id: 'p1234',  deviceIds: ['d1234'] })
+        .then(() => { done(); });
     });
 
     it('should return all players with that device', done => {
       players.getByDevice('d1234').then(players => {
         expect(players.length).toEqual(1);
-        expect(players).toEqual([{ _id: 'p1234'}]);
+        expect(players[0].id).toEqual('p1234');
       })
       .then(done).catch(done);
     });
@@ -76,14 +79,14 @@ describe('the player model', () => {
     });
 
     it('should report an error if there is no timestamp', () => {
-      players.save({id: 1}, undefined);
+      players.save({id: '1'}, undefined);
 
       expect(logger.error.called).toBe(true);
     });
 
     it('should save the record', done => {
-      players.save({_id: 3, herp: 'derp'}, 15).then(() => {
-        return players.getById(3);
+      players.save({id: '3', herp: 'derp'}, 15).then(() => {
+        return players.getById('3');
       })
       .then(function (save) {
         expect(save.herp).toEqual('derp');
@@ -92,8 +95,8 @@ describe('the player model', () => {
     });
 
     it('should update the timestamp', done => {
-      players.save({_id: 3}, 15).then(() => {
-        return players.getById(3);
+      players.save({id: '3'}, 15).then(() => {
+        return players.getById('3');
       })
       .then(function (save) {
         expect(save.updated).toEqual(15);

@@ -8,7 +8,7 @@ var gulpSequence = require('gulp-sequence');
 
 var paths = require('./tasks/paths');
 
-require('./tasks/mongo')(gulp);
+require('./tasks/database')(gulp);
 require('./tasks/vuln')(gulp);
 require('./tasks/cleanup')(gulp);
 require('./tasks/linting')(gulp);
@@ -20,5 +20,5 @@ gulp.task('watch', function () {
 });
 
 gulp.task('default', gulpSequence(
-  ['framework:lint', 'framework:test', 'framework:build', 'vuln'],'mongo:stop'
+  ['framework:lint', 'framework:test', 'framework:build', 'vuln'],'db:stop'
 ));

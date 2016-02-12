@@ -8,7 +8,7 @@ function addTasks (gulp) {
       del(paths.targets.clean, done);
   });
 
-  gulp.task('project:clean', ['delete-targets', 'mongo:reset']);
+  gulp.task('project:clean', ['delete-targets', 'db:reset']);
 
 
   gulp.task('framework:delete-paths', function (cb) {

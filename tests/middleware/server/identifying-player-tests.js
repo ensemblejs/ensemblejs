@@ -2,7 +2,7 @@
 
 import expect from 'expect';
 import sinon from 'sinon';
-import mongo from '../../../src/util/mongo';
+import * as database from '../../../src/util/database';
 import {logger} from '../../../src/logging/server/logger';
 import {makeTestible, defer} from '../../support';
 import * as fakeTime from '../../fake/time';
@@ -20,18 +20,28 @@ describe('identifying the player', function () {
         Time: time
     });
 
-    mongo
-      .connect()
-      .then(() => { return mongo.removeAll('devices'); })
-      .then(() => { return mongo.removeAll('players'); })
-      .then(() => { return mongo.removeAll('player_devices'); })
+    database.create('devices')
+      .then(() => database.create('players'))
+      .then(() => database.createView('players', {
+        language: 'javascript',
+        views: {
+          all: {
+            map: 'function(doc) { emit(null, doc) }'
+          },
+          byDevice: {
+            map: 'function(doc) { if (doc.deviceIds.length > 0) { for(var i in doc.deviceIds) { emit(doc.deviceIds[i], doc); } } }'
+          }
+        }
+      }))
       .finally(done);
 
     determinePlayerId = middleware[1].WebServerMiddleware[1](defer(uuid));
   });
 
-  afterEach(() => {
-    mongo.disconnect();
+  afterEach(done => {
+    database.destroy('devices')
+      .then(() => database.destroy('players'))
+      .finally(done);
   });
 
   describe('when there is no device id', function () {
@@ -70,7 +80,7 @@ describe('identifying the player', function () {
   });
 
   describe('when there is a device id', function () {
-    let req = { device: {_id: 'd1234'} };
+    let req = { device: {id: 'd1234'} };
 
     describe('when the device is not associated with any player', function () {
       let res = {};
@@ -78,55 +88,55 @@ describe('identifying the player', function () {
       it('should create a new player', done => {
         determinePlayerId(req, res, () => {
           getById('p1234')
-          .then( player => { expect(player._id).toEqual('p1234'); })
-          .then(done).catch(done);
+            .then(player => { expect(player.id).toEqual('p1234'); })
+            .then(done).catch(done);
         });
       });
 
       it('should associate the player and the device', done => {
         determinePlayerId(req, res, () => {
           getByDevice('d1234')
-          .then(players => {
-            expect(players.length).toEqual(1);
-            expect(players[0]._id).toEqual('p1234');
-          })
-          .then(done).catch(done);
+            .then(players => {
+              expect(players.length).toEqual(1);
+              expect(players[0].id).toEqual('p1234');
+            })
+            .then(done).catch(done);
         });
       });
 
       it('should set the player on the request', done => {
         determinePlayerId(req, res, () => {
-          expect(req.player).toEqual({_id: 'p1234', updated: 323});
+          expect(req.player.id).toEqual('p1234');
+          expect(req.player.deviceIds).toEqual(['d1234']);
+          expect(req.player.updated).toEqual(323);
           done();
         }).catch(done);
       });
     });
 
     describe('when the device is associated with a player', function () {
-      let req = { device: {_id: 'd1234'} };
+      let req = { device: {id: 'd1234'} };
       let res = {};
 
       beforeEach(done => {
-        mongo.store('devices', { _id: 'd1234' })
-        .then(() => { mongo.store('players', { _id: 'p1234' }); })
-        .then(() => { mongo.store('player_devices', {
-          _id: 'pd1234',
-          deviceId: 'd1234',
-          playerId: 'p1234'
-        });})
+        database.store('devices', { id: 'd1234' })
+        .then(() => { database.store('players', {
+          id: 'p1234', deviceIds: ['d1234']
+        }); })
         .then(() => { done(); });
       });
 
       it('should set the player on the request', done => {
         determinePlayerId(req, res, () => {
-          expect(req.player).toEqual({_id: 'p1234'});
+          expect(req.player.id).toEqual('p1234');
+          expect(req.player.deviceIds).toEqual(['d1234']);
           done();
         }).catch(done);
       });
     });
 
     describe('when the device is associated with more than one player', function () {
-      let req = { device: {_id: 'd1234'} };
+      let req = { device: {id: 'd1234'} };
       let send = sinon.spy();
       let res = {
         status: function() {
@@ -140,19 +150,13 @@ describe('identifying the player', function () {
         sinon.spy(res, 'status');
         sinon.spy(logger, 'error');
 
-        mongo.store('devices', { _id: 'd1234' })
-        .then(() => { mongo.store('players', { _id: 'p1234' }); })
-        .then(() => { mongo.store('players', { _id: 'p5678' }); })
-        .then(() => { mongo.store('player_devices', {
-          _id: '2384756293478',
-          deviceId: 'd1234',
-          playerId: 'p1234'
-        });})
-        .then(() => { mongo.store('player_devices', {
-          _id: '0823475692',
-          deviceId: 'd1234',
-          playerId: 'p5678'
-        });})
+        database.store('devices', { id: 'd1234' })
+        .then(() => { database.store('players', {
+          id: 'p1234', deviceIds: ['d1234'] });
+        })
+        .then(() => { database.store('players', {
+          id: 'p5678', deviceIds: ['d1234']
+        }); })
         .then(() => { done(); });
       });
 

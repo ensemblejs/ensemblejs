@@ -3,7 +3,7 @@
 var paths = require('./paths');
 
 function addTasks (gulp) {
-  require('./mongo')(gulp);
+  require('./database')(gulp);
   require('./cleanup')(gulp);
   require('./prep')(gulp);
   require('./project-test')(gulp);

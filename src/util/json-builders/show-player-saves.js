@@ -6,9 +6,9 @@ var buildGameHash = require('./game');
 function buildSaveLinks (saves) {
   return map(saves, function(save) {
     return {
-      name: save.saveId,
+      name: save.id,
       what: '/save/continue',
-      uri: '/saves/' + save.saveId,
+      uri: '/saves/' + save.id,
       method: 'GET'
     };
   });
@@ -18,7 +18,7 @@ function buildShowSavesJson (saves, player, project) {
   return {
     game: buildGameHash(project),
     player: {
-      id: player._id
+      id: player.id
     },
     saves: buildSaveLinks(saves)
   };
