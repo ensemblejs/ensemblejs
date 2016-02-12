@@ -7,7 +7,7 @@ import {logger} from '../../../src/logging/server/logger';
 import {makeTestible, defer} from '../../support';
 import * as fakeTime from '../../fake/time';
 import {getById, getByDevice} from '../../../src/util/models/players';
-import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
+import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 let time = fakeTime.at(323);
 var uuid = {

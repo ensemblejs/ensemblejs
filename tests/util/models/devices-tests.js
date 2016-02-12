@@ -5,7 +5,7 @@ import * as database from '../../../src/util/database';
 import * as devices from '../../../src/util/models/devices';
 import {logger} from '../../../src/logging/server/logger';
 import sinon from 'sinon';
-import {bootstrapDevices, strapbootDevices} from '../../../src/util/couch-bootstrap';
+import {bootstrapDevices, strapbootDevices} from 'ensemblejs-couch-bootstrap';
 
 describe('devices model', () => {
   beforeEach(done => {

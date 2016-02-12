@@ -8,7 +8,7 @@ var logger = require('../../../src/logging/server/logger').logger;
 var saves = require('../../../src/util/models/saves');
 var config = require('../../../src/util/config');
 import {getById, getByGame, save, isPublic, isSecretCorrect} from '../../../src/util/models/saves';
-import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
+import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 describe('save model', function () {
   beforeEach(done => {

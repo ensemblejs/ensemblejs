@@ -5,7 +5,7 @@ var sinon = require('sinon');
 import * as database from '../../../src/util/database';
 import {logger} from '../../../src/logging/server/logger';
 var players = require('../../../src/util/models/players');
-import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
+import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 describe('the player model', () => {
   beforeEach(done => {

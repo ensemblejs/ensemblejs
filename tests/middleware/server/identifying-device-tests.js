@@ -7,7 +7,7 @@ import {getById} from '../../../src/util/models/devices';
 import * as database from '../../../src/util/database';
 import * as fakeTime from '../../fake/time';
 import {logger} from '../../../src/logging/server/logger';
-import {bootstrap, strapboot} from '../../../src/util/couch-bootstrap';
+import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 let time = fakeTime.at(34);
 

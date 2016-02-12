@@ -2,7 +2,7 @@
 
 var logger = require('../../logging/server/logger').logger;
 import * as database  from '../../util/database';
-import {bootstrap} from '../../util/couch-bootstrap';
+import {bootstrap} from 'ensemblejs-couch-bootstrap';
 
 import Bluebird from 'bluebird';
 
