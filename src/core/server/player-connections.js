@@ -120,7 +120,7 @@ module.exports = {
     }
 
     function redirectIfPlayerIsNotInSave (player) {
-      //TODO: implement this
+      //implement this
       return player;
     }
 
@@ -128,21 +128,24 @@ module.exports = {
       return function determinePlayerNumber (state, socket, save) {
         var deviceId = socket.request.sessionID;
 
+        function updateWaitingForPlayers () {
+          return [
+            'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
+          ];
+        }
+
         return playersStore.getByDevice(deviceId)
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
-          .then(player => addPlayer(save, player._id))
+          .then(player => addPlayer(save, player.id))
           .then(playerNumber => socket.emit('playerNumber', playerNumber))
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
+          .then(() => updateWaitingForPlayers())
           .catch(err => {
             logger.error({deviceId: deviceId, save: save}, err);
             socket.emit('error', err);
-          })
-          .finally(() => {
-            return [
-              'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-            ];
+            return updateWaitingForPlayers();
           });
       };
     });
@@ -151,18 +154,23 @@ module.exports = {
       return function indicatePlayerAsDisconnected (state, socket, save) {
         var deviceId = socket.request.sessionID;
 
+        function updateWaitingForPlayers () {
+          return [
+            'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
+          ];
+        }
+
         return playersStore.getByDevice(deviceId)
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
-          .then(player => get(save.id, player._id))
+          .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then(connection => connection.status = 'offline')
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
-          .catch(err => logger.error({deviceId: deviceId, save: save}, err))
-          .finally(() => {
-            return [
-              'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-            ];
+          .then(() => updateWaitingForPlayers())
+          .catch(err => {
+            logger.error({deviceId: deviceId, save: save}, err);
+            return updateWaitingForPlayers();
           });
       };
     });

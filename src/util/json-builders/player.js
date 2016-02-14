@@ -2,7 +2,7 @@
 
 function buildPlayerHash (player) {
   return {
-    id: player._id
+    id: player.id
   };
 }
 

@@ -26,7 +26,7 @@ describe('players connecting', function () {
     });
 
     getByDevice = sinon.stub(players, 'getByDevice');
-    getByDevice.returns(Bluebird.resolve([{_id: 1}]));
+    getByDevice.returns(Bluebird.resolve([{id: 1}]));
     sinon.stub(config, 'get').returns({
       game: {
         id: 1
@@ -132,9 +132,9 @@ describe('players connecting', function () {
     describe('when the maxPlayers is exceeded', function () {
       beforeEach(function (done) {
         onClientConnect(undefined, player1, save1)
-          .then(() => getByDevice.returns(Bluebird.resolve([{_id: 2}])))
+          .then(() => getByDevice.returns(Bluebird.resolve([{id: 2}])))
           .then(() => onClientConnect(undefined, player2, save1))
-          .then(() => getByDevice.returns(Bluebird.resolve([{_id: 3}])))
+          .then(() => getByDevice.returns(Bluebird.resolve([{id: 3}])))
           .then(() => onClientConnect(undefined, player3, save1))
           .then(() => done())
           .catch(() => done() );
@@ -148,11 +148,11 @@ describe('players connecting', function () {
 
   describe('when a second player connects', function () {
     beforeEach(function (done) {
-      getByDevice.returns(Bluebird.resolve([{_id: 1}]));
+      getByDevice.returns(Bluebird.resolve([{id: 1}]));
 
       onClientConnect(undefined, player1, save1)
         .then(() => fakeOn.playerGroupChange.reset())
-        .then(() => getByDevice.returns(Bluebird.resolve([{_id: 2}])))
+        .then(() => getByDevice.returns(Bluebird.resolve([{id: 2}])))
         .then(() => onClientConnect(undefined, player2, save1))
         .then(() => done())
         .catch(() => done());

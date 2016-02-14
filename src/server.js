@@ -34,6 +34,9 @@ function runGameAtPath(path) {
       name: config.game.name
     };
 
+    config.game.path = path;
+    config.game.modes = game.modes;
+
     plugins.get('On').serverStart(path, game);
   }
 

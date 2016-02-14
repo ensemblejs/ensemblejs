@@ -1,10 +1,6 @@
 'use strict';
 
-var reject = require('lodash').reject;
-var filter = require('lodash').filter;
-var each = require('lodash').each;
-var map = require('lodash').map;
-var includes = require('lodash').includes;
+import {reject, filter, each, map, includes} from 'lodash';
 
 module.exports = {
   type: 'DelayedJobs',
@@ -54,17 +50,18 @@ module.exports = {
         var jobs = state.get('ensemble.jobs');
         var saveId = state.get('ensemble.saveId');
 
+        function callOnCompleteHandlerForReadyJobs (job) {
+          logger().info(job, 'Job Ready');
+          var callback = dynamicPluginLoader().get(job.plugin)[job.method];
+          mutate()(saveId, callback(state));
+        }
+
         jobs = jobs.concat(newJobs);
         each(filter(jobs, cancelled), devuxCheckJobName);
         jobs = reject(jobs, cancelled);
         jobs = tick(jobs, dt);
 
-        var invoke = filter(jobs, ready);
-        each(invoke, function callOnCompleteHandlerForReadyJobs (job) {
-          logger().info(job, 'Job Ready');
-          var callback = dynamicPluginLoader().get(job.plugin)[job.method];
-          mutate()(saveId, callback(state));
-        });
+        each(filter(jobs, ready), callOnCompleteHandlerForReadyJobs);
 
         newJobs = [];
         toCancel = [];

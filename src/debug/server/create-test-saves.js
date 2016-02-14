@@ -6,30 +6,32 @@ var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 
 module.exports = {
-  type: 'OnServerReady',
+  type: 'OnDatabaseReady',
   deps: ['On', 'StateMutator'],
-  func: function OnServerReady (on, mutate) {
-    return function spinupTestSeeds (path) {
+  func: function CreateTestSaves (on, mutate) {
+    return function spinupTestSeeds () {
       if (!config.get().debug.develop) {
         return;
       }
 
-      var absolutePath = normaliseRelativePath(addTrailingSlash(path + '/seeds'));
+      const path = config.get().game.path;
+
+      const absolutePath = normaliseRelativePath(addTrailingSlash(path + '/seeds'));
 
       require('fs').readdirSync(absolutePath).forEach(function(file){
         if (file.substr(-5) !== '.json') {
           return;
         }
 
-        var seed = require(absolutePath + file);
+        const seed = require(absolutePath + file);
         if (!seed.ensemble.mode) {
           logger.error('Seed file is missing mode', {file: file, seed: seed});
         }
 
-        var name = file.replace('.json', '');
+        const name = file.replace('.json', '');
         seed.ensemble.saveId = name;
 
-        var save = {
+        const save = {
           id: seed.ensemble.saveId,
           mode: seed.ensemble.mode
         };

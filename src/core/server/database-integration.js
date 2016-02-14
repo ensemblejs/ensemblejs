@@ -2,7 +2,7 @@
 
 var logger = require('../../logging/server/logger').logger;
 import * as database  from '../../util/database';
-import {bootstrap} from 'ensemblejs-couch-bootstrap';
+import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 import Bluebird from 'bluebird';
 
@@ -11,10 +11,10 @@ module.exports = {
   deps: ['DefinePlugin', 'RawStateAccess', 'On'],
   func: function DbBridge (define, rawState, on) {
 
-    function errorIfMissing (bucket) {
+    function errorIfMissing (db) {
       return function doCheck (result) {
         if (!result) {
-          return Bluebird.reject({database: bucket});
+          return Bluebird.reject({database: db});
         }
       };
     }
@@ -23,7 +23,11 @@ module.exports = {
       return function doCheckForDatabases () {
         return new Bluebird(resolve => {
           if (database.isLocal()) {
-            return bootstrap(database).then(resolve);
+            logger.info('Running locally. Tearing down and rebuilding all databases.');
+
+            return strapboot(database)
+              .then(() => bootstrap(database))
+              .then(resolve);
           } else {
             resolve();
           }

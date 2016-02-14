@@ -17,6 +17,7 @@ cradle.setup({
 var connection = new(cradle.Connection)();
 
 export function exists (database) {
+  logger.info(`Checking for existing of database "${database}"`);
   return connection.database(database).existsAsync();
 }
 
@@ -25,17 +26,53 @@ export function isLocal () {
 }
 
 export function create (database) {
-  return connection.database(database).createAsync().catch((err) => {
-    logger.error(err, 'Could not create database.');
-  });
+  logger.info({database: database}, 'Creating database.');
+
+  return connection.database(database)
+    .createAsync()
+    .then(() => {
+      logger.info({database: database}, 'Done. Database created.');
+    })
+    .catch(err => {
+      logger.error({err: err, database: database}, 'Could not create database.');
+    });
+}
+
+function notFound (err) {
+  return err.error === 'not_found';
+}
+
+function conflict (err) {
+  return err.error === 'conflict';
 }
 
 export function destroy (database) {
-  return connection.database(database).destroyAsync();
+  logger.info({database: database}, 'Destroying database.');
+
+  return connection.database(database)
+    .destroyAsync()
+    .then(() => {
+      logger.info({database: database}, 'Done. Database destroyed.');
+    })
+    .catch(notFound, () => undefined)
+    .catch(err => {
+      logger.error({err: err, database: database}, 'Could not destroy database.');
+    });
 }
 
 export function createView (database, view) {
-  return connection.database(database).saveAsync(`_design/${database}`, view);
+  return connection.database(database)
+    .saveAsync(`_design/${database}`, view)
+    .catch(err => {
+      logger.error({err: err, database: database, view: view}, 'Could not create view.');
+    });
+}
+
+export function get (database, id) {
+  return connection
+    .database(database)
+    .getAsync(id)
+    .catch(err => logger.info({err: err, database: database, id: id}, 'Could not get document.'));
 }
 
 export function store (database, data) {
@@ -45,10 +82,8 @@ export function store (database, data) {
 }
 
 export function view (database, view, keys) {
-  return connection.database(database).viewAsync(`${database}/${view}`, keys);
-}
-
-export function get (database, id) {
-  return connection.database(database).getAsync(id)
-    .catch(err => logger.info({err: err, database: database, id: id}, 'Could not get document.'));
+  return connection
+    .database(database)
+    .viewAsync(`${database}/${view}`, keys)
+    .catch(err => logger.info({err: err, database: database, view: view, keys: keys}, 'Could not get view.'));
 }

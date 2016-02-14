@@ -8,7 +8,7 @@
 4. `bundle install`
 5. install nodenv
 6. install version of node listed in .node-version
-7. `brew install mongo`
+7. `brew install couchdb`
 7. `npm i`
 8. `cd node_modules && ln -nsf ../src && cd..`
 8. `gulp`

@@ -21,7 +21,7 @@ function post (event, url = `${endpoint}/event/${appId}`) {
     body: JSON.stringify(event)
   }, function (err) {
     if (err) {
-      logger.error({err: err}, 'Failed posting event');
+      logger.error({err: err, event: event, url: url}, 'Failed posting event');
     }
   });
 }

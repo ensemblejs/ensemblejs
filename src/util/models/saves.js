@@ -4,7 +4,7 @@ var logger = require('../../logging/server/logger').logger;
 var config = require('../config');
 import {get, view, store} from '../database';
 import {raw} from '../adapters/save-adapter';
-import {map, isEqual} from 'lodash';
+import {map, isEqual, uniq, includes} from 'lodash';
 
 var collection = 'saves';
 var metadata_collection = 'saves_metadata';
@@ -35,19 +35,22 @@ export function save (data, now) {
     return;
   }
 
-  const secret = data.ensemble.secret;
-  delete data.ensemble.secret;
   data.id = data.id || data.ensemble.saveId;
   data.updated = now;
 
   return store(collection, data)
-    .then(() => store(metadata_collection, {
-      id: data.id,
-      mode: data.ensemble.mode,
-      playerIds: [],
-      secret: secret,
-      updated: now
-    }));
+    .then(() => get(metadata_collection, data.id))
+    .then(save_metadata => {
+      if (!save_metadata) {
+        return store(metadata_collection, {
+          id: data.id,
+          mode: data.ensemble.mode,
+          playerIds: [],
+          secret: data.ensemble.secret,
+          updated: now
+        });
+      }
+    });
 }
 
 export function determineIfSaveIsPublic(save) {
@@ -70,9 +73,8 @@ export function isSecretCorrect (saveId, suppliedSecret) {
 }
 
 export function isPlayerInSave (saveId, playerId) {
-  return view(metadata_collection, 'byPlayer', {
-    key: [saveId, playerId]
-  }).then(set => set.length > 0);
+  return get(metadata_collection, saveId)
+    .then(save => includes(save.playerIds, playerId));
 }
 
 export function addPlayer (saveId, playerId, now) {
@@ -91,17 +93,8 @@ export function addPlayer (saveId, playerId, now) {
 
   return get(metadata_collection, saveId)
     .then(save => {
-      save.playerIds.push(playerId);
+      save.playerIds = uniq(save.playerIds.concat(playerId));
       save.updated = now;
-
-      return store(metadata_collection, save);
-    })
-    .catch(() => {
-      let save = {
-        id: saveId,
-        playerIds: [playerId],
-        updated: now
-      };
 
       return store(metadata_collection, save);
     });

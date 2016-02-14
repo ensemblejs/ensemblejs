@@ -212,17 +212,39 @@ describe('save model', function () {
   });
 
   describe('addPlayer', function () {
-    beforeEach(function () {
+    beforeEach(function (done) {
       sinon.spy(logger, 'error');
+
+      sinon.stub(config, 'get').returns({
+        maxPlayers: function () { return 2;}
+      });
+
+      database.store('saves_metadata', {
+        id: '3', gameId: '5', playerIds: [], updated: 0
+      }).then(() => done());
     });
 
     afterEach(function () {
       logger.error.restore();
+      config.get.restore();
     });
 
     it('should add the player to the save', function (done) {
       saves.addPlayer('3', '10', 10)
         .then(() => saves.isPlayerInSave('3', '10'))
+        .then(result => expect(result).toBe(true))
+        .then(() => done())
+        .catch(done);
+    });
+
+    it('should not add the same player twice', function (done) {
+      saves.addPlayer('3', '10', 10)
+        .then(() => saves.isPlayerInSave('3', '10'))
+        .then(result => expect(result).toBe(true))
+        .then(() => saves.addPlayer('3', '10', 10))
+        .then(() => saves.addPlayer('3', '10', 10))
+        .then(() => saves.addPlayer('3', '10', 10))
+        .then(() => saves.hasSpaceForPlayer('3'))
         .then(result => expect(result).toBe(true))
         .then(() => done())
         .catch(done);
@@ -273,10 +295,8 @@ describe('save model', function () {
         .then(() => done());
     });
 
-    afterEach(done => {
+    afterEach(() => {
       config.get.restore();
-
-      done();
     });
 
     it('should return true if the player count is less than the max player count', function (done) {

@@ -16,12 +16,12 @@ function buildJson (project, player) {
       modes: project.modes
     },
     player: {
-      id: player._id
+      id: player.id
     },
     links: [{
       name: 'Click here to see your saved games',
       what: '/game/player/saves',
-      uri: '/players/' + player._id + '/saves',
+      uri: '/players/' + player.id + '/saves',
       method: 'GET',
     }]
   };
