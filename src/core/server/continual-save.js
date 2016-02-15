@@ -8,27 +8,34 @@ var saves = require('../../util/models/saves');
 module.exports = {
   type: 'ContinualSave',
   deps: ['DefinePlugin', 'RawStateAccess', 'Time'],
-  func: function MongoDbBridge (define, rawState, time) {
+  func: function ContinualSave (define, rawState, time) {
 
-    function SaveCurrentState() {
+
+    function AfterPhysicsFrame() {
       if (!includes(['persistent', 'ephemeral'], config.get().ensemble.autoSaveBehaviour)) {
         return config.get().nothing;
       }
 
       logger.info('Enabled: "continual" save.');
 
+      let i = 0;
       return function saveEveryFrame (state) {
-        saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
+        i += 1;
+
+        if (i === config.get().ensemble.autoSaveThrottle) {
+          saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
+          i = 0;
+        }
       };
     }
 
-    function InsertInitialCopyOfSave () {
-      return function store (save) {
+    function OnSaveReady () {
+      return function insertInitialCopyIntoDatabase (save) {
         saves.save(rawState().for(save.id), time().present());
       };
     }
 
-    define()('OnSaveReady', InsertInitialCopyOfSave);
-    define()('AfterPhysicsFrame', SaveCurrentState);
+    define()('OnSaveReady', OnSaveReady);
+    define()('AfterPhysicsFrame', AfterPhysicsFrame);
   }
 };

@@ -175,6 +175,10 @@ module.exports = {
       return result;
     }
 
+    function replaceArrayDontMerge (a, b) {
+      return isArray(a) ? b : undefined;
+    }
+
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
@@ -187,9 +191,7 @@ module.exports = {
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
       root[saveId] = root[saveId] || {};
-      root[saveId] = merge(root[saveId], result, function(a, b) {
-        return isArray(a) ? b : undefined;
-      });
+      merge(root[saveId], result, replaceArrayDontMerge);
     }
 
     function isArrayOfArrays (result) {
@@ -214,7 +216,9 @@ module.exports = {
       if (isArrayOfArrays(result)) {
         mutateArrayOfArrays(saveId, result);
       } else if (isPromise(result)) {
-        return result.then(value => handleResult(saveId, value));
+        return result.then(value => {
+          return handleResult(saveId, value);
+        });
       } else {
         mutateNonArray(saveId, result);
       }

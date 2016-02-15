@@ -268,7 +268,12 @@ describe('save model', function () {
 
   describe('isPlayerInSave', function () {
     beforeEach(done => {
-      saves.addPlayer('1', '20', '10').then(() => done());
+      database.store('saves_metadata', {
+        id: '1',
+        playerIds: []
+      })
+      .then(() => saves.addPlayer('1', '20', 10))
+      .then(() => done());
     });
 
     it('should return true if the player is in the save', function (done) {

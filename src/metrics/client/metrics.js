@@ -20,6 +20,10 @@ module.exports = {
     var appId = config().game.id;
 
     function post (event, url = `${endpoint}/event/${appId}`) {
+      if (!config.get().server.metrics) {
+        return;
+      }
+
       request.post({
         headers: {'content-type' : 'application/json'},
         url: url,

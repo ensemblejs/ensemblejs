@@ -1,6 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
+import {each} from 'lodash';
 var config = require('../../util/config');
 
 module.exports = {
@@ -12,10 +12,8 @@ module.exports = {
         return;
       }
 
-      const modes = config.get().game.modes;
-
-      each(modes, function (mode) {
-        var save = {id: mode, mode: mode};
+      each(config.get().game.modes, function (mode) {
+        let save = {id: mode, mode: mode};
         on().newSave(save);
         on().saveReady(save);
       });

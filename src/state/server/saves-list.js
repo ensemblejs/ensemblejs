@@ -54,7 +54,7 @@ module.exports = {
     });
 
     define()('OnNewSave', function SavesList () {
-      return function addSave (save) {
+      return function addSaveToListOfKnownSaves (save) {
         add(save);
       };
     });

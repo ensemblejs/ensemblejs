@@ -77,7 +77,18 @@ export function get (database, id) {
 
 export function store (database, data) {
   return connection.database(database)
-    .saveAsync(data.id || uuid.v4(), data)
+    .saveAsync(data.id || uuid.v4(), data._rev, data)
+    .then(res => {
+      data._rev = res.rev;
+      return res;
+    })
+    .catch(conflict, err => {
+      return get(database, data.id).then(record => {
+        logger.error({err: err, database: database, data: data, latest: record}, 'Could not store document. Trying again with latest rev');
+        data._rev = record._rev;
+        store(database, data);
+      });
+    })
     .catch(err => logger.error({err: err, database: database, data: data}, 'Could not store document.'));
 }
 

@@ -1,7 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var last = require('lodash').last;
+import {each, last, cloneDeep} from 'lodash';
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 module.exports = {
@@ -11,7 +10,7 @@ module.exports = {
     return function initialiseStateForSave (save) {
       var applicableSeeds = filterPluginsByMode(stateSeed(), save.mode);
       each(applicableSeeds, function (state) {
-        mutate()(save.id, last(state));
+        mutate()(save.id, last(cloneDeep(state)));
       });
     };
   }

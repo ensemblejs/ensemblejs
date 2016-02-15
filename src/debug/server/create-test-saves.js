@@ -15,23 +15,21 @@ module.exports = {
       }
 
       const path = config.get().game.path;
-
       const absolutePath = normaliseRelativePath(addTrailingSlash(path + '/seeds'));
 
-      require('fs').readdirSync(absolutePath).forEach(function(file){
+      require('fs').readdirSync(absolutePath).forEach(file => {
         if (file.substr(-5) !== '.json') {
           return;
         }
 
-        const seed = require(absolutePath + file);
+        let seed = require(absolutePath + file);
         if (!seed.ensemble.mode) {
           logger.error('Seed file is missing mode', {file: file, seed: seed});
         }
 
-        const name = file.replace('.json', '');
-        seed.ensemble.saveId = name;
+        seed.ensemble.saveId = file.replace('.json', '');
 
-        const save = {
+        let save = {
           id: seed.ensemble.saveId,
           mode: seed.ensemble.mode
         };

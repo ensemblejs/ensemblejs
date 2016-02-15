@@ -10,6 +10,7 @@
     "inputElement": "input",
     "physicsUpdateLoop": 15,
     "clientSidePrediction": true,
+    "metrics": false,
     "input": {
       "gamepad": {
         "deadzoneAlgorithm": "radial",
@@ -28,7 +29,9 @@
     "dashboard": false,
     "maxSavesPerPlayer": 1,
     "autoSaveBehaviour": "persistent",
-    "locales": ["en"]
+    "autoSaveThrottle": 2,
+    "locales": ["en"],
+    "metrics": false
   },
   "database": {
     "host": "localhost",

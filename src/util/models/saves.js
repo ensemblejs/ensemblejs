@@ -93,6 +93,10 @@ export function addPlayer (saveId, playerId, now) {
 
   return get(metadata_collection, saveId)
     .then(save => {
+      if (!save) {
+        logger.error({saveId: saveId}, 'Attempted to add player to save before save exists');
+      }
+
       save.playerIds = uniq(save.playerIds.concat(playerId));
       save.updated = now;
 

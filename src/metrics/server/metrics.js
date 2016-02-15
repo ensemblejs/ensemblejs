@@ -15,6 +15,10 @@ var endpoint = config.get().measure.endpoint;
 var appId = config.get().game.id;
 
 function post (event, url = `${endpoint}/event/${appId}`) {
+  if (!config.get().server.metrics) {
+    return;
+  }
+
   request.post({
     headers: {'content-type' : 'application/json'},
     url: url,

@@ -6,7 +6,7 @@ module.exports = {
   type: 'OnNewSave',
   deps: ['UUID'],
   func: function OnNewSave (uuid) {
-    return function seedSaveInfo () {
+    return function seedSaveSecret () {
       var secret = config.debug.develop ? 'public' : uuid().gen();
 
       return ['ensemble', { secret: secret }];

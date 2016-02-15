@@ -12,10 +12,9 @@ function newSave (project, on, time) {
       mode: mode
     };
 
-    on.newSave(newSave);
-    on.saveReady(newSave);
-
-    return newSave;
+    return on.newSave(newSave)
+      .then(() => on.saveReady(newSave))
+      .then(() => newSave);
   }
 
   return function buildJson (req) {
