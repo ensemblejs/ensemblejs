@@ -18,6 +18,19 @@ function createSampleFunc (callback, frequency) {
   };
 }
 
+function createThrottleFunc (callback, frequency) {
+  var callsSinceLast = 0;
+
+  return function throttle (state, delta) {
+    callsSinceLast += 1;
+
+    if (callsSinceLast >= frequency) {
+      callback(state, delta);
+      callsSinceLast = 0;
+    }
+  };
+}
+
 module.exports = {
   execute: function execute (fx) {
     return {
@@ -36,6 +49,9 @@ module.exports = {
         function hours () {
           return createSampleFunc(fx, n * secondsPerHour);
         }
+        function calls () {
+          return createThrottleFunc(fx, n);
+        }
 
         return {
           millisecond: milliseconds,
@@ -45,7 +61,9 @@ module.exports = {
           minute: minutes,
           minutes: minutes,
           hour: hours,
-          hours: hours
+          hours: hours,
+          call: calls,
+          calls: calls,
         };
       },
       about: function about (i) {

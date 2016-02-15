@@ -4,6 +4,7 @@ var includes = require('lodash').includes;
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 var saves = require('../../util/models/saves');
+var interval = require('../../util/interval');
 
 module.exports = {
   type: 'ContinualSave',
@@ -18,15 +19,11 @@ module.exports = {
 
       logger.info('Enabled: "continual" save.');
 
-      let i = 0;
-      return function saveEveryFrame (state) {
-        i += 1;
+      function saveEveryFrame (state) {
+        saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
+      }
 
-        if (i === config.get().ensemble.autoSaveThrottle) {
-          saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
-          i = 0;
-        }
-      };
+      return interval.execute(saveEveryFrame).every(config.get().ensemble.autoSaveThrottle).calls();
     }
 
     function OnSaveReady () {
