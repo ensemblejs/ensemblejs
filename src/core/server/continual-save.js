@@ -28,7 +28,7 @@ module.exports = {
 
     function OnSaveReady () {
       return function insertInitialCopyIntoDatabase (save) {
-        saves.save(rawState().for(save.id), time().present());
+        return saves.save(rawState().for(save.id), time().present());
       };
     }
 

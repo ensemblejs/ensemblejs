@@ -1,6 +1,7 @@
 'use strict';
 
 var callEachPlugin = require('../../util/modes').callEachPlugin;
+var callEachPluginAndPromises = require('../../util/modes').callEachPluginAndPromises;
 var callForMode = require('../../util/modes').callForMode;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
@@ -54,7 +55,7 @@ module.exports = {
     }
 
     function saveReady (save) {
-      callEachPlugin(onSaveReady(), [save]);
+      return callEachPluginAndPromises(onSaveReady(), [save]);
     }
 
     function clientConnect (save, socket) {
