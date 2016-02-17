@@ -7,7 +7,7 @@ import {raw} from '../adapters/save-adapter';
 import {map, isEqual, uniq, includes} from 'lodash';
 
 var collection = 'saves';
-var metadata_collection = 'saves_metadata';
+var metadataCollection = 'saves_metadata';
 
 export function getByGame (gameId, adapter = raw) {
   return view(collection, 'byGame', {
@@ -16,7 +16,7 @@ export function getByGame (gameId, adapter = raw) {
 }
 
 export function getByGameAndPlayer (gameId, playerId, adapter = raw) {
-  return view(metadata_collection, 'byGameAndPlayer', {
+  return view(metadataCollection, 'byGameAndPlayer', {
     key: [gameId, playerId]
   }).then(set => map(set, 'value')).then(set => map(set, adapter));
 }
@@ -39,10 +39,10 @@ export function save (data, now) {
   data.updated = now;
 
   return store(collection, data)
-    .then(() => get(metadata_collection, data.id))
-    .then(save_metadata => {
-      if (!save_metadata) {
-        return store(metadata_collection, {
+    .then(() => get(metadataCollection, data.id))
+    .then(saveMetadata => {
+      if (!saveMetadata) {
+        return store(metadataCollection, {
           id: data.id,
           mode: data.ensemble.mode,
           playerIds: [],
@@ -73,7 +73,7 @@ export function isSecretCorrect (saveId, suppliedSecret) {
 }
 
 export function isPlayerInSave (saveId, playerId) {
-  return get(metadata_collection, saveId)
+  return get(metadataCollection, saveId)
     .then(save => includes(save.playerIds, playerId));
 }
 
@@ -91,8 +91,8 @@ export function addPlayer (saveId, playerId, now) {
     return;
   }
 
-  return get(metadata_collection, saveId)
-    .then(save => {
+  return get(metadataCollection, saveId)
+    .then(function addPlayerToSave (save) {
       if (!save) {
         logger.error({saveId: saveId}, 'Attempted to add player to save before save exists');
       }
@@ -100,16 +100,16 @@ export function addPlayer (saveId, playerId, now) {
       save.playerIds = uniq(save.playerIds.concat(playerId));
       save.updated = now;
 
-      return store(metadata_collection, save);
+      return store(metadataCollection, save);
     });
 }
 
 export function hasSpaceForPlayer (saveId) {
-  return get(metadata_collection, saveId)
+  return get(metadataCollection, saveId)
     .then(save => save.playerIds.length < config.get().maxPlayers(save.mode));
 }
 
 export function canPlayerJoin (saveId) {
-  return get(metadata_collection, saveId)
+  return get(metadataCollection, saveId)
     .then(save => save.secret === 'public'? hasSpaceForPlayer(saveId) : false);
 }

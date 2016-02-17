@@ -5,6 +5,7 @@ var cradle = Bluebird.promisifyAll(require('cradle'));
 var logger = require('../logging/server/logger').logger;
 import uuid from 'node-uuid';
 import config from './config';
+import {cloneDeep} from 'lodash';
 
 cradle.setup({
   host: config.get().database.host,
@@ -72,6 +73,11 @@ export function get (database, id) {
   return connection
     .database(database)
     .getAsync(id)
+    .then(record => cloneDeep(record))
+    .then(record => {
+      record.id = record._id;
+      return record;
+    })
     .catch(err => logger.info({err: err, database: database, id: id}, 'Could not get document.'));
 }
 
@@ -82,8 +88,12 @@ export function remove (database, id) {
 }
 
 export function store (database, data) {
+  if (!data.id) {
+    data.id = data._id || uuid.v4();
+  }
+
   return connection.database(database)
-    .saveAsync(data.id || uuid.v4(), data._rev, data)
+    .saveAsync(data.id, data._rev, data)
     .then(res => {
       data._rev = res.rev;
       return res;

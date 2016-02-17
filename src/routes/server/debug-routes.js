@@ -1,7 +1,7 @@
 'use strict';
 
 var config = require('../../util/config');
-var post = require('../../util/request-handling').post;
+var get = require('../../util/request-handling').get;
 var moveDevice = require('../../util/workflow/move-device').moveDevice;
 
 module.exports = {
@@ -19,7 +19,7 @@ module.exports = {
       }
 
       app.get('/saves/:saveId/data', dumpSaveData);
-      app.post('/device/move', post(moveDevice()));
+      app.get('/device/move', get(moveDevice()));
     }
 
     return {

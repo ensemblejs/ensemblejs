@@ -11,12 +11,14 @@ function StateSeed (config) {
 function OnClientStart ($, tracker) {
   function hide () {
     $()('#debug').hide();
+    $()('#overlay').show();
     $()('#debug-spanner').removeClass('inverted');
     $()('#debug-cog').removeClass('inverted');
   }
 
   function show () {
     $()('#debug').show();
+    $()('#overlay').hide();
     $()('#debug-spanner').addClass('inverted');
     $()('#debug-cog').addClass('inverted');
   }
@@ -47,7 +49,6 @@ function OnClientReady ($, anchorAction) {
     reposition(dims);
 
     anchorAction().add($()('.debug-icon'));
-    anchorAction().add($()('.debug'));
   };
 }
 

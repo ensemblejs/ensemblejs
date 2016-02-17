@@ -67,18 +67,18 @@ function buildAcceptHash (page) {
 function buildGetRequestHandler (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
-    .then(buildAcceptHash((isFunction(page) ? page(req) : page)))
-    .then(acceptsHash => getAcceptTypeHandler(req, acceptsHash))
-    .then(handler => handler(req, res))
-    .catch(redirect, function applyRedirect (err) {
-      if (err.data.explainationToUser) {
-        req.flash('info', err.data.explainationToUser);
-      }
-      res.redirect(err.data.uri);
-    })
-    .catch(isRequestError, function respondWith4xx (err) {
-      res.status(err.reason).send(err.data.message);
-    });
+      .then(buildAcceptHash((isFunction(page) ? page(req) : page)))
+      .then(acceptsHash => getAcceptTypeHandler(req, acceptsHash))
+      .then(handler => handler(req, res))
+      .catch(redirect, function applyRedirect (err) {
+        if (err.data.explainationToUser) {
+          req.flash('info', err.data.explainationToUser);
+        }
+        res.redirect(err.data.uri);
+      })
+      .catch(isRequestError, function respondWith4xx (err) {
+        res.status(err.reason).send(err.data.message);
+      });
   };
 }
 

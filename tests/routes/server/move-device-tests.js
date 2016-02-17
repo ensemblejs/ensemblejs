@@ -9,9 +9,9 @@ var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
 var config = require('src/util/config');
-var posturl = require('../../route-testing').posturl;
+var url = require('../../route-testing').url;
 
-describe('/device/move', function () {
+describe('GET /device/move', function () {
   var onServerStart;
   var onServerStop;
 
@@ -66,7 +66,7 @@ describe('/device/move', function () {
     });
 
     it('should add the device over to the new player', done => {
-      request.post(posturl('/device/move', {toPlayer: 'p2'}), function (err, res) {
+      request.get(url('/device/move?toPlayer=p2'), function (err, res) {
         expect(res.statusCode).toEqual(302);
 
         players.getById('p2')
@@ -76,8 +76,8 @@ describe('/device/move', function () {
       });
     });
 
-    it('should from the device from the original player', done => {
-      request.post(posturl('/device/move', {toPlayer: 'p2'}), function (err, res) {
+    it('should remove the device from the original player', done => {
+      request.get(url('/device/move?toPlayer=p2'), function (err, res) {
         expect(res.statusCode).toEqual(302);
 
         players.getById('p1234')
@@ -88,7 +88,7 @@ describe('/device/move', function () {
     });
 
     it('should reload the page', done => {
-      request.post(posturl('/device/move', {toPlayer: 'p2'}), function (err, res) {
+      request.get(url('/device/move?toPlayer=p2'), function (err, res) {
         expect(res.statusCode).toEqual(302);
         expect(res.headers.location).toEqual('/');
         done(err);
@@ -108,7 +108,7 @@ describe('/device/move', function () {
       });
 
       it('should add the device over to the new player', done => {
-        request.post(posturl('/device/move', {toPlayer: 'p2'}), function (err, res) {
+        request.get(url('/device/move?toPlayer=p2'), function (err, res) {
           expect(res.statusCode).toEqual(302);
 
           players.getById('p2')
@@ -131,7 +131,7 @@ describe('/device/move', function () {
       });
 
       it('should return a 400', done => {
-        return request.post(posturl('/device/move', {toPlayer: 'p2'}), function (err,res) {
+        return request.get(url('/device/move?toPlayer=p2'), function (err,res) {
 
           expect(res.statusCode).toEqual(400);
           done(err);
@@ -140,14 +140,14 @@ describe('/device/move', function () {
     });
 
     it('should return a 400 if the toPlayer is not supplied', done => {
-      request.post(posturl('/device/move'), function (err, res) {
+      request.get(url('/device/move'), function (err, res) {
         expect(res.statusCode).toEqual(400);
         done(err);
       });
     });
 
     it('should return a 400 if the toPlayer does not exist', done => {
-      request.post(posturl('/device/move', {toPlayer: 'p3'}), function (err, res) {
+      request.get(url('/device/move?toPlayer=p3'), function (err, res) {
         expect(res.statusCode).toEqual(400);
         done(err);
       });

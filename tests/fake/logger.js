@@ -10,18 +10,20 @@ function logMessageOnly () {
   }
 }
 
+function silent () {}
+
 var logging = {
   loaded: sinon.spy(),
   plugin: sinon.spy(),
   subdue: sinon.spy(),
   called: sinon.spy(),
-  debug: logMessageOnly,
+  debug: silent,
   filename: sinon.spy(),
-  info: logMessageOnly,
+  info: silent,
   warn: logMessageOnly,
   error: logMessageOnly,
   socket: sinon.spy(),
-  trace: logMessageOnly
+  trace: silent
 };
 
 sinon.spy(logging, 'trace');

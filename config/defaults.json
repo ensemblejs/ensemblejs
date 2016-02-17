@@ -29,7 +29,7 @@
     "dashboard": false,
     "maxSavesPerPlayer": 1,
     "autoSaveBehaviour": "persistent",
-    "autoSaveThrottle": 2,
+    "autoSaveThrottle": 5,
     "locales": ["en"],
     "metrics": false
   },
@@ -83,9 +83,9 @@
     "enabled": false,
     "fps": false,
     "input": false,
-    "multiplayer": false,
+    "multiplayer": true,
     "network": false,
-    "startOpen": false,
+    "startOpen": true,
     "time": false,
     "gamepad": false
   },

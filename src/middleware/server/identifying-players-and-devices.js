@@ -27,7 +27,10 @@ function IdentifyingPlayersAndDevices (define, time) {
 
       return getDeviceById(req.sessionID)
         .then(createDeviceIfNoneFound)
-        .then(device => req.device = device)
+        .then(device => {
+          req.device = device;
+          logger.info({device: device}, 'Request device.');
+        })
         .then(() => next());
     };
   });
@@ -81,7 +84,10 @@ function IdentifyingPlayersAndDevices (define, time) {
       return getPlayerByDevice(req.device.id)
         .then(createAndLinkToDeviceIfNoPlayers)
         .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
-        .then(players => req.player = first(players))
+        .then(players => {
+          logger.info({player: first(players)}, 'Request player.');
+          req.player = first(players);
+        })
         .then(() => next())
         .catch(err => res.status(500).send(err));
     };

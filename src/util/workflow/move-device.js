@@ -17,7 +17,7 @@ export function moveDevice () {
   return function moveDeviceBetweenPlayers (req) {
 
     let fromPlayer = req.player.id;
-    let toPlayer = req.body.toPlayer;
+    let toPlayer = req.query.toPlayer;
     let deviceId = req.device.id;
 
     if (!toPlayer) {

@@ -1,12 +1,10 @@
 {
   "minify": true,
   "options": [
-    "setClasses"
   ],
   "feature-detects": [
     "test/battery",
     "test/canvas",
-    "test/fullscreen-api",
     "test/gamepad",
     "test/performance",
     "test/pointerlock-api",
