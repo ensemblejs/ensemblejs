@@ -75,6 +75,12 @@ export function get (database, id) {
     .catch(err => logger.info({err: err, database: database, id: id}, 'Could not get document.'));
 }
 
+export function remove (database, id) {
+  return connection.database(database)
+    .getAsync(id)
+    .then(r => connection.database(database).removeAsync(id, r._rev));
+}
+
 export function store (database, data) {
   return connection.database(database)
     .saveAsync(data.id || uuid.v4(), data._rev, data)

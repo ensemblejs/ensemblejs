@@ -26,25 +26,17 @@ function forEachMode (plugins, mode, callback) {
   }
 }
 
-function callEachPlugin (plugins, params) {
-  params = params || [];
-
-  each(plugins, function each (callback) {
-    callback(...params);
-  });
+function callEachPlugin (plugins, params = []) {
+  each(plugins, callback => callback(...params));
 }
 
-function callEachPluginAndPromises (plugins, params) {
-  params = params || [];
-
+function callEachPluginAndPromises (plugins, params = []) {
   return Bluebird.all(map(plugins, function each (callback) {
     return callback(...params);
   }));
 }
 
-function callEachWithMutation (plugins, mutator, saveId, params) {
-  params = params || [];
-
+function callEachWithMutation (plugins, mutator, saveId, params = []) {
   each(plugins, function eachWithMutation (callback) {
     mutator()(saveId, callback(...params));
   });

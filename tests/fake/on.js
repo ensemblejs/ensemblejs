@@ -3,10 +3,18 @@
 var sinon = require('sinon');
 var each = require('lodash').each;
 var realOn = require('../../src/events/shared/on').func();
+var Bluebird = require('bluebird');
 
-var fakeOn = {};
+var fakeOn = {
+  saveReady: function () { return Bluebird.resolve(); }
+};
+
 each(realOn, function (f, name) {
-  fakeOn[name] = sinon.spy();
+  if (fakeOn[name]) {
+    sinon.spy(fakeOn, name);
+  } else {
+    fakeOn[name] = sinon.spy();
+  }
 });
 
 module.exports = fakeOn;

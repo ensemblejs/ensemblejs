@@ -1,0 +1,6 @@
+.widget.widget-square-small(id=id)
+  p.title #{title}
+  p.value #{value}
+  form(id="the-form", method='POST', action="/debug/device/move")
+    input(type="hidden", name="toPlayer", value=toPlayer)
+    a#form-action Switch To Player

@@ -1,12 +1,34 @@
 'use strict';
 
+var execute = require('../../util/interval').execute;
+import {map} from 'lodash';
+
 function OnClientReady (tracker, $) {
   function updatePlayerCount (count) {
     $()('#player-count .value').text(count);
   }
 
+  function addPlayer (id, player, cell) {
+    $()('#debug').append(cell({
+      id: `player-${id}`,
+      title: `Player ${player.number}`,
+      value: player.status,
+      deviceId: 'd1',
+      toPlayer: player.playerId
+    }));
+  }
+
+  function removePlayer (id) {
+    $()(`#player-${id}`).remove();
+  }
+
+  function updatePlayer (id, player) {
+    $()(`#player-${id} .value`).text(player.status);
+  }
+
   return function setup () {
-    var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+    let rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+    let player = require('../../../public/partials/debug/player-switcher.jade');
 
     $()('#debug').append(rectSmall({
       id: 'player-count',
@@ -14,7 +36,54 @@ function OnClientReady (tracker, $) {
       value: '0'
     }));
 
-    tracker().onChangeOf('ensembleDebug.players', updatePlayerCount);
+    tracker().onChangeOf('ensembleDebug.playerCount', updatePlayerCount);
+    tracker().onElementAdded('ensembleDebug.players', addPlayer, player);
+    tracker().onElementRemoved('ensembleDebug.players', removePlayer);
+    tracker().onElementChanged('ensembleDebug.players', updatePlayer);
+  };
+}
+
+function StateSeed () {
+  return {
+    ensembleDebug: {
+      playerCount: 0,
+      players: []
+    }
+  };
+}
+
+var lastKnownPlayerGroup = [];
+function OnPlayerGroupChange () {
+  return function updatePlayerList (players) {
+    lastKnownPlayerGroup = map(players, player => {
+      player.id = player.number;
+      return player;
+    });
+  };
+}
+
+
+function BeforePhysicsFrame () {
+  function refreshPlayerList () {
+    return ['ensembleDebug.players', lastKnownPlayerGroup];
+  }
+
+  return execute(refreshPlayerList).every(1).second();
+}
+
+function OnClientConnect () {
+  return function incrementPlayerCount (state) {
+    return [
+      'ensembleDebug.playerCount', state.get('ensembleDebug.playerCount') + 1
+    ];
+  };
+}
+
+function OnClientDisconnect () {
+  return function decrementPlayerCount (state) {
+    return [
+      'ensembleDebug.playerCount', state.get('ensembleDebug.playerCount') - 1
+    ];
   };
 }
 
@@ -26,30 +95,11 @@ module.exports = {
       return;
     }
 
-    define()('StateSeed', function DebugMultiplayer () {
-      return {
-        ensembleDebug: {
-          players: 0
-        }
-      };
-    });
-
-    define()('OnClientConnect', function DebugMultiplayer () {
-      return function incrementPlayerCount(state) {
-        return [
-          'ensembleDebug.players', state.get('ensembleDebug.players') + 1
-        ];
-      };
-    });
-
-    define()('OnClientDisconnect', function DebugMultiplayer () {
-      return function decrementPlayerCount(state) {
-        return [
-          'ensembleDebug.players', state.get('ensembleDebug.players') + 1
-        ];
-      };
-    });
-
+    define()('StateSeed', StateSeed);
+    define()('OnClientConnect', OnClientConnect);
+    define()('OnClientDisconnect', OnClientDisconnect);
     define()('OnClientReady', ['StateTracker', '$'], OnClientReady);
+    define()('OnPlayerGroupChange', OnPlayerGroupChange);
+    define()('BeforePhysicsFrame', BeforePhysicsFrame);
   }
 };

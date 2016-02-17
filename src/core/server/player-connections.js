@@ -75,7 +75,8 @@ module.exports = {
       var players = map(savePlayers(save.id), function (connection) {
         return {
           number: connection.number,
-          status: connection.status
+          status: connection.status,
+          playerId: connection.playerId
         };
       });
 

@@ -1,6 +1,8 @@
 'use strict';
 
 var config = require('../../util/config');
+var post = require('../../util/request-handling').post;
+var moveDevice = require('../../util/workflow/move-device').moveDevice;
 
 module.exports = {
   type: 'Routes',
@@ -17,6 +19,7 @@ module.exports = {
       }
 
       app.get('/saves/:saveId/data', dumpSaveData);
+      app.post('/device/move', post(moveDevice()));
     }
 
     return {

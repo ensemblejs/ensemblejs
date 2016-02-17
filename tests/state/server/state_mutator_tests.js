@@ -184,14 +184,17 @@ describe('state mutator', function () {
         stateMutator(1, [123, 'controller.child.age']);
         expect(state.for(1).get('controller.child.age')).toBe(5);
       });
+
       it('should do nothing if second element of array is undefined', function () {
         stateMutator(1, ['controller.child.age', undefined]);
         expect(state.for(1).get('controller.child.age')).toBe(5);
       });
+
       it('should do nothing if second element of array is null', function () {
         stateMutator(1, ['controller.child.age', null]);
         expect(state.for(1).get('controller.child.age')).toBe(5);
       });
+
       it('should do nothing if second element of array is empty hash', function () {
         stateMutator(1, ['controller.child.age', {}]);
         expect(state.for(1).get('controller.child.age')).toBe(5);
@@ -200,6 +203,11 @@ describe('state mutator', function () {
       it('should unwrap dot strings into objects', function () {
         stateMutator(1, ['controller.child.age', 123]);
         expect(state.for(1).get('controller.child.age')).toBe(123);
+      });
+
+      it('should work where the second argument is an array', function () {
+        stateMutator(1, ['controller.list', [1, 2, 3]]);
+        expect(state.for(1).get('controller.list')).toEqual([1, 2, 3]);
       });
     });
   });

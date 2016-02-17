@@ -1,6 +1,6 @@
 'use strict';
 
-import {reject, filter, each, map, includes} from 'lodash';
+import {reject, filter, each, map, includes, isEmpty} from 'lodash';
 
 module.exports = {
   type: 'DelayedJobs',
@@ -66,7 +66,12 @@ module.exports = {
         newJobs = [];
         toCancel = [];
 
-        return ['ensemble.jobs', reject(jobs, ready)];
+        let jobsToSave = reject(jobs, ready);
+        if (isEmpty(state.get('ensemble.jobs')) && isEmpty(jobsToSave)) {
+          return;
+        }
+
+        return ['ensemble.jobs', jobsToSave];
       };
     });
 

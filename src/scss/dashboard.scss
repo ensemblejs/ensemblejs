@@ -152,6 +152,10 @@ $dashboard-border-colour: #000;
     height: 145px;
     width: 295px;
   }
+
+  form {
+    color: $dashboard-value-text-colour;
+  }
 }
 
 .overlay {

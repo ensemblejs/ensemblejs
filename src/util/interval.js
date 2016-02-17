@@ -6,14 +6,14 @@ var minutesPerHour = 60;
 var secondsPerHour = secondsPerMinute * minutesPerHour;
 
 function createSampleFunc (callback, frequency) {
-  var timeSinceLast = frequency;
+  var timeSinceLast = 0;
 
   return function sample (state, delta) {
     timeSinceLast += delta;
 
     if (timeSinceLast >= frequency) {
-      callback(state, delta);
       timeSinceLast -= frequency;
+      return callback(state, delta);
     }
   };
 }
@@ -25,8 +25,8 @@ function createThrottleFunc (callback, frequency) {
     callsSinceLast += 1;
 
     if (callsSinceLast >= frequency) {
-      callback(state, delta);
       callsSinceLast = 0;
+      return callback(state, delta);
     }
   };
 }

@@ -1,14 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var isArray = require('lodash').isArray;
-var isString = require('lodash').isString;
-var isEqual = require('lodash').isEqual;
-var isFunction = require('lodash').isFunction;
-var cloneDeep = require('lodash').cloneDeep;
-var filter = require('lodash').filter;
-var find = require('lodash').find;
-var get = require('lodash').get;
+import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find, get} from 'lodash';
 
 module.exports = {
   type: 'StateTracker',
@@ -25,7 +17,7 @@ module.exports = {
       args.unshift(priorModel);
       args.unshift(currentModel);
 
-      callback.apply(undefined, args);
+      callback(...args);
     }
 
     function invokeCallbackWithId (callback, currentModel, priorModel, data) {
@@ -40,7 +32,7 @@ module.exports = {
 
       args.unshift((priorModel) ? priorModel.id : currentModel.id);
 
-      callback.apply(undefined, args);
+      callback(...args);
     }
 
     function hasChanged (f) {
@@ -133,6 +125,12 @@ module.exports = {
     function handleArrays (change) {
       each(change.operatesOn(change.focus), function (model) {
         if (change.detectionFunc(change.focus, model)) {
+
+          if (!currentElement(change.focus, model) && !priorElement(change.focus, model)) {
+            logger().error({change: change}, 'Attempting to track changes in array where not all elements have an "id" property.');
+            return;
+          }
+
           invokeCallbackWithId(
             change.callback,
             currentElement(change.focus, model),
@@ -225,6 +223,7 @@ module.exports = {
     function onChangeOf (model, callback, data) {
       var change = {
         type: 'object',
+        originalFocus: model,
         focus: functionifyDotStrings(model),
         callback: callback,
         data: data
@@ -249,6 +248,7 @@ module.exports = {
 
       var change = {
         type: 'object',
+        originalFocus: model,
         focus: functionifyDotStrings(model),
         'when': when,
         callback: callback,
@@ -270,6 +270,7 @@ module.exports = {
     function onElementChanged (focusArray, callback, data) {
       var change = {
         type: 'array',
+        originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
         callback: callback,
         detectionFunc: elementChanged,
@@ -283,6 +284,7 @@ module.exports = {
     function onElementAdded (focusArray, onCallback, data) {
       var change = {
         type: 'array',
+        originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
         callback: onCallback,
         detectionFunc: elementAdded,
@@ -298,6 +300,7 @@ module.exports = {
     function onElementRemoved (focusArray, callback, data) {
       var change = {
         type: 'array',
+        originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
         callback: callback,
         detectionFunc: elementRemoved,

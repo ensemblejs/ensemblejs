@@ -7,3 +7,16 @@
   pointer-events:none;
   background-color: white;
 }
+
+.debug-icon.icon {
+  width: 32px;
+  height: 32px;
+}
+
+.debug-icon {
+  fill: white;
+}
+
+.inverted {
+  fill: black;
+}

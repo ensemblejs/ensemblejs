@@ -63,7 +63,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
 
       it('should partion players into games', function (done) {
@@ -92,7 +92,7 @@ describe('players connecting', function () {
         });
 
         it('should publish the players and their status in the game', function () {
-          expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+          expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
         });
       });
     });
@@ -106,7 +106,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
     });
 
@@ -125,7 +125,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
     });
 
@@ -159,7 +159,7 @@ describe('players connecting', function () {
     });
 
     it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online'}, {number: 2, status: 'online'}, {number: 3, status: 'not-joined'}], 1]);
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'online', playerId: 2}, {number: 3, status: 'not-joined'}], 1]);
     });
   });
 

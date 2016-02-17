@@ -85,16 +85,16 @@ function buildGetRequestHandler (jsonBuilder, page) {
 function buildPostRequestHandler (jsonBuilder) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
-    .catch(redirect, function applyRedirect (err) {
-      if (err.data.explainationToUser) {
-        req.flash('info', err.data.explainationToUser);
-      }
+      .catch(redirect, function applyRedirect (err) {
+        if (err.data.explainationToUser) {
+          req.flash('info', err.data.explainationToUser);
+        }
 
-      res.redirect(err.data.uri);
-    })
-    .catch(isRequestError, function respondWith4xx (err) {
-      res.status(err.reason).send(err.data.message);
-    });
+        res.redirect(err.data.uri);
+      })
+      .catch(isRequestError, function respondWith4xx (err) {
+        res.status(err.reason).send(err.data.message);
+      });
   };
 }
 

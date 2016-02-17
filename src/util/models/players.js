@@ -3,7 +3,7 @@
 import {logger} from '../../logging/server/logger';
 import {get, view, store} from '../database';
 import Bluebird from 'bluebird';
-import {map} from 'lodash';
+import {map, remove} from 'lodash';
 
 const collection = 'players';
 
@@ -18,9 +18,17 @@ export function getByDevice (deviceId) {
 }
 
 export function linkToDevice(playerId, deviceId) {
-  return get(collection, playerId)
+  return getById(playerId)
     .then(player => {
       player.deviceIds.push(deviceId);
+      return store(collection, player);
+    });
+}
+
+export function unlinkDevice (playerId, deviceId) {
+  return getById(playerId)
+    .then(player => {
+      player.deviceIds = remove(player.deviceIds, deviceId);
       return store(collection, player);
     });
 }
