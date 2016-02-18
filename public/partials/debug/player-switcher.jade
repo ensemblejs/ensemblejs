@@ -1,4 +1,5 @@
 .widget.widget-square-small(id=id)
   p.title #{title}
   p.value #{value}
-  a(href="/device/move?toPlayer=#{toPlayer}") Switch to player.
+  if toPlayer
+    a(href="/device/move?toPlayer=#{toPlayer}") Switch to player.

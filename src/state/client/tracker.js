@@ -20,17 +20,21 @@ module.exports = {
       callback(...args);
     }
 
-    function invokeCallbackWithId (callback, currentModel, priorModel, data) {
+    function addElementId (priorModel, currentModel) {
+      return priorModel ? priorModel.id : currentModel.id;
+    }
+
+    function invokeCallbackWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
       var args = isArray(data) ? cloneDeep(data) : [data];
 
-      if (priorModel) {
+      if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);
       }
       if (currentModel) {
         args.unshift(currentModel);
       }
 
-      args.unshift((priorModel) ? priorModel.id : currentModel.id);
+      args.unshift(addElementId(priorModel, currentModel));
 
       callback(...args);
     }
@@ -135,7 +139,8 @@ module.exports = {
             change.callback,
             currentElement(change.focus, model),
             priorElement(change.focus, model),
-            change.data
+            change.data,
+            change.alwaysPassPrior
           );
         }
       });
@@ -275,7 +280,8 @@ module.exports = {
         callback: callback,
         detectionFunc: elementChanged,
         operatesOn: currentValue,
-        data: data
+        data: data,
+        alwaysPassPrior: true
       };
 
       changes.push(change);
@@ -289,7 +295,8 @@ module.exports = {
         callback: onCallback,
         detectionFunc: elementAdded,
         operatesOn: currentValue,
-        data: data
+        data: data,
+        alwaysPassPrior: false
       };
 
       changes.push(change);
@@ -305,7 +312,8 @@ module.exports = {
         callback: callback,
         detectionFunc: elementRemoved,
         operatesOn: priorValue,
-        data: data
+        data: data,
+        alwaysPassPrior: false
       };
 
       changes.push(change);

@@ -17,7 +17,7 @@ function OnClientReady (tracker, $) {
       title: `Player ${player.number}`,
       value: player.status,
       deviceId: 'd1',
-      toPlayer: player.playerId
+      toPlayer: id === playerNumber ? undefined : player.playerId
     }));
 
     if (playerNumber && id === playerNumber) {
@@ -29,8 +29,9 @@ function OnClientReady (tracker, $) {
     $()(`#player-${id}`).remove();
   }
 
-  function updatePlayer (id, player) {
-    $()(`#player-${id} .value`).text(player.status);
+  function updatePlayer (id, current, prior, cell) {
+    removePlayer(id);
+    addPlayer(id, current, cell);
   }
 
   return function setup () {
@@ -46,7 +47,7 @@ function OnClientReady (tracker, $) {
     tracker().onChangeOf('ensembleDebug.playerCount', updatePlayerCount);
     tracker().onElementAdded('ensembleDebug.players', addPlayer, player);
     tracker().onElementRemoved('ensembleDebug.players', removePlayer);
-    tracker().onElementChanged('ensembleDebug.players', updatePlayer);
+    tracker().onElementChanged('ensembleDebug.players', updatePlayer, player);
   };
 }
 

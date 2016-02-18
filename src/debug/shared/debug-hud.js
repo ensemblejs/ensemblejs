@@ -12,15 +12,11 @@ function OnClientStart ($, tracker) {
   function hide () {
     $()('#debug').hide();
     $()('#overlay').show();
-    $()('#debug-spanner').removeClass('inverted');
-    $()('#debug-cog').removeClass('inverted');
   }
 
   function show () {
     $()('#debug').show();
     $()('#overlay').hide();
-    $()('#debug-spanner').addClass('inverted');
-    $()('#debug-cog').addClass('inverted');
   }
 
   return function addDebugOverlayToBody () {
@@ -45,6 +41,10 @@ function OnClientReady ($, anchorAction) {
   return function setup (dims) {
     var icon = require('../../../public/partials/debug/debug-icon.jade');
     $()('.icons').append(icon());
+
+    $()('#debug').append(icon());
+    $()('#debug #debug-spanner').addClass('inverted');
+    $()('#debug #debug-cog').addClass('inverted');
 
     reposition(dims);
 
