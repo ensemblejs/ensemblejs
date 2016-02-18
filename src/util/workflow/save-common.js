@@ -29,7 +29,6 @@ function redirectIfSinglePlayer (save, player, hostname) {
 }
 
 function redirectIfPlayerIsNotInSave (save, player, hostname) {
-  console.log('redirectIfPlayerIsNotInSave', save, player);
   return saves.isPlayerInSave(save.id, player.id)
     .then(function (playerIsInSave) {
       if (!playerIsInSave) {

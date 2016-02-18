@@ -3,14 +3,14 @@
 var expect = require('expect');
 var async = require('async');
 var entityLoader = require('../../src/plugins/folder-loader.js');
-var mkdir = require('fs').mkdir;
 var rmdir = require('fs').rmdir;
 var writeFile = require('fs').writeFile;
 var unlink = require('fs').unlink;
+var mkdirp = require('mkdirp');
 
 describe('given an empty path', function(){
 	beforeEach(function(done) {
-		mkdir(__dirname + '/empty', done);
+		mkdirp(__dirname + '/empty', done);
 	});
 
 	afterEach(function(done) {
@@ -25,7 +25,7 @@ describe('given an empty path', function(){
 describe('given a path with entities in it', function(){
 	beforeEach(function(done) {
     async.series([
-      function (step) { mkdir(__dirname + '/folder', step); },
+      function (step) { mkdirp(__dirname + '/folder', step); },
       function (step) { writeFile(__dirname + '/folder/one.js', 'module.exports = {herp: "derp"}; ', step); },
       function (step) { writeFile(__dirname + '/folder/two.js', 'module.exports = function() { return "derp" };', step); },
       function (step) { writeFile(__dirname + '/folder/one.js.ignored', 'The quick brown fox jumps over the lazy dog.', step); }
@@ -55,7 +55,7 @@ describe('given a path with entities in it', function(){
 describe('given an absolute path', function() {
   beforeEach(function(done) {
     async.series([
-      function (step) { mkdir(__dirname + '/folder', step); },
+      function (step) { mkdirp(__dirname + '/folder', step); },
       function (step) { writeFile(__dirname + '/folder/one.js', 'module.exports = {herp: "derp"}; ', step); }
     ], done);
   });
