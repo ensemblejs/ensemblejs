@@ -3,6 +3,9 @@
 var execute = require('../../util/interval').execute;
 import {map} from 'lodash';
 
+let playerNumber;
+var lastKnownPlayerGroup = [];
+
 function OnClientReady (tracker, $) {
   function updatePlayerCount (count) {
     $()('#player-count .value').text(count);
@@ -16,6 +19,10 @@ function OnClientReady (tracker, $) {
       deviceId: 'd1',
       toPlayer: player.playerId
     }));
+
+    if (playerNumber && id === playerNumber) {
+      $()(`#player-${id}`).addClass('widget-active');
+    }
   }
 
   function removePlayer (id) {
@@ -43,6 +50,13 @@ function OnClientReady (tracker, $) {
   };
 }
 
+function OnClientPlayerId ($) {
+  return function setPlayerId (number) {
+    playerNumber = number;
+    $()(`#player-${number}`).addClass('widget-active');
+  };
+}
+
 function StateSeed () {
   return {
     ensembleDebug: {
@@ -52,7 +66,6 @@ function StateSeed () {
   };
 }
 
-var lastKnownPlayerGroup = [];
 function OnPlayerGroupChange () {
   return function updatePlayerList (players) {
     lastKnownPlayerGroup = map(players, player => {
@@ -101,5 +114,6 @@ module.exports = {
     define()('OnClientReady', ['StateTracker', '$'], OnClientReady);
     define()('OnPlayerGroupChange', OnPlayerGroupChange);
     define()('BeforePhysicsFrame', BeforePhysicsFrame);
+    define()('OnClientPlayerId', ['$'], OnClientPlayerId);
   }
 };

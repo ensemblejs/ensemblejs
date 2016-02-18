@@ -1,6 +1,8 @@
 $dashboard-title-text-colour: #808080;
 $dashboard-value-text-colour: #000;
 $dashboard-border-colour: #000;
+$ensemble-background-colour: #162154;
+$ensemble-foreground-colour: #00b988;
 
 @mixin reset-spacing {
   padding: 0;
@@ -151,6 +153,10 @@ $dashboard-border-colour: #000;
 
     height: 145px;
     width: 295px;
+  }
+
+  .widget-active {
+    background-color: $ensemble-foreground-colour
   }
 
   form {

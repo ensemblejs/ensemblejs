@@ -29,7 +29,6 @@ function IdentifyingPlayersAndDevices (define, time) {
         .then(createDeviceIfNoneFound)
         .then(device => {
           req.device = device;
-          logger.info({device: device}, 'Request device.');
         })
         .then(() => next());
     };
@@ -85,7 +84,6 @@ function IdentifyingPlayersAndDevices (define, time) {
         .then(createAndLinkToDeviceIfNoPlayers)
         .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
         .then(players => {
-          logger.info({player: first(players)}, 'Request player.');
           req.player = first(players);
         })
         .then(() => next())

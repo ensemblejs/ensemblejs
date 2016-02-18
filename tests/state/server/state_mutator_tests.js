@@ -91,19 +91,15 @@ describe('state mutator', function () {
   it('should work with delayed promises', function (done) {
     stateMutator(1, new Bluebird((resolve) => {
       function delayedReaction () {
-        console.log('resolve');
         resolve(2);
       }
 
-      console.log('setTimeout');
       setTimeout(delayedReaction, 500);
     })
     .then(value => {
-      console.log('finally', value);
       return ['controller.score', value];
     }))
     .then(() => {
-        console.log('check results');
         expect(state.for(1).for('controller').get('score')).toEqual(2);
         done();
       });
