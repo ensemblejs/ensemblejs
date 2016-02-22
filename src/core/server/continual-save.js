@@ -18,7 +18,7 @@ module.exports = {
 
       logger.info('Enabled: "continual" save.');
 
-      function saveEveryFrame (state) {
+      function saveEveryFrame (delta, state) {
         saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
       }
 
