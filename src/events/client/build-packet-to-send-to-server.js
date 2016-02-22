@@ -5,7 +5,7 @@ var merge = require('lodash').merge;
 var isArray = require('lodash').isArray;
 var cloneDeep = require('lodash').cloneDeep;
 var sequence = require('distributedlife-sequence');
-var interval = require('../../util/interval');
+import {execute} from 'royal-sampler';
 
 module.exports = {
   type: 'BeforePhysicsFrame',
@@ -57,6 +57,6 @@ module.exports = {
       };
     });
 
-    return interval.execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).milliseconds();
+    return execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).milliseconds();
   }
 };

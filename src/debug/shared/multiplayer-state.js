@@ -1,6 +1,6 @@
 'use strict';
 
-var execute = require('../../util/interval').execute;
+import {execute} from 'royal-sampler';
 import {map} from 'lodash';
 
 let playerNumber;

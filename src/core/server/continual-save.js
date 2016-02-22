@@ -4,13 +4,12 @@ var includes = require('lodash').includes;
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 var saves = require('../../util/models/saves');
-var interval = require('../../util/interval');
+import {execute} from 'royal-sampler';
 
 module.exports = {
   type: 'ContinualSave',
   deps: ['DefinePlugin', 'RawStateAccess', 'Time'],
   func: function ContinualSave (define, rawState, time) {
-
 
     function AfterPhysicsFrame() {
       if (!includes(['persistent', 'ephemeral'], config.get().ensemble.autoSaveBehaviour)) {
@@ -23,7 +22,7 @@ module.exports = {
         saves.save(rawState().for(state.get('ensemble.saveId')), time().present());
       }
 
-      return interval.execute(saveEveryFrame).every(config.get().ensemble.autoSaveThrottle).calls();
+      return execute(saveEveryFrame).every(config.get().ensemble.autoSaveThrottle).calls();
     }
 
     function OnSaveReady () {
