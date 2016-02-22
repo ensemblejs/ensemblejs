@@ -36,13 +36,13 @@ describe('the delayed job manager', function() {
 	});
 
 	it('should allow you to add multiple effects', function() {
-		onPhysicsFrame(state, 0.5);
+		onPhysicsFrame(0.5, state);
 
 		expect(effect1.called).toEqual(true);
 	});
 
 	it('should remove finished effects from the jobs list', function() {
-		var newState = onPhysicsFrame(state, 0.5);
+		var newState = onPhysicsFrame(0.5, state);
 
 		expect(newState).toEqual(['ensemble.jobs', [{
 			key: 'key2',
@@ -54,7 +54,7 @@ describe('the delayed job manager', function() {
 
 	it('should be possible to cancel all effects of a certain key', function () {
 		manager.cancelAll('key1');
-		onPhysicsFrame(state, 1);
+		onPhysicsFrame(1, state);
 
 		expect(effect1.called).toEqual(false);
 		expect(effect2.called).toEqual(true);

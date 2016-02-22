@@ -39,9 +39,9 @@ module.exports = {
       rate.fromHere();
 
       var now = time().present();
-      var dt = (now - priorStepTime) / 1000;
+      var delta = (now - priorStepTime) / 1000;
 
-      update(dt);
+      update(delta);
 
       priorStepTime = now;
 

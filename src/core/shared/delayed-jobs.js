@@ -10,13 +10,13 @@ module.exports = {
     var toCancel = [];
     var jobNames = [];
 
-    function tick(jobs, dt) {
+    function tick(jobs, delta) {
       return map(jobs, function subtractDeltaFromDuration (job) {
         if (job.duration === Infinity) {
           return job;
         }
 
-        job.duration -= dt;
+        job.duration -= delta;
         return job;
       });
     }
@@ -46,7 +46,7 @@ module.exports = {
     }
 
     define()('OnPhysicsFrame', function DelayedJobs () {
-      return function tickActiveJobs (state, dt) {
+      return function tickActiveJobs (delta, state) {
         var jobs = state.get('ensemble.jobs');
         var saveId = state.get('ensemble.saveId');
 
@@ -59,7 +59,7 @@ module.exports = {
         jobs = jobs.concat(newJobs);
         each(filter(jobs, cancelled), devuxCheckJobName);
         jobs = reject(jobs, cancelled);
-        jobs = tick(jobs, dt);
+        jobs = tick(jobs, delta);
 
         each(filter(jobs, ready), callOnCompleteHandlerForReadyJobs);
 
