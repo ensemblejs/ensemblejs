@@ -11,11 +11,11 @@ module.exports = {
     function sample (callback, frequency) {
       var timeSinceLast = 0;
 
-      return function (state, delta) {
+      return function (delta) {
         timeSinceLast += delta;
 
         if (timeSinceLast >= frequency) {
-          callback(state, delta);
+          callback(...arguments);
           timeSinceLast -= frequency;
         }
       };

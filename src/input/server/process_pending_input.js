@@ -22,7 +22,7 @@ module.exports = {
 
 		define()('BeforePhysicsFrame', function ProcessPendingInputServer () {
 
-			return function processPendingInput (state, delta) {
+			return function processPendingInput (delta, state) {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;

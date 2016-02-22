@@ -38,7 +38,7 @@ module.exports = {
       priorStep = now;
 
       var saveState = state().for(save.id);
-      var opts = [saveState, delta];
+      var opts = [delta, saveState];
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 

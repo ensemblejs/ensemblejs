@@ -128,6 +128,7 @@ export function make (namespace, type, name, frequency = config.measure.frequenc
     toHere: stop,
     manual: add,
     results: results,
+    samples: samples,
     track: track
   };
 

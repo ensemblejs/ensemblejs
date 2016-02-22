@@ -22,7 +22,7 @@ module.exports = {
       var running = reject(saves().loaded(), pausedSaves);
       each(running, function callUpdateOnEach (save) {
         var saveState = state().for(save.id);
-        var opts = [saveState, delta];
+        var opts = [delta, saveState];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 

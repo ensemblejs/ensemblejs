@@ -42,7 +42,7 @@ module.exports = {
     }
 
     function OnPhysicsFrame () {
-      return function tickPhysicsSimulation (state, delta) {
+      return function tickPhysicsSimulation (delta, state) {
         var changes = physicsSystem().tick(delta);
 
         if (!changes) {

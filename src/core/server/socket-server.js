@@ -94,7 +94,7 @@ module.exports = {
         function addLogging (eventName, eventCallback) {
           return function withLogging () {
             logger.socket(socketInfo, arguments, eventName);
-            eventCallback.apply(this, arguments);
+            eventCallback(...arguments);
           };
         }
 
@@ -152,7 +152,7 @@ module.exports = {
         function addLogging (eventName, eventCallback) {
           return function withLogging () {
             logger.socket(socketInfo, arguments, eventName);
-            eventCallback.apply(this, arguments);
+            eventCallback(...arguments);
           };
         }
 
@@ -214,7 +214,7 @@ module.exports = {
         function addLogging (eventName, eventCallback) {
           return function withLogging () {
             logger.socket(socketInfo, arguments, eventName);
-            eventCallback.apply(this, arguments);
+            eventCallback(...arguments);
           };
         }
 

@@ -68,8 +68,8 @@ describe('the engine', function() {
 		it('should call OnPhysicsFrameA with the delta in ms', function() {
 			fakeTime.present = function () { return 5000; };
 			onServerStart();
-			expect(update1.firstCall.args[1]).toEqual(5);
-			expect(update2.firstCall.args[1]).toEqual(5);
+			expect(update1.firstCall.args[0]).toEqual(5);
+			expect(update2.firstCall.args[0]).toEqual(5);
 			onServerStop();
 		});
 
@@ -109,8 +109,8 @@ describe('the engine', function() {
 				expect(update3[1].called).toBe(true);
 				expect(update4[1].called).toBe(true);
 
-				expect(update3[1].firstCall.args[1]).toEqual(5);
-				expect(update4[1].firstCall.args[1]).toEqual(5);
+				expect(update3[1].firstCall.args[0]).toEqual(5);
+				expect(update4[1].firstCall.args[0]).toEqual(5);
 			});
 		});
 
@@ -131,7 +131,7 @@ describe('the engine', function() {
 			values['ensemble.paused'] = false;
 			fakeTime.present = function () { return 10100; };
 			onServerStart();
-			expect(update1.firstCall.args[1]).toEqual(0.1);
+			expect(update1.firstCall.args[0]).toEqual(0.1);
 			onServerStop();
 		});
 

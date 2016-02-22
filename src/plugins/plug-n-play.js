@@ -93,11 +93,11 @@ function wrapOriginalFunction (original, key, prefix, type) {
 
     if (timer && isNotProfileExclusion(type)) {
       timer.fromHere();
-      var result = original.apply(this, arguments);
+      var result = original(...arguments);
       timer.toHere();
       return result;
     } else {
-      return original.apply(this, arguments);
+      return original(...arguments);
     }
   };
 }
@@ -123,7 +123,7 @@ function wrapEachFunctionInObject (obj, prefix, type) {
 }
 
 function addLoggingToPlugin (module, prefix, args) {
-  var plugin = module.func.apply(undefined, args);
+  var plugin = module.func(...args);
 
   if (plugin instanceof Function) {
     return wrapOriginalFunction(plugin, module.name, prefix, module.type);

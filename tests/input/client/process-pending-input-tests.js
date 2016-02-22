@@ -121,19 +121,19 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call the "noEvent" on the "model" bound as "nothing"', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.noEvent.called).toBe(true);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'nothing'}, 'ActionMap called']);
 		});
 
 		it('should pass in the standard event data', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			var expected = {timestamp: undefined, playerId: 3, delta: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(currentState);
@@ -150,7 +150,7 @@ describe('Input Bindings', function() {
 			});
 
 			it('should not call actions without the "whenWaiting" flag', function () {
-				beforePhysicsFrame(currentState, 16);
+				beforePhysicsFrame(16, currentState);
 				expect(model.waiting.called).toBe(false);
 			});
 		});
@@ -164,7 +164,7 @@ describe('Input Bindings', function() {
 			});
 
 			it ('should do nothing', function() {
-				beforePhysicsFrame(currentState, 16);
+				beforePhysicsFrame(16, currentState);
 				expect(model.noEvent.called).toBe(false);
 				expect(mutator.called).toBe(false);
 			});
@@ -188,12 +188,12 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.keyEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -201,19 +201,19 @@ describe('Input Bindings', function() {
 
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'key'}, 'ActionMap called']);
 		});
 
 		it('should ignore the key case', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
 			mutator.reset();
 
 			rawData = { keys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, undefined, save, playerId);
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -222,7 +222,7 @@ describe('Input Bindings', function() {
 
 		it('should not call bindings w/ modifiers if no modifier pressed', function () {
 
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -232,7 +232,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should only call bindings w/ modifiers if modifier pressed', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
 			model.keyModCtrl.reset();
@@ -242,7 +242,7 @@ describe('Input Bindings', function() {
 
 			rawData = { keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
 			newUserInput(rawData, undefined, save, playerId);
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -263,26 +263,26 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should ignore the key case', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
 			mutator.reset();
 
 			rawData = { singlePressKeys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, undefined, save, playerId);
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.keyEvent.called).toBe(false);
@@ -290,7 +290,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call bindings w/ modifiers if no modifier pressed', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
@@ -300,7 +300,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should only call bindings w/ modifiers if modifier pressed', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			model.keyEvent.reset();
 			model.keyPressEvent.reset();
 			model.keyModCtrl.reset();
@@ -311,7 +311,7 @@ describe('Input Bindings', function() {
 
 			rawData = { singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
 			newUserInput(rawData, undefined, save, playerId);
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -332,7 +332,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should do nothing if there are no events bound to that key', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.called).toBe(false);
 			expect(model.keyPressEvent.called).toBe(false);
@@ -351,12 +351,12 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call actions without the "whenWaiting" flag', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.waiting.called).toBe(false);
 		});
 
 		it('should call actions with the "whenWaiting" flag', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.keyEvent.called).toBe(true);
 		});
 	});
@@ -372,19 +372,19 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.touchEvent.firstCall.args).toEqual([currentState, 4, 5, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'touch0'}, 'ActionMap called']);
 		});
 	});
@@ -400,7 +400,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should do nothing if there are no events bound to touch', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 
 			expect(model.touchEvent.called).toBe(false);
 			expect(model.noEvent.called).toBe(false);
@@ -417,7 +417,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call actions without the "whenWaiting" flag', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.waiting.called).toBe(false);
 		});
 	});
@@ -433,14 +433,14 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.cursorEvent.firstCall.args).toEqual([currentState, 6,7, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'cursor'}, 'ActionMap called']);
 		});
 	});
@@ -458,7 +458,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call any matching functions with the touch coordinates', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.cursorEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
 		});
@@ -475,12 +475,12 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call the "noEvent" on the "model" bound as "nothing"', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.noEvent.called).toBe(false);
 		});
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.mouseClickEvent.firstCall.args).toEqual([currentState, 1, {timestamp: undefined, playerId: 3, delta: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -497,7 +497,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call actions without the "whenWaiting" flag', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.waiting.called).toBe(false);
 		});
 	});
@@ -516,7 +516,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should call any matching functions with direction vector and the fource', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, 0.1, 1.0, {timestamp: Date.now(), playerId: 3, delta: 16}]);
 			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, 0.9, 0.3, {timestamp: Date.now(), playerId: 3, delta: 16}]);
 			expect(mutator.called).toBe(true);
@@ -524,7 +524,7 @@ describe('Input Bindings', function() {
 
 		it('should log a debug message', function() {
 			fakeLogger.debug.reset();
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(fakeLogger.debug.firstCall.args).toEqual([{key: 'left-stick'}, 'ActionMap called']);
 			expect(fakeLogger.debug.secondCall.args).toEqual([{key: 'right-stick'}, 'ActionMap called']);
 		});
@@ -546,7 +546,7 @@ describe('Input Bindings', function() {
 		});
 
 		it('should not call any matching functions with direction vector and the fource', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.leftStickEvent.called).toEqual(false);
 			expect(model.rightStickEvent.called).toEqual(false);
 			expect(mutator.called).toBe(false);
@@ -567,7 +567,7 @@ describe('Input Bindings', function() {
 
 
 		it('should not call actions without the "whenWaiting" flag', function () {
-			beforePhysicsFrame(currentState, 16);
+			beforePhysicsFrame(16, currentState);
 			expect(model.waiting.called).toBe(false);
 		});
 	});

@@ -58,7 +58,7 @@ describe('the collision detection bridge', function () {
       });
 
       onEachFrame = bridge[1].OnPhysicsFrame(defer('arcade'));
-      onEachFrame(state, 0.15);
+      onEachFrame(0.15, state);
     });
 
     it('should pass in a fake gameId as only one game runs on the client', function () {
@@ -84,7 +84,7 @@ describe('the collision detection bridge', function () {
           callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]});
         };
 
-        onEachFrame(state, 0.15);
+        onEachFrame(0.15, state);
       });
 
       afterEach(function () {
@@ -92,8 +92,8 @@ describe('the collision detection bridge', function () {
       });
 
       it('should pass the state and delta to the callback', function () {
-        expect(onCollisionCallback.firstCall.args[0]).toEqual(state);
-        expect(onCollisionCallback.firstCall.args[1]).toEqual(0.15);
+        expect(onCollisionCallback.firstCall.args[0]).toEqual(0.15);
+        expect(onCollisionCallback.firstCall.args[1]).toEqual(state);
       });
 
       it('should pass in optional data spread as subsequent params', function () {

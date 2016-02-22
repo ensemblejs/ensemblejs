@@ -25,7 +25,7 @@ module.exports = {
       args.unshift(priorModel);
       args.unshift(currentModel);
 
-      callback.apply(undefined, args);
+      callback(...args);
     }
 
     function invokeCallbackWithId (callback, currentModel, priorModel, data) {
@@ -40,7 +40,7 @@ module.exports = {
 
       args.unshift((priorModel) ? priorModel.id : currentModel.id);
 
-      callback.apply(undefined, args);
+      callback(...args);
     }
 
     function hasChanged (f, saveId) {

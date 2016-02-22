@@ -9,17 +9,17 @@ module.exports = {
   func: function CollisionDetectionBridge (define, maps, collisionDetectionSystem) {
 
     function OnPhysicsFrame (mode) {
-      return function callSystemWithRelevantMapsAndSaveId (state, delta) {
+      return function callSystemWithRelevantMapsAndSaveId (delta, state) {
         var changes = [];
 
         forEachMode(maps(), mode(), function (map) {
 
           function onCollision (callback, collisionMap) {
             var onCollisionArgs = clone(collisionMap.data) || [];
-            onCollisionArgs.unshift(delta);
             onCollisionArgs.unshift(state);
+            onCollisionArgs.unshift(delta);
 
-            changes.push(callback.apply(undefined, onCollisionArgs));
+            changes.push(callback(...onCollisionArgs));
           }
 
           collisionDetectionSystem().detectCollisions(map, 'client', onCollision);

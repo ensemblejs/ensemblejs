@@ -296,14 +296,14 @@ describe('physics system bridge', function () {
     });
 
     it('should call tick on the physics system', function () {
-      onPhysicsFrame(scopedState, 0.15);
+      onPhysicsFrame(0.15, scopedState);
 
       expect(physicsSystem.tick.firstCall.args).toEqual([0.15]);
     });
 
     describe('when nothing is returned', function () {
       it('should return nothing', function () {
-        expect(onPhysicsFrame(scopedState, 0.15)).toEqual(undefined);
+        expect(onPhysicsFrame(0.15, scopedState)).toEqual(undefined);
       });
     });
 
@@ -326,7 +326,7 @@ describe('physics system bridge', function () {
 
       describe('simple objects', function () {
         it('should update the state models with the new physics values', function () {
-          expect(onPhysicsFrame(scopedState, 0.15)).toEqual({
+          expect(onPhysicsFrame(0.15, scopedState)).toEqual({
             source: {
               state: {
                 position: { x: 14, y: 45 }
@@ -344,7 +344,7 @@ describe('physics system bridge', function () {
         });
 
         it('should be able to handle keys that match arrays', function () {
-          expect(onPhysicsFrame(scopedState, 0.15)).toEqual({
+          expect(onPhysicsFrame(0.15, scopedState)).toEqual({
             source: {
               state: {
                 position: { x: 14, y: 45 }

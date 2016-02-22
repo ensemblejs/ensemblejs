@@ -14,43 +14,43 @@ describe('callbacks every interval', function () {
 
   it('should call the function every n milliseconds', function () {
     var update = plugin(callback).every(15).milliseconds();
-    update(undefined, 0.005);
+    update(0.005, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.01);
+    update(0.01, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 0.01);
+    update(0.01, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 0.01);
+    update(0.01, undefined);
     expect(callback.callCount).toBe(2);
   });
 
   it('should call the function every n seconds', function () {
     var update = plugin(callback).every(2).seconds();
-    update(undefined, 1.9);
+    update(1.9, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.1);
+    update(0.1, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 2);
+    update(2, undefined);
     expect(callback.callCount).toBe(2);
   });
 
   it('should call the function every n minutes', function () {
     var update = plugin(callback).every(1).minute();
-    update(undefined, 59.999);
+    update(59.999, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.001);
+    update(0.001, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 60);
+    update(60, undefined);
     expect(callback.callCount).toBe(2);
   });
 
   it('should call the function every n hours', function () {
     var update = plugin(callback).every(3).hours();
-    update(undefined, 10799.999);
+    update(10799.999, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.001);
+    update(0.001, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 10800);
+    update(10800, undefined);
     expect(callback.callCount).toBe(2);
   });
 });
@@ -62,31 +62,31 @@ describe('callbacks about n times an interval', function () {
 
   it('should call the function n times a second', function () {
     var update = plugin(callback).about(5).timesPer.second();
-    update(undefined, 0.199);
+    update(0.199, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.001);
+    update(0.001, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 0.200);
+    update(0.200, undefined);
     expect(callback.callCount).toBe(2);
   });
 
   it('should call the function n times a minute', function () {
     var update = plugin(callback).about(5).timesPer.minute();
-    update(undefined, 11.999);
+    update(11.999, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.001);
+    update(0.001, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 12);
+    update(12, undefined);
     expect(callback.callCount).toBe(2);
   });
 
   it('should call the function n times an hour', function () {
     var update = plugin(callback).about(5).timesPer.hour();
-    update(undefined, 719.999);
+    update(719.999, undefined);
     expect(callback.callCount).toBe(0);
-    update(undefined, 0.001);
+    update(0.001, undefined);
     expect(callback.callCount).toBe(1);
-    update(undefined, 720);
+    update(720, undefined);
     expect(callback.callCount).toBe(2);
   });
 });

@@ -98,7 +98,7 @@ function inputCallback (state) {
 }
 actionMap.push(['*', { space: [{call: inputCallback} ] }]);
 
-function gameLogic (state) {
+function gameLogic (delta, state) {
   return {
     namespace: {
       count: state.for('namespace').get('count') + 1,

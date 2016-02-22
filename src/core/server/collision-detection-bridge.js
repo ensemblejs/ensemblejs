@@ -9,7 +9,7 @@ module.exports = {
   func: function CollisionDetection (define, maps, collisionDetectionSystem) {
 
     function OnPhysicsFrame () {
-      return function callSystemWithRelevantMapsAndSaveId (state, delta) {
+      return function callSystemWithRelevantMapsAndSaveId (delta, state) {
         var changes = [];
 
         var saveId = state.get('ensemble.saveId');
@@ -19,10 +19,10 @@ module.exports = {
 
           function onCollision (callback, collisionMap) {
             var onCollisionArgs = clone(collisionMap.data) || [];
-            onCollisionArgs.unshift(delta);
             onCollisionArgs.unshift(state);
+            onCollisionArgs.unshift(delta);
 
-            changes.push(callback.apply(undefined, onCollisionArgs));
+            changes.push(callback(...onCollisionArgs));
           }
 
           collisionDetectionSystem().detectCollisions(
