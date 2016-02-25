@@ -18,7 +18,7 @@ module.exports = {
 
     return function setupLatencyCalculation (state, socket) {
       statistics[socket.id] = {
-        latency: profiler().timer('ensemblejs', 'socket', 'latency', 1),
+        latency: profiler().timer('ensemblejs', 'socket', 'latency'),
         packets: {}
       };
 

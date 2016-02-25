@@ -6,7 +6,7 @@ import {plugin} from '../../../src/plugins/plug-n-play';
 var defer = require('../../support').defer;
 var logger = require('../../fake/logger');
 
-var stateMutator = require('src/state/client/mutator').func(defer(logger));
+var stateMutator = require('../../../src/state/client/mutator').func(defer(logger));
 var state = plugin('StateAccess');
 var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 

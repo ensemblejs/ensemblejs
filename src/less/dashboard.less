@@ -1,51 +1,51 @@
-$dashboard-title-text-colour: #808080;
-$dashboard-value-text-colour: #000;
-$dashboard-border-colour: #000;
-$ensemble-background-colour: #162154;
-$ensemble-foreground-colour: #00b988;
+@dashboard-title-text-colour: #808080;
+@dashboard-value-text-colour: #000;
+@dashboard-border-colour: #000;
+@ensemble-background-colour: #162154;
+@ensemble-foreground-colour: #00b988;
 
-@mixin reset-spacing {
+.reset-spacing {
   padding: 0;
   margin: 0;
 
   line-height: 1em;
 }
 
-@mixin flex-children {
+.flex-children {
   width: 100%;
   display: flex;
   flex-flow: row wrap;
 }
 
-@mixin dashboard-border {
+.dashboard-border {
   box-sizing: border-box;
 
-  border: 1px solid $dashboard-border-colour;
+  border: 1px solid @dashboard-border-colour;
   border-radius: 4px;
 }
 
-@mixin dashboard-tiny-text {
+.dashboard-tiny-text {
   .title { font-size: 12pt; }
   .value { font-size: 20pt; }
 }
 
-@mixin dashboard-small-text {
+.dashboard-small-text {
   .title { font-size: 14pt; }
   .value { font-size: 20pt; }
 }
 
-@mixin dashboard-medium-text {
+.dashboard-medium-text {
   .title { font-size: 36pt; }
   .value { font-size: 72pt; }
 }
 
-@mixin dashboard {
-  @include flex-children;
-  @include reset-spacing;
+.dashboard {
+  .flex-children;
+  .reset-spacing;
 
   p {
-    @include reset-spacing;
-    color: $dashboard-title-text-colour;
+    .reset-spacing;
+    color: @dashboard-title-text-colour;
     font-weight: normal;
   }
 
@@ -54,36 +54,36 @@ $ensemble-foreground-colour: #00b988;
   }
 
   .value {
-    color: $dashboard-value-text-colour;
+    color: @dashboard-value-text-colour;
     font-weight: bold;
 
     margin: auto;
   }
 
   .frame-square-small {
-    @include flex-children;
+    .flex-children;
 
-    height: 150px;
     width: 150px;
+    height: 150px;
   }
 
   .frame-rect-medium {
-    @include flex-children;
+    .flex-children;
 
-    height: 150px;
     width: 300px;
+    height: 150px;
   }
 
   .frame-square-medium {
-    @include flex-children;
+    .flex-children;
 
-    height: 300px;
     width: 300px;
+    height: 300px;
   }
 
   .widget {
-    @include dashboard-border;
-    @include reset-spacing;
+    .dashboard-border;
+    .reset-spacing;
 
     align-items: center;
     display: flex;
@@ -95,14 +95,14 @@ $ensemble-foreground-colour: #00b988;
   }
 
   .widget-square-tiny {
-    @include dashboard-tiny-text;
+    .dashboard-tiny-text;
 
     height: 70px;
     width: 70px;
   }
 
   .widget-square-tiny-solo {
-    @include dashboard-tiny-text;
+    .dashboard-tiny-text;
 
     height: 70px;
     width: 70px;
@@ -114,14 +114,14 @@ $ensemble-foreground-colour: #00b988;
   }
 
   .widget-rect-small {
-    @include dashboard-tiny-text;
+    .dashboard-tiny-text;
 
     height: 70px;
     width: 145px;
   }
 
   .widget-rect-small-flipped {
-    @include dashboard-tiny-text;
+    .dashboard-tiny-text;
 
     height: 70px;
     width: 145px;
@@ -133,7 +133,7 @@ $ensemble-foreground-colour: #00b988;
   }
 
   .widget-square-small {
-    @include dashboard-small-text;
+    .dashboard-small-text;
 
     height: 145px;
     width: 145px;
@@ -142,32 +142,32 @@ $ensemble-foreground-colour: #00b988;
   }
 
   .widget-square-medium {
-    @include dashboard-medium-text;
+    .dashboard-medium-text;
 
     height: 295px;
     width: 295px;
   }
 
   .widget-rect-medium {
-    @include dashboard-small-text;
+    .dashboard-small-text;
 
     height: 145px;
     width: 295px;
   }
 
   .widget-active {
-    background-color: $ensemble-foreground-colour
+    background-color: @ensemble-foreground-colour
   }
 
   form {
-    color: $dashboard-value-text-colour;
+    color: @dashboard-value-text-colour;
   }
 }
 
 .overlay {
-  @include dashboard;
+  .dashboard;
 }
 
 .debug {
-  @include dashboard;
+  .dashboard;
 }

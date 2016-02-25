@@ -8,7 +8,7 @@ var players = require('../../../src/util/models/players');
 var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
-var config = require('src/util/config');
+var config = require('../../../src/util/config');
 var url = require('../../route-testing').url;
 
 describe('GET /device/move', function () {

@@ -1,6 +1,6 @@
 'use strict';
 
-import {sortBy, first, last, map, reduce} from 'lodash';
+import {sortBy, first, last, map, reduce, remove} from 'lodash';
 import {plugin, boilerplate} from '../../plugins/plug-n-play';
 
 function getPercentile (percentile, values) {
@@ -65,12 +65,16 @@ export function make (namespace, type, name, frequency = config.measure.frequenc
     add(duration);
   }
 
+  function flush () {
+    return {samples: remove(samples, () => true)};
+  }
+
   function results (includeSamples = false, calculate = false) {
     let theNumbers = {
       key: `${namespace}.${type}.${name}`,
       frequency: frequency,
-      samples: samples.length,
-      raw: includeSamples ? samples : undefined,
+      length: samples.length,
+      samples: includeSamples ? samples : [],
       veryFirstTime: veryFirstTime,
       veryLastTime: veryLastTime,
       rate: calculateRate(samples, veryFirstTime, time.present(), frequency),
@@ -128,6 +132,7 @@ export function make (namespace, type, name, frequency = config.measure.frequenc
     toHere: stop,
     manual: add,
     results: results,
+    flush: flush,
     samples: samples,
     track: track
   };

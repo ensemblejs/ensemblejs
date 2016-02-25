@@ -9,7 +9,7 @@ module.exports = {
   js: ['game/**/*.js'],
   locales: ['./game/locales/*.json'],
   modes: ['./build/*.js'],
-  scss: ['game/**/*.scss'],
+  less: ['game/**/*.less'],
   seeds: ['game/seeds/**'],
   src: ['game/js/**'],
   tests: ['tests/**/*.js'],
@@ -23,7 +23,7 @@ module.exports = {
   framework: {
     clean: ['public/css/*.css', 'data/db', 'data/logs'],
     js: ['ensemble.js', 'src/**/*.js'],
-    scss: ['src/scss/**/*.scss'],
+    less: ['src/less/**/*.less'],
     tests: ['tests/*.js', 'tests/**/*.js'],
     coveragejs: [
       'ensemble.js',

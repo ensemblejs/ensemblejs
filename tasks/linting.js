@@ -1,8 +1,10 @@
 'use strict';
 
 var jshint = require('gulp-jshint');
-var scsslint = require('gulp-scss-lint');
 var plumber = require('gulp-plumber');
+var less = require('gulp-less');
+var csslint = require('gulp-csslint');
+var sourcemaps = require('gulp-sourcemaps');
 
 var paths = require('./paths');
 var onError = require('./util/error');
@@ -17,13 +19,16 @@ function addTasks (gulp) {
       .pipe(jshint.reporter('fail'));
   });
 
-  gulp.task('framework:lint-scss', function () {
-    return gulp.src(paths.framework.scss)
+  gulp.task('framework:lint-less', function () {
+    return gulp.src(paths.framework.less)
       .pipe(plumber({errorHandler: onError}))
-      .pipe(scsslint({bundleExec: true }));
+      .pipe(sourcemaps.init())
+      .pipe(less())
+      .pipe(csslint())
+      .pipe(csslint.reporter('compact'));
   });
 
-  gulp.task('framework:lint', ['framework:lint-code', 'framework:lint-scss']);
+  gulp.task('framework:lint', ['framework:lint-code', 'framework:lint-less']);
 }
 
 module.exports = addTasks;

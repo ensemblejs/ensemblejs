@@ -1,7 +1,7 @@
-$background-color: #4a4a4a;
+@background-color: #4a4a4a;
 
 body {
-  background-color: $background-color;
+  background-color: @background-color;
   color: #fff;
   margin: 0;
   overflow: hidden;
@@ -12,7 +12,7 @@ html:full-screen {
   background-color: #222 !important;
 }
 
-@mixin noselect {
+.noselect {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none;   /* Chrome/Safari/Opera */
   -khtml-user-select: none;    /* Konqueror */
@@ -93,10 +93,10 @@ html:full-screen {
 }
 
 
-$accent-color: #7ed321;
-$accent-color-light: #b8e986;
-$button-text: #4a4a4a;
-$button-text-hover: #4a90e2;
+@accent-color: #7ed321;
+@accent-color-light: #b8e986;
+@button-text: #4a4a4a;
+@button-text-hover: #4a90e2;
 
 p {
   color: #fff;
@@ -104,7 +104,7 @@ p {
   margin: 0;
 }
 
-.content {
+.content { /* csslint allow: ids */
   display: flex;
   flex-flow: column nowrap;
   justify-content: space-between;
@@ -144,7 +144,7 @@ p {
     }
 
     .primary-message {
-      color: $accent-color;
+      color: @accent-color;
       font-size: 72px;
       font-weight: 900;
     }
@@ -159,11 +159,11 @@ p {
       user-select: none;
 
       a.call-to-action {
-        background-color: $accent-color-light;
+        background-color: @accent-color-light;
         border: 1px solid;
         border-radius: 8px;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 1px 1px rgba(0, 0, 0, .2);
-        color: $button-text;
+        color: @button-text;
         font-size: 20px;
         padding: 6px 12px;
         text-decoration: none;
@@ -172,11 +172,11 @@ p {
       }
 
       a:hover.call-to-action {
-        background-color: darken($accent-color-light, 20%);
+        background-color: darken(@accent-color-light, 20%);
       }
 
       a:active.call-to-action {
-        background-color: darken($accent-color-light, 30%);
+        background-color: darken(@accent-color-light, 30%);
         box-shadow: inset 0 1px 4px rgba(0, 0, 0, .6);
       }
     }
@@ -195,16 +195,17 @@ p {
 }
 
 @font-face {
-    font-family: 'icomoon';
-    src:
-        url('/ensemble/fonts/ensemble.ttf?o7glsb') format('truetype'),
-        url('/ensemble/fonts/ensemble.woff?o7glsb') format('woff'),
-        url('/ensemble/fonts/ensemble.svg?o7glsb#ensemble') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'icomoon';
+  src:
+    url('/ensemble/fonts/ensemble.eot?o7glsb&#iefix') format('embedded-opentype'),
+    url('/ensemble/fonts/ensemble.ttf?o7glsb') format('truetype'),
+    url('/ensemble/fonts/ensemble.woff?o7glsb') format('woff'),
+    url('/ensemble/fonts/ensemble.svg?o7glsb#ensemble') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
-@mixin icon {
+.icon {
     /* use !important to prevent issues with browser extensions that change fonts */
     font-family: 'icomoon' !important;
     speak: none;
@@ -228,7 +229,7 @@ p {
   }
 
   .stick {
-    @include noselect;
+    .noselect;
 
     border-radius: 50%;
     width: 100px;
@@ -241,7 +242,7 @@ p {
     color: lightgrey;
     background-color: grey;
 
-    @include noselect;
+    .noselect;
 
     flex: 0 1 auto;
     display: flex;
@@ -259,7 +260,7 @@ p {
     padding: 0;
   }
 
-  @mixin inverse-button {
+  .inverse-button {
     color: grey;
     background-color: lightgrey;
   }
@@ -270,7 +271,7 @@ p {
   .base-face-3 { color: gold; background-color: darkorange; }
   .base-face-4 { color: orchid; background-color: darkorchid; }
   .base-face-5 { color: dodgerblue; background-color: skyblue; }
-  .base-home { @include icon; }
+  .base-home { .icon; }
   .base-up {
     color: dodgerblue;
     background-color: skyblue;
@@ -300,7 +301,7 @@ p {
   .inverse-face-3 { background-color: gold; color: darkorange; }
   .inverse-face-4 { background-color: orchid; color: darkorchid; }
   .inverse-face-5 { background-color: dodgerblue; color: skyblue; }
-  .inverse-home { @include inverse-button; @include icon; }
+  .inverse-home { .inverse-button; .icon; }
   .inverse-up {
     color: darkgreen;
     background-color: lightgreen;
@@ -322,10 +323,10 @@ p {
     transform: rotate(0deg);
   }
   .inverse-select-back {
-    @include inverse-button;
+    .inverse-button;
     transform: rotate(180deg);
   }
   .inverse-start-forward {
-    @include inverse-button;
+    .inverse-button;
   }
 }

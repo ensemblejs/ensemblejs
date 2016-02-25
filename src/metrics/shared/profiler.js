@@ -4,6 +4,8 @@ import {filter, each, includes, startsWith} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin} from '../../plugins/plug-n-play';
 import {make as makeTimer} from '../../metrics/shared/timer';
+import {execute} from 'royal-sampler';
+import {on, before} from '../../events';
 
 let timers = [];
 let exact = [];
@@ -40,15 +42,25 @@ define('Profiler', function Profiler () {
   return { timer: timer };
 });
 
-define('OnServerStart', function Profiler () {
+on('ServerStart', function Profiler () {
   return removeTimersNotConfigured;
 });
 
-define('OnClientStart', function Profiler () {
+on('ClientStart', function Profiler () {
   return removeTimersNotConfigured;
 });
 
-define('OnDisconnect', ['Time', 'Logger'], function Profiler (time, logger) {
+before('PhysicsFrame', function BeforePhysicsFrame () {
+  function printTimingResults () {
+    each(timers, function print (timingData) {
+      plugin('Metrics').profile(timingData.key, timingData.flush());
+    });
+  }
+
+  return execute(printTimingResults).every(5).seconds();
+});
+
+on('Disconnect', ['Time', 'Logger'], function Profiler (time, logger) {
   return function printTimingResults () {
     logger().info(`Timestamp of run: ${time().atStart()}`);
 
@@ -59,7 +71,7 @@ define('OnDisconnect', ['Time', 'Logger'], function Profiler (time, logger) {
   };
 });
 
-define('OnServerStop', ['Time', 'Logger'], function Profiler (time, logger) {
+on('ServerStop', ['Time', 'Logger'], function Profiler (time, logger) {
   return function printTimingResults () {
     logger().info(`Timestamp of run: ${time().atStart()}`);
 

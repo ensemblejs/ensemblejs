@@ -1,7 +1,6 @@
 'use strict';
 
 var fs = require('fs');
-var sass = require('gulp-sass');
 var autoprefixer = require('gulp-autoprefixer');
 var rename = require('gulp-rename');
 var flatten = require('gulp-flatten');
@@ -11,8 +10,7 @@ var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var path = require('path');
-var sass = require('gulp-sass');
-var autoprefixer = require('gulp-autoprefixer');
+var less = require('gulp-less');
 var rename = require('gulp-rename');
 var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
@@ -85,10 +83,12 @@ function addTasks (gulp) {
   });
 
   gulp.task('project:build:styles', ['project:prep'], function() {
-      return gulp.src(paths.scss)
+      return gulp.src(paths.less)
         .pipe(plumber({errorHandler: onError}))
+        .pipe(sourcemaps.init())
         .pipe(autoprefixer({ cascade: false }))
-        .pipe(sass({ style: 'expanded', sourcemapPath: 'public/css', bundleExec: true }))
+        .pipe(less())
+        .pipe(sourcemaps.write(paths.genCss))
         .pipe(rename({suffix: '.min'}))
         .pipe(flatten())
         .pipe(gulp.dest(paths.genCss));

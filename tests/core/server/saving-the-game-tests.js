@@ -59,7 +59,7 @@ describe('continual saving', function () {
         });
 
         afterPhysicsFrame = db[1].AfterPhysicsFrame();
-        afterPhysicsFrame({ get: sinon.stub().returns(1) });
+        afterPhysicsFrame(0, { get: sinon.stub().returns(1) });
       });
 
       afterEach(function () {
@@ -85,7 +85,7 @@ describe('continual saving', function () {
         });
 
         afterPhysicsFrame = db[1].AfterPhysicsFrame();
-        afterPhysicsFrame({ get: sinon.stub().returns(1) });
+        afterPhysicsFrame(0, { get: sinon.stub().returns(1) });
       });
 
       afterEach(function () {

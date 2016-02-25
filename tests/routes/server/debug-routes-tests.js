@@ -5,7 +5,7 @@ var sinon = require('sinon');
 var request = require('request');
 var makeTestible = require('../../support').makeTestible;
 var url = require('../../route-testing').url;
-var config = require('src/util/config');
+var config = require('../../../src/util/config');
 
 describe('debug routes', function () {
   var onServerStart;
