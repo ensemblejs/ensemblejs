@@ -9,8 +9,6 @@ var parseMouse = require('../../util/input-common').parseMouse;
 var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
-// import {timer as profile} from '../../metrics/shared/profiler';
-
 module.exports = {
 	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
@@ -23,21 +21,6 @@ module.exports = {
 				}
 			};
 		});
-
-		// var keys;
-		// var touches;
-		// var stick;
-		// var mouse;
-		// var noInput;
-		// define()('OnClientReady', function () {
-		// 	return function setupProfiling () {
-		// 		keys = profile('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.keys', 1);
-		// 		touches = profile('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.touches', 1);
-		// 		stick = profile('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.stick', 1);
-		// 		mouse = profile('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.mouse', 1);
-		// 		noInput = profile('ensemblejs', 'BeforePhysicsFrame', 'ProcessPendingInput.noInput', 1);
-		// 	};
-		// });
 
 		define()('BeforePhysicsFrame', ['InputQueue'], function ProcessPendingInputClient (inputQueue) {
 
@@ -126,28 +109,18 @@ module.exports = {
 						delta: delta
 					};
 
-					// keys.fromHere();
 					parseKeysAndKeypresses(actionMaps(), currentInput, waitingForPlayers, onMatchingKeyAndKeypressCallback);
-					// keys.toHere();
 
-					// touches.fromHere();
 					parseTouches(actionMaps(), currentInput, waitingForPlayers, onMatchingTouchCallback);
-					// touches.toHere();
 
-					// stick.fromHere();
 					parseSticks(actionMaps(), currentInput, waitingForPlayers, onMatchingStickCallback);
-					// stick.toHere();
 
-					// mouse.fromHere();
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, onMatchingMouseCallback);
-					// mouse.toHere();
 
-					// noInput.fromHere();
 					let forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					for (let i = 0; i < forMode.length; i += 1) {
 						runNoInputHandlers(forMode[i]);
 					}
-					// noInput.toHere();
 				}
 			};
 		});

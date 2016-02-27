@@ -10,6 +10,7 @@
     "inputElement": "input",
     "physicsUpdateLoop": 15,
     "clientSidePrediction": true,
+    "peerLatencyReduction": true,
     "metrics": false,
     "input": {
       "gamepad": {

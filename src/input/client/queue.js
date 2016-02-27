@@ -27,7 +27,7 @@ module.exports = {
       };
     });
 
-    define()('OnOutgoingClientPacket', function OnOutgoingClientPacket () {
+    function HandlePacketLocally () {
       function packetAlreadyOnQueue (packet) {
         return includes(map(inputQueue, 'id'), packet.id);
       }
@@ -51,7 +51,10 @@ module.exports = {
           }
         });
       };
-    });
+    }
+
+    define()('OnOutgoingClientPacket', HandlePacketLocally);
+    define()('OnIncomingPeerPacket', HandlePacketLocally);
 
     return {
       length: function length () { return inputQueue.length; },

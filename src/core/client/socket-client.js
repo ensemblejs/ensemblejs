@@ -3,7 +3,7 @@
 var io = require('socket.io-client');
 import {last, includes} from 'lodash';
 import define from '../../plugins/plug-n-play';
-import {plugin, get} from '../../plugins/plug-n-play';
+import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -19,6 +19,7 @@ module.exports = {
       var socket = io.connect(url(), { reconnection: false });
 
       var saveId = last(window().location.pathname.split('/'));
+      set('SaveId', saveId);
       socket.emit('saveId', saveId);
 
       socket.on('startTime', function (serverOffset) {

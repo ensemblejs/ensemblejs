@@ -202,7 +202,7 @@ function loadFrameworkPath (path) {
   loader.loadFromPath(path, load, ' ensemblejs');
 }
 
-function set (name, thing) {
+export function set (name, thing) {
   plugins[name] = thing;
 }
 
