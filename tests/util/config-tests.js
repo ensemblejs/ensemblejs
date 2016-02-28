@@ -34,6 +34,9 @@ describe('config', function () {
       config.invalid = {
         minPlayers: 2
       };
+      config.mmo = {
+        maxPlayers: 'unlimited'
+      };
     });
 
     it('should allow different game modes to have different min and max player counts', function () {
@@ -51,6 +54,11 @@ describe('config', function () {
 
       expect(config.minPlayers('endless')).toEqual(1);
       expect(config.maxPlayers('endless')).toEqual(2);
+    });
+
+    it('should support unlimited players', function () {
+      expect(config.minPlayers('mmo')).toEqual(1);
+      expect(config.maxPlayers('mmo')).toEqual(Number.MAX_VALUE);
     });
 
     it('should log an error if the minPlayers is more than the maxPlayers', function () {

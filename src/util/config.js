@@ -27,12 +27,16 @@ function getConfig () {
     return config.ensemble.minPlayers;
   }
 
+  function handleUnlimited (configuredMax) {
+    return configuredMax === 'unlimited' ? Number.MAX_VALUE : configuredMax;
+  }
+
   function maxPlayers (mode) {
     if (config[mode] && config[mode].maxPlayers) {
-      return config[mode].maxPlayers;
+      return handleUnlimited(config[mode].maxPlayers);
     }
 
-    return config.ensemble.maxPlayers;
+    return handleUnlimited(config.ensemble.maxPlayers);
   }
 
   function createCheckForValidPlayerCounts (originalFunction) {
