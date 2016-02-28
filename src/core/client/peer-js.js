@@ -22,7 +22,7 @@ function reconnectToBroker (peer) {
   peer.reconnect();
 }
 
-function OnClientReady (eventRouter, SaveId) {
+function OnClientReady (eventRouter, SaveId, config) {
   function handleIncomingPacketFromPeer (packet) {
     debug({packet: packet}, 'received data from peer');
 
@@ -46,25 +46,37 @@ function OnClientReady (eventRouter, SaveId) {
       deviceNumber: deviceNumber
     };
 
+    info({peerId: peerId}, 'Attempting to connect to peer');
+
     var connection = peer.connect(peerId, {metadata: metadata});
     connections.push(connection);
 
-    connection.on('open', function(peerConnection) {
-      peerConnection.on('data', handleIncomingPacketFromPeer);
+    connection.on('open', function() {
+      connection.on('data', handleIncomingPacketFromPeer);
     });
   }
 
 
   return function connectToBroker (dims, playerNumber, deviceNumber) {
+    if (!config().client.peerLatencyReduction) {
+      return;
+    }
+
+    console.log(SaveId(), playerNumber, deviceNumber);
+
     let myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
 
-    peer = new Peer(myPeerId, {key: key});
+    console.log(myPeerId);
+
+    info('Opening connection to PeerJS Broker');
+
+    peer = new Peer(myPeerId, {key: key, debug: 2});
     peer.on('open', function confirmMyId(id) {
       info({id: id}, 'Connected to PeerJS Broker.');
     });
 
     peer.on('connection', handleIncomingConnections);
-    peer.on('close', peer.destroy);
+    // peer.on('close', peer.destroy);
     peer.on('disconnected', function() {
       info('PeerJS disconnected from broker.');
       reconnectToBroker(peer);
@@ -88,5 +100,5 @@ function OnOutgoingClientPacket (config) {
   };
 }
 
-on('ClientReady', ['On', 'SaveId'], OnClientReady);
+on('ClientReady', ['On', 'SaveId', 'Config'], OnClientReady);
 on('OutgoingClientPacket', ['Config'], OnOutgoingClientPacket);
