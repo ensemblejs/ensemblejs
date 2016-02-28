@@ -10,10 +10,10 @@ var saves = require('../models/saves');
 var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
 var saveCommon = require('../workflow/save-common');
 var urlShortenerService = require('../../services/url-shortener');
+import {hostname} from '../../util/hostname';
 
 function shareSave (project, savesList) {
   return function buildJson (req) {
-    var hostname = 'http://' + req.headers.host;
     var player = req.player;
     var saveId = req.params.saveId;
 
@@ -22,24 +22,24 @@ function shareSave (project, savesList) {
         game: buildGameHash(project),
         player: buildPlayerHash(player),
         shareInfo: {
-          fullUrl: urlBuilder(hostname).saves(save.id).join(),
+          fullUrl: urlBuilder(hostname()).saves(save.id).join(),
           shortUrl: undefined,
           secret: undefined,
         },
         links: [{
           what: '/save/continue',
-          uri: urlBuilder(hostname).saves(save.id).continue(),
+          uri: urlBuilder(hostname()).saves(save.id).continue(),
           name: 'Now Play that game',
           method: 'GET'
         }, {
           what: '/save/join',
-          uri: urlBuilder(hostname).saves(save.id).join(),
-          name: urlBuilder(hostname).saves(save.id).join(),
+          uri: urlBuilder(hostname()).saves(save.id).join(),
+          name: urlBuilder(hostname()).saves(save.id).join(),
           method: 'GET'
         }, {
           what: '/game',
-          uri: urlBuilder(hostname).game().index(),
-          name: hostname + '/',
+          uri: urlBuilder(hostname()).game().index(),
+          name: hostname() + '/',
           method: 'GET'
         }]
       };
@@ -74,7 +74,7 @@ function shareSave (project, savesList) {
         return json;
       }
 
-      var url = urlBuilder(hostname).saves(save.id).join();
+      var url = urlBuilder(hostname()).saves(save.id).join();
       return Bluebird
         .all([
           saves.getById(save.id).then(addSecretToPayload),
@@ -84,9 +84,7 @@ function shareSave (project, savesList) {
     }
 
     function passThroughPlayerAndHostname (save) {
-      var hostname = 'http://' + req.headers.host;
-
-      return [save, req.player, hostname];
+      return [save, req.player, hostname()];
     }
 
     return kickstartPromiseChain(savesList.get(saveId))

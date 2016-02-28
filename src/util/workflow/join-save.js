@@ -3,18 +3,17 @@
 var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
 var saveCommon = require('../workflow/save-common');
 var joinSaveJsonBuilder = require('../json-builders/join-save');
+import {hostname} from '../../util/hostname';
 
 function joinSave (project, savesList) {
   return function buildJson (req) {
 
     function passThroughPlayerAndHostname (save) {
-      var hostname = 'http://' + req.headers.host;
-
-      return [save, req.player, hostname];
+      return [save, req.player, hostname()];
     }
 
-    function passThroughProject (save, player, hostname) {
-      return [save, player, hostname, project];
+    function passThroughProject (save, player) {
+      return [save, player, hostname(), project];
     }
 
     function addFlashMessages (json) {

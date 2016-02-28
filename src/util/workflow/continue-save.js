@@ -5,6 +5,7 @@ var saveCommon = require('../workflow/save-common');
 var buildContinueSaveJson = require('../json-builders/continue-save');
 
 import {determineDeviceMode} from '../device-mode';
+import {hostname} from '../../util/hostname';
 
 function continueSave (savesList, on) {
   function loadSaveIfNotLoaded (save) {
@@ -20,7 +21,7 @@ function continueSave (savesList, on) {
 
     return kickstartPromiseChain(savesList.get(req.params.saveId))
       .then(saveCommon.errorIfSaveDoesNotExist)
-      .then(save => [save, req.player, `http://${req.headers.host}`])
+      .then(save => [save, req.player, hostname()])
       .spread(saveCommon.redirectIfPlayerIsNotInSave)
       .spread(loadSaveIfNotLoaded)
       .then(save => [save.mode, deviceMode])

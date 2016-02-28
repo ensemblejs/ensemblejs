@@ -3,6 +3,7 @@
 var uuid = require('node-uuid');
 var saveCommon = require('../workflow/save-common');
 var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
+import {hostname} from '../../util/hostname';
 
 function newSave (project, on, time) {
 
@@ -20,9 +21,7 @@ function newSave (project, on, time) {
   return function buildJson (req) {
 
     function passThroughPlayerAndHostnameAndProjectAndTime (save) {
-      var hostname = 'http://' + req.headers.host;
-
-      return [save, req.player, hostname, project, time.present()];
+      return [save, req.player, hostname(), project, time.present()];
     }
 
     function passThroughProject (mode) {
