@@ -1,7 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var includes = require('lodash').includes;
+import {isEmpty, each, includes} from 'lodash';
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -179,6 +178,7 @@ module.exports = {
         singlePressKeys[key] = false;
       });
       inputData.singlePressKeys = singlePressKeysToSend;
+      inputData.receivedInput = !isEmpty(keysToSend) || !isEmpty(singlePressKeysToSend);
 
       return inputData;
     };

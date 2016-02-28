@@ -1,8 +1,7 @@
 'use strict';
 
-import {each, map, includes} from 'lodash/collection';
-import {without} from 'lodash/array';
-import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axialScalar, normaliseResult} from 'gamepad-api-mappings';
+import {without, each, map, includes, isEmpty, isEqual} from 'lodash';
+import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axial, normaliseResult} from 'gamepad-api-mappings';
 import {supportsInput} from '../../util/device-mode';
 import define from '../../plugins/plug-n-play';
 import {get} from '../../plugins/plug-n-play';
@@ -16,6 +15,7 @@ module.exports = {
     const hasEvents = ('ongamepadconnected' in window);
 
     let controllers = {};
+    let noStickInputCount = 0;
 
     function pollGamepads() {
       var gamepads = window().navigator.getGamepads();
@@ -61,6 +61,19 @@ module.exports = {
       };
     });
 
+    const centered = {x: 0, y: 0};
+
+    function sticksAreCentered(inputData) {
+      return isEqual(inputData['left-stick'], centered) &&
+             isEqual(inputData['right-stick'], centered);
+    }
+
+    function didWeReceiveInput (inputData) {
+      return !(isEmpty(inputData.keys) &&
+                   sticksAreCentered(inputData) &&
+                   noStickInputCount > 1);
+    }
+
     return function getCurrentState () {
       if (!hasEvents) {
         pollGamepads();
@@ -83,7 +96,7 @@ module.exports = {
           }
 
           let key = deviceMap.buttons[index];
-          let force = axialScalar(button.value, deadZones[key], normaliseResult);
+          let force = axial(button.value, deadZones[key], normaliseResult);
           inputData.keys.push({
             key: key,
             force: force
@@ -96,7 +109,7 @@ module.exports = {
           if (axis.id === 'left-stick' || axis.id === 'right-stick') {
             inputData[axis.id][axis.prop] = axes[index];
           } else {
-            let force = axialScalar(axes[index], deadZones[axis.id], normaliseResult);
+            let force = axial(axes[index], deadZones[axis.id], normaliseResult);
             if (force > 0) {
               inputData.keys.push({
                 key: axis.id,
@@ -116,6 +129,14 @@ module.exports = {
           inputData['right-stick'] = deadzoneAlgorithm(inputData['right-stick'], deadZones['right-stick']);
         }
       }));
+
+      inputData.receivedInput = didWeReceiveInput(inputData);
+
+      if (sticksAreCentered(inputData)) {
+        noStickInputCount += 1;
+      } else {
+        noStickInputCount = 0;
+      }
 
       return inputData;
     };

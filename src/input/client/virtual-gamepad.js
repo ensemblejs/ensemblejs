@@ -47,6 +47,7 @@ module.exports = {
       'right-stick': {x: 0, y: 0}
     };
     var layout = gamepads[config().client.input.virtualGamepad];
+    let receivedInput = false;
 
     function addVisual (stickId, x, y) {
       $()(stickId).css('background-image', '-webkit-radial-gradient(' + x + 'px ' + y + 'px, circle cover, yellow, orange, red)');
@@ -75,12 +76,16 @@ module.exports = {
 
           addVisual(domStickId, (coord.x * t.radius) + t.radius, (coord.y * t.radius) + t.radius);
         });
+
+        receivedInput = true;
       });
 
       $()(domStickId).on('touchend touchleave touchcancel', function () {
         sticks['left-stick'] = {x: 0, y: 0};
 
         removeVisual(domStickId);
+
+        receivedInput = true;
       });
     }
 
@@ -104,12 +109,16 @@ module.exports = {
         singlePressKeys.push(buttonId);
 
         each(e.touches, touch => pressButton(touch.target, buttonId));
+
+        receivedInput = true;
       });
 
       $()(domButtonId).on('touchmove', function (e) {
         keys.push(buttonId);
 
         each(e.touches, touch => pressButton(touch.target, buttonId));
+
+        receivedInput = true;
       });
 
       $()(domButtonId).on('touchend touchleave touchcancel', function (e) {
@@ -117,6 +126,8 @@ module.exports = {
         singlePressKeys = remove(singlePressKeys, buttonId);
 
         each(e.changedTouches, touch => releaseButton(touch.target, buttonId));
+
+        receivedInput = true;
       });
     }
 
@@ -159,7 +170,8 @@ module.exports = {
     return function getCurrentState () {
       let inputData = {
         'left-stick': sticks['left-stick'],
-        'right-stick': sticks['right-stick']
+        'right-stick': sticks['right-stick'],
+        receivedInput: receivedInput
       };
 
       let keysToSend = [];
@@ -174,6 +186,8 @@ module.exports = {
       });
       singlePressKeys = [];
       inputData.singlePressKeys = singlePressKeysToSend;
+
+      receivedInput = false;
 
       return inputData;
     };

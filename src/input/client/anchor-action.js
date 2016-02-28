@@ -1,7 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var includes = require('lodash').includes;
+import {each, includes, isEmpty} from 'lodash';
 let logger = require('../../logging/client/logger').logger;
 import {supportsInput} from '../../util/device-mode';
 
@@ -85,7 +84,9 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      var inputData = {};
+      var inputData = {
+        receivedInput: false
+      };
 
       var keysToSend = [];
       each(keys, function (value, key) {
@@ -103,6 +104,7 @@ module.exports = {
         singlePressKeys[key] = false;
       });
       inputData.singlePressKeys = singlePressKeysToSend;
+      inputData.receivedInput = !isEmpty(keysToSend) || !isEmpty(singlePressKeysToSend);
 
       return inputData;
     };

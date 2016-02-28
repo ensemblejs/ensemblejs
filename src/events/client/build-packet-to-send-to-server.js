@@ -1,11 +1,8 @@
 'use strict';
 
-var each = require('lodash').each;
-var merge = require('lodash').merge;
-var isArray = require('lodash').isArray;
-var cloneDeep = require('lodash').cloneDeep;
-var sequence = require('distributedlife-sequence');
+import {each, merge, isArray, isEqual, cloneDeep} from 'lodash';
 import {execute} from 'royal-sampler';
+var sequence = require('distributedlife-sequence');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
@@ -34,8 +31,16 @@ module.exports = {
       };
 
       each(inputCaptureMethods(), function (getCurrentState) {
-        merge(packet, getCurrentState(), mergeArrays);
+        var state = getCurrentState();
+
+        if (state.receivedInput) {
+          merge(packet, state, mergeArrays);
+        }
       });
+
+      if (isEqual(packet, {pendingAcks: []})) {
+        return null;
+      }
 
       lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');

@@ -1,6 +1,6 @@
 'use strict';
 
-import {map, reject, each, includes} from 'lodash';
+import {map, reject, each, includes, filter} from 'lodash';
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -9,34 +9,33 @@ module.exports = {
   func: function InputCapture (window, config, define, $, deviceMode) {
 
     let touches = [];
+    let receivedInput = false;
 
     function bindToWindowEvents () {
       const elementId = `#${config().client.inputElement}`;
 
       $()(elementId).on('touchstart', function (e) {
         each(e.touches, function (touch) {
-          let x = touch.clientX - touch.target.offsetLeft;
-          let y = touch.clientY - touch.target.offsetTop;
           touches.push({
             id: touch.identifier,
-            x: x,
-            y: y,
+            x: touch.clientX - touch.target.offsetLeft,
+            y: touch.clientY - touch.target.offsetTop,
             force: touch.force || touch.webkitForce || 1
           });
         });
+
+        receivedInput = true;
       });
 
       $()(elementId).on('touchmove', function (e) {
         each(e.touches, function (touch) {
-          let x = touch.clientX - touch.target.offsetLeft;
-          let y = touch.clientY - touch.target.offsetTop;
-          touches.push({
-            id: touch.identifier,
-            x: x,
-            y: y,
-            force: touch.force || touch.webkitForce || 1
-          });
+          let t = filter(touches, {id: touch.identifier})[0];
+          t.x = touch.clientX - touch.target.offsetLeft;
+          t.y = touch.clientY - touch.target.offsetTop;
+          t.force = touch.force || touch.webkitForce || 1;
         });
+
+        receivedInput = true;
       });
 
       function endTouch (e) {
@@ -45,6 +44,8 @@ module.exports = {
         touches = reject(touches, function (touch) {
           return ids.indexOf(touch.id) !== -1;
         });
+
+        receivedInput = true;
       }
 
       $()(elementId).on('touchend', endTouch);
@@ -67,8 +68,11 @@ module.exports = {
 
     return function getCurrentState () {
       let inputData = {
-        touches: touches
+        touches: touches,
+        receivedInput: receivedInput
       };
+
+      receivedInput = false;
 
       return inputData;
     };

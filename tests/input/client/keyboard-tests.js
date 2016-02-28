@@ -105,6 +105,12 @@ describe('the keyboard input capture plugin', function () {
 				expect(keyboard().singlePressKeys).toEqual([{key: 'space', modifiers: [], force: 1}]);
 				expect(keyboard().singlePressKeys).toEqual([]);
 			});
+
+			it('should report input received', function () {
+				fake$.savedEvents().keydown[0]({which: 32 });
+
+				expect(keyboard().receivedInput).toBe(true);
+			});
 		});
 
 		describe('when the window loses focus and a key is depressed', function() {
@@ -115,6 +121,12 @@ describe('the keyboard input capture plugin', function () {
 
 			it('should release the key', function () {
 				expect(keyboard().keys).toEqual([]);
+			});
+
+			it('should report no input received', function () {
+				keyboard();
+
+				expect(keyboard().receivedInput).toBe(false);
 			});
 		});
 
@@ -134,6 +146,13 @@ describe('the keyboard input capture plugin', function () {
 				fake$.savedEvents().keyup[0]({which: 32 });
 
 				expect(keyboard().keys).toNotEqual(['space']);
+			});
+
+			it('should report no input received', function () {
+				fake$.savedEvents().keyup[0]({which: 32 });
+				keyboard();
+
+				expect(keyboard().receivedInput).toBe(false);
 			});
 		});
 	});

@@ -20,6 +20,7 @@ module.exports = {
     var y = 0;
     var keys = {};
     var singlePressKeys = {};
+    let receivedInput = false;
 
     function singlePress (key, alt, ctrl, shift) {
       singlePressKeys[key] = [];
@@ -44,22 +45,26 @@ module.exports = {
     function bindToWindowEvents () {
       $()(window()).on('click', function click (e) {
         singlePress(mouseMap()[e.which], e.altKey, e.ctrlKey, e.shiftKey);
+        receivedInput = true;
       });
 
       $()(window()).on('mousedown', function mousedown (e) {
         press(mouseMap()[e.which], e.altKey, e.ctrlKey, e.shiftKey);
         e.preventDefault();
+        receivedInput = true;
       });
 
       $()(window()).on('mouseup', function mouseup (e) {
         release(mouseMap()[e.which]);
         e.preventDefault();
+        receivedInput = true;
       });
 
-      var elementId = '#' + config().client.element;
+      var elementId = `#${config().client.element}`;
       $()(elementId).on('mousemove', function mousemove (e) {
         x = e.layerX;
         y = e.layerY;
+        receivedInput = true;
       });
     }
 
@@ -78,7 +83,8 @@ module.exports = {
         mouse: {
           x: x,
           y: y
-        }
+        },
+        receivedInput: receivedInput
       };
 
       var keysToSend = [];
@@ -97,6 +103,8 @@ module.exports = {
         singlePressKeys[key] = false;
       });
       inputData.singlePressKeys = singlePressKeysToSend;
+
+      receivedInput = false;
 
       return inputData;
     };
