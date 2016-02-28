@@ -56,6 +56,13 @@ function callForModeWithMutation (plugins, mutator, save, params) {
   });
 }
 
+function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {
+  var forMode = filterPluginsByMode(plugins, save.mode);
+  return Bluebird.all(map(forMode, function callEachAndMutate (plugin) {
+    return mutator()(save.id, last(plugin)(...params));
+  }));
+}
+
 function stripMode(pluginAndMode) {
   return last(pluginAndMode);
 }
@@ -66,6 +73,7 @@ module.exports = {
   callEachWithMutation: callEachWithMutation,
   callForMode: callForMode,
   callForModeWithMutation: callForModeWithMutation,
+  callForModeWithMutationWithPromises: callForModeWithMutationWithPromises,
   filterPluginsByMode: filterPluginsByMode,
   isApplicable: isApplicable,
   forEachMode: forEachMode,

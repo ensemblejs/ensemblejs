@@ -1,6 +1,6 @@
 'use strict';
 
-import {map, filter, first} from 'lodash';
+import {map, filter, first, uniq, reject} from 'lodash';
 import Bluebird from 'bluebird';
 
 var playersStore = require('../../util/models/players');
@@ -42,6 +42,7 @@ module.exports = {
       connections.push({
         saveId: saveId,
         playerId: playerId,
+        devices: [],
         status: 'online',
         number: inSave.length + 1
       });
@@ -56,7 +57,7 @@ module.exports = {
       connection.status = 'online';
     }
 
-    function addPlayer (save, playerId) {
+    function addPlayer (save, playerId, deviceId) {
       if (!exists(save.id, playerId)) {
         createNewPlayer(save, playerId);
       } else {
@@ -68,7 +69,9 @@ module.exports = {
         return undefined;
       }
 
-      return connection.number;
+      connection.devices = uniq(connection.devices.concat([deviceId]));
+
+      return connection;
     }
 
     function getPlayers (save) {
@@ -139,8 +142,12 @@ module.exports = {
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
-          .then(player => addPlayer(save, player.id))
-          .then(playerNumber => socket.emit('playerNumber', playerNumber))
+          .then(player => addPlayer(save, player.id, deviceId))
+          .then(player => {
+            socket.emit('playerNumber', player.number);
+            socket.emit('deviceNumber', player.devices.length);
+            return player;
+          })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
           .catch(err => {
@@ -166,7 +173,13 @@ module.exports = {
           .then(redirectIfMoreThanOnePlayer)
           .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
-          .then(connection => connection.status = 'offline')
+          .then(connection => {
+            connection.devices = reject(connection.devices, deviceId);
+
+            if (connection.devices.length === 0) {
+              connection.status = 'offline';
+            }
+          })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
           .catch(err => {

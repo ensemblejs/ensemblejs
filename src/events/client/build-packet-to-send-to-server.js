@@ -13,6 +13,7 @@ module.exports = {
   func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config) {
 
     var playerId;
+    var deviceNumber;
     var lastPacket = { mouse: {} };
 
     function mergeArrays (a, b) {
@@ -38,6 +39,7 @@ module.exports = {
 
       lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');
+      packet.deviceNumber = deviceNumber;
       packet.playerId = playerId;
       packet.timestamp = time().present();
 
@@ -52,8 +54,14 @@ module.exports = {
     }
 
     define()('OnClientPlayerId', function () {
-      return function setPlayerId (id) {
-        playerId = id;
+      return function setPlayerNumber (number) {
+        playerId = number;
+      };
+    });
+
+    define()('OnClientDeviceNumber', function () {
+      return function setDeviceNumber (number) {
+        deviceNumber = number;
       };
     });
 

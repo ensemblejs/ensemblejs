@@ -5,11 +5,12 @@ var callEachPluginAndPromises = require('../../util/modes').callEachPluginAndPro
 var callForMode = require('../../util/modes').callForMode;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
+var callForModeWithMutationWithPromises = require('../../util/modes').callForModeWithMutationWithPromises;
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket, onClientDeviceNumber, device) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -64,12 +65,12 @@ module.exports = {
 
     function clientConnect (save, socket) {
       var params = [getState(save.id), socket, save];
-      callForModeWithMutation(onClientConnect(), mutator, save, params);
+      return callForModeWithMutationWithPromises(onClientConnect(), mutator, save, params);
     }
 
     function clientDisconnect (save, socket) {
       var params = [getState(save.id), socket, save];
-      callForModeWithMutation(onClientDisconnect(), mutator, save, params);
+      return callForModeWithMutationWithPromises(onClientDisconnect(), mutator, save, params);
     }
 
     function pause (save) {
@@ -84,7 +85,7 @@ module.exports = {
 
     function clientStart (state, mode) {
       callEachPlugin(onClientStart(), [state]);
-      callForMode(onClientReady(), mode, [dimensions().get(), player().id()]);
+      callForMode(onClientReady(), mode, [dimensions().get(), player().id(), device().number()]);
     }
 
     function serverStart (path, save) {
@@ -112,6 +113,10 @@ module.exports = {
       callEachPlugin(onClientPlayerId(), [id]);
     }
 
+    function clientDeviceNumber (number) {
+      callEachPlugin(onClientDeviceNumber(), [number]);
+    }
+
     function incomingClientInputPacket (packet, save) {
       if (state().for(save.id).get('ensemble.paused')) {
         return;
@@ -136,6 +141,7 @@ module.exports = {
       clientConnect: clientConnect,
       clientDisconnect: clientDisconnect,
       clientPlayerId: clientPlayerId,
+      clientDeviceNumber: clientDeviceNumber,
       clientStart: clientStart,
       connect: connect,
       databaseReady: databaseReady,

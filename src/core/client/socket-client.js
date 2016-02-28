@@ -41,6 +41,10 @@ module.exports = {
         on().clientPlayerId(playerNumber);
       });
 
+      socket.on('deviceNumber', function savePlayerId (deviceNumber) {
+        on().clientDeviceNumber(deviceNumber);
+      });
+
       socket.on('initialState', function initialState (packet) {
         on().clientStart(packet, mode());
       });

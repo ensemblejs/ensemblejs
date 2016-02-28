@@ -225,11 +225,11 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
-        on().clientConnect(save, socket);
-
-        socket.emit('initialState', rawStateAccess().for(save.id));
-
-        startUpdateClientLoop(save, socket.id);
+        on().clientConnect(save, socket).then(() => {
+          socket.emit('initialState', rawStateAccess().for(save.id));
+        }).then(() => {
+          startUpdateClientLoop(save, socket.id);
+        });
       }
 
       socket.on('saveId', sendSave);
