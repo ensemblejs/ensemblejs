@@ -21,6 +21,10 @@ module.exports = {
 
     function paused (state) { return state.ensemble.paused; }
 
+    function noInput (packet) {
+      return isEqual(packet, {pendingAcks: []});
+    }
+
     function buildPacket () {
       if (currentState().get(paused)) {
         return null;
@@ -38,7 +42,7 @@ module.exports = {
         }
       });
 
-      if (isEqual(packet, {pendingAcks: []})) {
+      if (noInput(packet)) {
         return null;
       }
 

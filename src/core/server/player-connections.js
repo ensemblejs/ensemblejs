@@ -174,7 +174,7 @@ module.exports = {
           .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then(connection => {
-            connection.devices = reject(connection.devices, deviceId);
+            connection.devices = reject(connection.devices, id => id === deviceId);
 
             if (connection.devices.length === 0) {
               connection.status = 'offline';

@@ -13,8 +13,9 @@ var moment = require('moment');
 
 var endpoint = config.get().measure.endpoint;
 var appId = config.get().game.id;
+const sessionStartTime = moment().unix();
 
-function post (event, url = `${endpoint}/event/${appId}`) {
+function post (event, url) {
   if (!config.get().server.metrics) {
     return;
   }

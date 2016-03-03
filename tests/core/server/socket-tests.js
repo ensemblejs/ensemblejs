@@ -118,7 +118,7 @@ describe('the socket server', function () {
 		describe('on connect', function () {
 			var updateClientFunc;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
 				socket.on.reset();
 
 				socketServer.start(server, modes, session);
@@ -126,9 +126,10 @@ describe('the socket server', function () {
 				routeSocket['/arcade/primary'](socket);
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]();
-
-				updateClientFunc = setInterval.firstCall.args[0];
+				socket.on.firstCall.args[1]().then(() => {
+					updateClientFunc = setInterval.firstCall.args[0];
+					done();
+				});
 			});
 
 			afterEach(function () {
@@ -179,15 +180,16 @@ describe('the socket server', function () {
 		describe('the client update loop', function () {
 			var updateClientFunc;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
 				socketServer.start(server, modes, session);
 
 				routeSocket['/arcade/primary'](socket);
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]();
-
-				updateClientFunc = setInterval.firstCall.args[0];
+				socket.on.firstCall.args[1]().then(() => {
+					updateClientFunc = setInterval.firstCall.args[0];
+					done();
+				});
 			});
 
 			afterEach(function () {
@@ -326,7 +328,7 @@ describe('the socket server', function () {
 		describe('on connect', function () {
 			var updateClientFunc;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
 				saveState = { hi: 'there' };
 
 				setInterval.reset();
@@ -338,9 +340,10 @@ describe('the socket server', function () {
 				routeSocket['/arcade/observer'](socket);
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]();
-
-				updateClientFunc = setInterval.firstCall.args[0];
+				socket.on.firstCall.args[1]().then(() => {
+					updateClientFunc = setInterval.firstCall.args[0];
+					done();
+				});
 			});
 
 			afterEach(function () {
@@ -387,7 +390,7 @@ describe('the socket server', function () {
 		describe('the client update loop', function () {
 			var updateClientFunc;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
 				saveState = { hi: 'there' };
 
 				setInterval.reset();
@@ -398,9 +401,10 @@ describe('the socket server', function () {
 				routeSocket['/arcade/observer'](socket);
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]();
-
-				updateClientFunc = setInterval.firstCall.args[0];
+				socket.on.firstCall.args[1]().then(() => {
+					updateClientFunc = setInterval.firstCall.args[0];
+					done();
+				});
 			});
 
 			afterEach(function () {

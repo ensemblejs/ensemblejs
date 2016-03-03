@@ -11,6 +11,7 @@ var config = require('../../../src/util/config');
 var save1 = { id: 1, mode: 'arcade' };
 var save2 = { id: 2, mode: 'endless' };
 var player1 = { request: { sessionID: 1 }, emit: sinon.spy() };
+var player1Device2 = { request: { sessionID: 11 }, emit: sinon.spy() };
 var player2 = { request: { sessionID: 2 }, emit: sinon.spy() };
 var player3 = { request: { sessionID: 3 }, emit: sinon.spy() };
 
@@ -107,6 +108,22 @@ describe('players connecting', function () {
 
       it('should publish the players and their status in the game', function () {
         expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+      });
+    });
+
+    describe('when a player disconnects one of their devices', function () {
+      beforeEach(function (done) {
+        fakeOn.playerGroupChange.reset();
+
+        onClientConnect(undefined, player1Device2, save1)
+          .then(() => {
+            onClientDisconnect(undefined, player1, save1);
+          })
+          .then(() => done());
+      });
+
+      it('should not mark players as "offline" if they have at least one device connected', function () {
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
       });
     });
 

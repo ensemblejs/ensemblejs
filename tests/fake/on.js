@@ -6,6 +6,7 @@ var realOn = require('../../src/events/shared/on').func();
 var Bluebird = require('bluebird');
 
 var fakeOn = {
+  clientConnect: function () { return Bluebird.resolve(); },
   saveReady: function () { return Bluebird.resolve(); }
 };
 

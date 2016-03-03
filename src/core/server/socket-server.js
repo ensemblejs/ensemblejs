@@ -20,6 +20,10 @@ module.exports = {
       return isEqual(current, prior);
     }
 
+    function sendInitialState (socket, state) {
+      socket.emit('initialState', state);
+    }
+
     function startUpdateClientLoop (save, socketId) {
       var lastPacket = {};
 
@@ -101,11 +105,11 @@ module.exports = {
         socket.on('disconnect', addLogging('disconnect', publishDisconnect));
         socket.on('error', addLogging('error', error));
 
-        on().clientConnect(save, socket);
-
-        socket.emit('initialState', rawStateAccess().for(save.id));
-
-        startUpdateClientLoop(save, socket.id);
+        return on().clientConnect(save, socket).then(() => {
+          sendInitialState(socket, rawStateAccess().for(save.id));
+        }).then(() => {
+          startUpdateClientLoop(save, socket.id);
+        });
       }
 
       socket.on('saveId', sendSave);
@@ -163,11 +167,11 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
-        on().clientConnect(save, socket);
-
-        socket.emit('initialState', rawStateAccess().for(save.id));
-
-        startUpdateClientLoop(save, socket.id);
+        return on().clientConnect(save, socket).then(() => {
+          sendInitialState(socket, rawStateAccess().for(save.id));
+        }).then(() => {
+          startUpdateClientLoop(save, socket.id);
+        });
       }
 
       socket.on('saveId', sendSave);
@@ -225,8 +229,8 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
-        on().clientConnect(save, socket).then(() => {
-          socket.emit('initialState', rawStateAccess().for(save.id));
+        return on().clientConnect(save, socket).then(() => {
+          sendInitialState(socket, rawStateAccess().for(save.id));
         }).then(() => {
           startUpdateClientLoop(save, socket.id);
         });

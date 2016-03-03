@@ -120,6 +120,20 @@ describe('the touch input capture plugin', function () {
 		});
 
 		describe('when a touch press moves', function() {
+			beforeEach(function () {
+				fake$.savedEvents().touchstart[0]({
+					touches: [{
+						identifier: 1,
+						clientY: 0,
+						clientX: 0,
+						target: {
+							offsetLeft: 0,
+							offsetTop: 0
+						}
+					}]
+				});
+			});
+
 			it('should register the touch event', function() {
 				fake$.savedEvents().touchmove[0]({
 					touches: [{
