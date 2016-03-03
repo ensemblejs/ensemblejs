@@ -79,13 +79,14 @@ module.exports = {
         return {
           number: connection.number,
           status: connection.status,
+          devices: connection.devices,
           playerId: connection.playerId
         };
       });
 
       var maxPlayers = config.get().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
-        players.push({number: i, status: 'not-joined'});
+        players.push({number: i, status: 'not-joined', devices: []});
       }
 
       return players;

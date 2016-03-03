@@ -16,7 +16,7 @@ function OnClientReady (tracker, $) {
       id: `player-${id}`,
       title: `Player ${player.number}`,
       value: player.status,
-      deviceId: 'd1',
+      devices: player.devices.length,
       toPlayer: id === playerNumber ? undefined : player.playerId
     }));
 

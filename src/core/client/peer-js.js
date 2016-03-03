@@ -8,7 +8,7 @@ let debug = require('../../logging/client/logger').logger.debug;
 let info = require('../../logging/client/logger').logger.info;
 let error = require('../../logging/client/logger').logger.error;
 
-const key = '7ia4h3mb62tbuik9';
+const key = process.env.PEERJS_KEY;
 
 let peer;
 let connections = [];
