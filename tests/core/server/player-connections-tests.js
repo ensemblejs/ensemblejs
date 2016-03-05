@@ -10,10 +10,10 @@ var config = require('../../../src/util/config');
 
 var save1 = { id: 1, mode: 'arcade' };
 var save2 = { id: 2, mode: 'endless' };
-var player1 = { request: { sessionID: 1 }, emit: sinon.spy() };
-var player1Device2 = { request: { sessionID: 11 }, emit: sinon.spy() };
-var player2 = { request: { sessionID: 2 }, emit: sinon.spy() };
-var player3 = { request: { sessionID: 3 }, emit: sinon.spy() };
+var player1 = { request: { sessionID: 1 }, emit: sinon.spy(), client: { conn: { remoteAddress: '::ffff:192.168.0.9'}}};
+var player1Device2 = { request: { sessionID: 11 }, emit: sinon.spy(), client: { conn: { remoteAddress: '::ffff:192.168.0.9'}}};
+var player2 = { request: { sessionID: 2 }, emit: sinon.spy(), client: { conn: { remoteAddress: '::ffff:192.168.0.9'}}};
+var player3 = { request: { sessionID: 3 }, emit: sinon.spy(), client: { conn: { remoteAddress: '::ffff:192.168.0.9'}}};
 
 describe('players connecting', function () {
   var connectedCount;
@@ -64,7 +64,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: []}, {number: 3, status: 'not-joined', devices: []}], 1]);
       });
 
       it('should partion players into games', function (done) {
@@ -93,7 +93,7 @@ describe('players connecting', function () {
         });
 
         it('should publish the players and their status in the game', function () {
-          expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+          expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: []}, {number: 3, status: 'not-joined', devices: []}], 1]);
         });
       });
     });
@@ -107,7 +107,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1, devices: [], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: []}, {number: 3, status: 'not-joined', devices: []}], 1]);
       });
     });
 
@@ -123,7 +123,7 @@ describe('players connecting', function () {
       });
 
       it('should not mark players as "offline" if they have at least one device connected', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1, 11], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: []}, {number: 3, status: 'not-joined', devices: []}], 1]);
       });
     });
 
@@ -142,7 +142,7 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'not-joined'}, {number: 3, status: 'not-joined'}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: []}, {number: 3, status: 'not-joined', devices: []}], 1]);
       });
     });
 
@@ -176,7 +176,7 @@ describe('players connecting', function () {
     });
 
     it('should publish the players and their status in the game', function () {
-      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1}, {number: 2, status: 'online', playerId: 2}, {number: 3, status: 'not-joined'}], 1]);
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'online', playerId: 2, devices: [2], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: []}], 1]);
     });
   });
 

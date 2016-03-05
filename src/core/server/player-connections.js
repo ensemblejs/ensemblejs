@@ -1,11 +1,12 @@
 'use strict';
 
-import {map, filter, first, uniq, reject} from 'lodash';
+import {map, filter, first, reject, each} from 'lodash';
 import Bluebird from 'bluebird';
 
 var playersStore = require('../../util/models/players');
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
+var Address6 = require('ip-address').Address6;
 
 module.exports = {
   type: 'PlayerConnections',
@@ -44,7 +45,8 @@ module.exports = {
         playerId: playerId,
         devices: [],
         status: 'online',
-        number: inSave.length + 1
+        number: inSave.length + 1,
+        onSameSubnet: true
       });
     }
 
@@ -57,7 +59,29 @@ module.exports = {
       connection.status = 'online';
     }
 
-    function addPlayer (save, playerId, deviceId) {
+    function onSameSubnet (ipAddresses) {
+      var anyFailures = false;
+
+      each(ipAddresses, function (a) {
+        if (anyFailures) {
+          return;
+        }
+
+        each(ipAddresses, function (b) {
+          if (anyFailures) {
+            return;
+          }
+
+          if (!a.isInSubnet(b)) {
+            anyFailures = true;
+          }
+        });
+      });
+
+      return !anyFailures;
+    }
+
+    function addPlayer (save, playerId, deviceId, ipAddress) {
       if (!exists(save.id, playerId)) {
         createNewPlayer(save, playerId);
       } else {
@@ -69,7 +93,8 @@ module.exports = {
         return undefined;
       }
 
-      connection.devices = uniq(connection.devices.concat([deviceId]));
+      connection.devices.push({id: deviceId, ip: ipAddress});
+      connection.onSameSubnet = onSameSubnet(map(connection.devices, 'ip'));
 
       return connection;
     }
@@ -79,8 +104,9 @@ module.exports = {
         return {
           number: connection.number,
           status: connection.status,
-          devices: connection.devices,
-          playerId: connection.playerId
+          devices: map(connection.devices, 'id'),
+          playerId: connection.playerId,
+          onSameSubnet: connection.onSameSubnet
         };
       });
 
@@ -132,6 +158,7 @@ module.exports = {
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerNumber (state, socket, save) {
         var deviceId = socket.request.sessionID;
+        var ipAddress = new Address6(socket.client.conn.remoteAddress);
 
         function updateWaitingForPlayers () {
           return [
@@ -143,7 +170,7 @@ module.exports = {
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
-          .then(player => addPlayer(save, player.id, deviceId))
+          .then(player => addPlayer(save, player.id, deviceId, ipAddress))
           .then(player => {
             socket.emit('playerNumber', player.number);
             socket.emit('deviceNumber', player.devices.length);
@@ -175,7 +202,8 @@ module.exports = {
           .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then(connection => {
-            connection.devices = reject(connection.devices, id => id === deviceId);
+            connection.devices = reject(connection.devices, {id: deviceId});
+            connection.onSameSubnet = onSameSubnet(connection.ipAddresses);
 
             if (connection.devices.length === 0) {
               connection.status = 'offline';
