@@ -17,6 +17,7 @@ function OnClientReady (tracker, $) {
       title: `Player ${player.number}`,
       value: player.status,
       devices: player.devices.length,
+      differentSubnet: player.onSameSubnet ? '' : '*',
       toPlayer: id === playerNumber ? undefined : player.playerId
     }));
 

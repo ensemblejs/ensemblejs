@@ -112,7 +112,7 @@ module.exports = {
 
       var maxPlayers = config.get().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
-        players.push({number: i, status: 'not-joined', devices: []});
+        players.push({number: i, status: 'not-joined', devices: [], onSameSubnet: true});
       }
 
       return players;
@@ -174,6 +174,7 @@ module.exports = {
           .then(player => {
             socket.emit('playerNumber', player.number);
             socket.emit('deviceNumber', player.devices.length);
+
             return player;
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))

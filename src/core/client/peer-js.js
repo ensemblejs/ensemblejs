@@ -62,11 +62,7 @@ function OnClientReady (eventRouter, SaveId, config) {
       return;
     }
 
-    console.log(SaveId(), playerNumber, deviceNumber);
-
     let myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
-
-    console.log(myPeerId);
 
     info('Opening connection to PeerJS Broker');
 
@@ -76,7 +72,6 @@ function OnClientReady (eventRouter, SaveId, config) {
     });
 
     peer.on('connection', handleIncomingConnections);
-    // peer.on('close', peer.destroy);
     peer.on('disconnected', function() {
       info('PeerJS disconnected from broker.');
       reconnectToBroker(peer);
