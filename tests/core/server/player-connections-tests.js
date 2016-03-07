@@ -58,61 +58,85 @@ describe('players connecting', function () {
     it('should send an error if no player found');
     it('should send an error if more than one player per device');
 
-    describe('with a player', function () {
-      it('should add a new player connection', function () {
+    it('should send the device number', function () {
+      expect(player1.emit.secondCall.args).toEqual(['deviceNumber', 1]);
+    });
+
+    it('should add a new player connection', function () {
+      expect(connectedCount(save1.id)).toEqual(1);
+    });
+
+    it('should publish the players and their status in the game', function () {
+      expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
+    });
+
+    it('should partion players into games', function (done) {
+      onClientConnect(undefined, player2, save1)
+        .then(() => {
+          expect(connectedCount(save1.id)).toEqual(2);
+        })
+        .then(() => onClientConnect(undefined, player1, save2) )
+        .then(() => {
+          expect(connectedCount(save2.id)).toEqual(1);
+        })
+        .then(() => done() )
+        .catch(() => done() );
+    });
+
+    describe('when the same player connects again on a different client', function () {
+
+      beforeEach(function (done) {
+        fakeOn.playerGroupChange.reset();
+        player1Device2.emit.reset();
+
+        onClientConnect(undefined, player1Device2, save1)
+          .then(() => done())
+          .catch(() => done());
+      });
+
+      it('should not add a new player connection', function () {
         expect(connectedCount(save1.id)).toEqual(1);
       });
 
+      it('should send a new device number', function () {
+        expect(player1Device2.emit.secondCall.args).toEqual(['deviceNumber', 2]);
+      });
+
+      it('should indicate the player has two devices', function () {
+        expect(fakeOn.playerGroupChange.firstCall.args[0][0].devices).toEqual([1, 11]);
+      });
+
+      it.skip('should determine if the clients are on the same subnet');
+
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
+        var callArgs = fakeOn.playerGroupChange.firstCall.args;
+
+        expect(callArgs[0][0].number).toEqual(1);
+        expect(callArgs[0][0].status).toEqual('online');
+        expect(callArgs[0][0].playerId).toEqual(1);
+
+        expect(callArgs[0][1]).toEqual(
+          {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}
+        );
+        expect(callArgs[0][2]).toEqual(
+          {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}
+        );
       });
 
-      it('should partion players into games', function (done) {
-        onClientConnect(undefined, player2, save1)
-          .then(() => {
-            expect(connectedCount(save1.id)).toEqual(2);
-          })
-          .then(() => onClientConnect(undefined, player1, save2) )
-          .then(() => {
-            expect(connectedCount(save2.id)).toEqual(1);
-          })
-          .then(() => done() )
-          .catch(() => done() );
-      });
-
-      describe('when the same player connects again on a different client', function () {
-
+      describe('when the player disconnects their first device and then then tries to reconnect it', function () {
         beforeEach(function (done) {
-          fakeOn.playerGroupChange.reset();
-
-          onClientConnect(undefined, player1Device2, save1)
-            .then(() => done() )
-            .catch(() => done() );
+          onClientDisconnect(undefined, player1, save1)
+            .then(() => {
+              fakeOn.playerGroupChange.reset();
+              player1.emit.reset();
+            })
+            .then(() => onClientConnect(undefined, player1, save1))
+            .then(() => done())
+            .catch(() => done());
         });
 
-        it('should not add a new player connection', function () {
-          expect(connectedCount(save1.id)).toEqual(1);
-        });
-
-        it('should indicate the player has two devices', function () {
-          expect(fakeOn.playerGroupChange.firstCall.args[0][0].devices).toEqual([1, 11]);
-        });
-
-        it.skip('should determine if the clients are on the same subnet');
-
-        it('should publish the players and their status in the game', function () {
-          var callArgs = fakeOn.playerGroupChange.firstCall.args;
-
-          expect(callArgs[0][0].number).toEqual(1);
-          expect(callArgs[0][0].status).toEqual('online');
-          expect(callArgs[0][0].playerId).toEqual(1);
-
-          expect(callArgs[0][1]).toEqual(
-            {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}
-          );
-          expect(callArgs[0][2]).toEqual(
-            {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}
-          );
+        it('should reuse the first connections device number', function () {
+          expect(player1.emit.secondCall.args).toEqual(['deviceNumber', 1]);
         });
       });
     });
@@ -128,6 +152,8 @@ describe('players connecting', function () {
       it('should publish the players and their status in the game', function () {
         expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1, devices: [], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
       });
+
+      it('should set the device to spare');
     });
 
     describe('when a player disconnects one of their devices', function () {

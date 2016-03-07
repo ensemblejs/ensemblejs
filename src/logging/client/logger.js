@@ -22,7 +22,11 @@ function info (msg) {
       background = 'lightgreen';
     }
 
-    console.info(`%c${msg}`, `background: ${background}; color: ${text};`);
+    if (arguments.length > 1) {
+        console.info(...arguments);
+    } else {
+        console.info(`%c${msg}`, `background: ${background}; color: ${text};`);
+    }
 }
 
 function traceLogging () {

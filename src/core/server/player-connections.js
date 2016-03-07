@@ -1,12 +1,14 @@
 'use strict';
 
-import {map, filter, first, reject, each} from 'lodash';
+import {map, filter, first, each, reject} from 'lodash';
 import Bluebird from 'bluebird';
 
 var playersStore = require('../../util/models/players');
 var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 var Address6 = require('ip-address').Address6;
+
+const spare = 'spare';
 
 module.exports = {
   type: 'PlayerConnections',
@@ -81,7 +83,7 @@ module.exports = {
       return !anyFailures;
     }
 
-    function addPlayer (save, playerId, deviceId, ipAddress) {
+    function addPlayer (save, playerId) {
       if (!exists(save.id, playerId)) {
         createNewPlayer(save, playerId);
       } else {
@@ -93,9 +95,6 @@ module.exports = {
         return undefined;
       }
 
-      connection.devices.push({id: deviceId, ip: ipAddress});
-      connection.onSameSubnet = onSameSubnet(map(connection.devices, 'ip'));
-
       return connection;
     }
 
@@ -104,7 +103,7 @@ module.exports = {
         return {
           number: connection.number,
           status: connection.status,
-          devices: map(connection.devices, 'id'),
+          devices: map(reject(connection.devices, {id: spare}), 'id'),
           playerId: connection.playerId,
           onSameSubnet: connection.onSameSubnet
         };
@@ -155,6 +154,24 @@ module.exports = {
       return player;
     }
 
+    function findDeviceNumber (player) {
+      var number;
+
+      each(player.devices, (device, index) => {
+        if (device.id === spare && !number) {
+          number = index;
+        }
+      });
+
+      if (number !== undefined) {
+        player.devices.splice(number, 1);
+
+        return number + 1;
+      } else {
+        return player.devices.length + 1;
+      }
+    }
+
     define()('OnClientConnect', function PlayerConnections () {
       return function determinePlayerNumber (state, socket, save) {
         var deviceId = socket.request.sessionID;
@@ -170,12 +187,15 @@ module.exports = {
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
-          .then(player => addPlayer(save, player.id, deviceId, ipAddress))
+          .then(player => addPlayer(save, player.id))
           .then(player => {
-            socket.emit('playerNumber', player.number);
-            socket.emit('deviceNumber', player.devices.length);
+            const deviceNumber = findDeviceNumber(player);
 
-            return player;
+            player.devices.push({id: deviceId, ip: ipAddress});
+            player.onSameSubnet = onSameSubnet(map(player.devices, 'ip'));
+
+            socket.emit('playerNumber', player.number);
+            socket.emit('deviceNumber', deviceNumber);
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
@@ -186,6 +206,16 @@ module.exports = {
           });
       };
     });
+
+    function markDeviceSlotAsSpare (devices, deviceId) {
+      return map(devices, device => {
+        if (device.id === deviceId) {
+          return { id: spare, ip: null};
+        } else {
+          return device;
+        }
+      });
+    }
 
     define()('OnClientDisconnect', function PlayerConnections () {
       return function indicatePlayerAsDisconnected (state, socket, save) {
@@ -203,10 +233,10 @@ module.exports = {
           .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then(connection => {
-            connection.devices = reject(connection.devices, {id: deviceId});
-            connection.onSameSubnet = onSameSubnet(connection.ipAddresses);
+            connection.devices = markDeviceSlotAsSpare(connection.devices, deviceId);
 
-            if (connection.devices.length === 0) {
+            connection.onSameSubnet = onSameSubnet(connection.ipAddresses);
+            if (reject(connection.devices, {id: spare}).length === 0) {
               connection.status = 'offline';
             }
           })

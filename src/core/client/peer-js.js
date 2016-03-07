@@ -34,7 +34,7 @@ function OnClientReady (eventRouter, SaveId, config) {
   }
 
   function handleIncomingConnections (connection) {
-    info({metadata: connection.medadata}, 'Incoming peer connection.');
+    info({metadata: connection.metadata}, 'Incoming peer connection.');
 
     connection.on('open', function () {
       connection.on('data', handleIncomingPacketFromPeer);
@@ -60,7 +60,6 @@ function OnClientReady (eventRouter, SaveId, config) {
     });
   }
 
-
   return function connectToBroker (dims, playerNumber, deviceNumber) {
     if (!config().client.peerLatencyReduction) {
       return;
@@ -68,7 +67,7 @@ function OnClientReady (eventRouter, SaveId, config) {
 
     let myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
 
-    info('Opening connection to PeerJS Broker');
+    info({myPeerId: myPeerId}, 'Opening connection to PeerJS Broker');
 
     peer = new Peer(myPeerId, {key: key, debug: 2});
     peer.on('open', function confirmMyId(id) {
@@ -81,7 +80,7 @@ function OnClientReady (eventRouter, SaveId, config) {
       reconnectToBroker(peer);
     });
 
-    peer.on('error', err => error(err, 'PeerJS error.'));
+    peer.on('error', err => error({err: err}, 'PeerJS error.'));
 
     for (let i = 1; i < deviceNumber; i += 1) {
       connectToPeer(SaveId(), playerNumber, i);
