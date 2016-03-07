@@ -90,6 +90,9 @@
     "time": false,
     "gamepad": false
   },
+  "peerjs": {
+    "debugLevel": 2
+  },
   "measure": {
     "endpoint": "http://localhost:4000",
     "frequency": 25,

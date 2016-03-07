@@ -69,7 +69,7 @@ function OnClientReady (eventRouter, SaveId, config) {
 
     info({myPeerId: myPeerId}, 'Opening connection to PeerJS Broker');
 
-    peer = new Peer(myPeerId, {key: key, debug: 2});
+    peer = new Peer(myPeerId, {key: key, debug: config().peerjs.debugLevel});
     peer.on('open', function confirmMyId(id) {
       info({id: id}, 'Connected to PeerJS Broker.');
     });
