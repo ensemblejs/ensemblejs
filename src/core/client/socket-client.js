@@ -15,6 +15,10 @@ module.exports = {
       return `${host()}/${mode()}/${deviceMode()}`;
     }
 
+    function disconnect () {
+      on().disconnect('client', mode());
+    }
+
     function connect () {
       var socket = io.connect(url(), { reconnection: false });
 
@@ -29,9 +33,7 @@ module.exports = {
       socket.on('connect', function connect () {
         on().connect('client', mode());
       });
-      socket.on('disconnect', function disconnect () {
-        on().disconnect('client', mode());
-      });
+      socket.on('disconnect', disconnect);
 
       socket.on('playerNumber', function savePlayerId (playerNumber) {
         if (!playerNumber) {
@@ -95,6 +97,9 @@ module.exports = {
         $()(window()).on('mousedown', unpause);
         $()(window()).on('keydown', unpause);
         $()(window()).on('touchstart', unpause);
+
+        $()(window()).on('beforeunload', disconnect);
+
         $()(window().document).on('visibilitychange', pauseIfHidden);
         $()(window().document).on('mozvisibilitychange', pauseIfHidden);
         $()(window().document).on('msvisibilitychange', pauseIfHidden);

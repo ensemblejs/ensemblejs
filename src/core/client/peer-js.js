@@ -18,6 +18,10 @@ function getPeerId (saveId, playerNumber, deviceNumber) {
 }
 
 function reconnectToBroker (peer) {
+  if (peer === null) {
+    return;
+  }
+
   info('Attempting to reconnect to broker.');
   peer.reconnect();
 }
@@ -95,5 +99,14 @@ function OnOutgoingClientPacket (config) {
   };
 }
 
+function OnDisconnect () {
+  return function disconnectFromBroker () {
+    info('Disconnecting from PeerJS Broker.');
+    peer.disconnect();
+    peer = null;
+  };
+}
+
 on('ClientReady', ['On', 'SaveId', 'Config'], OnClientReady);
 on('OutgoingClientPacket', ['Config'], OnOutgoingClientPacket);
+on('Disconnect', OnDisconnect);
