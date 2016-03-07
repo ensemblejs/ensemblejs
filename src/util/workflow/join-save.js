@@ -4,6 +4,7 @@ var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain
 var saveCommon = require('../workflow/save-common');
 var joinSaveJsonBuilder = require('../json-builders/join-save');
 import {hostname} from '../../util/hostname';
+import {isAutoAdd} from '../models/saves';
 
 function joinSave (project, savesList) {
   return function buildJson (req) {
@@ -29,6 +30,16 @@ function joinSave (project, savesList) {
       .then(passThroughPlayerAndHostname)
       .spread(saveCommon.redirectIfPlayerIsInSave)
       .spread(saveCommon.redirectIfSaveHasNoSpace)
+      .spread(function addPlayerIfAutoAdd(save, player, hostname) {
+        return isAutoAdd(save.id).then(weShouldAddPlayer => {
+          if (weShouldAddPlayer) {
+            return saveCommon.addPlayer(save, player, hostname, project)
+              .spread(saveCommon.redirectToContinueSave);
+          } else {
+            return [save, player, hostname];
+          }
+        });
+      })
       .spread(passThroughProject)
       .spread(joinSaveJsonBuilder)
       .then(addFlashMessages);

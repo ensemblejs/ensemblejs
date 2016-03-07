@@ -5,6 +5,7 @@ var config = require('../config');
 import {get, view, store} from '../database';
 import {raw} from '../adapters/save-adapter';
 import {map, isEqual, uniq, includes} from 'lodash';
+import moment from 'moment';
 
 var collection = 'saves';
 var metadataCollection = 'saves_metadata';
@@ -25,18 +26,14 @@ export function getById (saveId) {
   return get(collection, saveId);
 }
 
-export function save (data, now) {
+export function save (data) {
   if (!data) {
-    logger.error({data: data, now: now}, 'Can\'t persist save. No data supplied');
-    return;
-  }
-  if (!now) {
-    logger.error({data: data, now: now}, 'Can\'t persist save. No timestamp supplied');
+    logger.error({data: data}, 'Can\'t persist save. No data supplied');
     return;
   }
 
   data.id = data.id || data.ensemble.saveId;
-  data.updated = now;
+  data.updated = moment().unix();
 
   return store(collection, data)
     .then(() => get(metadataCollection, data.id))
@@ -47,18 +44,26 @@ export function save (data, now) {
           mode: data.ensemble.mode,
           playerIds: [],
           secret: data.ensemble.secret,
-          updated: now
+          updated: moment().unix()
         });
       }
     });
 }
 
 export function determineIfSaveIsPublic(save) {
-  return isEqual(save.ensemble.secret, 'public');
+  return isEqual(save.ensemble.secret, 'public-ask') || isEqual(save.ensemble.secret, 'public-auto');
+}
+
+export function determineIfSaveIsAutoAdd(save) {
+  return isEqual(save.ensemble.secret, 'public-auto');
 }
 
 export function isPublic (saveId) {
   return getById(saveId).then(determineIfSaveIsPublic);
+}
+
+export function isAutoAdd (saveId) {
+  return getById(saveId).then(determineIfSaveIsAutoAdd);
 }
 
 export function isSecretCorrect (saveId, suppliedSecret) {
@@ -77,17 +82,13 @@ export function isPlayerInSave (saveId, playerId) {
     .then(save => includes(save.playerIds, playerId));
 }
 
-export function addPlayer (saveId, playerId, now) {
+export function addPlayer (saveId, playerId) {
   if (!saveId) {
     logger.error('Can\'t add player. No saveId supplied');
     return;
   }
   if (!playerId) {
     logger.error('Can\'t add player. No playerId supplied');
-    return;
-  }
-  if (!now) {
-    logger.error('Can\'t add player. No timestamp supplied');
     return;
   }
 
@@ -98,7 +99,7 @@ export function addPlayer (saveId, playerId, now) {
       }
 
       save.playerIds = uniq(save.playerIds.concat(playerId));
-      save.updated = now;
+      save.updated = moment().unix();
 
       return store(metadataCollection, save);
     });

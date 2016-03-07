@@ -22,6 +22,7 @@ describe('save routes', function () {
   var hasSpaceForPlayer;
   var isSecretCorrect;
   var isPublic;
+  var isAutoAdd;
   var uuid;
 
   var maxPlayers = 2;
@@ -56,6 +57,7 @@ describe('save routes', function () {
     }));
     isSecretCorrect = sinon.stub(saves, 'isSecretCorrect');
     isPublic = sinon.stub(saves, 'isPublic');
+    isAutoAdd = sinon.stub(saves, 'isAutoAdd');
     sinon.stub(saves, 'getById').returns(new Bluebird(function(resolve) {
       resolve({ ensemble: {secret: 'public'}});
     }));
@@ -88,6 +90,7 @@ describe('save routes', function () {
     hasSpaceForPlayer.restore();
     isSecretCorrect.restore();
     isPublic.restore();
+    isAutoAdd.restore();
     saves.getById.restore();
     saves.addPlayer.restore();
     uuid.v4.restore();
@@ -201,7 +204,7 @@ describe('save routes', function () {
         });
 
         describe('when the game is full', function () {
-           beforeEach(function () {
+          beforeEach(function () {
             hasSpaceForPlayer.returns(new Bluebird(function(resolve) {
               resolve(false);
             }));
@@ -225,13 +228,48 @@ describe('save routes', function () {
             }));
           });
 
-          it('should render to the join game page', function (done) {
-            request.post(posturl('/saves', {mode: 'arcade'}), function () {
-              request.get(url(uri), function (err, res) {
-                expect(res.statusCode).toEqual(200);
-                expect(res.body).toInclude('join');
-                done(err);
-              }).end();
+          describe('when the game is "public-auto"', function () {
+            beforeEach(function () {
+              saves.addPlayer.reset();
+              isAutoAdd.returns(new Bluebird(resolve => resolve(true)));
+            });
+
+            it('should add the player to the game', function (done) {
+              request.post(posturl('/saves', {mode: 'arcade'}), function () {
+                saves.addPlayer.reset();
+
+                request.get(url(uri), function (err) {
+                  expect(saves.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                  expect(saves.addPlayer.firstCall.args[1]).toEqual('p1234');
+                  done(err);
+                }).end();
+              });
+            });
+
+            it('should render to the continue game page', function (done) {
+              request.post(posturl('/saves', {mode: 'arcade'}), function () {
+                request.get(url(uri), function (err, res) {
+                  expect(res.statusCode).toEqual(302);
+                  expect(res.headers.location).toEqual('http://localhost:3000/saves/34242-324324');
+                  done(err);
+                }).end();
+              });
+            });
+          });
+
+          describe('when the game is not "public-auto', function () {
+            beforeEach(function () {
+              isAutoAdd.returns(new Bluebird(resolve => resolve(false)));
+            });
+
+            it('should render to the join game page', function (done) {
+              request.post(posturl('/saves', {mode: 'arcade'}), function () {
+                request.get(url(uri), function (err, res) {
+                  expect(res.statusCode).toEqual(200);
+                  expect(res.body).toInclude('join');
+                  done(err);
+                }).end();
+              });
             });
           });
         });
@@ -426,12 +464,35 @@ describe('save routes', function () {
             }));
           });
 
-          describe('when the game is public', function () {
+          describe('when the game is public-auto', function () {
             beforeEach(function () {
               saves.addPlayer.reset();
-              isPublic.returns(new Bluebird(function(resolve) {
-                resolve(true);
-              }));
+              isPublic.returns(new Bluebird(resolve => resolve(true)));
+              isAutoAdd.returns(new Bluebird(resolve => resolve(true)));
+            });
+
+            it('should add the player to the game', function (done) {
+              request.post(posturl(uri, {secret: 'correct'}), function (err) {
+                expect(saves.addPlayer.firstCall.args[0]).toEqual('34242-324324');
+                expect(saves.addPlayer.firstCall.args[1]).toEqual('p1234');
+                done(err);
+              });
+            });
+
+            it('should redirect to continue game', function (done) {
+              request.post(posturl(uri), function (err, res) {
+                expect(res.statusCode).toEqual(302);
+                expect(res.headers.location).toEqual('http://localhost:3000/saves/34242-324324');
+                done(err);
+              });
+            });
+          });
+
+          describe('when the game is public-ask', function () {
+            beforeEach(function () {
+              saves.addPlayer.reset();
+              isPublic.returns(new Bluebird(resolve => resolve(true)));
+              isAutoAdd.returns(new Bluebird(resolve => resolve(false)));
             });
 
             it('should add the player to the game', function (done) {

@@ -7,7 +7,7 @@ import {summarise} from '../../../src/util/adapters/save-adapter';
 var logger = require('../../../src/logging/server/logger').logger;
 var saves = require('../../../src/util/models/saves');
 var config = require('../../../src/util/config');
-import {getById, getByGame, save, isPublic, isSecretCorrect} from '../../../src/util/models/saves';
+import {getById, getByGame, save, isPublic, isSecretCorrect, isAutoAdd} from '../../../src/util/models/saves';
 import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 describe('save model', function () {
@@ -71,14 +71,8 @@ describe('save model', function () {
       expect(logger.error.called).toBe(true);
     });
 
-    it('should report an error if there is no timestamp', function () {
-      save({}, undefined);
-
-      expect(logger.error.called).toBe(true);
-    });
-
     it('should set the id to the ensemble save id if not set', function (done) {
-      save({ensemble: {saveId: '1'}}, 15).then(function () {
+      save({ensemble: {saveId: '1'}}).then(function () {
         return saves.getById('1');
       })
       .then(function (save) {
@@ -88,11 +82,11 @@ describe('save model', function () {
     });
 
     it('should set the updated time to the timestamp', function (done) {
-      save({ensemble: {saveId: '1'}}, 15).then(function () {
+      save({ensemble: {saveId: '1'}}).then(function () {
         return saves.getById('1');
       })
       .then(function (save) {
-        expect(save.updated).toEqual(15);
+        expect(save.updated).toNotEqual(15);
       })
       .then(done).catch(done);
     });
@@ -104,9 +98,14 @@ describe('save model', function () {
     beforeEach(function (done) {
       database.store('saves', {
         id: '3',
-        ensemble: { secret: 'public'}
+        ensemble: { secret: 'public-ask'}
       })
       .then(function () {
+        return database.store('saves', {
+          id: '6',
+          ensemble: { secret: 'public-auto'}
+        });
+      }).then(function () {
         return database.store('saves', {
           id: '4',
           ensemble: { secret: ''}
@@ -122,7 +121,14 @@ describe('save model', function () {
       });
     });
 
-    it('should return true if the game secret is "public"', function (done) {
+    it('should return true if the game secret is "public-auto"', function (done) {
+      isPublic('6').then(function (isPublic) {
+        expect(isPublic).toEqual(true);
+      })
+      .then(done).catch(done);
+    });
+
+    it('should return true if the game secret is "public-ask"', function (done) {
       isPublic('3').then(function (isPublic) {
         expect(isPublic).toEqual(true);
       })
@@ -139,6 +145,62 @@ describe('save model', function () {
     it('should return false if secret is blank', function (done) {
       isPublic('5').then(function (isPublic) {
         expect(isPublic).toEqual(false);
+      })
+      .then(done).catch(done);
+    });
+  });
+
+  describe('isAutoAdd', function () {
+    beforeEach(function (done) {
+      database.store('saves', {
+        id: '3',
+        ensemble: { secret: 'public-ask'}
+      })
+      .then(function () {
+        return database.store('saves', {
+          id: '6',
+          ensemble: { secret: 'public-auto'}
+        });
+      }).then(function () {
+        return database.store('saves', {
+          id: '4',
+          ensemble: { secret: ''}
+        });
+      }).then(function () {
+        return database.store('saves', {
+          id: '5',
+          ensemble: { secret: 'something'}
+        });
+      })
+      .then(function () {
+        done();
+      });
+    });
+
+    it('should return false if the game secret is "public-ask"', function (done) {
+      isAutoAdd('3').then(function (isAutoAdd) {
+        expect(isAutoAdd).toEqual(false);
+      })
+      .then(done).catch(done);
+    });
+
+    it('should return true if the game secret is "public-auto"', function (done) {
+      isAutoAdd('6').then(function (isAutoAdd) {
+        expect(isAutoAdd).toEqual(true);
+      })
+      .then(done).catch(done);
+    });
+
+    it('should return false otherwise', function (done) {
+      isAutoAdd('4').then(function (isAutoAdd) {
+        expect(isAutoAdd).toEqual(false);
+      })
+      .then(done).catch(done);
+    });
+
+    it('should return false if secret is blank', function (done) {
+      isAutoAdd('5').then(function (isAutoAdd) {
+        expect(isAutoAdd).toEqual(false);
       })
       .then(done).catch(done);
     });
@@ -259,11 +321,6 @@ describe('save model', function () {
       saves.addPlayer(2, undefined, 4);
       expect(logger.error.called).toBe(true);
     });
-
-    it('should report an error if there is no timestamp', function () {
-      saves.addPlayer(2, 3, undefined);
-      expect(logger.error.called).toBe(true);
-    });
   });
 
   describe('isPlayerInSave', function () {
@@ -295,8 +352,8 @@ describe('save model', function () {
         maxPlayers: function (mode) { return (mode === 'arcade') ? 3 : 1; }
       });
 
-      save({ensemble: {saveId: '1', mode: 'default'}}, 15)
-        .then(() => save({ensemble: {saveId: '2', mode: 'arcade'}}, 15))
+      save({ensemble: {saveId: '1', mode: 'default'}})
+        .then(() => save({ensemble: {saveId: '2', mode: 'arcade'}}))
         .then(() => done());
     });
 
@@ -334,8 +391,8 @@ describe('save model', function () {
         maxPlayers: function () { return 1; }
       });
 
-      save({ensemble: {saveId: '1', mode: 'default', secret: 'private'}}, 15)
-        .then(() => save({ensemble: {saveId: '2', mode: 'arcade', secret: 'public'}}, 15))
+      save({ensemble: {saveId: '1', mode: 'default', secret: 'private'}})
+        .then(() => save({ensemble: {saveId: '2', mode: 'arcade', secret: 'public'}}))
         .then(() => done());
     });
 

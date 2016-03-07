@@ -4,7 +4,6 @@ var includes = require('lodash').includes;
 var returnRequestError = require('./promise').returnRequestError;
 var config = require('../config');
 var saves = require('../models/saves');
-var saves = require('../models/saves');
 var redirectTo = require('../workflow/promise').redirectTo;
 var urlBuilder = require('../url-builder');
 var logger = require('../../logging/server/logger').logger;
@@ -92,8 +91,8 @@ function redirectToShareSave (save, player, hostname) {
   return redirectTo(urlBuilder(hostname).saves(save.id).share());
 }
 
-function addPlayer (save, player, hostname, project, now) {
-  return saves.addPlayer(save.id, player.id, now)
+function addPlayer (save, player, hostname, project) {
+  return saves.addPlayer(save.id, player.id)
     .then(function discardReturnValueAndPassThroughParams() {
       return [save, player, hostname, project];
     });
