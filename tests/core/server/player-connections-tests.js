@@ -135,8 +135,8 @@ describe('players connecting', function () {
             .catch(() => done());
         });
 
-        it('should reuse the first connections device number', function () {
-          expect(player1.emit.secondCall.args).toEqual(['deviceNumber', 1]);
+        it('should not reuse the first connections device number', function () {
+          expect(player1.emit.secondCall.args).toEqual(['deviceNumber', 3]);
         });
       });
     });
@@ -196,7 +196,11 @@ describe('players connecting', function () {
       });
 
       it('should publish the players and their status in the game', function () {
-        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
+        expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[
+          { number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true},
+          {number: 2, status: 'not-joined', devices: [], onSameSubnet: true},
+          {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}
+        ], 1]);
       });
     });
 

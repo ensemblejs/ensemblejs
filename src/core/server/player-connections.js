@@ -1,6 +1,6 @@
 'use strict';
 
-import {map, filter, first, each, reject} from 'lodash';
+import {map, filter, first, each, reject, isNull} from 'lodash';
 import Bluebird from 'bluebird';
 
 var playersStore = require('../../util/models/players');
@@ -8,7 +8,7 @@ var logger = require('../../logging/server/logger').logger;
 var config = require('../../util/config');
 var Address6 = require('ip-address').Address6;
 
-const spare = 'spare';
+const dead = 'dead';
 
 module.exports = {
   type: 'PlayerConnections',
@@ -98,12 +98,16 @@ module.exports = {
       return connection;
     }
 
+    function activeDevices (devices) {
+      return reject(devices, {id: dead});
+    }
+
     function getPlayers (save) {
       var players = map(savePlayers(save.id), function (connection) {
         return {
           number: connection.number,
           status: connection.status,
-          devices: map(reject(connection.devices, {id: spare}), 'id'),
+          devices: map(activeDevices(connection.devices), 'id'),
           playerId: connection.playerId,
           onSameSubnet: connection.onSameSubnet
         };
@@ -111,7 +115,9 @@ module.exports = {
 
       var maxPlayers = config.get().maxPlayers(save.mode);
       for (var i = players.length + 1; i <= maxPlayers; i += 1) {
-        players.push({number: i, status: 'not-joined', devices: [], onSameSubnet: true});
+        players.push(
+          {number: i, status: 'not-joined', devices: [], onSameSubnet: true}
+        );
       }
 
       return players;
@@ -154,22 +160,8 @@ module.exports = {
       return player;
     }
 
-    function findDeviceNumber (player) {
-      var number;
-
-      each(player.devices, (device, index) => {
-        if (device.id === spare && !number) {
-          number = index;
-        }
-      });
-
-      if (number !== undefined) {
-        player.devices.splice(number, 1);
-
-        return number + 1;
-      } else {
-        return player.devices.length + 1;
-      }
+    function validIpAddresses (devices) {
+      return reject(map(devices, 'ip'), isNull);
     }
 
     define()('OnClientConnect', function PlayerConnections () {
@@ -189,13 +181,11 @@ module.exports = {
           .then(redirectIfPlayerIsNotInSave)
           .then(player => addPlayer(save, player.id))
           .then(player => {
-            const deviceNumber = findDeviceNumber(player);
-
             player.devices.push({id: deviceId, ip: ipAddress});
-            player.onSameSubnet = onSameSubnet(map(player.devices, 'ip'));
+            player.onSameSubnet = onSameSubnet(validIpAddresses(player.devices));
 
             socket.emit('playerNumber', player.number);
-            socket.emit('deviceNumber', deviceNumber);
+            socket.emit('deviceNumber', player.devices.length);
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
@@ -207,10 +197,10 @@ module.exports = {
       };
     });
 
-    function markDeviceSlotAsSpare (devices, deviceId) {
+    function markDeviceSlotAsDead (devices, deviceId) {
       return map(devices, device => {
         if (device.id === deviceId) {
-          return { id: spare, ip: null};
+          return { id: dead, ip: null};
         } else {
           return device;
         }
@@ -233,10 +223,10 @@ module.exports = {
           .then(player => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then(connection => {
-            connection.devices = markDeviceSlotAsSpare(connection.devices, deviceId);
+            connection.devices = markDeviceSlotAsDead(connection.devices, deviceId);
 
-            connection.onSameSubnet = onSameSubnet(connection.ipAddresses);
-            if (reject(connection.devices, {id: spare}).length === 0) {
+            connection.onSameSubnet = onSameSubnet(validIpAddresses(connection.devices));
+            if (activeDevices(connection.devices).length === 0) {
               connection.status = 'offline';
             }
           })
