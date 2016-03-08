@@ -80,7 +80,13 @@ function OnClientReady (eventRouter, SaveId, config) {
       reconnectToBroker(peer);
     });
 
-    peer.on('error', err => error({err: err}, 'PeerJS error.'));
+    peer.on('error', err => {
+      if (err.type === 'peer-unavailable') {
+        info({err: err}, 'Could not connect to peer. Probably because we do not reuse peer-ids and have a really simple strategy for connecting to a bunch of peers. Error information supplied.');
+      } else {
+        error({err: err}, 'PeerJS error.');
+      }
+    });
 
     for (let i = 1; i < deviceNumber; i += 1) {
       connectToPeer(SaveId(), playerNumber, i);
