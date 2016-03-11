@@ -4,23 +4,43 @@ var sinon = require('sinon');
 var expect = require('expect');
 
 var onChangeOf = sinon.spy();
+var onElementAdded = sinon.spy();
+var onElementChanged = sinon.spy();
+var onElementRemoved = sinon.spy();
 
 var tracker = {
-  onChangeOf: onChangeOf
+  onChangeOf: onChangeOf,
+  onElementAdded: onElementAdded,
+  onElementChanged: onElementChanged,
+  onElementRemoved: onElementRemoved
 };
 
 var updatedCallback = sinon.spy();
+var addedCallback = sinon.spy();
+var changedCallback = sinon.spy();
+var removedCallback = sinon.spy();
 var physicsSystem = {
   tick: sinon.spy(),
   register: sinon.spy(),
-  updated: function () { return updatedCallback; }
+  updated: function () { return updatedCallback; },
+  added: function () { return addedCallback; },
+  changed: function () { return changedCallback; },
+  removed: function () { return removedCallback; }
 };
 sinon.spy(physicsSystem, 'updated');
+sinon.spy(physicsSystem, 'added');
+sinon.spy(physicsSystem, 'changed');
+sinon.spy(physicsSystem, 'removed');
 
 var state = {
   'source.state': {position: { x: 4, y: 5}},
   'different.state': {position: { x: 4, y: 5}},
-  'second.state': {position: { x: 24, y: 35}}
+  'second.state': {position: { x: 24, y: 35}},
+  'array.state': [
+    {id: 1, position: { x: 24, y: 35}},
+    {id: 2, position: { x: 43, y: 23}}
+  ],
+  'array.empty': []
 };
 var stateAccess = {
   for: function () {
@@ -82,6 +102,47 @@ describe('physics system bridge', function () {
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
         expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state']);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+      });
+    });
+
+    describe('a physics map with a source key that points to an array', function () {
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'key': ['array.state', 'array.empty'],
+        }];
+
+        var bridge = makeTestible('core/client/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        physicsSystem.register.reset();
+        physicsSystem.updated.reset();
+        onElementAdded.reset();
+        onElementChanged.reset();
+        onElementRemoved.reset();
+
+        bridge[1].OnClientReady(defer('game'))();
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(onElementAdded.firstCall.args).toEqual(['array.state', addedCallback]);
+        expect(onElementAdded.secondCall.args).toEqual(['array.empty', addedCallback]);
+        expect(onElementChanged.firstCall.args).toEqual(['array.state', updatedCallback]);
+        expect(onElementChanged.secondCall.args).toEqual(['array.empty', updatedCallback]);
+        expect(onElementRemoved.firstCall.args).toEqual(['array.state', removedCallback]);
+        expect(onElementRemoved.secondCall.args).toEqual(['array.empty', removedCallback]);
+
+        expect(physicsSystem.added.firstCall.args).toEqual(['client', 'key', 'array.state']);
+        expect(physicsSystem.added.secondCall.args).toEqual(['client', 'key', 'array.empty']);
+
+        expect(physicsSystem.changed.firstCall.args).toEqual(['client', 'key', 'array.state']);
+        expect(physicsSystem.changed.secondCall.args).toEqual(['client', 'key', 'array.empty']);
+
+        expect(physicsSystem.removed.firstCall.args).toEqual(['client', 'key', 'array.state']);
+        expect(physicsSystem.removed.secondCall.args).toEqual(['client', 'key', 'array.empty']);
       });
     });
 

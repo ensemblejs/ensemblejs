@@ -68,4 +68,80 @@ describe('the physics system', function () {
       });
     });
   });
+
+  describe('array functions', function () {
+    var add, change, remove;
+
+    beforeEach(function () {
+      physicsSystem = makeTestible('core/shared/physics-system')[0];
+      add = physicsSystem.added(1, 'pArray', 'srcArray');
+      change = physicsSystem.changed(1, 'pArray', 'srcArray');
+      remove = physicsSystem.removed(1, 'pArray', 'srcArray');
+    });
+
+    describe('adding elements', function () {
+      beforeEach(function () {
+        add(10, {id: 10, x: 3, y: 5});
+      });
+
+      afterEach(function () {
+        remove(10);
+      });
+
+      it('should return an add function', function () {
+        expect(add).toBeA(Function);
+      });
+
+      it('should add the element', function () {
+        expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 10, x: 3, y: 5}]);
+        expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 10, x: 3, y: 5}]);
+      });
+    });
+
+    describe('modifying elements', function () {
+      beforeEach(function () {
+        add(40, {id: 40, x: 3, y: 5});
+      });
+
+      afterEach(function () {
+        remove(40);
+      });
+
+      it('should return a change function', function () {
+        expect(change).toBeA(Function);
+      });
+
+      it('should modify the element the element', function () {
+        change(40, {id: 40, x: 6, y: 1});
+
+        expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 40, x: 6, y: 1}]);
+        expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 40, x: 6, y: 1}]);
+      });
+    });
+
+    describe('removing elements', function () {
+      it('should return a remove function', function () {
+        expect(remove).toBeA(Function);
+      });
+
+      describe('the remove function', function () {
+        beforeEach(function () {
+          add(15, {id: 15, x: 1, y: 2});
+          add(25, {id: 25, x: 3, y: 4});
+        });
+
+        it('should remove the current state', function () {
+          remove(15);
+
+          expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 25, x: 3, y: 4}]);
+          expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 25, x: 3, y: 4}]);
+
+          remove(25);
+
+          expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([]);
+          expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([]);
+        });
+      });
+    });
+  });
 });

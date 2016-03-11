@@ -1,12 +1,8 @@
 'use strict';
 
-var each = require('lodash').each;
-var filter = require('lodash').filter;
-var reject = require('lodash').reject;
-var isString = require('lodash').isString;
+import {each, filter, reject, isString, isArray, set} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var replaceIfPresent = require('../../util/replace-if-present');
-var set = require('lodash').set;
 var sequence = require('distributedlife-sequence');
 
 module.exports = {
@@ -15,8 +11,17 @@ module.exports = {
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
     function wireupDynamic (saveId, physicsKey, sourceKey) {
-      physicsSystem().register(saveId, physicsKey, sourceKey, state().for(saveId).unwrap(sourceKey));
-      tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey));
+      var sourceState = state().for(saveId).unwrap(sourceKey);
+
+      if (isArray(sourceState)) {
+        tracker().for(saveId).onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey));
+        tracker().for(saveId).onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey));
+        tracker().for(saveId).onElementRemoved(sourceKey, physicsSystem().removed(saveId, physicsKey, sourceKey));
+      } else {
+        physicsSystem().register(saveId, physicsKey, sourceKey, sourceState);
+
+        tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey));
+      }
     }
 
     function wireupStatic (saveId, physicsKey, source) {
