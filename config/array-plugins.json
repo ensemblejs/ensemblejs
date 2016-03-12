@@ -37,6 +37,7 @@
     "OnServerStop",
     "OnUnmute",
     "PhysicsMap",
+    "PlayerStateSeed",
     "Routes",
     "StateSeed",
     "TriggerMap",

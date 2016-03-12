@@ -10,7 +10,8 @@ module.exports = {
         paused: false,
         waitingForPlayers: true,
         started: time().present()
-      }
+      },
+      players: []
     };
   }
 };
