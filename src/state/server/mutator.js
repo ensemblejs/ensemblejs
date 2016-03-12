@@ -68,7 +68,6 @@ module.exports = {
         let path = key.split('*.')[0];
         let suffix = key.split('*.')[1];
 
-        console.log(path, suffix);
 
         return map(get(node, path), subNode => accessState(subNode, suffix));
       }
@@ -226,6 +225,24 @@ module.exports = {
       return set({}, dotString, mod);
     }
 
+    function applyOnArrayElement (saveId, dotString, value) {
+      const pathToArray = dotString.split(':')[0];
+      const id = parseInt(dotString.split(':')[1], 10);
+      const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\./, '');
+
+      let entries = stateAccess.for(saveId).unwrap(pathToArray);
+
+      let mod = map(entries, entry => {
+        if (entry.id !== id) {
+          return entry;
+        }
+
+        return set(entry, restOfPath, value);
+      });
+
+      return set({}, pathToArray, mod);
+    }
+
     function applyResult (saveId, dotString, value) {
       if (endsWith(dotString, '+')) {
         return applyPlusResult(saveId, dotString.split('+')[0], value);
@@ -233,6 +250,8 @@ module.exports = {
         return applyMinusResult(saveId, dotString.split('-')[0], value);
       } else if (endsWith(dotString, '!')) {
         return applyModifiyResult(saveId, dotString.split('!')[0], value);
+      } else if (includes(dotString, ':')) {
+        return applyOnArrayElement(saveId, dotString, value);
       }
 
       return set({}, dotString, value);
@@ -250,11 +269,8 @@ module.exports = {
 
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
-      console.log(root[saveId]);
-      console.log(result);
       root[saveId] = root[saveId] || {};
       merge(root[saveId], result, replaceArrayDontMerge);
-      console.log(root[saveId]);
     }
 
     function isArrayOfArrays (result) {

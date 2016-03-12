@@ -84,7 +84,7 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for().for('controller').get('list')).toEqual([]);
   });
 
-  it('should support remving- from arrays', function () {
+  it('should support removing- from arrays', function () {
     stateMutator(1, ['controller.idList-', {id: 4}]);
 
     afterPhysicsFrame();
@@ -99,6 +99,17 @@ describe('as before but return new objects with only the changed state', functio
 
     expect(state.for().for('controller').get('idList')).toEqual([
       {id: 4, n: 'a'},
+      {id: 3}
+    ]);
+  });
+
+  it('should support modifying arrays children', function () {
+    stateMutator(1, ['controller.idList:4.n', 'z']);
+
+    afterPhysicsFrame();
+
+    expect(state.for().for('controller').get('idList')).toEqual([
+      {id: 4, n: 'z'},
       {id: 3}
     ]);
   });
