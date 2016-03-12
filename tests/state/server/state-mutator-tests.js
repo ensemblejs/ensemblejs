@@ -23,6 +23,7 @@ describe('state mutator', function () {
         score: 0,
         state: 'ready',
         list: [4],
+        idList: [{id: 4}, {id: 3}],
         child: {
           age: 5,
           siblings: {
@@ -80,6 +81,37 @@ describe('state mutator', function () {
     expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
   });
 
+  it('should support adding+ to arrays', function () {
+    stateMutator(1, ['controller.list+', 5]);
+
+    expect(state.for(1).for('controller').get('list')).toEqual([4, 5]);
+  });
+
+   it('should work with emptying arrays', function () {
+    stateMutator(1, {
+      controller: {
+        list: []
+      }
+    });
+
+    expect(state.for(1).for('controller').get('list')).toEqual([]);
+  });
+
+  it('should support removing- from arrays', function () {
+    stateMutator(1, ['controller.idList-', {id: 3}]);
+
+    expect(state.for(1).for('controller').get('idList')).toEqual([{id: 4}]);
+  });
+
+  it('should support modifying! arrays', function () {
+    stateMutator(1, ['controller.idList!', {id: 4, n: 'a'}]);
+
+    expect(state.for(1).for('controller').get('idList')).toEqual([
+      {id: 4, n: 'a'},
+      {id: 3}
+    ]);
+  });
+
   it('should work with promises', function (done) {
     stateMutator(1, Bluebird.resolve(['controller.score', 2]))
       .then(() => {
@@ -111,16 +143,6 @@ describe('state mutator', function () {
         expect(state.for(1).for('controller').get('score')).toEqual(0);
         done();
       });
-  });
-
-  it('should work with removing elements from arrays', function () {
-    stateMutator(1, {
-      controller: {
-        list: []
-      }
-    });
-
-    expect(state.for(1).for('controller').get('list')).toEqual([]);
   });
 
   it('should work with different saves', function () {

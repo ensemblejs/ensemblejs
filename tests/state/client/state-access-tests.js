@@ -23,6 +23,7 @@ describe('state access', function () {
         }
       },
       arrayOfThings: [1, 2, 3],
+      idArray: [{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}],
       player1: { controller: { score: 10 } },
       player2: { controller: { score: 20 } },
       player3: { controller: { score: 34 } }
@@ -34,6 +35,12 @@ describe('state access', function () {
   it('should return the value you asked for', function () {
     expect(state.for().for('controller').get('start')).toEqual(0);
     expect(state.for().get('controller.start')).toEqual(0);
+    expect(state.for().get('arrayOfThings')).toEqual([1,2,3]);
+    expect(state.for().get('idArray:2')('id')).toEqual(2);
+    expect(state.for().get('idArray:2')('c')).toEqual('d');
+    expect(state.for().get('idArray:2.c')).toEqual('d');
+    expect(state.for().get('idArray')).toEqual([{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}]);
+    expect(state.for().get('idArray*.c')).toEqual(['b', 'd', 'f']);
   });
 
   it('should return a function if the requested key is an object', function () {
@@ -89,6 +96,18 @@ describe('state access', function () {
 
     it('should unwrap objects', function () {
       expect(state.for().unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+    });
+
+    it('should unwrap by id', function () {
+      expect(state.for().unwrap('idArray:2')).toEqual({id: 2, c: 'd'});
+    });
+
+    it('should unwrap by id with children', function () {
+      expect(state.for().unwrap('idArray:2.c')).toEqual('d');
+    });
+
+    it('should unwrap array children', function () {
+      expect(state.for().unwrap('idArray*.c')).toEqual(['b', 'd', 'f']);
     });
 
     it('should unwrap arrays', function () {

@@ -18,6 +18,7 @@ describe('as before but return new objects with only the changed state', functio
         score: 0,
         state: 'ready',
         list: [4],
+        idList: [{id: 4}, {id: 3}],
         child: {
           age: 5,
           siblings: {
@@ -64,6 +65,14 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for().for('controller').get('list')).toEqual([4, 3]);
   });
 
+  it('should support adding+ to arrays', function () {
+    stateMutator(1, ['controller.list+', 3]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().for('controller').get('list')).toEqual([4, 3]);
+  });
+
   it('should work with removing elements from arrays', function () {
     stateMutator(1, {
       controller: {
@@ -73,6 +82,25 @@ describe('as before but return new objects with only the changed state', functio
     afterPhysicsFrame();
 
     expect(state.for().for('controller').get('list')).toEqual([]);
+  });
+
+  it('should support remving- from arrays', function () {
+    stateMutator(1, ['controller.idList-', {id: 4}]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().for('controller').get('idList')).toEqual([{id: 3}]);
+  });
+
+  it('should support modifying! arrays', function () {
+    stateMutator(1, ['controller.idList!', {id: 4, n: 'a'}]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().for('controller').get('idList')).toEqual([
+      {id: 4, n: 'a'},
+      {id: 3}
+    ]);
   });
 
   it('should do nothing with undefined', function () {

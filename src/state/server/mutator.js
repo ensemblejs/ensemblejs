@@ -1,15 +1,6 @@
 'use strict';
 
-var isObject = require('lodash').isObject;
-var isArray = require('lodash').isArray;
-var isString = require('lodash').isString;
-var isEqual = require('lodash').isEqual;
-var cloneDeep = require('lodash').cloneDeep;
-var merge = require('lodash').mergeWith;
-var each = require('lodash').each;
-var filter = require('lodash').filter;
-var get = require('lodash').get;
-var set = require('lodash').set;
+import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
@@ -54,7 +45,42 @@ module.exports = {
     });
 
     function accessState(node, key) {
-      var prop = get(node, key);
+      var prop;
+
+      function getArrayById (node, key) {
+        let path = key.split(':')[0];
+        let suffix = key.split(':')[1];
+
+        if (includes(suffix, '.')) {
+          let id = parseInt(suffix.split('.')[0], 10);
+          let subPath = replace(suffix, /^[0-9]+\./, '');
+
+          let subNode = first(filter(get(node, path), {id: id}));
+
+          return accessState(subNode, subPath);
+        } else {
+          let id = parseInt(suffix, 10);
+          return first(filter(get(node, path), {id: id}));
+        }
+      }
+
+      function getChildren (node, key) {
+        let path = key.split('*.')[0];
+        let suffix = key.split('*.')[1];
+
+        console.log(path, suffix);
+
+        return map(get(node, path), subNode => accessState(subNode, suffix));
+      }
+
+      if (includes(key, ':')) {
+        prop = getArrayById(node, key);
+      } else if (includes(key, '*')) {
+        prop = getChildren(node, key);
+      } else {
+        prop = get(node, key);
+      }
+
       if (prop === undefined) {
         logger.warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
       }
@@ -84,51 +110,53 @@ module.exports = {
       }
     }
 
-    define()('StateAccess', function () {
-      return {
-        for: function forSave (saveId) {
-          return {
-            get: function getUsingDotString (key) {
-              return provideReadAccessToState(root[saveId])(key);
-            },
-            unwrap: function unwrap (key) {
-              return accessAndCloneState(root[saveId], key);
-            },
-            for: function forNamespace (namespace) {
-              return {
-                get: function get (key) {
-                  return provideReadAccessToState(root[saveId][namespace])(key);
-                },
-                unwrap: function unwrap (key) {
-                  return accessAndCloneState(root[saveId][namespace], key);
-                },
-              };
-            },
-            player: function forPlayer (playerId) {
-              var playerKey = `player${playerId}`;
+    var stateAccess = {
+      for: function forSave (saveId) {
+        return {
+          get: function getUsingDotString (key) {
+            return provideReadAccessToState(root[saveId])(key);
+          },
+          unwrap: function unwrap (key) {
+            return accessAndCloneState(root[saveId], key);
+          },
+          for: function forNamespace (namespace) {
+            return {
+              get: function get (key) {
+                return provideReadAccessToState(root[saveId][namespace])(key);
+              },
+              unwrap: function unwrap (key) {
+                return accessAndCloneState(root[saveId][namespace], key);
+              },
+            };
+          },
+          player: function forPlayer (playerId) {
+            var playerKey = `player${playerId}`;
 
-              return {
-                for: function forNamespace (namespace) {
-                  return {
-                    get: function get (key) {
-                      return provideReadAccessToState(root[saveId][playerKey][namespace])(key);
-                    },
-                    unwrap: function unwrap (key) {
-                      return accessAndCloneState(root[saveId][playerKey][namespace], key);
-                    },
-                  };
-                },
-                get: function get (key) {
-                  return provideReadAccessToState(root[saveId][playerKey])(key);
-                },
-                unwrap: function unwrap (key) {
-                  return accessAndCloneState(root[saveId][playerKey], key);
-                },
-              };
-            }
-          };
-        }
-      };
+            return {
+              for: function forNamespace (namespace) {
+                return {
+                  get: function get (key) {
+                    return provideReadAccessToState(root[saveId][playerKey][namespace])(key);
+                  },
+                  unwrap: function unwrap (key) {
+                    return accessAndCloneState(root[saveId][playerKey][namespace], key);
+                  },
+                };
+              },
+              get: function get (key) {
+                return provideReadAccessToState(root[saveId][playerKey])(key);
+              },
+              unwrap: function unwrap (key) {
+                return accessAndCloneState(root[saveId][playerKey], key);
+              },
+            };
+          }
+        };
+      }
+    };
+
+    define()('StateAccess', function () {
+      return stateAccess;
     });
 
     function isValidDotStringResult(result) {
@@ -179,19 +207,54 @@ module.exports = {
       return isArray(a) ? b : undefined;
     }
 
+    function applyPlusResult (saveId, dotString, value) {
+      let entries = stateAccess.for(saveId).unwrap(dotString);
+
+      return set({}, dotString, entries.concat([value]));
+    }
+
+    function applyMinusResult (saveId, dotString, value) {
+      let entries = stateAccess.for(saveId).unwrap(dotString);
+
+      return set({}, dotString, reject(entries, value));
+    }
+
+    function applyModifiyResult (saveId, dotString, value) {
+      let entries = stateAccess.for(saveId).unwrap(dotString);
+      let mod = map(entries, entry => entry.id === value.id ? value : entry);
+
+      return set({}, dotString, mod);
+    }
+
+    function applyResult (saveId, dotString, value) {
+      if (endsWith(dotString, '+')) {
+        return applyPlusResult(saveId, dotString.split('+')[0], value);
+      } else if (endsWith(dotString, '-')) {
+        return applyMinusResult(saveId, dotString.split('-')[0], value);
+      } else if (endsWith(dotString, '!')) {
+        return applyModifiyResult(saveId, dotString.split('!')[0], value);
+      }
+
+      return set({}, dotString, value);
+    }
+
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
         }
 
-        result = set({}, result[0], result[1]);
+        result = applyResult(saveId, result[0], result[1]);
       }
+
 
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
+      console.log(root[saveId]);
+      console.log(result);
       root[saveId] = root[saveId] || {};
       merge(root[saveId], result, replaceArrayDontMerge);
+      console.log(root[saveId]);
     }
 
     function isArrayOfArrays (result) {

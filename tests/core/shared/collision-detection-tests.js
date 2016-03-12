@@ -153,7 +153,7 @@ describe('collision detection system', function () {
     });
   });
 
-  describe('multiple games when running on the server', function () {
+  describe('multiple saves when running on the server', function () {
     var cd;
     var map1;
     var map2;
