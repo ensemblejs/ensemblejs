@@ -1,12 +1,12 @@
 'use strict';
 
 var forEachMode = require('../../util/modes').forEachMode;
-var clone = require('lodash').clone;
+import {clone, reject, isUndefined} from 'lodash';
 
 module.exports = {
   type: 'CollisionDetectionBridge',
   deps: ['DefinePlugin', 'CollisionMap', 'CollisionDetectionSystem'],
-  func: function CollisionDetection (define, maps, collisionDetectionSystem) {
+  func: function CollisionDetection (define, maps, system) {
 
     function OnPhysicsFrame () {
       return function callSystemWithRelevantMapsAndSaveId (delta, state) {
@@ -25,12 +25,10 @@ module.exports = {
             changes.push(callback(...onCollisionArgs));
           }
 
-          collisionDetectionSystem().detectCollisions(
-            map, saveId, onCollision
-          );
+          system().detectCollisions(map, saveId, onCollision);
         });
 
-        return changes;
+        return reject(changes, isUndefined);
       };
     }
 

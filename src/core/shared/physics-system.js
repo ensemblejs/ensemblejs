@@ -17,7 +17,7 @@ function create (saveId, physicsKey, sourceKey, initialState) {
 
 function updated (saveId, sourceKey, adapter) {
   return function calledWhenUpdated (current) {
-    physicsThings[saveId][sourceKey] = adapter ? adapter(autoResolve(current)) : autoResolve(current);
+    physicsThings[saveId][sourceKey] = adapter ? autoResolve(adapter(current)) : autoResolve(current);
   };
 }
 
@@ -31,14 +31,14 @@ function added (saveId, physicsKey, sourceKey, adapter) {
   physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey] || [];
 
   return function calledWhenElementAdded (id, current) {
-    physicsThings[saveId][sourceKey].push(adapter ? adapter(autoResolve(current)) : autoResolve(current));
+    physicsThings[saveId][sourceKey].push(adapter ? autoResolve(adapter(current)) : autoResolve(current));
   };
 }
 
 function changed (saveId, physicsKey, sourceKey, adapter) {
   return function calledWhenElementChanged (id, current) {
     physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
-    physicsThings[saveId][sourceKey].push(adapter ? adapter(autoResolve(current)): autoResolve(current));
+    physicsThings[saveId][sourceKey].push(adapter ? autoResolve(adapter(current)): autoResolve(current));
   };
 }
 

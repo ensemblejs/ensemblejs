@@ -39,9 +39,9 @@ module.exports = {
             });
 
 
-            let configDyanmic = reject(sources, isString);
-            configDyanmic = filter(configDyanmic, s => has(s, 'sourceKey'));
-            each(configDyanmic, function(config) {
+            let configDyanamic = reject(sources, isString);
+            configDyanamic = filter(configDyanamic, s => has(s, 'sourceKey'));
+            each(configDyanamic, function eachDynamicConfig (config) {
               let sourceKey = config.sourceKey;
               let adapter = config.via;
               let sourceState = state().for('client').unwrap(config.sourceKey);
