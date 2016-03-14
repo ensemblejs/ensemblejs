@@ -12,7 +12,7 @@ module.exports = {
     var changes = [];
 
     function invokeCallback (callback, currentModel, priorModel, data) {
-      var args = isArray(data) ? data : [data];
+      var args = isArray(data) ? [].concat(data) : [data];
 
       args.unshift(priorModel);
       args.unshift(currentModel);
@@ -25,7 +25,7 @@ module.exports = {
     }
 
     function invokeCallbackWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
-      var args = isArray(data) ? data : [data];
+      var args = isArray(data) ? [].concat(data) : [data];
 
       if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);
