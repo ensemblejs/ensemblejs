@@ -15,13 +15,13 @@ function create (saveId, physicsKey, sourceKey, initialState) {
   physicsThings[saveId][sourceKey] = autoResolve(initialState);
 }
 
-function updated (saveId, sourceKey) {
+function updated (saveId, sourceKey, adapter) {
   return function calledWhenUpdated (current) {
-    physicsThings[saveId][sourceKey] = autoResolve(current);
+    physicsThings[saveId][sourceKey] = adapter ? adapter(autoResolve(current)) : autoResolve(current);
   };
 }
 
-function added (saveId, physicsKey, sourceKey) {
+function added (saveId, physicsKey, sourceKey, adapter) {
   keyMappings[saveId] = keyMappings[saveId] || {};
   keyMappings[saveId][physicsKey] = keyMappings[saveId][physicsKey] || [];
   keyMappings[saveId][physicsKey].push(sourceKey);
@@ -31,14 +31,14 @@ function added (saveId, physicsKey, sourceKey) {
   physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey] || [];
 
   return function calledWhenElementAdded (id, current) {
-    physicsThings[saveId][sourceKey].push(autoResolve(current));
+    physicsThings[saveId][sourceKey].push(adapter ? adapter(autoResolve(current)) : autoResolve(current));
   };
 }
 
-function changed (saveId, physicsKey, sourceKey) {
+function changed (saveId, physicsKey, sourceKey, adapter) {
   return function calledWhenElementChanged (id, current) {
     physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
-    physicsThings[saveId][sourceKey].push(autoResolve(current));
+    physicsThings[saveId][sourceKey].push(adapter ? adapter(autoResolve(current)): autoResolve(current));
   };
 }
 

@@ -100,8 +100,54 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state', undefined]);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
+      });
+    });
+
+    describe('a physics map with a source key and a via function', function () {
+      function pluckPosition (thing) {
+        return thing.position;
+      }
+
+      beforeEach(function () {
+        var physicsMap = ['*', {
+          'keyA': [{sourceKey: 'array.state', via: pluckPosition}],
+          'keyB': [{sourceKey: 'source.state', via: pluckPosition}]
+        }];
+
+        var bridge = makeTestible('core/client/physics-system-bridge', {
+          PhysicsMap: [physicsMap],
+          StateTracker: tracker,
+          PhysicsSystem: physicsSystem,
+          StateAccess: stateAccess
+        });
+
+        physicsSystem.register.reset();
+        physicsSystem.updated.reset();
+        physicsSystem.added.reset();
+        physicsSystem.changed.reset();
+        physicsSystem.removed.reset();
+        onElementAdded.reset();
+        onElementChanged.reset();
+        onElementRemoved.reset();
+
+        bridge[1].OnClientReady(defer('game'))();
+      });
+
+      it('should pass the source state to the physics system', function () {
+        expect(physicsSystem.register.firstCall.args).toEqual(['client', 'keyB', 'source.state', {x: 4, y: 5}
+        ]);
+      });
+
+      it('should setup a trigger binding to wire the source changes with the physics system', function () {
+        expect(physicsSystem.added.firstCall.args).toEqual(['client', 'keyA', 'array.state', pluckPosition]);
+
+        expect(physicsSystem.changed.firstCall.args).toEqual(['client', 'keyA', 'array.state', pluckPosition]);
+
+        expect(physicsSystem.removed.firstCall.args).toEqual(['client', 'keyA', 'array.state']);
+
+        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state', pluckPosition]);
       });
     });
 
@@ -120,6 +166,9 @@ describe('physics system bridge', function () {
 
         physicsSystem.register.reset();
         physicsSystem.updated.reset();
+        physicsSystem.added.reset();
+        physicsSystem.changed.reset();
+        physicsSystem.removed.reset();
         onElementAdded.reset();
         onElementChanged.reset();
         onElementRemoved.reset();
@@ -135,11 +184,11 @@ describe('physics system bridge', function () {
         expect(onElementRemoved.firstCall.args).toEqual(['array.state', removedCallback]);
         expect(onElementRemoved.secondCall.args).toEqual(['array.empty', removedCallback]);
 
-        expect(physicsSystem.added.firstCall.args).toEqual(['client', 'key', 'array.state']);
-        expect(physicsSystem.added.secondCall.args).toEqual(['client', 'key', 'array.empty']);
+        expect(physicsSystem.added.firstCall.args).toEqual(['client', 'key', 'array.state', undefined]);
+        expect(physicsSystem.added.secondCall.args).toEqual(['client', 'key', 'array.empty', undefined]);
 
-        expect(physicsSystem.changed.firstCall.args).toEqual(['client', 'key', 'array.state']);
-        expect(physicsSystem.changed.secondCall.args).toEqual(['client', 'key', 'array.empty']);
+        expect(physicsSystem.changed.firstCall.args).toEqual(['client', 'key', 'array.state', undefined]);
+        expect(physicsSystem.changed.secondCall.args).toEqual(['client', 'key', 'array.empty', undefined]);
 
         expect(physicsSystem.removed.firstCall.args).toEqual(['client', 'key', 'array.state']);
         expect(physicsSystem.removed.secondCall.args).toEqual(['client', 'key', 'array.empty']);
@@ -212,17 +261,22 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state', undefined]);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['client', 'different.state']);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['client', 'different.state', undefined]);
         expect(onChangeOf.secondCall.args).toEqual(['different.state', updatedCallback]);
       });
     });
 
     describe('a physics map with static objects', function () {
+      function positionOnly (thing) {
+        return thing.position;
+      }
+
       beforeEach(function () {
         var physicsMap = ['*', {
-          'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}]
+          'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}],
+          'keyB': [{ position: { x: -100, y: -100}, width: 700, height: 100, via: positionOnly}]
         }];
 
         var bridge = makeTestible('core/client/physics-system-bridge', {
@@ -241,6 +295,8 @@ describe('physics system bridge', function () {
 
       it('should pass the source state to the physics system', function () {
         expect(physicsSystem.register.firstCall.args).toEqual(['client', 'keyA', 'static1', { position: { x: -100, y: -100}, width: 700, height: 100}
+        ]);
+        expect(physicsSystem.register.secondCall.args).toEqual(['client', 'keyB', 'static1', { x: -100, y: -100 }
         ]);
       });
 
@@ -280,8 +336,8 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state']);
-        expect(physicsSystem.updated.secondCall.args).toEqual(['client', 'source.state']);
+        expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state', undefined]);
+        expect(physicsSystem.updated.secondCall.args).toEqual(['client', 'source.state', undefined]);
         expect(onChangeOf.firstCall.args).toEqual(['source.state', updatedCallback]);
       });
     });

@@ -9,8 +9,8 @@ var callForModeWithMutationWithPromises = require('../../util/modes').callForMod
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket, onClientDeviceNumber, device) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device', 'OnNewPlayer'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket, onClientDeviceNumber, device, onNewPlayer) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -61,6 +61,10 @@ module.exports = {
 
     function saveReady (save) {
       return callEachPluginAndPromises(onSaveReady(), [save]);
+    }
+
+    function newPlayer (save, playerId) {
+      callEachWithMutation(onNewPlayer(), mutator, save.id, [save, playerId]);
     }
 
     function clientConnect (save, socket) {
@@ -139,27 +143,28 @@ module.exports = {
 
     return {
       clientConnect: clientConnect,
+      clientDeviceNumber: clientDeviceNumber,
       clientDisconnect: clientDisconnect,
       clientPlayerId: clientPlayerId,
-      clientDeviceNumber: clientDeviceNumber,
       clientStart: clientStart,
       connect: connect,
       databaseReady: databaseReady,
       disconnect: disconnect,
       error: error,
-      saveReady: saveReady,
       incomingClientInputPacket: incomingClientInputPacket,
-      incomingServerPacket: createOnServerPacketCallback(),
       incomingPeerPacket: incomingPeerPacket,
+      incomingServerPacket: createOnServerPacketCallback(),
       input: input,
       loadSave: loadSave,
       mute: mute,
+      newPlayer: newPlayer,
       newSave: newSave,
       outgoingClientPacket: outgoingClientPacket,
       outgoingServerPacket: outgoingServerPacket,
       pause: pause,
       playerGroupChange: playerGroupChange,
       resume: resume,
+      saveReady: saveReady,
       serverStart: serverStart,
       serverStop: serverStop,
       unmute: unmute

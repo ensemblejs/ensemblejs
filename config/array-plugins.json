@@ -22,6 +22,7 @@
     "OnInput",
     "OnLoadSave",
     "OnMute",
+    "OnNewPlayer",
     "OnNewSave",
     "OnOutgoingClientPacket",
     "OnOutgoingServerPacket",

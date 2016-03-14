@@ -66,6 +66,11 @@ describe('players connecting', function () {
       expect(connectedCount(save1.id)).toEqual(1);
     });
 
+    it('should not emit a OnNewPlayer connection', function () {
+        expect(fakeOn.newPlayer.called).toEqual(true);
+        expect(fakeOn.newPlayer.firstCall.args).toEqual([save1, 1]);
+      });
+
     it('should publish the players and their status in the game', function () {
       expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'online', playerId: 1, devices: [1], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
     });
@@ -184,6 +189,8 @@ describe('players connecting', function () {
     describe('when the same player reconnects after disconnecting', function () {
 
       beforeEach(function (done) {
+        fakeOn.newPlayer.reset();
+
         onClientDisconnect(undefined, player1, save1)
           .then(() => fakeOn.playerGroupChange.reset())
           .then(() => onClientConnect(undefined, player1, save1))
@@ -193,6 +200,10 @@ describe('players connecting', function () {
 
       it('should not add a new player connection', function () {
         expect(connectedCount(save1.id)).toEqual(1);
+      });
+
+      it('should not emit a OnNewPlayer connection', function () {
+        expect(fakeOn.newPlayer.called).toEqual(false);
       });
 
       it('should publish the players and their status in the game', function () {

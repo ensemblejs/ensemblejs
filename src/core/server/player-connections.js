@@ -36,24 +36,28 @@ module.exports = {
       return first(filterBySaveAnPlayer(saveId, playerId));
     }
 
-    function add (maxPlayers, saveId, playerId) {
-      var inSave = filter(connections, {saveId: saveId});
+    function add (maxPlayers, save, playerId) {
+      var inSave = filter(connections, {saveId: save.id});
       if (inSave.length === maxPlayers) {
         return;
       }
 
-      connections.push({
-        saveId: saveId,
+      let connection = {
+        saveId: save.id,
         playerId: playerId,
         devices: [],
         status: 'online',
         number: inSave.length + 1,
         onSameSubnet: true
-      });
+      };
+
+      connections.push(connection);
+
+      on().newPlayer(save, connection.number);
     }
 
     function createNewPlayer (save, playerId) {
-      add(config.get().maxPlayers(save.mode), save.id, playerId);
+      add(config.get().maxPlayers(save.mode), save, playerId);
     }
 
     function markPlayerAsOnline (saveId, playerId) {
@@ -61,6 +65,7 @@ module.exports = {
       connection.status = 'online';
     }
 
+    //Move to utility function
     function onSameSubnet (ipAddresses) {
       var anyFailures = false;
 

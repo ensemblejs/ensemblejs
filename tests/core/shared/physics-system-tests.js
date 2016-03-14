@@ -1,7 +1,15 @@
 'use strict';
 
 var expect = require('expect');
+var merge = require('lodash').merge;
 var makeTestible = require('../../support').makeTestible;
+
+function double (thing) {
+  return merge(thing, {
+    x: thing.x * 2,
+    y: thing.y * 2
+  });
+}
 
 describe('the physics system', function () {
   var physicsSystem;
@@ -54,10 +62,12 @@ describe('the physics system', function () {
     });
 
     describe('the update function', function () {
-      var f;
+      var f, af;
       beforeEach(function () {
         physicsSystem.register(1, 'pKeyE', 'sourceE', {x: 1, y: 2});
+        physicsSystem.register(2, 'pKeyE', 'sourceE', {x: 1, y: 2});
         f = physicsSystem.updated(1, 'sourceE');
+        af = physicsSystem.updated(2, 'sourceE', double);
       });
 
       it('should update the current state', function () {
@@ -66,22 +76,32 @@ describe('the physics system', function () {
         expect(physicsSystem.getByPhysicsKey(1, 'pKeyE')).toEqual([{x:6, y:7}]);
         expect(physicsSystem.getBySourceKey(1, 'sourceE')).toEqual({x:6, y:7});
       });
+
+      it('should adapt the new state when there is an adapter', function () {
+        af({x: 6, y: 7});
+
+        expect(physicsSystem.getByPhysicsKey(2, 'pKeyE')).toEqual([{x:12, y:14}, {x:12, y:14}]);
+        expect(physicsSystem.getBySourceKey(2, 'sourceE')).toEqual({x:12, y:14});
+      });
     });
   });
 
   describe('array functions', function () {
-    var add, change, remove;
+    var add, change, remove, addD, changeD;
 
     beforeEach(function () {
       physicsSystem = makeTestible('core/shared/physics-system')[0];
       add = physicsSystem.added(1, 'pArray', 'srcArray');
+      addD = physicsSystem.added(1, 'pArray2', 'srcArray2', double);
       change = physicsSystem.changed(1, 'pArray', 'srcArray');
+      changeD = physicsSystem.changed(1, 'pArray', 'srcArray', double);
       remove = physicsSystem.removed(1, 'pArray', 'srcArray');
     });
 
     describe('adding elements', function () {
       beforeEach(function () {
         add(10, {id: 10, x: 3, y: 5});
+        addD(11, {id: 11, x: 3, y: 5});
       });
 
       afterEach(function () {
@@ -95,6 +115,10 @@ describe('the physics system', function () {
       it('should add the element', function () {
         expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 10, x: 3, y: 5}]);
         expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 10, x: 3, y: 5}]);
+      });
+
+      it('should adapt the new state when there is an adapter', function () {
+        expect(physicsSystem.getByPhysicsKey(1, 'pArray2')[0]).toEqual({id: 11, x: 6, y: 10});
       });
     });
 
@@ -116,6 +140,13 @@ describe('the physics system', function () {
 
         expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 40, x: 6, y: 1}]);
         expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 40, x: 6, y: 1}]);
+      });
+
+      it('should adapt the new state when there is an adapter', function () {
+        changeD(40, {id: 40, x: 6, y: 1});
+
+        expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 40, x: 12, y: 2}]);
+        expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 40, x: 12, y: 2}]);
       });
     });
 

@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, filter, reject, isString, isArray, set} from 'lodash';
+import {each, filter, reject, isString, isArray, set, has} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var replaceIfPresent = require('../../util/replace-if-present');
 var sequence = require('distributedlife-sequence');
@@ -10,17 +10,15 @@ module.exports = {
   deps: ['DefinePlugin', 'PhysicsMap', 'StateTracker', 'PhysicsSystem', 'StateAccess'],
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
-    function wireupDynamic (saveId, physicsKey, sourceKey) {
-      var sourceState = state().for(saveId).unwrap(sourceKey);
-
+    function wireupDynamic (saveId, physicsKey, sourceKey, sourceState, adapter) {
       if (isArray(sourceState)) {
-        tracker().for(saveId).onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey));
-        tracker().for(saveId).onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey));
+        tracker().for(saveId).onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey, adapter));
+        tracker().for(saveId).onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey, adapter));
         tracker().for(saveId).onElementRemoved(sourceKey, physicsSystem().removed(saveId, physicsKey, sourceKey));
       } else {
-        physicsSystem().register(saveId, physicsKey, sourceKey, sourceState);
+        physicsSystem().register(saveId, physicsKey, sourceKey, adapter ? adapter(sourceState) : sourceState);
 
-        tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey));
+        tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey, adapter));
       }
     }
 
@@ -31,13 +29,32 @@ module.exports = {
     function OnSaveReady () {
       return function wireupPhysicsMap (save) {
 
-        function loadPhysicsMap (map) {
-          each(map, function(sources, physicsKey) {
-            each(filter(sources, isString), function(sourceKey) {
-              wireupDynamic(save.id, physicsKey, sourceKey);
+        function loadPhysicsMap (physicsMap) {
+          each(physicsMap, function(sources, physicsKey) {
+            let stringDynamic = filter(sources, isString);
+            each(stringDynamic, function(sourceKey) {
+              let sourceState = state().for(save.id).unwrap(sourceKey);
+
+              wireupDynamic(save.id, physicsKey, sourceKey, sourceState);
             });
-            each(reject(sources, isString), function(sourceKey) {
-              wireupStatic(save.id, physicsKey, sourceKey);
+
+
+            let configDyanmic = reject(sources, isString);
+            configDyanmic = filter(configDyanmic, s => has(s, 'sourceKey'));
+            each(configDyanmic, function(config) {
+              let sourceKey = config.sourceKey;
+              let adapter = config.via;
+              let sourceState = state().for(save.id).unwrap(config.sourceKey);
+
+              wireupDynamic(save.id, physicsKey, sourceKey, sourceState, adapter);
+            });
+
+
+            let statics = reject(sources, isString);
+            statics = reject(statics, s => has(s, 'sourceKey'));
+            each(statics, function(source) {
+              let adapter = source.via;
+              wireupStatic(save.id, physicsKey, adapter ? adapter(source) : source);
             });
           });
         }
