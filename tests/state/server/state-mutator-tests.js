@@ -112,6 +112,15 @@ describe('state mutator', function () {
     ]);
   });
 
+  it('should support modifying: arrays', function () {
+    stateMutator(1, ['controller.idList:4', {n: 'h'}]);
+
+    expect(state.for(1).for('controller').get('idList')).toEqual([
+      {id: 4, n: 'h'},
+      {id: 3}
+    ]);
+  });
+
   it('should support modifying arrays children', function () {
     stateMutator(1, ['controller.idList:4.n', 'z']);
 

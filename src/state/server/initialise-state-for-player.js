@@ -1,12 +1,15 @@
 'use strict';
 
-import {each, last, cloneDeep} from 'lodash';
+import {each, last} from 'lodash';
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
+
 
 function OnNewPlayer (playerStateSeeds, mutate) {
   return function initialiseStateForSave (save, playerId) {
-    each(filterPluginsByMode(playerStateSeeds(), save.mode), state => {
-      mutate()(save.id, last(cloneDeep(state(playerId))));
+    mutate()(save.id, ['players+', {id: playerId}]);
+
+    each(filterPluginsByMode(playerStateSeeds(), save.mode), seed => {
+      mutate()(save.id, [`players:${playerId}`, last(seed)(playerId)]);
     });
   };
 }

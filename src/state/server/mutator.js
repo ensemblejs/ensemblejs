@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject} from 'lodash';
+import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject, isEmpty} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
@@ -228,16 +228,17 @@ module.exports = {
     function applyOnArrayElement (saveId, dotString, value) {
       const pathToArray = dotString.split(':')[0];
       const id = parseInt(dotString.split(':')[1], 10);
-      const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\./, '');
+      const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
       let entries = stateAccess.for(saveId).unwrap(pathToArray);
+
 
       let mod = map(entries, entry => {
         if (entry.id !== id) {
           return entry;
         }
 
-        return set(entry, restOfPath, value);
+        return isEmpty(restOfPath) ? merge(entry, value) : set(entry, restOfPath, value);
       });
 
       return set({}, pathToArray, mod);
