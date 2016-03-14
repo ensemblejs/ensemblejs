@@ -232,7 +232,6 @@ module.exports = {
 
       let entries = stateAccess.for(saveId).unwrap(pathToArray);
 
-
       let mod = map(entries, entry => {
         if (entry.id !== id) {
           return entry;

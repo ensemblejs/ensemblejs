@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, endsWith, reject, map, includes, first, replace} from 'lodash';
+import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, endsWith, reject, map, includes, first, replace, isEmpty} from 'lodash';
 import define from '../../plugins/plug-n-play';
 
 module.exports = {
@@ -197,7 +197,7 @@ module.exports = {
     function applyOnArrayElement (saveId, dotString, value) {
       const pathToArray = dotString.split(':')[0];
       const id = parseInt(dotString.split(':')[1], 10);
-      const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\./, '');
+      const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
       let entries = stateAccess.for(saveId).unwrap(pathToArray);
 
@@ -206,7 +206,7 @@ module.exports = {
           return entry;
         }
 
-        return set(entry, restOfPath, value);
+        return isEmpty(restOfPath) ? merge(entry, value) : set(entry, restOfPath, value);
       });
 
       return set({}, pathToArray, mod);

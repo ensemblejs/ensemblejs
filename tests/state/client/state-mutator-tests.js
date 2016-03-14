@@ -103,6 +103,17 @@ describe('as before but return new objects with only the changed state', functio
     ]);
   });
 
+  it('should support modifying: arrays', function () {
+    stateMutator(1, ['controller.idList:4', {n: 'h'}]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().for('controller').get('idList')).toEqual([
+      {id: 4, n: 'h'},
+      {id: 3}
+    ]);
+  });
+
   it('should support modifying arrays children', function () {
     stateMutator(1, ['controller.idList:4.n', 'z']);
 
