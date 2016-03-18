@@ -30,9 +30,14 @@ module.exports = {
       $()(elementId).on('touchmove', function (e) {
         each(e.touches, function (touch) {
           let t = filter(touches, {id: touch.identifier})[0];
-          t.x = touch.clientX - touch.target.offsetLeft;
-          t.y = touch.clientY - touch.target.offsetTop;
-          t.force = touch.force || touch.webkitForce || 1;
+
+          if (t) {
+            t.x = touch.clientX - touch.target.offsetLeft;
+            t.y = touch.clientY - touch.target.offsetTop;
+            t.force = touch.force || touch.webkitForce || 1;
+          } else {
+            console.log(t);
+          }
         });
 
         receivedInput = true;
