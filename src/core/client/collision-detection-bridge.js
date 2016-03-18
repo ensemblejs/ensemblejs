@@ -1,6 +1,6 @@
 'use strict';
 
-var forEachMode = require('../../util/modes').forEachMode;
+let forEachMode = require('../../util/modes').forEachMode;
 import {clone, reject, isUndefined} from 'lodash';
 
 module.exports = {
@@ -10,14 +10,14 @@ module.exports = {
 
     function OnPhysicsFrame (mode) {
       return function callSystemWithRelevantMapsAndSaveId (delta, state) {
-        var changes = [];
+        let changes = [];
 
         forEachMode(maps(), mode(), function (map) {
 
-          function onCollision (callback, collisionMap) {
-            var onCollisionArgs = clone(collisionMap.data) || [];
-            onCollisionArgs.unshift(state);
-            onCollisionArgs.unshift(delta);
+          function onCollision (callback, collisionMap, metadata) {
+            let onCollisionArgs = [
+              delta, state, metadata, clone(collisionMap.data || [])
+            ];
 
             changes.push(callback(...onCollisionArgs));
           }

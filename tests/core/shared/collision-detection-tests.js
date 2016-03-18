@@ -203,7 +203,22 @@ describe('collision detection system', function () {
       cd.detectCollisions(map2, 2, callbackDelegate);
 
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start13, map2.key1[0]]);
+      expect(callbackDelegate.firstCall.args).toEqual([start13, map2.key1[0], {
+        key1: {
+          target: {
+            x: 10,
+            y: 10
+          },
+          shapes: []
+        },
+        key3: {
+          target: {
+            x: 10,
+            y: 10
+          },
+          shapes: []
+        }
+      }]);
     });
   });
 });

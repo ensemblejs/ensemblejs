@@ -31,14 +31,20 @@ function added (saveId, physicsKey, sourceKey, adapter) {
   physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey] || [];
 
   return function calledWhenElementAdded (id, current) {
-    physicsThings[saveId][sourceKey].push(adapter ? autoResolve(adapter(current)) : autoResolve(current));
+    var physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    physicsModel.id = id;
+
+    physicsThings[saveId][sourceKey].push(physicsModel);
   };
 }
 
 function changed (saveId, physicsKey, sourceKey, adapter) {
   return function calledWhenElementChanged (id, current) {
+    var physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    physicsModel.id = id;
+
     physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
-    physicsThings[saveId][sourceKey].push(adapter ? autoResolve(adapter(current)): autoResolve(current));
+    physicsThings[saveId][sourceKey].push(physicsModel);
   };
 }
 

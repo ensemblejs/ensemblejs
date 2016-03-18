@@ -11,23 +11,23 @@ module.exports = {
   func: function CollisionDetectionSystem (physicsSystem) {
     var hasStarted = [];
 
-    function onCollision (target, collisionKey, callbackDelegate) {
+    function onCollision (target, collisionKey, callbackDelegate, metadata) {
       if (includes(hasStarted, collisionKey)) {
         each(target.during, function (during) {
-          callbackDelegate(during, target);
+          callbackDelegate(during, target, metadata);
         });
       } else {
         each(target.start, function (start) {
-          callbackDelegate(start, target);
+          callbackDelegate(start, target, metadata);
         });
 
         hasStarted.push(collisionKey);
       }
     }
 
-    function endCollision (target, collisionKey, callbackDelegate) {
+    function endCollision (target, collisionKey, callbackDelegate, metadata) {
       each(target.finish, function (finish) {
-        callbackDelegate(finish, target);
+        callbackDelegate(finish, target, metadata);
       });
 
       hasStarted = remove(hasStarted, collisionKey);
@@ -44,12 +44,20 @@ module.exports = {
 
           function doCollisionTest (bKey) {
             var collided = false;
-
             var bShapes = physicsSystem().getByPhysicsKey(saveId, bKey);
+            var metadata = {};
+            metadata[aKey] = {
+              target: undefined,
+              shapes: aShapes
+            };
+            metadata[bKey] = {
+              target: undefined,
+              shapes: bShapes
+            };
 
             function createOnCollisionCallback () {
               collided = true;
-              onCollision(target, createKey(saveId, aKey, bKey), callbackDelegate);
+              onCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
             }
 
             each(aShapes, function(a) {
@@ -57,17 +65,21 @@ module.exports = {
                 return;
               }
 
+              metadata[aKey].target = a;
+
               each(bShapes, function(b) {
                 if (collided) {
                   return;
                 }
+
+                metadata[bKey].target = b;
 
                 if (!test(a, b, createOnCollisionCallback)) {
                   if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
                     return;
                   }
 
-                  endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate);
+                  endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
 
                   collided = true;
                 }
