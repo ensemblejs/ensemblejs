@@ -132,6 +132,10 @@ module.exports = {
       return connectedPlayers(saveId).length;
     }
 
+    function onlineCount (saveId) {
+      return filter(connectedPlayers(saveId), {'status': 'online'}).length;
+    }
+
     function determineIfWaitingForPlayers (save) {
       return (connectedCount(save.id) < config.get().minPlayers(save.mode));
     }
@@ -245,7 +249,8 @@ module.exports = {
     });
 
     return {
-      connectedCount: connectedCount
+      connectedCount: connectedCount,
+      onlineCount: onlineCount
     };
   }
 };
