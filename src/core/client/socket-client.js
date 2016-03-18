@@ -5,6 +5,7 @@ import {last, includes} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
+let logger = require('../../logging/client/logger').logger;
 
 module.exports = {
   type: 'SocketClient',
@@ -40,10 +41,14 @@ module.exports = {
           window().location.replace('/saves/' + saveId + '/full');
         }
 
+        logger.info({playerNumber: playerNumber}, 'Assigned player number');
+
         on().clientPlayerId(playerNumber);
       });
 
       socket.on('deviceNumber', function savePlayerId (deviceNumber) {
+        logger.info({deviceNumber: deviceNumber}, 'Assigned device number');
+
         on().clientDeviceNumber(deviceNumber);
       });
 
