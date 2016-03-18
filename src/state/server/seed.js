@@ -9,7 +9,8 @@ module.exports = {
         jobs: [],
         paused: false,
         waitingForPlayers: true,
-        started: time().present()
+        started: time().present(),
+        worldTime: 0,
       },
       players: []
     };
