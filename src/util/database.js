@@ -8,8 +8,8 @@ import config from './config';
 import {cloneDeep} from 'lodash';
 
 cradle.setup({
-  host: config.get().database.host,
-  port: config.get().database.port,
+  host: process.env.DATABASE_HOST || config.get().database.host,
+  port: process.env.DATABASE_PORT || config.get().database.port,
   cache: config.get().database.cache,
   raw: config.get().database.raw,
   forceSave: config.get().database.forceSave
