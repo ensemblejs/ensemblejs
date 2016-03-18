@@ -1,14 +1,7 @@
 'use strict';
 
-var each = require('lodash').each;
-var isArray = require('lodash').isArray;
-var isString = require('lodash').isString;
-var isEqual = require('lodash').isEqual;
-var isFunction = require('lodash').isFunction;
-var clone = require('lodash').clone;
-var find = require('lodash').find;
-var filter = require('lodash').filter;
-var get = require('lodash').get;
+import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find, get} from 'lodash';
+
 var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
@@ -28,23 +21,28 @@ module.exports = {
       callback(...args);
     }
 
-    function invokeCallbackWithId (callback, currentModel, priorModel, data) {
+    function addElementId (priorModel, currentModel) {
+      return priorModel ? priorModel.id : currentModel.id;
+    }
+
+    function invokeCallbackWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
       var args = isArray(data) ? [].concat(data) : [data];
 
-      if (priorModel) {
+      if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);
       }
       if (currentModel) {
         args.unshift(currentModel);
       }
 
-      args.unshift((priorModel) ? priorModel.id : currentModel.id);
+      args.unshift(addElementId(priorModel, currentModel));
 
       callback(...args);
     }
 
     function hasChanged (f, saveId) {
       if (priorState === undefined) { return true; }
+      if (priorState[saveId] === undefined) { return true; }
 
       return !isEqual(f(priorState[saveId]), f(currentState[saveId]));
     }
@@ -122,13 +120,24 @@ module.exports = {
     }
 
     function handleArrays (change) {
+
       each(change.operatesOn(change.focus, change.saveId), function (model) {
         if (change.detectionFunc(change.focus, model, change.saveId)) {
+
+
+          // if (!currentElement(change.focus, model) && !priorElement(change.focus, model)) {
+          //   logger.error({change: change}, 'Attempting to track changes in array where not all elements have an "id" property.');
+
+
+          //   return;
+          // }
+
           invokeCallbackWithId(
             change.callback,
             currentElement(change.focus, model, change.saveId),
             priorElement(change.focus, model, change.saveId),
-            change.data
+            change.data,
+            change.alwaysPassPrior
           );
         }
       });
@@ -162,7 +171,7 @@ module.exports = {
 
       return function takeLatestCopyOfRawState () {
         priorState = currentState;
-        currentState = clone(rawState().all(), true);
+        currentState = cloneDeep(rawState().all(), true);
         detectChangesAndNotifyObservers();
       };
     });
