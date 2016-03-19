@@ -9,8 +9,8 @@ module.exports = {
         return;
       }
       if (config().ensemble.pause === 'all-offline') {
-        if (connections().onlineCount(state.get('ensemble.saveId')) === 0) {
-          return ['ensemble.paused', true];
+        if (connections().onlineCount(state.get('ensemble.saveId')) !== 0) {
+          return;
         }
       }
 
