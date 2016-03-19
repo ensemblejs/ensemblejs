@@ -23,6 +23,7 @@ describe('state access', function () {
       },
       arrayOfThings: [1, 2, 3],
       idArray: [{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}],
+      sub: [{id: 1, subsub: [{id: 2, f: 'h'}]}],
       player1: { controller: { score: 10 } },
       player2: { controller: { score: 20 } },
       player3: { controller: { score: 34 } }
@@ -105,6 +106,10 @@ describe('state access', function () {
 
     it('should unwrap array children', function () {
       expect(state.for(1).unwrap('idArray*.c')).toEqual(['b', 'd', 'f']);
+    });
+
+    it('should unwrap by id with sub id', function () {
+      expect(state.for(1).unwrap('sub:1.subsub:2.f')).toEqual('h');
     });
 
     it('should unwrap arrays', function () {

@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, endsWith, reject, map, includes, first, replace, isEmpty} from 'lodash';
+import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, endsWith, reject, map, includes, first, replace, isEmpty, tail} from 'lodash';
 import define from '../../plugins/plug-n-play';
 
 module.exports = {
@@ -15,7 +15,7 @@ module.exports = {
 
       function getArrayById (node, key) {
         let path = key.split(':')[0];
-        let suffix = key.split(':')[1];
+        let suffix = tail(key.split(':')).join(':');
 
         if (includes(suffix, '.')) {
           let id = parseInt(suffix.split('.')[0], 10);
@@ -175,23 +175,24 @@ module.exports = {
       return false;
     }
 
-    function applyPlusResult (saveId, dotString, value) {
+    var applyResult;
+    function applyPushAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
 
-      return set({}, dotString, entries.concat([value]));
+      return applyResult(saveId, dotString, entries.concat([value]));
     }
 
-    function applyMinusResult (saveId, dotString, value) {
+    function applyPopAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
 
-      return set({}, dotString, reject(entries, value));
+      return applyResult(saveId, dotString, reject(entries, value));
     }
 
-    function applyModifiyResult (saveId, dotString, value) {
+    function applyReplaceAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
       let mod = map(entries, entry => entry.id === value.id ? value : entry);
 
-      return set({}, dotString, mod);
+      return applyResult(saveId, dotString, mod);
     }
 
     function applyOnArrayElement (saveId, dotString, value) {
@@ -212,19 +213,19 @@ module.exports = {
       return set({}, pathToArray, mod);
     }
 
-    function applyResult (saveId, dotString, value) {
+    applyResult = function applyResult (saveId, dotString, value) {
       if (endsWith(dotString, '+')) {
-        return applyPlusResult(saveId, dotString.split('+')[0], value);
+        return applyPushAction(saveId, dotString.split('+')[0], value);
       } else if (endsWith(dotString, '-')) {
-        return applyMinusResult(saveId, dotString.split('-')[0], value);
+        return applyPopAction(saveId, dotString.split('-')[0], value);
       } else if (endsWith(dotString, '!')) {
-        return applyModifiyResult(saveId, dotString.split('!')[0], value);
+        return applyReplaceAction(saveId, dotString.split('!')[0], value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
       }
 
       return set({}, dotString, value);
-    }
+    };
 
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {
@@ -245,14 +246,14 @@ module.exports = {
       return filter(result, isArray).length === result.length;
     }
 
-    var handleResult;
+    var mutate;
     function mutateArrayOfArrays (saveId, result) {
       for(let i = 0; i < result.length; i += 1) {
-        handleResult(saveId, result[i]);
+        mutate(saveId, result[i]);
       }
     }
 
-    handleResult = function handleResult (saveId, result) {
+    mutate = function mutate (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
@@ -266,6 +267,6 @@ module.exports = {
       }
     };
 
-    return handleResult;
+    return mutate;
   }
 };

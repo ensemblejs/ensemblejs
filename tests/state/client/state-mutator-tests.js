@@ -19,6 +19,7 @@ describe('as before but return new objects with only the changed state', functio
         state: 'ready',
         list: [4],
         idList: [{id: 4}, {id: 3}],
+        subPush: [{id: 5, arr: []}, {id: 6, arr: [{id:3}, {id: 4}]}],
         child: {
           age: 5,
           siblings: {
@@ -73,6 +74,14 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for().for('controller').get('list')).toEqual([4, 3]);
   });
 
+  it('should support adding+ to arrays of arrays', function () {
+    stateMutator(1, ['controller.subPush:5.arr+', 5]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().get('controller.subPush:5.arr')).toEqual([5]);
+  });
+
   it('should work with removing elements from arrays', function () {
     stateMutator(1, {
       controller: {
@@ -92,7 +101,15 @@ describe('as before but return new objects with only the changed state', functio
     expect(state.for().for('controller').get('idList')).toEqual([{id: 3}]);
   });
 
-  it('should support modifying! arrays', function () {
+  it('should support removing- from arrays of arrays', function () {
+    stateMutator(1, ['controller.subPush:6.arr-', {id :3}]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().get('controller.subPush:6.arr')).toEqual([{id:4}]);
+  });
+
+  it('should support replacing! arrays', function () {
     stateMutator(1, ['controller.idList!', {id: 4, n: 'a'}]);
 
     afterPhysicsFrame();
@@ -101,6 +118,14 @@ describe('as before but return new objects with only the changed state', functio
       {id: 4, n: 'a'},
       {id: 3}
     ]);
+  });
+
+  it('should support modifying! arrays of arrays', function () {
+    stateMutator(1, ['controller.subPush:6.arr!', {id :3, derp: true}]);
+
+    afterPhysicsFrame();
+
+    expect(state.for().get('controller.subPush:6.arr')).toEqual([{id :3, derp: true}, {id: 4}]);
   });
 
   it('should support modifying: arrays', function () {

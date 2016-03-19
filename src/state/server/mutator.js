@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject, isEmpty} from 'lodash';
+import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject, isEmpty, tail} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
@@ -49,7 +49,7 @@ module.exports = {
 
       function getArrayById (node, key) {
         let path = key.split(':')[0];
-        let suffix = key.split(':')[1];
+        let suffix = tail(key.split(':')).join(':');
 
         if (includes(suffix, '.')) {
           let id = parseInt(suffix.split('.')[0], 10);
@@ -206,19 +206,20 @@ module.exports = {
       return isArray(a) ? b : undefined;
     }
 
-    function applyPlusResult (saveId, dotString, value) {
+    var applyResult;
+    function applyPushAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
 
-      return set({}, dotString, entries.concat([value]));
+      return applyResult(saveId, dotString, entries.concat([value]));
     }
 
-    function applyMinusResult (saveId, dotString, value) {
+    function applyPopAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
 
       return set({}, dotString, reject(entries, value));
     }
 
-    function applyModifiyResult (saveId, dotString, value) {
+    function applyReplaceAction (saveId, dotString, value) {
       let entries = stateAccess.for(saveId).unwrap(dotString);
       let mod = map(entries, entry => entry.id === value.id ? value : entry);
 
@@ -243,19 +244,19 @@ module.exports = {
       return set({}, pathToArray, mod);
     }
 
-    function applyResult (saveId, dotString, value) {
+    applyResult = function applyResult (saveId, dotString, value) {
       if (endsWith(dotString, '+')) {
-        return applyPlusResult(saveId, dotString.split('+')[0], value);
+        return applyPushAction(saveId, dotString.split('+')[0], value);
       } else if (endsWith(dotString, '-')) {
-        return applyMinusResult(saveId, dotString.split('-')[0], value);
+        return applyPopAction(saveId, dotString.split('-')[0], value);
       } else if (endsWith(dotString, '!')) {
-        return applyModifiyResult(saveId, dotString.split('!')[0], value);
+        return applyReplaceAction(saveId, dotString.split('!')[0], value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
       }
 
       return set({}, dotString, value);
-    }
+    };
 
     function mutateNonArray (saveId, result) {
       if (isArray(result)) {

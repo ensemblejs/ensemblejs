@@ -24,6 +24,7 @@ describe('state mutator', function () {
         state: 'ready',
         list: [4],
         idList: [{id: 4}, {id: 3}],
+        subPush: [{id: 5, arr: []}],
         child: {
           age: 5,
           siblings: {
@@ -85,6 +86,12 @@ describe('state mutator', function () {
     stateMutator(1, ['controller.list+', 5]);
 
     expect(state.for(1).for('controller').get('list')).toEqual([4, 5]);
+  });
+
+  it('should support adding+ to arrays of arrays', function () {
+    stateMutator(1, ['controller.subPush:5.arr+', 5]);
+
+    expect(state.for(1).get('controller.subPush:5.arr')).toEqual([5]);
   });
 
    it('should work with emptying arrays', function () {
