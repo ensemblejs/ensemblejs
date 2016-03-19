@@ -9,6 +9,7 @@ module.exports = {
   func: function InputCapture (window, config, define, $, deviceMode) {
 
     let touches = [];
+    let toRemove = [];
     let receivedInput = false;
 
     function bindToWindowEvents () {
@@ -16,6 +17,10 @@ module.exports = {
 
       $()(elementId).on('touchstart', function (e) {
         each(e.touches, function (touch) {
+          if (filter(touches, {id: touch.identifier}).length > 0) {
+            return;
+          }
+
           touches.push({
             id: touch.identifier,
             x: touch.clientX - touch.target.offsetLeft,
@@ -44,12 +49,7 @@ module.exports = {
       });
 
       function endTouch (e) {
-        let ids = map(e.changedTouches, 'identifier');
-
-        touches = reject(touches, function (touch) {
-          return ids.indexOf(touch.id) !== -1;
-        });
-
+        toRemove = toRemove.concat(map(e.changedTouches, 'identifier'));
         receivedInput = true;
       }
 
@@ -78,6 +78,12 @@ module.exports = {
       };
 
       receivedInput = false;
+
+      touches = reject(touches, function (touch) {
+        return includes(toRemove, touch.id);
+      });
+
+      toRemove = [];
 
       return inputData;
     };
