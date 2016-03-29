@@ -30,21 +30,21 @@ module.exports = {
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, inputData.force, data);
+					return target(state, {force: inputData.force}, data);
 				}
 
 				function touchCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, inputData.x, inputData.y, data);
+					return target(state, {x: inputData.x, y: inputData.y}, data);
 				}
 
 				function stickCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, inputData.x, inputData.y, data);
+					return target(state, {x: inputData.x, y: inputData.y}, data);
 				}
 
 				function mouseCallback(target, noEventKey, inputData) {
-					return target(state, inputData.x, inputData.y, data);
+					return target(state, {x: inputData.x, y: inputData.y}, data);
 				}
 
 				function runNoInputHandlers(actionMapDefinition) {
@@ -61,7 +61,7 @@ module.exports = {
 
 							return mutate()(
 								currentInput.save.id,
-								action.call(state, data)
+								action.call(state, {}, data)
 							);
 						}
 					});
