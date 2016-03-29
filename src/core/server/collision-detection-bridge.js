@@ -18,9 +18,7 @@ module.exports = {
         forEachMode(maps(), mode, function (map) {
 
           function onCollision (callback, collisionMap, metadata) {
-            let onCollisionArgs = [
-              delta, state, metadata, clone(collisionMap.data || [])
-            ];
+            let onCollisionArgs = [delta, state, metadata].concat(clone(collisionMap.data) || []);
 
             changes.push(callback(...onCollisionArgs));
           }

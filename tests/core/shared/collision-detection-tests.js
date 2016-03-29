@@ -81,7 +81,29 @@ describe('collision detection system', function () {
 
       it('should execute the start callbacks', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([start13, map.key1[1]]);
+        expect(callbackDelegate.firstCall.args[0]).toEqual(start13);
+      });
+
+      it('should pass through the collision map info', function () {
+        expect(callbackDelegate.firstCall.args[1]).toEqual({
+          and: ['key3'],
+          start: [start13],
+          during: [during13],
+          finish: [finish13]
+        });
+      });
+
+      it('should pass through the collision metadata', function () {
+        expect(callbackDelegate.firstCall.args[2]).toEqual({
+          key1: {
+            target: {x: 0, y: 0},
+            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+          },
+          key3: {
+            target: {x: 0, y: 0},
+            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+          }
+        });
       });
     });
 
@@ -98,7 +120,29 @@ describe('collision detection system', function () {
 
       it('should execute the during callbacks', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([during13, map.key1[1]]);
+        expect(callbackDelegate.firstCall.args[0]).toEqual(during13);
+      });
+
+      it('should pass through the collision map info', function () {
+        expect(callbackDelegate.firstCall.args[1]).toEqual({
+          and: ['key3'],
+          start: [start13],
+          during: [during13],
+          finish: [finish13]
+        });
+      });
+
+      it('should pass through the collision metadata', function () {
+        expect(callbackDelegate.firstCall.args[2]).toEqual({
+          key1: {
+            target: {x: 0, y: 0},
+            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+          },
+          key3: {
+            target: {x: 0, y: 0},
+            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+          }
+        });
       });
     });
 
@@ -115,7 +159,29 @@ describe('collision detection system', function () {
 
       it('should only execute the finish callback', function () {
         expect(callbackDelegate.callCount).toEqual(1);
-        expect(callbackDelegate.firstCall.args).toEqual([finish13, map.key1[1]]);
+        expect(callbackDelegate.firstCall.args[0]).toEqual(finish13);
+      });
+
+      it('should pass through the collision map info', function () {
+        expect(callbackDelegate.firstCall.args[1]).toEqual({
+          and: ['key3'],
+          start: [start13],
+          during: [during13],
+          finish: [finish13]
+        });
+      });
+
+      it('should pass through the collision metadata', function () {
+        expect(callbackDelegate.firstCall.args[2]).toEqual({
+          key1: {
+            target: {x: 0, y: 0},
+            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+          },
+          key3: {
+            target: {x: 2, y: 2},
+            shapes: [{x: 2, y: 2}, {x: 2, y: 2}, {x: 2, y: 2}]
+          }
+        });
       });
     });
   });
@@ -149,7 +215,7 @@ describe('collision detection system', function () {
 
     it('should execute the start callbacks', function () {
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start12, map.multiple1[0]]);
+      expect(callbackDelegate.firstCall.args[0]).toEqual(start12);
     });
   });
 
@@ -195,7 +261,7 @@ describe('collision detection system', function () {
       cd.detectCollisions(map1, 1, callbackDelegate);
 
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start12, map1.key1[0]]);
+      expect(callbackDelegate.firstCall.args[0]).toEqual(start12);
     });
 
     it('it should work for game 2', function () {
@@ -203,22 +269,7 @@ describe('collision detection system', function () {
       cd.detectCollisions(map2, 2, callbackDelegate);
 
       expect(callbackDelegate.callCount).toEqual(1);
-      expect(callbackDelegate.firstCall.args).toEqual([start13, map2.key1[0], {
-        key1: {
-          target: {
-            x: 10,
-            y: 10
-          },
-          shapes: []
-        },
-        key3: {
-          target: {
-            x: 10,
-            y: 10
-          },
-          shapes: []
-        }
-      }]);
+      expect(callbackDelegate.firstCall.args[0]).toEqual(start13);
     });
   });
 });

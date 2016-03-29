@@ -78,10 +78,11 @@ describe('the collision detection bridge', function () {
 
     describe('on collision', function () {
       var onCollisionCallback = sinon.spy();
+      var metadata = {meta: 'data'};
 
       beforeEach(function () {
         cd.detectCollisions = function (map, gameId, callbackDelegate) {
-          callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]});
+          callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]}, metadata);
         };
 
         onEachFrame(0.15, state);
@@ -96,10 +97,14 @@ describe('the collision detection bridge', function () {
         expect(onCollisionCallback.firstCall.args[1]).toEqual(state);
       });
 
+      it('should pass the collision metadata as the third param', function () {
+        expect(onCollisionCallback.firstCall.args[2]).toEqual({meta: 'data'});
+      });
+
       it('should pass in optional data spread as subsequent params', function () {
-        expect(onCollisionCallback.firstCall.args[2]).toEqual('a');
-        expect(onCollisionCallback.firstCall.args[3]).toEqual(1);
-        expect(onCollisionCallback.firstCall.args[4]).toEqual({that: true});
+        expect(onCollisionCallback.firstCall.args[3]).toEqual('a');
+        expect(onCollisionCallback.firstCall.args[4]).toEqual(1);
+        expect(onCollisionCallback.firstCall.args[5]).toEqual({that: true});
       });
     });
   });
