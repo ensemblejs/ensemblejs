@@ -12,7 +12,7 @@ var sut;
 var onClientStart;
 
 describe('the touch input capture plugin', function () {
-	var touch;
+	var getCurrentState;
 
 	before(function () {
 		sinon.spy(fake$, 'on');
@@ -32,7 +32,7 @@ describe('the touch input capture plugin', function () {
 				$: fake$wrapper,
 				DeviceMode: 'primary'
 			});
-			touch = sut[0];
+			getCurrentState = sut[0];
 			onClientStart = sut[1].OnClientStart();
 	  }, done);
 
@@ -62,8 +62,8 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].id).toEqual(1);
-				expect(touch().touches[0].force).toEqual(1);
+				expect(getCurrentState().touches[0].id).toEqual(1);
+				expect(getCurrentState().touches[0].force).toEqual(1);
 			});
 
 			it('should calculate the touch position', function () {
@@ -79,8 +79,8 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].x).toEqual(-55);
-				expect(touch().touches[0].y).toEqual(20);
+				expect(getCurrentState().touches[0].x).toEqual(-55);
+				expect(getCurrentState().touches[0].y).toEqual(20);
 			});
 
 			it('should use the touch force if it is available', function () {
@@ -98,7 +98,7 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].force).toEqual(0.2);
+				expect(getCurrentState().touches[0].force).toEqual(0.2);
 			});
 
 			it('should use the webkit touch force if it is available', function () {
@@ -115,7 +115,7 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].force).toEqual(0.5);
+				expect(getCurrentState().touches[0].force).toEqual(0.5);
 			});
 		});
 
@@ -147,8 +147,8 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].id).toEqual(1);
-				expect(touch().touches[0].force).toEqual(1);
+				expect(getCurrentState().touches[0].id).toEqual(1);
+				expect(getCurrentState().touches[0].force).toEqual(1);
 			});
 
 			it('should calculate the touch position', function() {
@@ -164,8 +164,8 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].x).toEqual(-55);
-				expect(touch().touches[0].y).toEqual(20);
+				expect(getCurrentState().touches[0].x).toEqual(-55);
+				expect(getCurrentState().touches[0].y).toEqual(20);
 			});
 
 			it('should use the touch force if it is available', function() {
@@ -183,7 +183,7 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].force).toEqual(0.2);
+				expect(getCurrentState().touches[0].force).toEqual(0.2);
 			});
 
 			it('should use the webkit touch force if it is available', function() {
@@ -200,12 +200,12 @@ describe('the touch input capture plugin', function () {
 					}]
 				});
 
-				expect(touch().touches[0].force).toEqual(0.5);
+				expect(getCurrentState().touches[0].force).toEqual(0.5);
 			});
 		});
 
 		describe('when a touch press finishes', function() {
-			it('should remove the touch event from the current state', function() {
+			beforeEach(function () {
 				fake$.savedEvents().touchstart[0]({
 					touches: [{
 						identifier: 1,
@@ -217,19 +217,61 @@ describe('the touch input capture plugin', function () {
 						}
 					}]
 				});
+			});
 
-				fake$.savedEvents().touchend[0]({
-					changedTouches: [{
-						identifier: 1,
-					}]
+			describe('when the event has not been sent', function () {
+				it('should send the event', function () {
+					fake$.savedEvents().touchend[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+			});
+
+			describe('when the event has been sent at least once', function () {
+				beforeEach(function () {
+					getCurrentState();
 				});
 
-				expect(touch().touches).toEqual([]);
+				it('should return the event on the next call', function () {
+					fake$.savedEvents().touchend[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+
+				it('should remove the event for subsequent calls', function () {
+					fake$.savedEvents().touchend[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					getCurrentState();
+
+					expect(getCurrentState().touches).toEqual([]);
+				});
 			});
 		});
 
 		describe('when a touch press leaves the touch area', function() {
-			it('should remove the touch event from the current state', function () {
+			beforeEach(function () {
 				fake$.savedEvents().touchstart[0]({
 					touches: [{
 						identifier: 1,
@@ -241,19 +283,61 @@ describe('the touch input capture plugin', function () {
 						}
 					}]
 				});
+			});
 
-				fake$.savedEvents().touchleave[0]({
-					changedTouches: [{
-						identifier: 1,
-					}]
+			describe('when the event has not been sent', function () {
+				it('should send the event', function () {
+					fake$.savedEvents().touchleave[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+			});
+
+			describe('when the event has been sent at least once', function () {
+				beforeEach(function () {
+					getCurrentState();
 				});
 
-				expect(touch().touches).toEqual([]);
+				it('should return the event on the next call', function () {
+					fake$.savedEvents().touchleave[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+
+				it('should remove the event for subsequent calls', function () {
+					fake$.savedEvents().touchleave[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					getCurrentState();
+
+					expect(getCurrentState().touches).toEqual([]);
+				});
 			});
 		});
 
 		describe('when a touch press is cancelled', function() {
-			it('should remove the touch event from the current state', function () {
+			beforeEach(function () {
 				fake$.savedEvents().touchstart[0]({
 					touches: [{
 						identifier: 1,
@@ -265,14 +349,56 @@ describe('the touch input capture plugin', function () {
 						}
 					}]
 				});
+			});
 
-				fake$.savedEvents().touchcancel[0]({
-					changedTouches: [{
-						identifier: 1,
-					}]
+			describe('when the event has not been sent', function () {
+				it('should send the event', function () {
+					fake$.savedEvents().touchcancel[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+			});
+
+			describe('when the event has been sent at least once', function () {
+				beforeEach(function () {
+					getCurrentState();
 				});
 
-				expect(touch().touches).toEqual([]);
+				it('should return the event on the next call', function () {
+					fake$.savedEvents().touchcancel[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					expect(getCurrentState().touches).toEqual([{
+						force: 1,
+						x: -55,
+						y: 20,
+						id: 1
+					}]);
+				});
+
+				it('should remove the event for subsequent calls', function () {
+					fake$.savedEvents().touchcancel[0]({
+						changedTouches: [{
+							identifier: 1,
+						}]
+					});
+
+					getCurrentState();
+
+					expect(getCurrentState().touches).toEqual([]);
+				});
 			});
 		});
 	});
