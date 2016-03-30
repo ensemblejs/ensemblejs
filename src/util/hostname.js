@@ -12,7 +12,7 @@ export function hostname () {
   }
 
   if (process.env.HOSTNAME) {
-    return `http://${process.env.HOSTNAME}`;
+    return `http://${process.env.HOSTNAME}:${port()}`;
   }
 
   return `http://${ip.address()}:${port()}`;
