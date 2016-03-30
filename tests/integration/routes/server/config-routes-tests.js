@@ -3,8 +3,8 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
-var config = require('../../../src/util/config');
-var makeTestible = require('../../support').makeTestible;
+var config = require('../../../../src/util/config');
+var makeTestible = require('../../../support').makeTestible;
 
 describe('config routes', function () {
   var onServerStart;

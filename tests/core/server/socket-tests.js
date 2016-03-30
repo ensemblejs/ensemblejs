@@ -42,6 +42,8 @@ var logger = require('../../fake/logger');
 var fakeOn = require('../../fake/on');
 var fakeTime = require('../../fake/time').at(1000);
 
+var sequence = require('distributedlife-sequence');
+
 var sut = makeTestible('core/server/socket-server', {
 	RawStateAccess: {
 		for: function() {
@@ -75,12 +77,16 @@ describe('the socket server', function () {
 		socket.emit.reset();
 		fakeOn.newSave.reset();
 		fakeOn.clientConnect.reset();
+
+		sinon.stub(sequence, 'next').returns(111);
 	});
 
 	afterEach(function () {
 		_.each(setInterval.returnValues, function(id) {
 			clearInterval(id);
 		});
+
+		sequence.next.restore();
 
 		config.get.restore();
 		setInterval.restore();
@@ -169,7 +175,7 @@ describe('the socket server', function () {
 					'1',
 					{
 						saveState: {hi: 'there'},
-						id: 1,
+						id: 111,
 						highestProcessedMessage: undefined,
 						timestamp: 1000
 					}
@@ -215,7 +221,7 @@ describe('the socket server', function () {
 				expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
 				expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
 					saveState: {hi: 'there', altered: true},
-					id: 4,
+					id: 111,
 					highestProcessedMessage: undefined,
 					timestamp: 1000
 				}]);
@@ -226,7 +232,7 @@ describe('the socket server', function () {
 
 				updateClientFunc();
 
-				expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(5);
+				expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(111);
 			});
 
 			it('should record the sent time of each packet', function () {
@@ -379,7 +385,7 @@ describe('the socket server', function () {
 					'1',
 					{
 						saveState: {hi: 'there'},
-						id: 7,
+						id: 111,
 						highestProcessedMessage: undefined,
 						timestamp: 1000
 					}
@@ -430,7 +436,7 @@ describe('the socket server', function () {
 				expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
 				expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
 					saveState: {hi: 'there', altered: true},
-					id: 10,
+					id: 111,
 					highestProcessedMessage: undefined,
 					timestamp: 1000
 				}]);
@@ -441,7 +447,7 @@ describe('the socket server', function () {
 
 				updateClientFunc();
 
-				expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(11);
+				expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(111);
 			});
 
 			it('should record the sent time of each packet', function () {

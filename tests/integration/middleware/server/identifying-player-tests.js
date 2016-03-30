@@ -2,11 +2,11 @@
 
 import expect from 'expect';
 import sinon from 'sinon';
-import * as database from '../../../src/util/database';
-import {logger} from '../../../src/logging/server/logger';
-import {makeTestible, defer} from '../../support';
-import * as fakeTime from '../../fake/time';
-import {getById, getByDevice} from '../../../src/util/models/players';
+import * as database from '../../../../src/util/database';
+import {logger} from '../../../../src/logging/server/logger';
+import {makeTestible, defer} from '../../../support';
+import * as fakeTime from '../../../fake/time';
+import {getById, getByDevice} from '../../../../src/util/models/players';
 import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 let time = fakeTime.at(323);

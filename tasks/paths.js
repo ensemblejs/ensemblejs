@@ -24,7 +24,8 @@ module.exports = {
     clean: ['public/css/*.css', 'data/db', 'data/logs'],
     js: ['ensemble.js', 'src/**/*.js'],
     less: ['src/less/**/*.less'],
-    tests: ['tests/*.js', 'tests/**/*.js'],
+    unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js'],
+    integrationTests: ['tests/integration/*.js', 'tests/integration/**/*.js'],
     coveragejs: [
       'ensemble.js',
       'src/**/*.js',

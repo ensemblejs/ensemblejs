@@ -2,14 +2,14 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-import * as database from '../../../src/util/database';
+import * as database from '../../../../src/util/database';
 import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
-var players = require('../../../src/util/models/players');
+var players = require('../../../../src/util/models/players');
 var request = require('request');
-var makeTestible = require('../../support').makeTestible;
-var url = require('../../route-testing').url;
-var config = require('../../../src/util/config');
-var url = require('../../route-testing').url;
+var makeTestible = require('../../../support').makeTestible;
+var url = require('../../../route-testing').url;
+var config = require('../../../../src/util/config');
+var url = require('../../../route-testing').url;
 
 describe('GET /device/move', function () {
   var onServerStart;

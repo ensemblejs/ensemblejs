@@ -23,7 +23,7 @@ function reconnectToBroker (peer) {
   }
 
   info('Attempting to reconnect to broker.');
-  peer.reconnect();
+  // peer.reconnect();
 }
 
 function OnClientReady (eventRouter, SaveId, config) {

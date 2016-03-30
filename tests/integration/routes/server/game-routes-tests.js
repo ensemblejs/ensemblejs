@@ -3,10 +3,10 @@
 var expect = require('expect');
 var request = require('request');
 var sinon = require('sinon');
-var makeTestible = require('../../support').makeTestible;
+var makeTestible = require('../../../support').makeTestible;
 var includes = require('lodash').includes;
-var config = require('../../../src/util/config');
-var url = require('../../route-testing').url;
+var config = require('../../../../src/util/config');
+var url = require('../../../route-testing').url;
 
 describe('game routes', function () {
 	var onServerStart;

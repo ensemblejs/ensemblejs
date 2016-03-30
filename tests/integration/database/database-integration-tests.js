@@ -3,12 +3,19 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var logger = require('../../../src/logging/server/logger').logger;
-import * as database from '../../../src/util/database';
+
+var configGetter = require('../../../src/util/config');
+var config = configGetter.get();
+config.database.host = 'localhost';
+config.database.port = 5984;
+sinon.stub(configGetter, 'get').returns(config);
+console.log(config);
+
+let database = require('../../../src/util/database');
 var on = require('../../fake/on');
 var makeTestible = require('../../support').makeTestible;
 
 describe('database integration', function () {
-
   var onServerStart;
 
   beforeEach(function () {
@@ -27,6 +34,10 @@ describe('database integration', function () {
   afterEach(function () {
     database.create.restore();
     logger.error.restore();
+  });
+
+  after(function () {
+    configGetter.get.restore();
   });
 
   describe('when the server starts', function () {

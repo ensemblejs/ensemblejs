@@ -3,16 +3,16 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
-var makeTestible = require('../../support').makeTestible;
-var url = require('../../route-testing').url;
-var posturl = require('../../route-testing').posturl;
-var config = require('../../../src/util/config');
-var on = require('../../fake/on');
-var time = require('../../fake/time').at(0);
-var savesList = require('../../fake/saves-list')('arcade');
+var makeTestible = require('../../../support').makeTestible;
+var url = require('../../../route-testing').url;
+var posturl = require('../../../route-testing').posturl;
+var config = require('../../../../src/util/config');
+var on = require('../../../fake/on');
+var time = require('../../../fake/time').at(0);
+var savesList = require('../../../fake/saves-list')('arcade');
 var Bluebird = require('bluebird');
-var saves = require('../../../src/util/models/saves');
-var urlShortener = require('../../../src/services/url-shortener');
+var saves = require('../../../../src/util/models/saves');
+var urlShortener = require('../../../../src/services/url-shortener');
 
 describe('save routes', function () {
   var onServerStart;

@@ -3,11 +3,11 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var request = require('request');
-var makeTestible = require('../../support').makeTestible;
-var url = require('../../route-testing').url;
-var config = require('../../../src/util/config');
+var makeTestible = require('../../../support').makeTestible;
+var url = require('../../../route-testing').url;
+var config = require('../../../../src/util/config');
 
-var saves = require('../../../src/util/models/saves');
+var saves = require('../../../../src/util/models/saves');
 
 describe('player routes', function () {
   var onServerStart;
