@@ -7,12 +7,9 @@ import uuid from 'node-uuid';
 import config from './config';
 import {cloneDeep} from 'lodash';
 
-const hostname = process.env.DATABASE_HOST || config.get().database.host;
-const port = process.env.DATABASE_PORT || config.get().database.port;
-
 cradle.setup({
-  host: hostname,
-  port: port,
+  host: config.get().database.host,
+  port: config.get().database.port,
   cache: config.get().database.cache,
   raw: config.get().database.raw,
   forceSave: config.get().database.forceSave
@@ -26,7 +23,7 @@ export function exists (database) {
 }
 
 export function isLocal () {
-  return hostname === 'localhost';
+  return config.get().database.host === 'localhost';
 }
 
 export function create (database) {

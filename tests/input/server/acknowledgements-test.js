@@ -27,20 +27,22 @@ function hasResponse () {
 }
 
 var logger = require('../../../src/logging/server/logger').logger;
-var config = require('../../../src/util/config').get();
 
 describe('acknowledgements', function () {
   var onIncomingClientInputPacket;
+  var config;
+  var configGetter;
 
   beforeEach(function () {
-    config.ensemble = {
-      maxPlayers: 3
-    };
+    configGetter = require('../../../src/util/config');
+    config = configGetter.get();
+    config.ensemble.maxPlayers = 3;
+
+    sinon.stub(configGetter, 'get').returns(config);
 
     sinon.spy(logger, 'error');
 
     var acknowledgements = makeTestible('input/server/acknowledgements', {
-      Config: config,
       StateMutator: mutate,
       StateAccess: fakeState,
       AcknowledgementMap: [['*', {
@@ -68,6 +70,7 @@ describe('acknowledgements', function () {
   });
 
   afterEach(function () {
+    configGetter.get.restore();
     logger.error.restore();
   });
 
