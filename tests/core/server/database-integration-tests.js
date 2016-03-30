@@ -31,6 +31,14 @@ describe('database integration', function () {
 
   describe('when the server starts', function () {
     describe('when running locally', function () {
+      beforeEach(function () {
+        sinon.stub(database, 'isLocal').returns(true);
+      });
+
+      afterEach(function () {
+        database.isLocal.restore();
+      });
+
       describe('when the databases exist', function () {
         beforeEach(function (done) {
           database.create('devices')

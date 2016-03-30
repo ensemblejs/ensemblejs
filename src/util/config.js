@@ -58,6 +58,9 @@ function getConfig () {
   config.minPlayers = createCheckForValidPlayerCounts(minPlayers);
   config.maxPlayers = createCheckForValidPlayerCounts(maxPlayers);
   config.debug.enabled = anyDebugTrue();
+  config.database.host = process.env.DATABASE_HOST || config.database.host;
+  config.database.port = process.env.DATABASE_PORT || config.database.port;
+
 
   logger.info(config, 'Initial Configuration');
 
