@@ -5,3 +5,14 @@ node_js:
 before_script:
   - npm install -g gulp
 script: gulp test
+compiler: clang-3.6
+env:
+  - CXX=clang-3.6
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise-3.6
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang-3.6
+      - g++-4.8
