@@ -1,18 +1,21 @@
 language: node_js
 node_js:
-  - "5"
-  - "4"
+- '5'
+- '4'
 before_script:
-  - npm install -g gulp
+- npm install -g gulp
 script: npm run ci
 compiler: clang-3.6
 env:
-  - CXX=clang-3.6
+- CXX=clang-3.6
 addons:
   apt:
     sources:
-      - llvm-toolchain-precise-3.6
-      - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.6
+    - ubuntu-toolchain-r-test
     packages:
-      - clang-3.6
-      - g++-4.8
+    - clang-3.6
+    - g++-4.8
+notifications:
+  slack:
+    secure: XpTm299CGOLlxcCd4qO0vF6ba58oAcwgANPTN5q1KeB7K65Hp9g2G8Vnu6KhVOOcNiN3FP5AaVt4Qb80lYdSRjKqmlGtTUAFw/2aPoYgx3cZ+HA/gu+q92USigrjwz3cMWuNOR/I2uYp1KW947mBRZl0S+MvGvgL4wqXVjHTcmE=
