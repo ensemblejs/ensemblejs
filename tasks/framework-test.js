@@ -41,6 +41,10 @@ function addTasks (gulp) {
     return runTestsInPath(gulp, paths.framework.integrationTests, 'int', cb);
   });
 
+  gulp.task('framework:run-all-tests', function (cb) {
+    return runTestsInPath(gulp, paths.framework.allTests, 'int', cb);
+  });
+
   gulp.task('framework:coveralls', ['framework:test'], function() {
     return gulp.src(paths.framework.coverageinfo).pipe(coveralls());
   });
@@ -51,7 +55,7 @@ function addTasks (gulp) {
     'db:start', 'framework:run-integration-tests', 'db:stop')
   );
 
-  gulp.task('framework:test', gulpSequence('framework:test:unit', 'framework:test:integration'));
+  gulp.task('framework:test', gulpSequence('db:start', 'framework:run-all-tests', 'db:stop'));
 }
 
 module.exports = addTasks;

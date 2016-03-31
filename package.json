@@ -15,8 +15,7 @@
     "multi-modal"
   ],
   "scripts": {
-    "prestart": "gulp",
-    "start": "gulp watch",
+    "start": "NODE_ENV=test gulp",
     "ci": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
     "prepublish": "babel src --out-dir lib --sourceMaps inline --comments --copy-files"

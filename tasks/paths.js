@@ -26,6 +26,7 @@ module.exports = {
     less: ['src/less/**/*.less'],
     unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js'],
     integrationTests: ['tests/integration/*.js', 'tests/integration/**/*.js'],
+    allTests: ['tests/*.js', 'tests/**/*.js'],
     coveragejs: [
       'ensemble.js',
       'src/**/*.js',

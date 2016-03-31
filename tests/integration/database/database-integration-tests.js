@@ -3,20 +3,23 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var logger = require('../../../src/logging/server/logger').logger;
-
-var configGetter = require('../../../src/util/config');
-var config = configGetter.get();
-config.database.host = 'localhost';
-config.database.port = 5984;
-sinon.stub(configGetter, 'get').returns(config);
-console.log(config);
-
-let database = require('../../../src/util/database');
-var on = require('../../fake/on');
-var makeTestible = require('../../support').makeTestible;
+let on = require('../../fake/on');
+let makeTestible = require('../../support').makeTestible;
 
 describe('database integration', function () {
-  var onServerStart;
+  let onServerStart;
+  let configGetter;
+  let database;
+
+  before(function () {
+    configGetter = require('../../../src/util/config');
+    var config = configGetter.get();
+    config.database.host = 'localhost';
+    config.database.port = 5984;
+    sinon.stub(configGetter, 'get').returns(config);
+
+    database = require('../../../src/util/database');
+  });
 
   beforeEach(function () {
     sinon.spy(database, 'create');
