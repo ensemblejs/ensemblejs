@@ -7,6 +7,10 @@ export function port () {
 }
 
 export function hostname () {
+  if (process.env.NODE_ENV === 'production') {
+    return `http://${process.env.HOSTNAME}`;
+  }
+
   if (process.env.NODE_ENV === 'test') {
     return `http://localhost:${port()}`;
   }
