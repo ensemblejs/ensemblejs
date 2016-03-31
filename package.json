@@ -173,7 +173,7 @@
     "expect": "^1.7.0",
     "fake-fs": "^0.5.0",
     "fs": "0.0.2",
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.1",
     "gulp-clean": "^0.3.1",
     "gulp-coveralls": "^0.1.4",
     "gulp-csslint": "^0.1.5",
