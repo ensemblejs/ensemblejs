@@ -24,7 +24,7 @@ function OnClientReady (tracker, $) {
   }
 
   return function setupMousePositionDebugView () {
-    var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+    var rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
 
     $()('#debug').append(rectSmall({
       id: 'debug-mouse-position',

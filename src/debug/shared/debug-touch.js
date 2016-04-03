@@ -52,7 +52,7 @@ function OnClientReady (tracker, dimensions, $) {
   function addTouch (id, current) {
     var dims = dimensions().get();
 
-    var touch = require('../../../public/partials/debug/touch.jade');
+    var touch = require('../../../public/partials/debug/touch.pug');
 
     $()('#touches').append(touch({
       id: ['touch', id].join('_'),
@@ -76,7 +76,7 @@ function OnClientReady (tracker, dimensions, $) {
   }
 
   return function setupTouchStateDebugView () {
-    var touchesBlock = require('../../../public/partials/debug/touches.jade');
+    var touchesBlock = require('../../../public/partials/debug/touches.pug');
 
     $()('#overlay').append(touchesBlock());
 

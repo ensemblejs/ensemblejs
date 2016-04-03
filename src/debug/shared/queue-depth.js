@@ -37,7 +37,7 @@ function OnClientReady(tracker, $) {
   }
 
   return function setup () {
-    var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+    var rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
 
     $()('#debug').append(rectSmall({
       id: 'debug-queue-depth-server',

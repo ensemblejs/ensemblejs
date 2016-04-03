@@ -1,7 +1,7 @@
 'use strict';
 
 var screenfull = require('screenfull');
-var icon = require('../../public/partials/fullscreen-icon.jade');
+var icon = require('../../public/partials/fullscreen-icon.pug');
 
 module.exports = {
   type: 'Fullscreen',

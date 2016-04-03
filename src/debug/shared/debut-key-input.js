@@ -89,7 +89,7 @@ function OnClientReady (tracker, $) {
   }
 
   function addKey (id) {
-    var keyState = require('../../../public/partials/debug/key-state.jade');
+    var keyState = require('../../../public/partials/debug/key-state.pug');
     var domId = ['key', safeId(id)].join('_');
 
     $()('#keys').append(keyState({id: domId, value: id}));
@@ -102,7 +102,7 @@ function OnClientReady (tracker, $) {
   }
 
   return function setupKeyStateDebugView () {
-    var keys = require('../../../public/partials/debug/keys.jade');
+    var keys = require('../../../public/partials/debug/keys.pug');
 
     $()('#debug').append(keys());
 

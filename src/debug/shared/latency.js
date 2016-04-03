@@ -48,8 +48,8 @@
 //   }
 
 //   return function setupDebugTimeDisplay () {
-//     var frame = require('../../../public/partials/dashboard/frame-square-medium.jade');
-//     var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+//     var frame = require('../../../public/partials/dashboard/frame-square-medium.pug');
+//     var rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
 
 //     $()('#debug').append(frame({id: 'debug-latency-frame'}));
 //     $()('#debug-latency-frame').append(rectSmall({

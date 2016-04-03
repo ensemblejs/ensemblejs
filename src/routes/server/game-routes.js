@@ -41,7 +41,7 @@ function buildJson (project, player) {
 
 function createAcceptTypeHandlers (json) {
   return {
-    'html': renderPage('index.jade', json),
+    'html': renderPage('index.pug', json),
     'json': buildJsonHandler(json)
   };
 }

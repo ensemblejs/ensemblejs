@@ -71,8 +71,8 @@ module.exports = {
       }
 
       return function setupDebugTimeDisplay () {
-        var frame = require('../../../public/partials/dashboard/frame-rect-medium.jade');
-        var rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
+        var frame = require('../../../public/partials/dashboard/frame-rect-medium.pug');
+        var rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
 
         $()('#debug').append(frame({id: 'debug-time'}));
 

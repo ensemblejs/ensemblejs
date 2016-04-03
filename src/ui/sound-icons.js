@@ -1,6 +1,6 @@
 'use strict';
 
-var icon = require('../../public/partials/sound-icons.jade');
+var icon = require('../../public/partials/sound-icons.pug');
 
 module.exports = {
   type: 'SoundIcon',

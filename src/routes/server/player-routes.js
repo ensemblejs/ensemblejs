@@ -9,7 +9,7 @@ module.exports = {
 
     function configure (app, project) {
       app.get('/players/:playerId/saves', get(
-        showPlayerSaves(project), 'saves.jade')
+        showPlayerSaves(project), 'saves.pug')
       );
     }
 

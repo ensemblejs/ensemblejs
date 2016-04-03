@@ -120,7 +120,7 @@ function ActionMap () {
   import showArrayOfWidgets({
     array: 'ensembleDebug.buttons',
     partial: 'dashboard/rect-small',
-    parent: 'debug/gamepad.jade',
+    parent: 'debug/gamepad.pug',
     cssId: makeCssId,
     json: jsonForPartial,
   })
@@ -138,7 +138,7 @@ function jsonForPartial (value) {
 
 function OnClientReady (tracker, $) {
   function addKey (id, value, makeCssId) {
-    const partial = require('../../../public/partials/dashboard/rect-small.jade');
+    const partial = require('../../../public/partials/dashboard/rect-small.pug');
 
     var json = { id: makeCssId(id) };
     json = merge(json, jsonForPartial(value), true);
@@ -171,14 +171,14 @@ function OnClientReady (tracker, $) {
   }
 
   return function setupKeyStateDebugView () {
-    const parent = require('../../../public/partials/debug/gamepad.jade');
+    const parent = require('../../../public/partials/debug/gamepad.pug');
 
     $()('#debug').append(parent());
 
     tracker().onElementAdded('ensembleDebug.buttons', addKey, [makeCssId]);
     tracker().onElementRemoved('ensembleDebug.buttons', removeKey, [makeCssId]);
 
-    const partial = require('../../../public/partials/dashboard/rect-small.jade');
+    const partial = require('../../../public/partials/dashboard/rect-small.pug');
 
     var leftTrigger = {
       id: 'left-trigger-force',

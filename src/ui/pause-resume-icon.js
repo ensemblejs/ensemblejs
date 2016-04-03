@@ -1,6 +1,6 @@
 'use strict';
 
-var icon = require('../../public/partials/pause-icon.jade');
+var icon = require('../../public/partials/pause-icon.pug');
 
 module.exports = {
   type: 'PauseResume',

@@ -20,7 +20,7 @@ function OnClientStart ($, tracker) {
   }
 
   return function addDebugOverlayToBody () {
-    var overlay = require('../../../public/partials/debug/overlay.jade');
+    var overlay = require('../../../public/partials/debug/overlay.pug');
 
     $()('body').append(overlay());
 
@@ -39,7 +39,7 @@ function OnClientReady ($, anchorAction) {
   }
 
   return function setup (dims) {
-    var icon = require('../../../public/partials/debug/debug-icon.jade');
+    var icon = require('../../../public/partials/debug/debug-icon.pug');
     $()('.icons').append(icon());
 
     $()('#debug').append(icon());

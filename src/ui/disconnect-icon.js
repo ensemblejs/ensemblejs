@@ -1,6 +1,6 @@
 'use strict';
 
-var icon = require('../../public/partials/disconnect-icon.jade');
+var icon = require('../../public/partials/disconnect-icon.pug');
 
 module.exports = {
   type: 'ConnectDisconnect',

@@ -42,6 +42,10 @@ function isRequestError (error) {
   return isNumber(error.reason) && error.reason >= 400 && error.reason <= 499;
 }
 
+function isServerError (error) {
+  return isNumber(error.reason) && error.reason >= 500 && error.reason <= 599;
+}
+
 function getSupportedContentType (req, acceptsHash) {
   return req.accepts(keys(acceptsHash));
 }
@@ -64,7 +68,7 @@ function buildAcceptHash (page) {
   };
 }
 
-function buildGetRequestHandler (jsonBuilder, page) {
+function get (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
       .then(buildAcceptHash((isFunction(page) ? page(req) : page)))
@@ -78,11 +82,15 @@ function buildGetRequestHandler (jsonBuilder, page) {
       })
       .catch(isRequestError, function respondWith4xx (err) {
         res.status(err.reason).send(err.data.message);
+      })
+      .catch(isServerError, function respondWith5xx (err) {
+        console.log(err);
+        res.status(err.reason).send(err.data.message);
       });
   };
 }
 
-function buildPostRequestHandler (jsonBuilder) {
+function post (jsonBuilder) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
       .catch(redirect, function applyRedirect (err) {
@@ -106,8 +114,8 @@ module.exports = {
   renderJson: renderJson,
   buildJsonHandler: renderJson,
   buildRequestHandler: buildRequestHandler,
-  buildGetRequestHandler: buildGetRequestHandler,
-  get: buildGetRequestHandler,
-  buildPostRequestHandler: buildPostRequestHandler,
-  post: buildPostRequestHandler
+  buildGetRequestHandler: get,
+  get: get,
+  buildPostRequestHandler: post,
+  post: post
 };

@@ -42,7 +42,7 @@ function OnClientReady ($, tracker) {
   }
 
   return function setupDebugOverlay () {
-    var widget = require('../../../public/partials/dashboard/rect-small.jade');
+    var widget = require('../../../public/partials/dashboard/rect-small.pug');
 
     $()('#debug').append(widget({
       id: 'debug-fps',

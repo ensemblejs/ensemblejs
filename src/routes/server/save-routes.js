@@ -12,16 +12,16 @@ var joinSave = require('../../util/workflow/join-save');
 
 function pickGameView (req) {
   if (!req.query.deviceMode) {
-    return 'game.jade';
+    return 'game.pug';
   }
   if (req.query.deviceMode === 'gamepad') {
-    return 'gamepad.jade';
+    return 'gamepad.pug';
   }
   if (req.query.deviceMode === 'mobile') {
-    return 'mobile.jade';
+    return 'mobile.pug';
   }
 
-  return 'game.jade';
+  return 'game.pug';
 }
 
 module.exports = {
@@ -42,13 +42,13 @@ module.exports = {
         continueSave(savesList(), on()), pickGameView)
       );
       app.get('/saves/:saveId/join', get(
-        joinSave(project, savesList()), 'join.jade')
+        joinSave(project, savesList()), 'join.pug')
       );
       app.get('/saves/:saveId/full', get(
-        saveIsFull(savesList()), 'full.jade')
+        saveIsFull(savesList()), 'full.pug')
       );
       app.get('/saves/:saveId/share', get(
-        shareSave(project, savesList()), 'share.jade')
+        shareSave(project, savesList()), 'share.pug')
       );
     }
 

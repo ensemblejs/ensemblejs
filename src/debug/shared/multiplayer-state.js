@@ -36,8 +36,8 @@ function OnClientReady (tracker, $) {
   }
 
   return function setup () {
-    let rectSmall = require('../../../public/partials/dashboard/rect-small.jade');
-    let player = require('../../../public/partials/debug/player-switcher.jade');
+    let rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
+    let player = require('../../../public/partials/debug/player-switcher.pug');
 
     $()('#debug').append(rectSmall({
       id: 'player-count',

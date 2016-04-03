@@ -43,6 +43,8 @@ module.exports = {
       });
 
       app.use(function(err, req, res, next) {
+        logger.error(err);
+
         if (!config.debug.develop) {
           res.status(500).send('Well, this is awkward.');
         } else {
@@ -72,7 +74,7 @@ module.exports = {
       app.use(require('cookie-parser')());
       app.set('views', ['game/views/pages', pathToPublic + '/views']);
       app.set('view options', {layout: false});
-      app.engine('jade', require('pug').__express);
+      app.engine('pug', require('pug').__express);
       app.disable('x-powered-by');
 
       app.use(configureSession());

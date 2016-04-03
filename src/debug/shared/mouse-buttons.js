@@ -56,7 +56,7 @@ function OnClientReady (tracker, $) {
   function hideTertiaryButton () { $()('#tertiary').removeClass('pressed'); }
 
   return function setupMouseIconDebugView () {
-    var mouseIcon = require('../../../public/partials/debug/mouse-buttons.jade');
+    var mouseIcon = require('../../../public/partials/debug/mouse-buttons.pug');
 
     $()('#debug').append(mouseIcon({id: 'mouse-buttons'}));
 
