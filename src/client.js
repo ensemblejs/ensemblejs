@@ -4,7 +4,7 @@
 
 var logging = require('./logging/client/logger');
 var Bluebird = require('bluebird');
-var request = Bluebird.promisify(require('request'));
+var request = Bluebird.promisifyAll(require('request'));
 var packageInfo = require('../package.json');
 import {each} from 'lodash/collection';
 
@@ -18,11 +18,11 @@ plugins.set('Modernizr', Modernizr);
 plugins.set('DeviceMode', deviceMode || 'observer');//jshint ignore:line
 plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
-function getConfig(response, body) {
+function getConfig(response) {
   plugins.load({
     type: 'Config',
     func: function Config() {
-      var config = JSON.parse(body);
+      var config = JSON.parse(response.body);
       config.nothing = function nothing() {};
 
       return config;
@@ -84,8 +84,8 @@ function loadDefaults() {
 export function run() {
   logging.logger.info(`ensemblejs@${packageInfo.version} client started.`);
 
-  request(plugins.get('ServerUrl') + '/config')
-    .spread(getConfig)
+  request.getAsync(plugins.get('ServerUrl') + '/config')
+    .then(getConfig)
     .then(setLogLevel)
     .then(loadDefaults)
     .then(loadModules)
