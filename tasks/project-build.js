@@ -8,7 +8,7 @@ var mergeJson = require('gulp-merge-json-sets');
 var plumber = require('gulp-plumber');
 var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
-var transform = require('vinyl-transform');
+var through2 = require('through2');
 var path = require('path');
 var less = require('gulp-less');
 var rename = require('gulp-rename');
@@ -18,6 +18,10 @@ var plumber = require('gulp-plumber');
 var paths = require('./paths');
 var generateEntrypointFile = require('./util/generate-entrypoint-file');
 var onError = require('./util/error');
+
+function isDevelopment () {
+  return true;
+}
 
 function addTasks (gulp) {
   gulp.task('copy-single-entry-point', ['project:prep'], function (done) {
@@ -58,17 +62,20 @@ function addTasks (gulp) {
   ]);
 
   gulp.task('project:build:code', ['project:prep', 'generate-entrypoints'], function() {
-    var browserified = transform(function(filename) {
-      return browserify(filename, {debug: true})
+    var browserified = through2.obj(function(file, enc, next) {
+      return browserify({entries: file, debug: isDevelopment()})
         .transform(require('envify'))
         .transform(require('babelify'), {'presets': ['es2015']})
         .transform(require('require-globify'))
         .transform(require('pugify'), {
-          compileDebug: true,
-          pretty: true,
+          compileDebug: isDevelopment(),
+          pretty: isDevelopment(),
           runtimePath: require('pug-runtime')
         })
-        .bundle();
+        .bundle(function (err, res) {
+          file.contents = res;
+          next(null, file);
+        });
     });
 
     var emptyCommonJs = path.join(process.cwd(), 'dist/js/client/common.min.js');
