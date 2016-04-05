@@ -59,8 +59,8 @@
       [
         "pugify",
         {
-          "compileDebug": true,
-          "pretty": true
+          "compileDebug": false,
+          "pretty": false
         }
       ],
       "browserify-shim"

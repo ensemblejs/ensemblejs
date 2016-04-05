@@ -20,7 +20,7 @@ var generateEntrypointFile = require('./util/generate-entrypoint-file');
 var onError = require('./util/error');
 
 function isDevelopment () {
-  return true;
+  return process.env.NODE_ENV !== 'production';
 }
 
 function addTasks (gulp) {
