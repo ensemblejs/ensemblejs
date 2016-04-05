@@ -4,10 +4,15 @@ node_js:
 - '4'
 before_script:
 - npm install -g gulp
-script: npm run ci
+script: npm test
+after_success:
+- npm run coverage
 compiler: clang-3.6
 env:
 - CXX=clang-3.6
+sudo: false
+services:
+  - couchdb
 addons:
   apt:
     sources:
@@ -19,3 +24,11 @@ addons:
 notifications:
   slack:
     secure: XpTm299CGOLlxcCd4qO0vF6ba58oAcwgANPTN5q1KeB7K65Hp9g2G8Vnu6KhVOOcNiN3FP5AaVt4Qb80lYdSRjKqmlGtTUAFw/2aPoYgx3cZ+HA/gu+q92USigrjwz3cMWuNOR/I2uYp1KW947mBRZl0S+MvGvgL4wqXVjHTcmE=
+deploy:
+  provider: npm
+  api_key:
+    secure: ukwlH9ZjEfw8nQf/hPqOL2ovFgnQJCw0NnnnCruFmlZ3l3cph+Iqa8UIcrdUDBAwTF8psuMBEVb5PXXPd1mvd3NKj/sBcnWeR415vQ4IkZ8xpU7lpsX45mu6HByC6+5xWJG5THahiRZicusBg+q0kjEpGMEZcwrKfJeardAvUMQ=
+  on:
+    tags: true
+    branch: master
+    skip_cleanup: true

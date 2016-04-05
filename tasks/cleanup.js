@@ -16,6 +16,28 @@ function addTasks (gulp) {
   });
 
   gulp.task('framework:clean', ['framework:delete-paths']);
+
+  gulp.task('tidydeps', function (done) {
+    del([
+      'node_modules/**/doc',
+      'node_modules/**/docs',
+      'node_modules/**/test',
+      'node_modules/**/tests',
+      'node_modules/**/spec',
+      'node_modules/**/bench',
+      'node_modules/**/scripts',
+      'node_modules/**/example',
+      'node_modules/**/examples',
+      'node_modules/**/demo',
+      'node_modules/**/pkg',
+      'node_modules/**/*.md',
+      'node_modules/**/*.markdown',
+      'node_modules/**/*.spec.js',
+      'node_modules/**/*.png',
+      'node_modules/**/man',
+      'node_modules/**/rfc'
+    ])
+  })
 }
 
 module.exports = addTasks;
