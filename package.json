@@ -19,7 +19,8 @@
     "unit": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
     "int": "NODE_ENV=test gulp framework:test:integration",
-    "prepublish": "babel src --out-dir lib --sourceMaps inline --comments --copy-files"
+    "prepublish": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
+    "coverage": "codecov"
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
   "contributors": [
