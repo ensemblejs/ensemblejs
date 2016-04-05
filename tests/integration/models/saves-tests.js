@@ -11,6 +11,8 @@ import {getById, getByGame, save, isPublic, isSecretCorrect, isAutoAdd} from '..
 import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
 describe('save model', function () {
+  this.timeout(5000);
+
   beforeEach(done => {
     bootstrap(database).finally(() => done());
   });
