@@ -160,6 +160,7 @@
     "babel-cli": "^6.4.5",
     "babel-istanbul": "^0.7.0",
     "babel-preset-es2015-node4": "^2.0.2",
+    "codecov": "^1.0.1",
     "expect": "^1.7.0",
     "fs": "0.0.2",
     "gulp": "^3.9.1",
