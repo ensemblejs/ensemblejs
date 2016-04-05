@@ -4,15 +4,13 @@ node_js:
 - '4'
 before_script:
 - npm install -g gulp
-script: "npm run $TEST_SUITE"
+script: npm test
 compiler: clang-3.6
 env:
 - CXX=clang-3.6
 sudo: false
 services:
   - couchdb
-  - TEST_SUITE=unit
-  - TEST_SUITE=int
 addons:
   apt:
     sources:
