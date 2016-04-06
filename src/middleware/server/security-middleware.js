@@ -34,6 +34,7 @@ module.exports = {
       });
     }
 
+    //jshint quotmark:false
     var productionAllowedSources = [
       "'self'",
       'ws://' + process.env.HOSTNAME
@@ -42,10 +43,9 @@ module.exports = {
       "'self'",
       'ws://localhost:3000',
       'http://localhost:4000'
-    ]
+    ];
 
     define()('WebServerMiddleware', function SecurityMiddleware () {
-      //jshint quotmark:false
       // var reportOnly = process.env.NODE_ENV !== 'production';
       var reportOnly = true;
       var connectSrc = process.env.NODE_ENV === 'production' ? productionAllowedSources : nonProductionAllowedSources;

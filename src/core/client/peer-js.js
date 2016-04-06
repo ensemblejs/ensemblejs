@@ -8,8 +8,6 @@ let debug = require('../../logging/client/logger').logger.debug;
 let info = require('../../logging/client/logger').logger.info;
 let error = require('../../logging/client/logger').logger.error;
 
-const key = process.env.PEERJS_KEY;
-
 let peer;
 let connections = [];
 
@@ -69,7 +67,10 @@ function OnClientReady (eventRouter, SaveId, config) {
 
     info({myPeerId: myPeerId}, 'Opening connection to PeerJS Broker');
 
-    peer = new Peer(myPeerId, {key: key, debug: config().peerjs.debugLevel});
+    peer = new Peer(myPeerId, {
+      key: process.env.PEERJS_KEY,
+      debug: config().peerjs.debugLevel
+    });
     peer.on('open', function confirmMyId(id) {
       info({id: id}, 'Connected to PeerJS Broker.');
     });
