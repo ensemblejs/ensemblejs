@@ -38,7 +38,7 @@ module.exports = {
       //jshint quotmark:false
       // var reportOnly = process.env.NODE_ENV !== 'production';
       var reportOnly = true;
-      var connectSrc = process.env.NODE_ENV === 'production' ? ["'self'"] : ["'self'", 'ws://localhost:3000', 'http://localhost:4000'];
+      var connectSrc = process.env.NODE_ENV === 'production' ? ["'self'", 'ws://' + process.env.HOSTNAME] : ["'self'", 'ws://localhost:3000', 'http://localhost:4000'];
 
       return csp({
         directives: {
