@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, endsWith, reject, isEmpty, tail} from 'lodash';
+import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, first, map, reject, isEmpty, tail, isFunction} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
@@ -207,22 +207,16 @@ module.exports = {
     }
 
     var applyResult;
-    function applyPushAction (saveId, dotString, value) {
-      let entries = stateAccess.for(saveId).unwrap(dotString);
-
+    function applyPushAction (saveId, dotString, entries, value) {
       return applyResult(saveId, dotString, entries.concat([value]));
     }
 
-    function applyPopAction (saveId, dotString, value) {
-      let entries = stateAccess.for(saveId).unwrap(dotString);
-
+    function applyPopAction (saveId, dotString, entries, value) {
       return set({}, dotString, reject(entries, value));
     }
 
-    function applyReplaceAction (saveId, dotString, value) {
-      let entries = stateAccess.for(saveId).unwrap(dotString);
+    function applyReplaceAction (saveId, dotString, entries, value) {
       let mod = map(entries, entry => entry.id === value.id ? value : entry);
-
       return set({}, dotString, mod);
     }
 
@@ -238,24 +232,44 @@ module.exports = {
           return entry;
         }
 
-        return isEmpty(restOfPath) ? merge(entry, value) : set(entry, restOfPath, value);
+        var nv = isFunction(value) ? value(
+          isEmpty(restOfPath) ? entry : get(entry, restOfPath)
+        ) : value;
+
+        return isEmpty(restOfPath) ? merge(entry, nv) : set(entry, restOfPath, nv);
       });
 
       return set({}, pathToArray, mod);
     }
 
+    let trailingHandlers = {
+      '+': applyPushAction,
+      '-': applyPopAction,
+      '!': applyReplaceAction
+    };
+
     applyResult = function applyResult (saveId, dotString, value) {
-      if (endsWith(dotString, '+')) {
-        return applyPushAction(saveId, dotString.split('+')[0], value);
-      } else if (endsWith(dotString, '-')) {
-        return applyPopAction(saveId, dotString.split('-')[0], value);
-      } else if (endsWith(dotString, '!')) {
-        return applyReplaceAction(saveId, dotString.split('!')[0], value);
+      let modifierSymbol = dotString[dotString.length - 1];
+      var dotStringSansModifier = dotString.split(modifierSymbol)[0];
+
+      var handler= trailingHandlers[modifierSymbol];
+      if (handler) {
+        let entries = stateAccess.for(saveId).unwrap(dotStringSansModifier);
+
+        if (isFunction(value)) {
+          logger.error({dotString: dotString, prior: entries}, `Using a function on the ${modifierSymbol} operator is not supported. Remove the ${modifierSymbol} operator to acheive desired effect.`);
+
+          return {};
+        }
+
+        return handler(saveId, dotStringSansModifier, entries, value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
-      }
+      } else {
+        var c = stateAccess.for(saveId).unwrap(dotString);
 
-      return set({}, dotString, value);
+        return set({}, dotString, isFunction(value) ? value(c) : value);
+      }
     };
 
     function mutateNonArray (saveId, result) {
