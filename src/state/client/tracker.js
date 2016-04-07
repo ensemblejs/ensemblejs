@@ -1,6 +1,7 @@
 'use strict';
 
-import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find, get} from 'lodash';
+import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find} from 'lodash';
+import {read} from '../../util/dot-string-support';
 
 module.exports = {
   type: 'StateTracker',
@@ -216,7 +217,7 @@ module.exports = {
       }
 
       return function stateFromDotString (state) {
-        var prop = get(state, model);
+        var prop = read(state, model);
         if (prop === undefined) {
           logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
         }

@@ -1,7 +1,8 @@
 'use strict';
 
-import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, reject, map, includes, first, replace, isEmpty, tail, isFunction} from 'lodash';
+import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, reject, map, includes, replace, isEmpty, isFunction} from 'lodash';
 import define from '../../plugins/plug-n-play';
+import {read} from '../../util/dot-string-support';
 
 module.exports = {
   type: 'StateMutator',
@@ -10,40 +11,8 @@ module.exports = {
     var root = {};
     var thisFrame = {};
 
-    function accessState(node, key) {
-      var prop;
-
-      function getArrayById (node, key) {
-        let path = key.split(':')[0];
-        let suffix = tail(key.split(':')).join(':');
-
-        if (includes(suffix, '.')) {
-          let id = parseInt(suffix.split('.')[0], 10);
-          let subPath = replace(suffix, /^[0-9]+\./, '');
-
-          let subNode = first(filter(get(node, path), {id: id}));
-
-          return accessState(subNode, subPath);
-        } else {
-          let id = parseInt(suffix, 10);
-          return first(filter(get(node, path), {id: id}));
-        }
-      }
-
-      function getChildren (node, key) {
-        let path = key.split('*.')[0];
-        let suffix = key.split('*.')[1];
-
-        return map(get(node, path), subNode => accessState(subNode, suffix));
-      }
-
-      if (includes(key, ':')) {
-        prop = getArrayById(node, key);
-      } else if (includes(key, '*')) {
-        prop = getChildren(node, key);
-      } else {
-        prop = get(node, key);
-      }
+    function readAndWarnAboutMissingState (node, key) {
+      var prop = read(node, key);
 
       if (prop === undefined) {
         logger().warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
@@ -54,7 +23,7 @@ module.exports = {
 
     function provideReadAccessToState (node) {
       return function(key) {
-        var prop = accessState(node, key);
+        var prop = readAndWarnAboutMissingState(node, key);
 
         if (isObject(prop) && !isArray(prop)) {
           return provideReadAccessToState(prop);
@@ -65,7 +34,7 @@ module.exports = {
     }
 
     function accessAndCloneState (node, key) {
-      var prop = accessState(node, key);
+      var prop = readAndWarnAboutMissingState(node, key);
 
       if (isObject(prop)) {
         return cloneDeep(prop);
