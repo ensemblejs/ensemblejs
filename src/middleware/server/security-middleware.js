@@ -37,7 +37,8 @@ module.exports = {
     //jshint quotmark:false
     var productionAllowedSources = [
       "'self'",
-      'ws://' + process.env.HOSTNAME
+      'ws://' + process.env.HOSTNAME,
+      'ws://peerjs.com:9000'
     ];
     var nonProductionAllowedSources = [
       "'self'",
