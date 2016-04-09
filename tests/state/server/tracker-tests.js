@@ -42,7 +42,7 @@ describe('StateTracker', function () {
   describe('working with property', function () {
     describe('when a property changes', function() {
       beforeEach(function () {
-        forceCurrentRawState({1:{ property: 'unchanged', a: { b: 'c'} }});
+        forceCurrentRawState({1:{ property: 'unchanged', a: { b: 'c'}, arr: [{id:1, value: 7}]}});
         afterPhysicsFrame();
         tracker.onChangeOf('property', callback, 'data');
 
@@ -78,6 +78,19 @@ describe('StateTracker', function () {
         afterPhysicsFrame();
         expect(callback.callCount).toBe(1);
         expect(callback.firstCall.args).toEqual(['c', 'c', undefined]);
+      });
+
+      it('should work with dot strings enhancements', function () {
+        tracker.onChangeOf('property', callback, 'data');
+        afterPhysicsFrame();
+        expect(callback.callCount).toBe(1);
+
+        callback.reset();
+
+        tracker.onChangeOf('arr:1.value', callback);
+        afterPhysicsFrame();
+        expect(callback.callCount).toBe(1);
+        expect(callback.firstCall.args).toEqual([7, 7, undefined]);
       });
     });
 
