@@ -20,7 +20,7 @@ module.exports = {
     var appId = config().game.id;
 
     function post (event, url = `${endpoint}/event/${appId}`) {
-      if (!config.get().client.metrics) {
+      if (!config().client.metrics) {
         return;
       }
 

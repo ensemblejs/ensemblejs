@@ -228,6 +228,14 @@ module.exports = {
         socket.on('unpause', addLogging('unpause', publishUnpause));
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
+        socket.on('heartbeat', () => {
+          logger.info('Heartbeat received from client');
+        });
+
+        function sendHeartbeat () {
+          socket.emit('heartbeat');
+        }
+        setInterval(sendHeartbeat, config.get().logging.heartbeatInterval);
 
         return on().clientConnect(save, socket).then(() => {
           sendInitialState(socket, rawStateAccess().for(save.id));

@@ -43,6 +43,7 @@
     "forceSave": true
   },
   "logging": {
+    "heartbeatInterval": 30000,
     "logLevel": "warn",
     "silencedPlugins": [
       "$",

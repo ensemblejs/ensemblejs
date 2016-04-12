@@ -9,8 +9,8 @@ let logger = require('../../logging/client/logger').logger;
 
 module.exports = {
   type: 'SocketClient',
-  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode'],
-  func: function SocketClient (window, mode, host, on, time, $, deviceMode) {
+  deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode', 'Config'],
+  func: function SocketClient (window, mode, host, on, time, $, deviceMode, config) {
 
     function url () {
       return `${host()}/${mode()}/${deviceMode()}`;
@@ -58,6 +58,13 @@ module.exports = {
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
+      socket.on('heartbeat', () => {
+        logger.info('Heartbeat received from server');
+      });
+      function sendHeartbeat () {
+        socket.emit('heartbeat');
+      }
+      setInterval(sendHeartbeat, config().logging.heartbeatInterval);
 
       define('PauseBehaviour', function PauseBehaviour () {
         return {
