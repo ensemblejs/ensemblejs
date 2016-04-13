@@ -40,9 +40,9 @@ function OnClientReady ($, anchorAction) {
 
   return function setup (dims) {
     var icon = require('../../../public/partials/debug/debug-icon.pug');
-    $()('.icons').append(icon());
+    $()('.icons').append(icon({action: 'open-hud'}));
 
-    $()('#debug').append(icon());
+    $()('#debug').append(icon({action: 'close-hud'}));
     $()('#debug #debug-spanner').addClass('inverted');
     $()('#debug #debug-cog').addClass('inverted');
 
@@ -59,7 +59,7 @@ function toggleHud (state) {
 function ActionMap () {
   return {
     '`': [{call: toggleHud, onRelease: true, whenWaiting: true}],
-    'toggle-hud': [{call: toggleHud, onRelease: true, whenWaiting: true}],
+    'open-hud': [{call: toggleHud, onRelease: true, whenWaiting: true}],
     'close-hud': [{call: toggleHud, onRelease: true, whenWaiting: true}]
   };
 }
