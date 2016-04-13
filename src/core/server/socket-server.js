@@ -69,6 +69,19 @@ module.exports = {
       };
     });
 
+    function addHeartbeatToSocket (socket) {
+      socket.on('heartbeat', () => {
+        logger.info('Heartbeat received from client');
+      });
+
+      function sendHeartbeat () {
+        socket.emit('heartbeat');
+      }
+
+      var id = setInterval(sendHeartbeat, config.get().logging.heartbeatInterval);
+      intervals.push(id);
+    }
+
     function setupNonPlayableClient (socket) {
       sockets[socket.id] = socket;
 
@@ -104,6 +117,8 @@ module.exports = {
 
         socket.on('disconnect', addLogging('disconnect', publishDisconnect));
         socket.on('error', addLogging('error', error));
+
+        addHeartbeatToSocket(socket);
 
         return on().clientConnect(save, socket).then(() => {
           sendInitialState(socket, rawStateAccess().for(save.id));
@@ -167,6 +182,8 @@ module.exports = {
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
 
+        addHeartbeatToSocket(socket);
+
         return on().clientConnect(save, socket).then(() => {
           sendInitialState(socket, rawStateAccess().for(save.id));
         }).then(() => {
@@ -228,14 +245,8 @@ module.exports = {
         socket.on('unpause', addLogging('unpause', publishUnpause));
         socket.on('error', addLogging('error', error));
         socket.on('input', addLogging('input', publishInput));
-        socket.on('heartbeat', () => {
-          logger.info('Heartbeat received from client');
-        });
 
-        function sendHeartbeat () {
-          socket.emit('heartbeat');
-        }
-        setInterval(sendHeartbeat, config.get().logging.heartbeatInterval);
+        addHeartbeatToSocket(socket);
 
         return on().clientConnect(save, socket).then(() => {
           sendInitialState(socket, rawStateAccess().for(save.id));

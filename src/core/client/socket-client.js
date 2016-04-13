@@ -1,7 +1,7 @@
 'use strict';
 
 var io = require('socket.io-client');
-import {last, includes} from 'lodash';
+import {last, includes, each} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
@@ -12,11 +12,17 @@ module.exports = {
   deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode', 'Config'],
   func: function SocketClient (window, mode, host, on, time, $, deviceMode, config) {
 
+    var intervals = [];
+
     function url () {
       return `${host()}/${mode()}/${deviceMode()}`;
     }
 
     function disconnect () {
+      each(intervals, function eachInterval (interval) {
+        clearInterval(interval);
+      });
+
       on().disconnect('client', mode());
     }
 
@@ -64,7 +70,8 @@ module.exports = {
       function sendHeartbeat () {
         socket.emit('heartbeat');
       }
-      setInterval(sendHeartbeat, config().logging.heartbeatInterval);
+      var id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
+      intervals.push(id);
 
       define('PauseBehaviour', function PauseBehaviour () {
         return {

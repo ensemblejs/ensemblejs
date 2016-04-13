@@ -71,6 +71,9 @@ describe('the socket server', function () {
 		sinon.stub(config, 'get').returns({
 			server: {
 				pushUpdateFrequency: 33
+			},
+			logging: {
+				heartbeatInterval: 30000
 			}
 		});
 
@@ -133,7 +136,7 @@ describe('the socket server', function () {
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
 				socket.on.firstCall.args[1]().then(() => {
-					updateClientFunc = setInterval.firstCall.args[0];
+					updateClientFunc = setInterval.secondCall.args[0];
 					done();
 				});
 			});
@@ -193,7 +196,7 @@ describe('the socket server', function () {
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
 				socket.on.firstCall.args[1]().then(() => {
-					updateClientFunc = setInterval.firstCall.args[0];
+					updateClientFunc = setInterval.secondCall.args[0];
 					done();
 				});
 			});
@@ -241,8 +244,12 @@ describe('the socket server', function () {
 				expect(fakeOn.outgoingServerPacket.firstCall.args[1].timestamp).toEqual(1000);
 			});
 
+			it('should schedule a heartbeat at the configured interval', function() {
+				expect(setInterval.firstCall.args[1]).toEqual(30000);
+			});
+
 			it('should send game state based on the configured frequency', function() {
-				expect(setInterval.firstCall.args[1]).toEqual(33);
+				expect(setInterval.secondCall.args[1]).toEqual(33);
 			});
 		});
 
@@ -347,7 +354,7 @@ describe('the socket server', function () {
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
 				socket.on.firstCall.args[1]().then(() => {
-					updateClientFunc = setInterval.firstCall.args[0];
+					updateClientFunc = setInterval.secondCall.args[0];
 					done();
 				});
 			});
@@ -408,7 +415,7 @@ describe('the socket server', function () {
 
 				expect(socket.on.firstCall.args[0]).toEqual('saveId');
 				socket.on.firstCall.args[1]().then(() => {
-					updateClientFunc = setInterval.firstCall.args[0];
+					updateClientFunc = setInterval.secondCall.args[0];
 					done();
 				});
 			});
@@ -456,8 +463,12 @@ describe('the socket server', function () {
 				expect(fakeOn.outgoingServerPacket.firstCall.args[1].timestamp).toEqual(1000);
 			});
 
+			it('should schedule a heartbeat at the configured interval', function() {
+				expect(setInterval.firstCall.args[1]).toEqual(30000);
+			});
+
 			it('should send game state based on the configured frequency', function() {
-				expect(setInterval.firstCall.args[1]).toEqual(33);
+				expect(setInterval.secondCall.args[1]).toEqual(33);
 			});
 		});
 

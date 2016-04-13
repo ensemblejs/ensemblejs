@@ -25,6 +25,7 @@ describe('the socket client', function () {
 	before(function () {
 		sinon.spy(fake$, 'on');
 		sinon.spy(io, 'connect');
+		sinon.stub(global, 'setInterval');
 	});
 
 	beforeEach(function (done) {
@@ -37,7 +38,12 @@ describe('the socket client', function () {
 				On: fakeOn,
 				Time: fakeTime,
 				$: fake$wrapper,
-				DeviceMode: 'primary'
+				DeviceMode: 'primary',
+				Config: {
+					logging: {
+						heartbeatInterval: 30000
+					}
+				}
 			});
 			client = sut[0];
 	  }, done);
@@ -50,6 +56,7 @@ describe('the socket client', function () {
 	after(function () {
 		fake$.on.restore();
 		io.connect.restore();
+		global.setInterval.restore();
 	});
 
 	describe('on connect', function () {
