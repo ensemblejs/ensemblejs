@@ -12,8 +12,8 @@ const dead = 'dead';
 
 module.exports = {
   type: 'PlayerConnections',
-  deps: ['DefinePlugin', 'On'],
-  func: function PlayerConnections (define, on) {
+  deps: ['DefinePlugin', 'On', 'StatePusher'],
+  func: function PlayerConnections (define, on, statePusher) {
     var connections = [];
 
     function filterBySaveAnPlayer (saveId, playerId) {
@@ -196,6 +196,7 @@ module.exports = {
             socket.emit('playerNumber', player.number);
             socket.emit('deviceNumber', player.devices.length);
           })
+          .then(() => statePusher().start(save, socket))
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
           .catch(err => {

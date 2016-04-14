@@ -1,6 +1,7 @@
 'use strict';
 
 var io = require('socket.io-client');
+var patch = require('socketio-wildcard')(io.Manager);
 import {last, includes, each} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
@@ -29,17 +30,34 @@ module.exports = {
     function connect () {
       var socket = io.connect(url(), { reconnection: false });
 
+      patch(socket);
+
+      socket.on('*', function (event) {
+        var name = event.data[0];
+        if (name === 'updateState') {
+          return;
+        }
+
+        logger.info(` ensemblejs:socket-on:${name}`);
+      });
+
+      function emit (name, ...args) {
+        logger.info(` ensemblejs:socket-emit:${name}`);
+        socket.emit(name, ...args);
+      }
+
       var saveId = last(window().location.pathname.split('/'));
       set('SaveId', saveId);
-      socket.emit('saveId', saveId);
+      emit('saveId', saveId);
 
-      socket.on('startTime', function (serverOffset) {
-        var currentClientTime = time().present();
-        time().setOffset(serverOffset - currentClientTime);
+      socket.on('startTime', function setServerOffset (serverOffset) {
+        time().setOffset(serverOffset - time().present());
       });
+
       socket.on('connect', function connect () {
         on().connect('client', mode());
       });
+
       socket.on('disconnect', disconnect);
 
       socket.on('playerNumber', function savePlayerId (playerNumber) {
@@ -64,6 +82,8 @@ module.exports = {
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
+
+
       socket.on('heartbeat', () => {
         logger.info('Heartbeat received from server');
       });
@@ -73,25 +93,28 @@ module.exports = {
       var id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
       intervals.push(id);
 
+
       define('PauseBehaviour', function PauseBehaviour () {
-        return {
-          pause: function pause () {
-            if (includes(supportsInput, deviceMode())) {
-              socket.emit('pause');
-            }
-          },
-          unpause: function unpause () {
-            if (includes(supportsInput, deviceMode())) {
-              socket.emit('unpause');
-            }
-          },
-          toggle: function toggle (state) {
-            if (state.get('ensemble.paused')) {
-              this.unpause();
-            } else {
-              this.pause();
-            }
+        function pause () {
+          if (includes(supportsInput, deviceMode())) {
+            emit('pause');
           }
+        }
+
+        function unpause () {
+          if (includes(supportsInput, deviceMode())) {
+            emit('unpause');
+          }
+        }
+
+        function toggle (state) {
+          return state.get('ensemble.paused') ? unpause() : pause();
+        }
+
+        return {
+          pause: pause,
+          unpause: unpause,
+          toggle: toggle
         };
       });
 
