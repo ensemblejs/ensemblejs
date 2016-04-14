@@ -234,9 +234,14 @@ module.exports = {
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
       } else {
-        var c = stateAccess.for(saveId).unwrap(dotString);
+        let valueToApply = value;
+        if (isFunction(value)) {
+          var c = stateAccess.for(saveId).unwrap(dotString);
 
-        return set({}, dotString, isFunction(value) ? value(c) : value);
+          valueToApply = value(c);
+        }
+
+        return set({}, dotString, valueToApply);
       }
     };
 
