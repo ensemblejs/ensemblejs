@@ -1,0 +1,12 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5984,
+    "cache": true,
+    "raw": false,
+    "forceSave": true
+  },
+  "measure": {
+    "endpoint": "http://localhost:4000"
+  }
+}

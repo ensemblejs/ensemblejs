@@ -16,6 +16,7 @@ function getConfig () {
     logger.info('Not using custom config.');
   }
 
+  config = defaultsDeep(require('../../config/immutable.json'), config);
   config = defaultsDeep(config, require('../../config/defaults.json'));
   config.nothing = function nothing () {};
 
