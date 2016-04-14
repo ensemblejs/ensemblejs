@@ -1,14 +1,25 @@
 'use strict';
 
-function StateSeed (config) {
-  return {
-    ensembleDebug: {
-      hudVisible: config().debug.startOpen
-    }
+import {byPlayer as p} from '../../util/scope';
+
+function PlayerStateSeed (config) {
+  return function seedHudState () {
+    return {
+      ensembleDebug: {
+        hudVisible: config().debug.startOpen
+      }
+    };
   };
 }
 
-function OnClientStart ($, tracker) {
+function OnClientStart ($) {
+  return function addDebugOverlayToBody () {
+    const overlay = require('../../../public/partials/debug/overlay.pug');
+    $()('body').append(overlay());
+  };
+}
+
+function OnClientReady ($, anchorAction, tracker) {
   function hide () {
     $()('#debug').hide();
     $()('#overlay').show();
@@ -19,17 +30,6 @@ function OnClientStart ($, tracker) {
     $()('#overlay').hide();
   }
 
-  return function addDebugOverlayToBody () {
-    var overlay = require('../../../public/partials/debug/overlay.pug');
-
-    $()('body').append(overlay());
-
-    tracker().onChangeTo('ensembleDebug.hudVisible', true, show);
-    tracker().onChangeTo('ensembleDebug.hudVisible', false, hide);
-  };
-}
-
-function OnClientReady ($, anchorAction) {
   function reposition (dims) {
     if (dims.landscape()) {
       $()('.debug-icon').css('top', '128px').css('right', '0');
@@ -38,8 +38,8 @@ function OnClientReady ($, anchorAction) {
     }
   }
 
-  return function setup (dims) {
-    var icon = require('../../../public/partials/debug/debug-icon.pug');
+  return function setup (dims, playerId) {
+    let icon = require('../../../public/partials/debug/debug-icon.pug');
     $()('.icons').append(icon({action: 'open-hud'}));
 
     $()('#debug').append(icon({action: 'close-hud'}));
@@ -49,11 +49,15 @@ function OnClientReady ($, anchorAction) {
     reposition(dims);
 
     anchorAction().add($()('.debug-icon'));
+
+    tracker().onChangeTo(p(playerId, 'ensembleDebug.hudVisible'), true, show);
+    tracker().onChangeTo(p(playerId, 'ensembleDebug.hudVisible'), false, hide);
   };
 }
 
-function toggleHud (state) {
-  return ['ensembleDebug.hudVisible', !state.get('ensembleDebug.hudVisible')];
+function toggleHud (state, input, data) {
+  const current = state.player(data.playerId).get('ensembleDebug.hudVisible');
+  return [p(data.playerId, 'ensembleDebug.hudVisible'), !current];
 }
 
 function ActionMap () {
@@ -72,9 +76,9 @@ module.exports = {
       return;
     }
 
-    define()('OnClientStart', ['$', 'StateTracker'], OnClientStart);
-    define()('OnClientReady', ['$', 'AnchorAction'], OnClientReady);
-    define()('StateSeed', ['Config'], StateSeed);
+    define()('OnClientStart', ['$'], OnClientStart);
+    define()('OnClientReady', ['$', 'AnchorAction', 'StateTracker'], OnClientReady);
+    define()('PlayerStateSeed', ['Config'], PlayerStateSeed);
     define()('ActionMap', ActionMap);
   }
 };
