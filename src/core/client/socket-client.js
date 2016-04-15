@@ -88,7 +88,7 @@ module.exports = {
         logger.info('Heartbeat received from server');
       });
       function sendHeartbeat () {
-        socket.emit('heartbeat');
+        emit('heartbeat');
       }
       var id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
       intervals.push(id);
@@ -149,14 +149,14 @@ module.exports = {
 
         define('OnOutgoingClientPacket', function SocketClient () {
           return function sendPacketToServer (packet) {
-            socket.emit('input', packet);
+            emit('input', packet);
           };
         });
       }
 
       define('OnIncomingServerPacket', function SocketClient () {
         return function ackPacketReceived (packet) {
-          socket.emit('ack', packet.id);
+          emit('ack', packet.id);
         };
       });
     }
