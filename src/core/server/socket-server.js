@@ -30,6 +30,10 @@ module.exports = {
     function setupNonPlayableClient (socket) {
       sockets[socket.id] = socket;
 
+      socket.on('*', function () {
+        console.log(arguments);
+      });
+
       var socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
@@ -59,6 +63,10 @@ module.exports = {
 
     function setupVirtualGamepad (socket) {
       sockets[socket.id] = socket;
+
+      socket.on('*', function () {
+        console.log(arguments);
+      });
 
       var socketInfo = {
         socketId: socket.id,
@@ -111,8 +119,6 @@ module.exports = {
       socket.emit('startTime', time().present());
 
       function sendSave (saveId) {
-        console.log(saveId);
-
         clientSockets[saveId] = clientSockets[saveId] || [];
         clientSockets[saveId].push(socket.id);
 

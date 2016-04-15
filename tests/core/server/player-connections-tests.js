@@ -19,11 +19,15 @@ describe('players connecting', function () {
   var connectedCount;
   var onClientConnect;
   var onClientDisconnect;
+  var statePusher = sinon.spy();
 
   var getByDevice;
   beforeEach(function () {
     var module = makeTestible('core/server/player-connections', {
-      On: fakeOn
+      On: fakeOn,
+      StatePusher: {
+        start: statePusher
+      }
     });
 
     getByDevice = sinon.stub(players, 'getByDevice');
@@ -86,6 +90,10 @@ describe('players connecting', function () {
         })
         .then(() => done() )
         .catch(() => done() );
+    });
+
+    it('should start the update loop', function () {
+      expect(statePusher.called).toEqual(true);
     });
 
     describe('when the same player connects again on a different client', function () {
