@@ -1,6 +1,6 @@
 'use strict';
 
-import {reject, filter, each, map, includes, isEmpty} from 'lodash';
+import {reject, filter, each, map, includes, isEmpty, isFunction} from 'lodash';
 
 module.exports = {
   type: 'DelayedJobs',
@@ -52,7 +52,14 @@ module.exports = {
 
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
-          var callback = dynamicPluginLoader().get(job.plugin)[job.method];
+
+          let callback;
+          if (job.callback) {
+            callback = job.callback;
+          } else {
+            callback = dynamicPluginLoader().get(job.plugin)[job.method];
+          }
+
           mutate()(saveId, callback(state));
         }
 
@@ -76,12 +83,20 @@ module.exports = {
     });
 
     function addJob (key, duration, plugin, method) {
-      newJobs.push({
-        key: key,
-        duration: duration,
-        plugin: plugin,
-        method: method
-      });
+      if (isFunction(plugin)) {
+        newJobs.push({
+          key: key,
+          duration: duration,
+          callback: plugin
+        });
+      } else {
+        newJobs.push({
+          key: key,
+          duration: duration,
+          plugin: plugin,
+          method: method
+        });
+      }
     }
 
     function add (key, duration, plugin, method) {
