@@ -73,6 +73,7 @@ function addTasks (gulp) {
           runtimePath: require('pug-runtime')
         })
         .bundle(function (err, res) {
+          console.error(err.message);
           file.contents = res;
           next(null, file);
         });
