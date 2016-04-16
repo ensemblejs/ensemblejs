@@ -156,7 +156,7 @@ module.exports = {
 
       define('OnIncomingServerPacket', function SocketClient () {
         return function ackPacketReceived (packet) {
-          emit('ack', packet.id);
+          socket.emit('ack', packet.id);
         };
       });
     }
