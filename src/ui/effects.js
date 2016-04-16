@@ -1,7 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var reject = require('lodash').reject;
+import { each, reject, filter } from 'lodash';
 
 module.exports = {
   type: 'OnClientStart',
@@ -12,13 +11,12 @@ module.exports = {
     return function initialiseEffects () {
       define()('OnPhysicsFrame', function OnRenderFrame () {
         return function tickEffects (delta) {
-          each(effects, function (effect) {
-            effect.tick(delta);
-          });
+          each(effects, effect => effect.tick(delta));
 
-          effects = reject(effects, function (effect) {
-            return !effect.isAlive();
-          });
+          const finished = filter(effects, effect => !effect.isAlive());
+          each(finished, effect => effect.done && effect.done());
+
+          effects = reject(effects, effect => !effect.isAlive());
         };
       });
 
