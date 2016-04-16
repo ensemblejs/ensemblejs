@@ -56,7 +56,7 @@ function OnClientReady ($, anchorAction, tracker) {
 }
 
 function toggleHud (state, input, data) {
-  const current = state.player(data.playerId).get('ensembleDebug.hudVisible');
+  const current = state.get(p(data.playerId, 'ensembleDebug.hudVisible'));
   return [p(data.playerId, 'ensembleDebug.hudVisible'), !current];
 }
 
