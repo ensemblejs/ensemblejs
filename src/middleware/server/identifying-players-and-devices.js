@@ -28,6 +28,7 @@ function IdentifyingPlayersAndDevices (define, time) {
       return getDeviceById(req.sessionID)
         .then(createDeviceIfNoneFound)
         .then(device => {
+          logger.info(`Connection identified with device: ${device.id}`);
           req.device = device;
         })
         .then(() => next());
@@ -84,6 +85,7 @@ function IdentifyingPlayersAndDevices (define, time) {
         .then(createAndLinkToDeviceIfNoPlayers)
         .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
         .then(players => {
+          logger.info(`Connection identified as player: ${first(players).id}`);
           req.player = first(players);
         })
         .then(() => next())

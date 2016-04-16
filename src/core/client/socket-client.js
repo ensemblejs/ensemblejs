@@ -34,10 +34,6 @@ module.exports = {
 
       socket.on('*', function (event) {
         var name = event.data[0];
-        if (name === 'updateState') {
-          return;
-        }
-
         logger.info(` ensemblejs:socket-on:${name}`);
       });
 
