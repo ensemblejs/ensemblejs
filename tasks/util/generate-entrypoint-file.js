@@ -15,7 +15,7 @@ function generateEntrypointFile (saveMode, done) {
   fromFile.on('end', function() {
     toFile.write('\n');
     toFile.write('set("SaveMode", "' + saveMode + '");');
-    toFile.write('set("Commit", "' + getRepoInfo().sha + '");');
+    toFile.write('set("Commit", "' + process.env.COMMIT_SHA || getRepoInfo().sha + '");');
     toFile.write('\n');
     toFile.end('run();');
     done();
