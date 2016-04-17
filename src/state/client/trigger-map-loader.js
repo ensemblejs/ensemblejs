@@ -9,12 +9,12 @@ module.exports = {
   deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger'],
   func: function TriggerMapLoader (define, tracker, allMaps, logger) {
 
-    function comparison (key, triggerInfo, comparator) {
+    function comparison (triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
         logger().warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
       }
 
-      tracker().onChangeTo(key, function (currentValue) {
+      tracker().onChangeTo(triggerInfo.when, function (currentValue) {
         return _[comparator](currentValue, triggerInfo[comparator]);
       }, triggerInfo.call, triggerInfo.data);
     }
@@ -26,17 +26,17 @@ module.exports = {
       return function loadTriggerMaps () {
 
         function loadMapsForMode (map) {
-          each(map, function loadKey (value, key) {
+          each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
               each(directTrackerMappings, function (f) {
                 if (triggerInfo[f]) {
-                  tracker()[f](key, triggerInfo[f], triggerInfo.data);
+                  tracker()[f](triggerInfo.when, triggerInfo[f], triggerInfo.data);
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
                 if (triggerInfo[comparisonKey]) {
-                  comparison(key, triggerInfo, comparisonKey);
+                  comparison(triggerInfo, comparisonKey);
                 }
               });
             });

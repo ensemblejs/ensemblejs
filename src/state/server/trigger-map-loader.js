@@ -9,14 +9,18 @@ module.exports = {
   deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger'],
   func: function TriggerMapLoader (define, tracker, allMaps, logger) {
 
-    function comparison (save, key, triggerInfo, comparator) {
+    function comparison (save, triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
         logger().warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
       }
 
-      tracker().for(save.id).onChangeTo(key, function (currentValue) {
+      const when = triggerInfo.when;
+      const data = triggerInfo.data;
+      const f = triggerInfo.call;
+
+      tracker().for(save.id).onChangeTo(when, function (currentValue) {
         return _[comparator](currentValue, triggerInfo[comparator]);
-      }, triggerInfo.call, triggerInfo.data);
+      }, f, data);
     }
 
     var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
@@ -25,17 +29,21 @@ module.exports = {
     define()('OnSaveReady', function OnSaveReady () {
       return function loadTriggerMaps (save) {
         function loadMapsForMode (map) {
-          each(map, function loadKey (value, key) {
+          each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
               each(directTrackerMappings, function (f) {
                 if (triggerInfo[f]) {
-                  tracker().for(save.id)[f](key, triggerInfo[f], triggerInfo.data);
+                  tracker().for(save.id)[f](
+                    triggerInfo.when,
+                    triggerInfo[f],
+                    triggerInfo.data
+                  );
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
                 if (triggerInfo[comparisonKey]) {
-                  comparison(save, key, triggerInfo, comparisonKey);
+                  comparison(save, triggerInfo, comparisonKey);
                 }
               });
             });
