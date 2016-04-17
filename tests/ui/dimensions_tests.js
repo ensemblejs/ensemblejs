@@ -34,4 +34,17 @@ describe('dimensions', function() {
 		expect(dimensions().usableWidth).toBe(1040);
 		expect(dimensions().usableHeight).toBe(336);
 	});
+
+	it('should use the device aspect ratio when instructed', function () {
+		var dimensions = require('../../src/ui/dimensions').func(defer({
+			client: {
+				aspectRatio: 'device',
+				widescreenMinimumMargin: 0
+			}
+		}), defer(window)).get;
+
+		expect(dimensions().usableWidth).toBe(1000);
+		expect(dimensions().usableHeight).toBe(400);
+		expect(dimensions().ratio).toBe(2.5);
+	});
 });

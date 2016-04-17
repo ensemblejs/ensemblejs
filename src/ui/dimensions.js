@@ -1,14 +1,24 @@
 'use strict';
 
+const UseDeviceAspectRatio = 'device';
+
 module.exports = {
   deps: ['Config', 'Window'],
   type: 'Dimensions',
   func: function Dimensions (config, window) {
+    function getRatioAsConfigured () {
+      if (config().client.aspectRatio === UseDeviceAspectRatio) {
+        return window().innerWidth / window().innerHeight;
+      } else {
+        return config().client.aspectRatio;
+      }
+    }
+
     return {
       get: function get () {
         var actualWidth = window().innerWidth;
         var actualHeight = window().innerHeight;
-        var ratio = config().client.aspectRatio;
+        var ratio = getRatioAsConfigured();
         var heightBasedOnWidth = Math.round(actualWidth / ratio);
         var widthBasedOnHeight = Math.round(actualHeight * ratio);
         var totalMargin = config().client.widescreenMinimumMargin * 2;
@@ -47,7 +57,7 @@ module.exports = {
           orientation: orientation,
           screenWidth: actualWidth,
           screenHeight: actualHeight,
-          ratio: config().client.aspectRatio,
+          ratio: ratio,
           landscape: function landscape () {
             return orientation === 'landscape';
           },
