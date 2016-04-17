@@ -5,6 +5,10 @@ var fs = require('fs');
 var path = require('path');
 var paths = require('../paths');
 
+function sha () {
+  return process.env.COMMIT_SHA || getRepoInfo().sha;
+}
+
 function generateEntrypointFile (saveMode, done) {
   var name = path.join(process.cwd(), paths.targets.build, saveMode) + '.js';
 
@@ -14,8 +18,8 @@ function generateEntrypointFile (saveMode, done) {
   fromFile.pipe(toFile, { end: false });
   fromFile.on('end', function() {
     toFile.write('\n');
-    toFile.write('set("SaveMode", "' + saveMode + '");');
-    toFile.write('set("Commit", "' + process.env.COMMIT_SHA || getRepoInfo().sha + '");');
+    toFile.write(`set("SaveMode", "${saveMode}");`);
+    toFile.write(`set("Commit", "${sha()}");`);
     toFile.write('\n');
     toFile.end('run();');
     done();
