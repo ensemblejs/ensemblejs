@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, merge, isArray, isEqual, cloneDeep} from 'lodash';
+import {each, merge, isArray, cloneDeep} from 'lodash';
 import {execute} from 'royal-sampler';
 var sequence = require('distributedlife-sequence');
 
@@ -21,10 +21,6 @@ module.exports = {
 
     function paused (state) { return state.ensemble.paused; }
 
-    function noInput (packet) {
-      return isEqual(packet, {pendingAcks: []});
-    }
-
     function buildPacket () {
       if (currentState().get(paused)) {
         return null;
@@ -41,10 +37,6 @@ module.exports = {
           merge(packet, state, mergeArrays);
         }
       });
-
-      if (noInput(packet)) {
-        return null;
-      }
 
       lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');
