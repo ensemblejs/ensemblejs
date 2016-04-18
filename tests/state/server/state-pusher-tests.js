@@ -74,16 +74,7 @@ describe('the state pusher', function () {
         push = setInterval.firstCall.args[0];
       });
 
-      it('should not send the packet if the game state hasn\'t changed', function () {
-        push();
-
-        fakeOn.outgoingServerPacket.reset();
-        push();
-
-        expect(fakeOn.outgoingServerPacket.callCount).toEqual(0);
-      });
-
-      it('should send the packet if the game state has changed', function () {
+      it('should send the packet', function () {
         push();
 
         fakeOn.outgoingServerPacket.reset();
@@ -93,7 +84,7 @@ describe('the state pusher', function () {
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
           saveState: {hi: 'there', altered: true},
-          id: 3,
+          id: 2,
           highestProcessedMessage: undefined,
           timestamp: 1000
         }]);
@@ -104,7 +95,7 @@ describe('the state pusher', function () {
 
         push();
 
-        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(4);
+        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(3);
       });
 
       it('should record the sent time of each packet', function () {
