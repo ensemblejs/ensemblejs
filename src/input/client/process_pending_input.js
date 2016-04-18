@@ -32,7 +32,7 @@ module.exports = {
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
-					return target(state, {force: inputData.force}, data);
+					return target(state, inputData, data);
 				}
 
 				function touchCallback(target, noEventKey, inputData) {
