@@ -26,9 +26,9 @@ module.exports = {
           saveState: rawStateAccess().for(save.id)
         };
 
-        if (skipThisPacket(packet, lastPacket)) {
-          return;
-        }
+        // if (skipThisPacket(packet, lastPacket)) {
+        //   return;
+        // }
 
         lastPacket = cloneDeep(packet);
 
