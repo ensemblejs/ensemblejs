@@ -136,7 +136,7 @@
     "node-uuid": "^1.4.3",
     "numeral": "^1.5.3",
     "peerjs": "^0.3.14",
-    "present": "0.0.6",
+    "present": "1.0.0",
     "pug": "^2.0.0-alpha1",
     "pug-runtime": "^2.0.0",
     "pugify": "^1.0.3",
