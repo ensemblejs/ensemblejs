@@ -54,34 +54,34 @@ module.exports = {
     }
 
     define()('OnOutgoingClientPacket', HandlePacketLocally);
-    define()('OnIncomingPeerPacket', function HandlePacketLocally () {
-      function packetAlreadyOnQueue (packet) {
-        return includes(map(inputQueue, 'id'), packet.id);
-      }
+    // define()('OnIncomingPeerPacket', function HandlePacketLocally () {
+    //   function packetAlreadyOnQueue (packet) {
+    //     return includes(map(inputQueue, 'id'), packet.id);
+    //   }
 
-      return function putPacketOntoInputQueue (packet) {
-        if (!config().client.clientSidePrediction) {
-          return;
-        }
+    //   return function putPacketOntoInputQueue (packet) {
+    //     if (!config().client.clientSidePrediction) {
+    //       return;
+    //     }
 
-        console.log(packet);
+    //     console.log(packet);
 
-        if (packetAlreadyOnQueue(packet)) {
-          return;
-        }
+    //     if (packetAlreadyOnQueue(packet)) {
+    //       return;
+    //     }
 
-        inputQueue.push({
-          id: packet.id,
-          rawData: packet,
-          playerId: packet.playerId,
-          timestamp: time().present(),
-          save: {
-            id: 'client',
-            mode: mode()
-          }
-        });
-      };
-    });
+    //     inputQueue.push({
+    //       id: packet.id,
+    //       rawData: packet,
+    //       playerId: packet.playerId,
+    //       timestamp: time().present(),
+    //       save: {
+    //         id: 'client',
+    //         mode: mode()
+    //       }
+    //     });
+    //   };
+    // });
 
     return {
       length: function length () { return inputQueue.length; },

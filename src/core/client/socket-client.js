@@ -146,7 +146,7 @@ module.exports = {
 
         define('OnOutgoingClientPacket', function SocketClient () {
           return function sendPacketToServer (packet) {
-            emit('input', packet);
+            socket.emit('input', packet);
           };
         });
       }
