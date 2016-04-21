@@ -9,7 +9,7 @@ module.exports = {
   deps: ['Logger'],
   func: function Client (logger) {
     var root = {};
-    var thisFrame = {};
+    // var thisFrame = {};
 
     function readAndWarnAboutMissingState (node, key) {
       var prop = read(node, key);
@@ -101,10 +101,10 @@ module.exports = {
 
     define('AfterPhysicsFrame', function RawStateAccess () {
       return function mergeResultsFromLastFrame () {
-        root = merge(root, thisFrame, function mergeArrays (a, b) {
-          return isArray(a) ? b : undefined;
-        });
-        thisFrame = {};
+    //     root = merge(root, thisFrame, function mergeArrays (a, b) {
+    //       return isArray(a) ? b : undefined;
+    //     });
+    //     thisFrame = {};
       };
     });
 
@@ -221,7 +221,7 @@ module.exports = {
         result = applyResult(saveId, result[0], result[1]);
       }
 
-      thisFrame = merge(thisFrame, result, function mergeArrays (a, b) {
+      root = merge(root, result, function mergeArrays (a, b) {
         return isArray(a) ? b : undefined;
       });
     }
