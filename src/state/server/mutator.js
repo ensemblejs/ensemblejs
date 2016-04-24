@@ -49,7 +49,7 @@ module.exports = {
       var prop = read(node, key);
 
       if (prop === undefined) {
-        logger.warn({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+        logger.error({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
       }
 
       return prop;
