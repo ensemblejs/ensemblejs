@@ -54,10 +54,10 @@ module.exports = {
           logger().info(job, 'Job Ready');
 
           let callback;
-          if (job.callback) {
-            callback = job.callback;
-          } else {
+          if (job.callback === undefined) {
             callback = dynamicPluginLoader().get(job.plugin)[job.method];
+          } else {
+            callback = job.callback;
           }
 
           mutate()(saveId, callback(state));
