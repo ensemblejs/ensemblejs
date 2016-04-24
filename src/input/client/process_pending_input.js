@@ -99,7 +99,7 @@ module.exports = {
 				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
 					currentInput = inputQueue().get(i);
 					if (currentInput === undefined) {
-						return;
+						continue;
 					}
 
 					somethingHasReceivedInput = [];
