@@ -77,6 +77,12 @@ module.exports = {
       }
     }
 
+    function genKey (playerId, namespace, key) {
+      const suffix = key === undefined ? namespace : `${namespace}.${key}`;
+
+      return `players:${playerId}.${suffix}`;
+    }
+
     var stateAccess = {
       for: function forSave (saveId) {
         return {
@@ -97,24 +103,22 @@ module.exports = {
             };
           },
           player: function forPlayer (playerId) {
-            var playerKey = `player${playerId}`;
-
             return {
               for: function forNamespace (namespace) {
                 return {
                   get: function get (key) {
-                    return provideReadAccessToState(root[saveId][playerKey][namespace])(key);
+                    return provideReadAccessToState(root[saveId])(genKey(playerId, namespace, key));
                   },
                   unwrap: function unwrap (key) {
-                    return accessAndCloneState(root[saveId][playerKey][namespace], key);
+                    return accessAndCloneState(root[saveId], genKey(playerId, namespace, key));
                   },
                 };
               },
               get: function get (key) {
-                return provideReadAccessToState(root[saveId][playerKey])(key);
+                return provideReadAccessToState(root[saveId])(genKey(playerId, key));
               },
               unwrap: function unwrap (key) {
-                return accessAndCloneState(root[saveId][playerKey], key);
+                return accessAndCloneState(root[saveId], genKey(playerId, key));
               },
             };
           }

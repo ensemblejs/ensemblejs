@@ -24,9 +24,11 @@ describe('state access', function () {
       arrayOfThings: [1, 2, 3],
       idArray: [{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}],
       sub: [{id: 1, subsub: [{id: 2, f: 'h'}]}],
-      player1: { controller: { score: 10 } },
-      player2: { controller: { score: 20 } },
-      player3: { controller: { score: 34 } }
+      players: [
+        { id: 1, controller: { score: 10 } },
+        { id: 2, controller: { score: 20 } },
+        { id: 3, controller: { score: 34 } }
+      ]
     });
   });
 
