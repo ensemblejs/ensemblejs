@@ -1,11 +1,11 @@
 'use strict';
 
-import {reject, filter, each, map, includes, isEmpty, isFunction} from 'lodash';
+import {reject, filter, each, map, includes, isEmpty} from 'lodash';
 
 module.exports = {
   type: 'DelayedJobs',
-  deps: ['DefinePlugin', 'DynamicPluginLoader', 'StateMutator', 'Logger'],
-  func: function (define, dynamicPluginLoader, mutate, logger) {
+  deps: ['DefinePlugin', 'StateMutator', 'Logger'],
+  func: function (define, mutate, logger) {
     var newJobs = [];
     var toCancel = [];
     var jobNames = [];
@@ -53,14 +53,7 @@ module.exports = {
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
 
-          let callback;
-          if (job.callback === undefined) {
-            callback = dynamicPluginLoader().get(job.plugin)[job.method];
-          } else {
-            callback = job.callback;
-          }
-
-          mutate()(saveId, callback(state));
+          mutate()(saveId, job.callback(state));
         }
 
         jobs = jobs.concat(newJobs);
@@ -82,25 +75,8 @@ module.exports = {
       };
     });
 
-    function addJob (key, duration, plugin, method) {
-      if (isFunction(plugin)) {
-        newJobs.push({
-          key: key,
-          duration: duration,
-          callback: plugin
-        });
-      } else {
-        newJobs.push({
-          key: key,
-          duration: duration,
-          plugin: plugin,
-          method: method
-        });
-      }
-    }
-
-    function add (key, duration, plugin, method) {
-      addJob(key, duration, plugin, method);
+    function add (key, duration, callback) {
+      newJobs.push({ key, duration, callback });
       devuxAddKeyToList(key);
     }
 
