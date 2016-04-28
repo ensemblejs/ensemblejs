@@ -8,6 +8,7 @@ module.exports = {
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
     var latestServerState;
+    var nextServerState;
     var priorState;
     var currentState;
     var changes = [];
@@ -55,11 +56,11 @@ module.exports = {
     }
 
     function currentServerValue (f) {
-      if (latestServerState === undefined) {
+      if (nextServerState === undefined) {
         return undefined;
       }
 
-      return f(latestServerState);
+      return f(nextServerState);
     }
 
     function priorValue (f) {
@@ -166,20 +167,26 @@ module.exports = {
 
     function updateState (newState) {
       priorState = currentState;
-      currentState = newState;
+      currentState = cloneDeep(newState, true);
     }
 
     function saveLatestServerState (serverState) {
-      latestServerState = serverState;
+      nextServerState = serverState;
+    }
+
+    function saveInitialServerState (serverState) {
+      latestServerState = cloneDeep(serverState);
+      nextServerState = cloneDeep(serverState);
     }
 
     function resetRawStateBackToLatestServer (rawState) {
-      rawState.resetTo(cloneDeep(latestServerState));
+      latestServerState = cloneDeep(nextServerState);
+      rawState.resetTo(cloneDeep(nextServerState));
     }
 
     define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
       return function storeInitialServerState (state) {
-        saveLatestServerState(state);
+        saveInitialServerState(state);
         resetRawStateBackToLatestServer(rawState());
         updateState(rawState().get());
       };

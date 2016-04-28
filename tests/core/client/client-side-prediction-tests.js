@@ -48,7 +48,7 @@ var actionMap = [];
 var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
 var dimensions = {};
 
-require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
+var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
@@ -65,6 +65,7 @@ var on = require('../../../src/events/shared/on').func(defer(mutator), defer(sta
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
+var currentServerState = trackerPluginsDeps.CurrentServerState();
 onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
 var inputQueuePluginsDeps = inputQueuePlugins.deps();
 onOutgoingClientPacket.push(inputQueuePluginsDeps.OnOutgoingClientPacket());
@@ -283,6 +284,10 @@ describe('CSP: after on AfterPhysicsFrame', function () {
       expect(inputQueue.length()).toEqual(0);
     });
 
+    afterEach(() => {
+      config.client.clientSidePrediction = true;
+    });
+
     afterEach(function () {
       stopPhysicsEngine();
       onPhysicsFrame.pop();
@@ -295,5 +300,309 @@ describe('CSP: after on AfterPhysicsFrame', function () {
     it('should not increase the input queue', function () {
       expect(inputQueue.length()).toEqual(0);
     });
+  });
+});
+
+describe('curly scenarios', function () {
+  var curlyChanges = sinon.spy();
+  var initialState = {
+    ensemble: { waitingForPlayers: false },
+    curly: { count: 100 }
+  };
+  var laterState = {
+    highestProcessedMessage: 500,
+    saveState: {
+      ensemble: { waitingForPlayers: false },
+      curly: { count: 100 }
+    }
+  };
+  function curlyCount (state) { return state.curly.count; }
+  function curlyCallback (state) {
+    return { curly: { count: state.for('curly').get('count') + 1 } };
+  }
+
+  before(() => {
+    stopPhysicsEngine();
+
+    each(onClientStart, callback => callback(initialState));
+
+    actionMap.push(['*', { curly: [{call: curlyCallback} ] }]);
+    tracker.onChangeOf('curly.count', curlyChanges);
+  })
+
+  beforeEach(function () {
+    each(onClientStart, callback => callback(initialState));
+
+    on.incomingServerPacket(laterState);
+
+    on.outgoingClientPacket({ id: 506, keys: [{key: 'curly'}] });
+    on.outgoingClientPacket({ id: 507, keys: [{key: 'curly'}] });
+
+    curlyChanges.reset();
+  });
+
+  it('should have a known base line', () => {
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(100);
+    expect(inputQueue.length()).toEqual(2);
+  });
+
+  it('when server state comes in before beforePhysicsFrame', () => {
+    // first frame
+
+    var laterState = {
+      highestProcessedMessage: 506,
+      saveState: {
+        ensemble: { waitingForPlayers: false },
+        curly: { count: 101 }
+      }
+    };
+
+    on.incomingServerPacket(laterState);
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+
+    expect(curlyChanges.callCount).toEqual(1);
+    expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
+
+    // second frame
+    curlyChanges.reset()
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+
+    expect(curlyChanges.called).toEqual(false);
+  });
+
+  it('when server state comes in before onPhysicsFrame', () => {
+
+    // first frame
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    var laterState = {
+      highestProcessedMessage: 506,
+      saveState: {
+        ensemble: { waitingForPlayers: false },
+        curly: { count: 101 }
+      }
+    };
+
+    on.incomingServerPacket(laterState);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+    expect(curlyChanges.callCount).toEqual(1);
+    expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
+
+    // second frame
+    curlyChanges.reset()
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+
+    expect(curlyChanges.called).toEqual(false);
+  });
+
+  it('when server state comes in before afterPhysicsFrame', () => {
+
+    // first frame
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    var laterState = {
+      highestProcessedMessage: 506,
+      saveState: {
+        ensemble: { waitingForPlayers: false },
+        curly: { count: 101 }
+      }
+    };
+
+    on.incomingServerPacket(laterState);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+    expect(curlyChanges.callCount).toEqual(1);
+    expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
+
+    // second frame
+    curlyChanges.reset()
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(1);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+
+    expect(curlyChanges.called).toEqual(false);
+  });
+
+  it('when server state comes in after afterPhysicsFrame', () => {
+
+    // first frame
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(100);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(100);
+    expect(rawStateAccess.get('client').curly.count).toEqual(100);
+    expect(inputQueue.length()).toEqual(2);
+    expect(curlyChanges.callCount).toEqual(1);
+    expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
+
+    // end first frame
+
+    var laterState = {
+      highestProcessedMessage: 506,
+      saveState: {
+        ensemble: { waitingForPlayers: false },
+        curly: { count: 101 }
+      }
+    };
+
+    on.incomingServerPacket(laterState);
+
+    // second frame
+    curlyChanges.reset()
+
+    each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(inputQueue.length()).toEqual(2);
+
+    each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+
+    expect(currentState.get(curlyCount)).toEqual(102);
+    expect(currentServerState.get(curlyCount)).toEqual(101);
+    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(inputQueue.length()).toEqual(1);
+
+    expect(curlyChanges.called).toEqual(false);
   });
 });
