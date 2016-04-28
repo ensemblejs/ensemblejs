@@ -4,23 +4,35 @@ import {each, isObject} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var _ = require('lodash');
 
+var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
+var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+
 module.exports = {
   type: 'TriggerMapLoader',
-  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger'],
-  func: function TriggerMapLoader (define, tracker, allMaps, logger) {
+  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger', 'StateMutator', 'StateAccess'],
+  func: function TriggerMapLoader (define, tracker, allMaps, logger, mutator, state) {
 
     function comparison (triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
         logger().warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
+        return;
       }
 
-      tracker().onChangeTo(triggerInfo.when, function (currentValue) {
-        return _[comparator](currentValue, triggerInfo[comparator]);
-      }, triggerInfo.call, triggerInfo.data);
-    }
+      const when = triggerInfo.when;
+      const callback = triggerInfo.call;
+      const expectedValue = triggerInfo[comparator];
+      const data = triggerInfo.data;
 
-    var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
-    var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+      function isTrue (currentValue) {
+        return _[comparator](currentValue, expectedValue);
+      }
+
+      function callbackWithMutation (...args) {
+        mutator()('client', callback(state().for('client'), ...args));
+      }
+
+      tracker().onChangeTo(when, isTrue, callbackWithMutation, data);
+    }
 
     define()('OnClientReady', ['SaveMode'], function OnClientReady (mode) {
       return function loadTriggerMaps () {
@@ -28,17 +40,32 @@ module.exports = {
         function loadMapsForMode (map) {
           each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
+              let hasTriggerSetup = false;
+
               each(directTrackerMappings, function (f) {
+
+                function callbackWithMutation (...args) {
+                  mutator()('client', triggerInfo[f](state().for('client'), ...args));
+                }
+
                 if (triggerInfo[f]) {
-                  tracker()[f](triggerInfo.when, triggerInfo[f], triggerInfo.data);
+                  tracker()[f](triggerInfo.when, callbackWithMutation, triggerInfo.data);
+
+                  hasTriggerSetup = true;
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
-                if (triggerInfo[comparisonKey]) {
+                if (triggerInfo[comparisonKey] !== undefined) {
                   comparison(triggerInfo, comparisonKey);
+                  hasTriggerSetup = true;
                 }
               });
+
+              if (!hasTriggerSetup) {
+                triggerInfo.eq = true;
+                comparison(triggerInfo, 'eq');
+              }
             });
           });
         }

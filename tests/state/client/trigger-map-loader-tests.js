@@ -13,13 +13,14 @@ var tracker = {
   onElementRemoved: sinon.spy()
 };
 
-describe('trigger maps', function () {
-  function makeValidator(maps) {
-    return makeTestible('state/client/trigger-map-loader', {
-      TriggerMap: maps,
-      StateTracker: tracker
-    })[1];
-  }
+function makeValidator(maps) {
+  return makeTestible('state/client/trigger-map-loader', {
+    TriggerMap: maps,
+    StateTracker: tracker
+  })[1];
+}
+
+describe('trigger maps on the client', function () {
 
   beforeEach(function () {
     tracker.onChangeOf.reset();
@@ -31,16 +32,28 @@ describe('trigger maps', function () {
 
   describe('when they have no keys', function () {
     beforeEach(function () {
-      var v = makeValidator([]);
+      var v = makeValidator([['*', {
+        'key': [{ when: 'some-state', data: [1, 'a']}]
+      }]]);
       v.OnClientReady(defer('arcade'))();
     });
 
-    it('should do nothing', function () {
+    it('should do default to eq to true', function () {
       expect(tracker.onChangeOf.called).toEqual(false);
-      expect(tracker.onChangeTo.called).toEqual(false);
+      expect(tracker.onChangeTo.called).toEqual(true);
       expect(tracker.onElementAdded.called).toEqual(false);
       expect(tracker.onElementChanged.called).toEqual(false);
       expect(tracker.onElementRemoved.called).toEqual(false);
+    });
+
+    it('should setup a tracker on the object', function () {
+      expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
+      expect(tracker.onChangeTo.firstCall.args[3]).toEqual([1, 'a']);
+    });
+
+    it('should setup a comparison function', function () {
+      expect(tracker.onChangeTo.firstCall.args[1](true)).toEqual(true);
+      expect(tracker.onChangeTo.firstCall.args[1](false)).toEqual(false);
     });
   });
 
@@ -57,7 +70,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
-          expect(tracker.onChangeOf.firstCall.args).toEqual(['some-state', callback, [1, 'a']]);
+          expect(tracker.onChangeOf.firstCall.args[0]).toEqual('some-state');
+          expect(tracker.onChangeOf.firstCall.args[2]).toEqual([1, 'a']);
         });
       });
 
@@ -71,15 +85,8 @@ describe('trigger maps', function () {
           v.OnClientReady(defer('arcade'))();
         });
 
-        it('should setup a tracker on the object', function () {
-          expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
-          expect(tracker.onChangeTo.firstCall.args[3]).toEqual(1);
-        });
-
-        it('should setup a comparison function', function () {
-          expect(tracker.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(false);
-          expect(tracker.onChangeTo.firstCall.args[1]({some: 'derp'})).toEqual(false);
+        it('should not setup a tracker on the object', function () {
+          expect(tracker.onChangeTo.called).toEqual(false);
         });
       });
     });
@@ -96,7 +103,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
-          expect(tracker.onChangeOf.firstCall.args).toEqual(['some-state', callback, 'a']);
+          expect(tracker.onChangeOf.firstCall.args[0]).toEqual('some-state');
+          expect(tracker.onChangeOf.firstCall.args[2]).toEqual('a');
         });
       });
 
@@ -112,7 +120,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -134,7 +141,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -156,7 +162,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -178,7 +183,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -200,7 +204,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -223,7 +226,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
-          expect(tracker.onElementAdded.firstCall.args).toEqual(['some-state', callback, undefined]);
+          expect(tracker.onElementAdded.firstCall.args[0]).toEqual('some-state');
         });
       });
 
@@ -238,7 +241,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
-          expect(tracker.onElementRemoved.firstCall.args).toEqual(['some-state', callback, undefined]);
+          expect(tracker.onElementRemoved.firstCall.args[0]).toEqual('some-state');
         });
       });
 
@@ -253,7 +256,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
-          expect(tracker.onElementChanged.firstCall.args).toEqual(['some-state', callback, undefined]);
+          expect(tracker.onElementChanged.firstCall.args[0]).toEqual('some-state');
         });
       });
     });
@@ -276,7 +279,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
-          expect(tracker.onChangeOf.firstCall.args).toEqual([myFunc, callback, ['a', 1]]);
+          expect(tracker.onChangeOf.firstCall.args[0]).toEqual(myFunc);
+          expect(tracker.onChangeOf.firstCall.args[2]).toEqual(['a', 1]);
         });
       });
 
@@ -291,13 +295,7 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object', function () {
-          expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
-        });
-
-        it('should setup a comparison function', function () {
-          expect(tracker.onChangeTo.firstCall.args[1]({some: 'state'})).toEqual(false);
-          expect(tracker.onChangeTo.firstCall.args[1]({some: 'derp'})).toEqual(false);
+          expect(tracker.onChangeTo.called).toEqual(false);
         });
       });
     });
@@ -314,7 +312,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
-          expect(tracker.onChangeOf.firstCall.args).toEqual([myFunc, callback, 'a']);
+          expect(tracker.onChangeOf.firstCall.args[0]).toEqual(myFunc);
+          expect(tracker.onChangeOf.firstCall.args[2]).toEqual('a');
         });
       });
 
@@ -330,7 +329,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
           expect(tracker.onChangeTo.firstCall.args[3]).toEqual(1);
         });
 
@@ -353,7 +351,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -375,7 +372,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -397,7 +393,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -419,7 +414,6 @@ describe('trigger maps', function () {
 
         it('should setup a tracker on the object', function () {
           expect(tracker.onChangeTo.firstCall.args[0]).toEqual(myFunc);
-          expect(tracker.onChangeTo.firstCall.args[2]).toEqual(callback);
         });
 
         it('should setup a comparison function', function () {
@@ -442,7 +436,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
-          expect(tracker.onElementAdded.firstCall.args).toEqual([myFunc, callback, undefined]);
+          expect(tracker.onElementAdded.firstCall.args[0]).toEqual(myFunc);
+          expect(tracker.onElementAdded.firstCall.args[2]).toEqual(undefined);
         });
       });
 
@@ -457,7 +452,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
-          expect(tracker.onElementRemoved.firstCall.args).toEqual([myFunc, callback, undefined]);
+          expect(tracker.onElementRemoved.firstCall.args[0]).toEqual(myFunc);
+          expect(tracker.onElementRemoved.firstCall.args[2]).toEqual(undefined);
         });
       });
 
@@ -472,7 +468,8 @@ describe('trigger maps', function () {
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
-          expect(tracker.onElementChanged.firstCall.args).toEqual([myFunc, callback, undefined]);
+          expect(tracker.onElementChanged.firstCall.args[0]).toEqual(myFunc);
+          expect(tracker.onElementChanged.firstCall.args[2]).toEqual(undefined);
         });
       });
     });
@@ -495,7 +492,7 @@ describe('trigger maps', function () {
     });
 
     it('should setup bindings for "arcade" mode', function () {
-      expect(tracker.onChangeOf.firstCall.args).toEqual(['some-state', arcadeCallback, undefined]);
+      expect(tracker.onChangeOf.firstCall.args[0]).toEqual('some-state');
     });
 
     it('should not setup bindings for "endless" mode', function () {

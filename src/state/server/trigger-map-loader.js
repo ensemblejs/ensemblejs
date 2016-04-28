@@ -4,48 +4,76 @@ import {each, isObject} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var _ = require('lodash');
 
+var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
+var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+
 module.exports = {
   type: 'TriggerMapLoader',
-  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger'],
-  func: function TriggerMapLoader (define, tracker, allMaps, logger) {
+  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger', 'StateMutator', 'StateAccess'],
+  func: function TriggerMapLoader (define, tracker, allMaps, logger, mutator, state) {
 
     function comparison (save, triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
         logger().warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
+        return;
       }
 
       const when = triggerInfo.when;
       const data = triggerInfo.data;
-      const f = triggerInfo.call;
+      const callback = triggerInfo.call;
+      const expectedValue = triggerInfo[comparator];
 
-      tracker().for(save.id).onChangeTo(when, function (currentValue) {
-        return _[comparator](currentValue, triggerInfo[comparator]);
-      }, f, data);
+      function isTrue (currentValue) {
+        return _[comparator](currentValue, expectedValue);
+      }
+
+      function callbackWithMutation (...args) {
+        mutator()(save.id, callback(state().for(save.id), ...args));
+      }
+
+      tracker()
+        .for(save.id)
+        .onChangeTo(when, isTrue, callbackWithMutation, data);
     }
-
-    var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
-    var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
 
     define()('OnSaveReady', function OnSaveReady () {
       return function loadTriggerMaps (save) {
+
         function loadMapsForMode (map) {
           each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
+              let hasTriggerSetup = false;
+
               each(directTrackerMappings, function (f) {
+
+                function callbackWithMutation (...args) {
+                  mutator()(
+                    save.id, triggerInfo[f](state().for(save.id), ...args)
+                  );
+                }
+
                 if (triggerInfo[f]) {
                   tracker().for(save.id)[f](
                     triggerInfo.when,
-                    triggerInfo[f],
+                    callbackWithMutation,
                     triggerInfo.data
                   );
+
+                  hasTriggerSetup = true;
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
-                if (triggerInfo[comparisonKey]) {
+                if (triggerInfo[comparisonKey] !== undefined) {
                   comparison(save, triggerInfo, comparisonKey);
+                  hasTriggerSetup = true;
                 }
               });
+
+              if (!hasTriggerSetup) {
+                triggerInfo.eq = true;
+                comparison(save, triggerInfo, 'eq');
+              }
             });
           });
         }
