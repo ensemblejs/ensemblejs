@@ -3,6 +3,7 @@
 var sinon = require('sinon');
 var expect = require('expect');
 var makeTestible = require('../../support').makeTestible;
+var DynamicPluginLoader = require('../../support').DynamicPluginLoader;
 
 var currentState;
 function stateCallback () {
@@ -13,7 +14,12 @@ var state = require('../../support').gameScopedState(stateCallback);
 
 var effect1 = sinon.spy();
 var effect2 = sinon.spy();
-var sut = makeTestible('core/shared/delayed-jobs');
+var sut = makeTestible('core/shared/delayed-jobs', {
+	DynamicPluginLoader: new DynamicPluginLoader({
+		'Plugin1': { method: effect1 },
+		'Plugin2': { callback: effect2}
+	})
+});
 var manager = sut[0];
 var onPhysicsFrame = sut[1].OnPhysicsFrame();
 currentState = {
@@ -25,8 +31,8 @@ describe('the delayed job manager', function() {
 		effect1.reset();
 		effect2.reset();
 
-		manager.add('key1', 0.5, effect1);
-		manager.add('key2', 1, effect2);
+		manager.add('key1', 0.5, 'Plugin1', 'method');
+		manager.add('key2', 1, 'Plugin2', 'callback');
 	});
 
 	it('should allow you to add multiple effects', function() {
@@ -41,7 +47,8 @@ describe('the delayed job manager', function() {
 		expect(newState).toEqual(['ensemble.jobs', [{
 			key: 'key2',
 			duration: 0.5,
-			callback: effect2
+			plugin: 'Plugin2',
+			method: 'callback'
 		}]]);
 	});
 

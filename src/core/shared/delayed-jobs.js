@@ -4,8 +4,8 @@ import {reject, filter, each, map, includes, isEmpty} from 'lodash';
 
 module.exports = {
   type: 'DelayedJobs',
-  deps: ['DefinePlugin', 'StateMutator', 'Logger'],
-  func: function (define, mutate, logger) {
+  deps: ['DefinePlugin', 'StateMutator', 'Logger', 'DynamicPluginLoader'],
+  func: function (define, mutate, logger, dynamicPluginLoader) {
     var newJobs = [];
     var toCancel = [];
     var jobNames = [];
@@ -53,7 +53,8 @@ module.exports = {
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
 
-          mutate()(saveId, job.callback(state));
+          let callback = dynamicPluginLoader().get(job.plugin)[job.method];
+          mutate()(saveId, callback(state));
         }
 
         jobs = jobs.concat(newJobs);
@@ -75,8 +76,8 @@ module.exports = {
       };
     });
 
-    function add (key, duration, callback) {
-      newJobs.push({ key, duration, callback });
+    function add (key, duration, plugin, method) {
+      newJobs.push({ key, duration, plugin, method });
       devuxAddKeyToList(key);
     }
 
