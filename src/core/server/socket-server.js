@@ -2,7 +2,6 @@
 
 var each = require('lodash').each;
 var logger = require('../../logging/server/logger').logger;
-var middleware = require('socketio-wildcard')();
 
 module.exports = {
   type: 'SocketServer',
@@ -29,10 +28,6 @@ module.exports = {
 
     function setupNonPlayableClient (socket) {
       sockets[socket.id] = socket;
-
-      socket.on('*', function () {
-        console.log(arguments);
-      });
 
       var socketInfo = {
         socketId: socket.id,
@@ -63,10 +58,6 @@ module.exports = {
 
     function setupVirtualGamepad (socket) {
       sockets[socket.id] = socket;
-
-      socket.on('*', function () {
-        console.log(arguments);
-      });
 
       var socketInfo = {
         socketId: socket.id,
@@ -105,10 +96,6 @@ module.exports = {
     function setupPlayableClient (socket) {
       sockets[socket.id] = socket;
 
-      socket.on('*', function () {
-        console.log(arguments);
-      });
-
       var socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
@@ -145,7 +132,6 @@ module.exports = {
 
     function start (server, modes, session) {
       io = require('socket.io').listen(server);
-      io.use(middleware);
       io.use(function linkSessionToSocket (socket, next) {
         session(socket.request, socket.request.res, next);
       });

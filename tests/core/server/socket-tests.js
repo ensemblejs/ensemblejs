@@ -126,8 +126,8 @@ describe('the socket server', function () {
 
 				routeSocket['/arcade/primary'](socket);
 
-				expect(socket.on.secondCall.args[0]).toEqual('saveId');
-				socket.on.secondCall.args[1]().then(() => done());
+				expect(socket.on.firstCall.args[0]).toEqual('saveId');
+				socket.on.firstCall.args[1]().then(() => done());
 			});
 
 			afterEach(function () {
@@ -135,14 +135,13 @@ describe('the socket server', function () {
 			});
 
 			it('should setup the socket events', function () {
-				expect(socket.on.getCall(0).args[0]).toEqual('*');
-				expect(socket.on.getCall(1).args[0]).toEqual('saveId');
+				expect(socket.on.getCall(0).args[0]).toEqual('saveId');
+				expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
 				expect(socket.on.getCall(2).args[0]).toEqual('disconnect');
-				expect(socket.on.getCall(3).args[0]).toEqual('disconnect');
-				expect(socket.on.getCall(4).args[0]).toEqual('pause');
-				expect(socket.on.getCall(5).args[0]).toEqual('unpause');
-				expect(socket.on.getCall(6).args[0]).toEqual('error');
-				expect(socket.on.getCall(7).args[0]).toEqual('input');
+				expect(socket.on.getCall(3).args[0]).toEqual('pause');
+				expect(socket.on.getCall(4).args[0]).toEqual('unpause');
+				expect(socket.on.getCall(5).args[0]).toEqual('error');
+				expect(socket.on.getCall(6).args[0]).toEqual('input');
 			});
 
 			it('should send the start time to the client', function () {
@@ -166,9 +165,8 @@ describe('the socket server', function () {
 
 				routeSocket['/arcade/primary'](socket);
 
-				expect(socket.on.firstCall.args[0]).toEqual('*');
-				expect(socket.on.secondCall.args[0]).toEqual('saveId');
-				socket.on.secondCall.args[1]();
+				expect(socket.on.firstCall.args[0]).toEqual('saveId');
+				socket.on.firstCall.args[1]();
 			});
 
 			afterEach(function () {
@@ -179,10 +177,10 @@ describe('the socket server', function () {
 				beforeEach(function () {
 					fakeOn.pause.reset();
 
+					expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
 					expect(socket.on.getCall(2).args[0]).toEqual('disconnect');
-					expect(socket.on.getCall(3).args[0]).toEqual('disconnect');
+					socket.on.getCall(1).args[1]();
 					socket.on.getCall(2).args[1]();
-					socket.on.getCall(3).args[1]();
 				});
 
 				it('should call the clientDisconnect callback', function() {
@@ -198,8 +196,8 @@ describe('the socket server', function () {
 				beforeEach(function () {
 					fakeOn.pause.reset();
 
-					expect(socket.on.getCall(4).args[0]).toEqual('pause');
-					socket.on.getCall(4).args[1]();
+					expect(socket.on.getCall(3).args[0]).toEqual('pause');
+					socket.on.getCall(3).args[1]();
 				});
 
 				it('should call the onPause callback', function() {
@@ -209,8 +207,8 @@ describe('the socket server', function () {
 
 			describe('on unpause', function () {
 				beforeEach(function () {
-					expect(socket.on.getCall(5).args[0]).toEqual('unpause');
-					socket.on.getCall(5).args[1]();
+					expect(socket.on.getCall(4).args[0]).toEqual('unpause');
+					socket.on.getCall(4).args[1]();
 				});
 
 				it('should call the onUnpause callback', function () {
@@ -221,8 +219,8 @@ describe('the socket server', function () {
 			describe('on error', function () {
 				beforeEach(function () {
 					fakeOn.error.reset();
-					expect(socket.on.getCall(6).args[0]).toEqual('error');
-					socket.on.getCall(6).args[1]();
+					expect(socket.on.getCall(5).args[0]).toEqual('error');
+					socket.on.getCall(5).args[1]();
 				});
 
 				it('should call the error callback', function () {
@@ -232,8 +230,8 @@ describe('the socket server', function () {
 
 			describe('on input', function () {
 				beforeEach(function () {
-					expect(socket.on.getCall(7).args[0]).toEqual('input');
-					socket.on.getCall(7).args[1]({});
+					expect(socket.on.getCall(6).args[0]).toEqual('input');
+					socket.on.getCall(6).args[1]({});
 				});
 
 				it('should call the onIncomingClientInputPacket callback', function () {
@@ -256,8 +254,8 @@ describe('the socket server', function () {
 
 				routeSocket['/arcade/observer'](socket);
 
-				expect(socket.on.secondCall.args[0]).toEqual('saveId');
-				socket.on.secondCall.args[1]().then(() => done());
+				expect(socket.on.firstCall.args[0]).toEqual('saveId');
+				socket.on.firstCall.args[1]().then(() => done());
 			});
 
 			afterEach(function () {
@@ -265,10 +263,9 @@ describe('the socket server', function () {
 			});
 
 			it('should setup the socket events', function () {
-				expect(socket.on.getCall(0).args[0]).toEqual('*');
-				expect(socket.on.getCall(1).args[0]).toEqual('saveId');
-				expect(socket.on.getCall(2).args[0]).toEqual('disconnect');
-				expect(socket.on.getCall(3).args[0]).toEqual('error');
+				expect(socket.on.getCall(0).args[0]).toEqual('saveId');
+				expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
+				expect(socket.on.getCall(2).args[0]).toEqual('error');
 			});
 
 			it('should send the start time to the client', function () {
@@ -292,9 +289,8 @@ describe('the socket server', function () {
 
 				routeSocket['/arcade/observer'](socket);
 
-				expect(socket.on.firstCall.args[0]).toEqual('*');
-				expect(socket.on.secondCall.args[0]).toEqual('saveId');
-				socket.on.secondCall.args[1]();
+				expect(socket.on.firstCall.args[0]).toEqual('saveId');
+				socket.on.firstCall.args[1]();
 			});
 
 			afterEach(function () {
@@ -306,8 +302,8 @@ describe('the socket server', function () {
 					fakeOn.pause.reset();
 					fakeOn.clientDisconnect.reset();
 
-					expect(socket.on.thirdCall.args[0]).toEqual('disconnect');
-					socket.on.thirdCall.args[1]();
+					expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
+					socket.on.getCall(1).args[1]();
 				});
 
 				it('should call the clientDisconnect callback', function() {
@@ -318,8 +314,8 @@ describe('the socket server', function () {
 			describe('on error', function () {
 				beforeEach(function () {
 					fakeOn.error.reset();
-					expect(socket.on.getCall(3).args[0]).toEqual('error');
-					socket.on.getCall(3).args[1]();
+					expect(socket.on.getCall(2).args[0]).toEqual('error');
+					socket.on.getCall(2).args[1]();
 				});
 
 				it('should call the error callback', function () {
