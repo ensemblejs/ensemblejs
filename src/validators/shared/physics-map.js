@@ -7,9 +7,9 @@ var isObject = require('lodash').isObject;
 var last = require('lodash').last;
 
 module.exports = {
-  type: 'CollisionMapValidator',
+  type: 'PhysicsMapValidator',
   deps: ['PhysicsMap', 'DefinePlugin', 'Logger'],
-  func: function CollisionMapValidator(maps, define, logger) {
+  func: function PhysicsMapValidator(maps, define, logger) {
 
     function validateMap (map) {
       var ignoreMode = last(map);

@@ -42,8 +42,6 @@ module.exports = {
         function loadMapsForMode (map) {
           each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
-              let hasTriggerSetup = false;
-
               each(directTrackerMappings, function (f) {
 
                 function callbackWithMutation (...args) {
@@ -59,21 +57,14 @@ module.exports = {
                     triggerInfo.data
                   );
 
-                  hasTriggerSetup = true;
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
                 if (triggerInfo[comparisonKey] !== undefined) {
                   comparison(save, triggerInfo, comparisonKey);
-                  hasTriggerSetup = true;
                 }
               });
-
-              if (!hasTriggerSetup) {
-                triggerInfo.eq = true;
-                comparison(save, triggerInfo, 'eq');
-              }
             });
           });
         }

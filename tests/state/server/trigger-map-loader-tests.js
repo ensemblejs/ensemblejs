@@ -48,22 +48,12 @@ describe('trigger maps on the server', function () {
       v.OnSaveReady()(game);
     });
 
-    it('should do default to eq to true', function () {
+    it('should do nothing', function () {
       expect(trackerBindings.onChangeOf.called).toEqual(false);
-      expect(trackerBindings.onChangeTo.called).toEqual(true);
+      expect(trackerBindings.onChangeTo.called).toEqual(false);
       expect(trackerBindings.onElementAdded.called).toEqual(false);
       expect(trackerBindings.onElementChanged.called).toEqual(false);
       expect(trackerBindings.onElementRemoved.called).toEqual(false);
-    });
-
-    it('should setup a tracker on the object', function () {
-      expect(trackerBindings.onChangeTo.firstCall.args[0]).toEqual('some-state');
-      expect(trackerBindings.onChangeTo.firstCall.args[3]).toEqual(['a', 1]);
-    });
-
-    it('should setup a comparison function', function () {
-      expect(trackerBindings.onChangeTo.firstCall.args[1](true)).toEqual(true);
-      expect(trackerBindings.onChangeTo.firstCall.args[1](false)).toEqual(false);
     });
   });
 

@@ -38,22 +38,12 @@ describe('trigger maps on the client', function () {
       v.OnClientReady(defer('arcade'))();
     });
 
-    it('should do default to eq to true', function () {
+    it('should do nothing', function () {
       expect(tracker.onChangeOf.called).toEqual(false);
-      expect(tracker.onChangeTo.called).toEqual(true);
+      expect(tracker.onChangeTo.called).toEqual(false);
       expect(tracker.onElementAdded.called).toEqual(false);
       expect(tracker.onElementChanged.called).toEqual(false);
       expect(tracker.onElementRemoved.called).toEqual(false);
-    });
-
-    it('should setup a tracker on the object', function () {
-      expect(tracker.onChangeTo.firstCall.args[0]).toEqual('some-state');
-      expect(tracker.onChangeTo.firstCall.args[3]).toEqual([1, 'a']);
-    });
-
-    it('should setup a comparison function', function () {
-      expect(tracker.onChangeTo.firstCall.args[1](true)).toEqual(true);
-      expect(tracker.onChangeTo.firstCall.args[1](false)).toEqual(false);
     });
   });
 

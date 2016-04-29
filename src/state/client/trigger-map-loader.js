@@ -40,8 +40,6 @@ module.exports = {
         function loadMapsForMode (map) {
           each(map, function loadKey (value) {
             each(value, function loadTrigger (triggerInfo) {
-              let hasTriggerSetup = false;
-
               each(directTrackerMappings, function (f) {
 
                 function callbackWithMutation (...args) {
@@ -51,21 +49,14 @@ module.exports = {
                 if (triggerInfo[f]) {
                   tracker()[f](triggerInfo.when, callbackWithMutation, triggerInfo.data);
 
-                  hasTriggerSetup = true;
                 }
               });
 
               each(supportedComparisons, function (comparisonKey) {
                 if (triggerInfo[comparisonKey] !== undefined) {
                   comparison(triggerInfo, comparisonKey);
-                  hasTriggerSetup = true;
                 }
               });
-
-              if (!hasTriggerSetup) {
-                triggerInfo.eq = true;
-                comparison(triggerInfo, 'eq');
-              }
             });
           });
         }
