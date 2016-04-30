@@ -103,7 +103,7 @@
     "express-bunyan-logger": "^1.1.1",
     "express-session": "^1.11.3",
     "factor-bundle": "^2.5.0",
-    "frameguard": "^1.0.0",
+    "frameguard": "^2.0.0",
     "git-repo-info": "^1.1.2",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.0",
