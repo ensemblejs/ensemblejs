@@ -85,7 +85,7 @@
     "body-parser": "^1.15.0",
     "browserify": "13.0.0",
     "browserify-shim": "^3.8.11",
-    "bunyan": "^1.7.0",
+    "bunyan": "^1.8.1",
     "clipboard": "^1.5.10",
     "compression": "^1.5.1",
     "connect-flash": "^0.1.1",
