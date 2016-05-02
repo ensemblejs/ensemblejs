@@ -32,14 +32,8 @@ module.exports = {
 
       patch(socket);
 
-      socket.on('*', function (event) {
-        var name = event.data[0];
-
-        logger.info(` ensemblejs:socket-on:${name}`, event.data[1]);
-      });
-
       function emit (name, ...args) {
-        logger.info(` ensemblejs:socket-emit:${name}`);
+        // logger.info(` ensemblejs:socket-emit:${name}`);
         socket.emit(name, ...args);
       }
 

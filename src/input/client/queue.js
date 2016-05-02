@@ -1,8 +1,6 @@
 'use strict';
 
-var filter = require('lodash').filter;
-var map = require('lodash').map;
-var includes = require('lodash').includes;
+import { filter, map, includes, reject } from 'lodash';
 
 module.exports = {
   type: 'InputQueue',
@@ -63,8 +61,6 @@ module.exports = {
     //     if (!config().client.clientSidePrediction) {
     //       return;
     //     }
-
-    //     console.log(packet);
 
     //     if (packetAlreadyOnQueue(packet)) {
     //       return;
