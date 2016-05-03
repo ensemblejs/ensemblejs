@@ -28,6 +28,8 @@ var defer = require('../../support').defer;
 var trackerPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
+var frameStorePlugins = require('../../support').plugin();
+
 var profiler = {
   timer: function () {
     return {
@@ -50,7 +52,7 @@ var dimensions = {};
 
 var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
-afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
+// afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
 
@@ -67,13 +69,13 @@ var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
 var currentServerState = trackerPluginsDeps.CurrentServerState();
 onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
-var inputQueuePluginsDeps = inputQueuePlugins.deps();
-onOutgoingClientPacket.push(inputQueuePluginsDeps.OnOutgoingClientPacket());
-onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket());
-onIncomingServerPacket.push(inputQueuePluginsDeps.OnIncomingServerPacket());
+// var inputQueuePluginsDeps = inputQueuePlugins.deps();
+// onOutgoingClientPacket.push(inputQueuePluginsDeps.OnOutgoingClientPacket());
+onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
+// onIncomingServerPacket.push(inputQueuePluginsDeps.OnIncomingServerPacket());
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
-afterPhysicsFrame.push(inputQueuePluginsDeps.AfterPhysicsFrame());
+// afterPhysicsFrame.push(inputQueuePluginsDeps.AfterPhysicsFrame());
 
 var clientState = {
   get: function () {return false;}
@@ -85,6 +87,12 @@ var serverState = {
 
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(profiler));
 var stopPhysicsEngine = plugin('OnDisconnect');
+
+
+var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define));
+var frameStorePluginDeps = frameStorePlugins.deps();
+onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
+onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 
 function tracking (state) { return state.namespace.tracking; }
 function count (state) { return state.namespace.count; }
@@ -303,52 +311,188 @@ describe('CSP: after on AfterPhysicsFrame', function () {
   });
 });
 
-describe('curly scenarios', function () {
+describe.only('curly scenarios', function () {
   var curlyChanges = sinon.spy();
   var initialState = {
     ensemble: { waitingForPlayers: false },
-    curly: { count: 100 }
-  };
-  var laterState = {
-    highestProcessedMessage: 500,
-    saveState: {
-      ensemble: { waitingForPlayers: false },
-      curly: { count: 100 }
-    }
+    curly: { count: 0 }
   };
   function curlyCount (state) { return state.curly.count; }
-  function curlyCallback (state) {
-    return { curly: { count: state.for('curly').get('count') + 1 } };
+  function curlyInputCallback (state) {
+    console.log('input');
+    return { curly: { count: state.for('curly').get('count') + 1 }};
+    // return { curly: { count: state.curly.count + 1 } };
   }
+  function curlyLogic (delta, state) {
+    console.log('logic');
+    return { curly: { count: state.for('curly').get('count') + 1000 }};
+    // return { curly: { count: state.curly.count + 1000 }};
+  }
+
+  var onEachFrameSpy = sinon.spy();
 
   before(() => {
     stopPhysicsEngine();
 
     each(onClientStart, callback => callback(initialState));
 
-    actionMap.push(['*', { curly: [{call: curlyCallback} ] }]);
+    actionMap.push(['*', { curly: [{call: curlyInputCallback} ] }]);
+    onPhysicsFrame.push(curlyLogic);
+    onPhysicsFrame.push(onEachFrameSpy);
+
     tracker.onChangeOf('curly.count', curlyChanges);
-  })
+  });
 
   beforeEach(function () {
-    each(onClientStart, callback => callback(initialState));
+    // each(onClientStart, callback => callback(initialState));
 
-    on.incomingServerPacket(laterState);
+    // on.incomingServerPacket(laterState);
 
-    on.outgoingClientPacket({ id: 506, keys: [{key: 'curly'}] });
-    on.outgoingClientPacket({ id: 507, keys: [{key: 'curly'}] });
+    // on.outgoingClientPacket({ id: 506, keys: [{key: 'curly'}] });
+    // on.outgoingClientPacket({ id: 507, keys: [{key: 'curly'}] });
 
+    onEachFrameSpy.reset();
     curlyChanges.reset();
   });
 
   it('should have a known base line', () => {
-    expect(currentState.get(curlyCount)).toEqual(100);
-    expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(100);
-    expect(inputQueue.length()).toEqual(2);
+    expect(currentState.get(curlyCount)).toEqual(0);
+    expect(currentServerState.get(curlyCount)).toEqual(0);
+    expect(rawStateAccess.get('client').curly.count).toEqual(0);
+    expect(inputQueue.length()).toEqual(0);
   });
 
-  it('when server state comes in before beforePhysicsFrame', () => {
+  function processFrame (frame) {
+    each(beforePhysicsFrame, f => {
+      mutator('client', f(frame.delta, stateAccess.for('client')));
+    });
+    each(onPhysicsFrame, f => {
+      mutator('client', f(frame.delta, stateAccess.for('client')));
+    });
+  }
+
+  describe('no input scenarios, no new server state', () => {
+    beforeEach(() => {
+      frameStore.process(0.10, processFrame);
+
+      each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+    });
+
+    it('should process one frame', () => {
+      expect(currentState.get(curlyCount)).toEqual(1000);
+      expect(currentServerState.get(curlyCount)).toEqual(0);
+      expect(rawStateAccess.get('client').curly.count).toEqual(1000);
+
+      expect(onEachFrameSpy.callCount).toEqual(1);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([1000, 0, undefined]);
+
+      expect(frameStore.current().id).toEqual(1);
+    });
+
+    it('should should remember prior frame, process new frame', () => {
+      expect(currentState.get(curlyCount)).toEqual(2000);
+      expect(currentServerState.get(curlyCount)).toEqual(0);
+      expect(rawStateAccess.get('client').curly.count).toEqual(2000);
+
+      expect(onEachFrameSpy.callCount).toEqual(1);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([2000, 1000, undefined]);
+
+      expect(frameStore.current().id).toEqual(2);
+    });
+
+    it('should should remember 2 prior frame, process new frame', () => {
+      expect(currentState.get(curlyCount)).toEqual(3000);
+      expect(currentServerState.get(curlyCount)).toEqual(0);
+      expect(rawStateAccess.get('client').curly.count).toEqual(3000);
+
+      expect(onEachFrameSpy.callCount).toEqual(1);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([3000, 2000, undefined]);
+
+      expect(frameStore.current().id).toEqual(3);
+    });
+  });
+
+  describe('with input', () => {
+    before(() => {
+      on.outgoingClientPacket({ id: 506, keys: [{key: 'curly'}] });
+    });
+
+    beforeEach(() => {
+      frameStore.process(0.15, processFrame);
+
+      each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+    });
+
+    it('should process one frame', () => {
+      expect(currentState.get(curlyCount)).toEqual(4001);
+      expect(currentServerState.get(curlyCount)).toEqual(0);
+      expect(rawStateAccess.get('client').curly.count).toEqual(4001);
+
+      expect(onEachFrameSpy.callCount).toEqual(1);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([4001, 3000, undefined]);
+
+      expect(frameStore.current().id).toEqual(4);
+    });
+
+    it('should not process the input twice', () => {
+      expect(currentState.get(curlyCount)).toEqual(5001);
+      expect(currentServerState.get(curlyCount)).toEqual(0);
+      expect(rawStateAccess.get('client').curly.count).toEqual(5001);
+
+      expect(onEachFrameSpy.callCount).toEqual(1);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([5001, 4001, undefined]);
+
+      expect(frameStore.current().id).toEqual(5);
+    });
+  });
+
+  describe('with new server state', () => {
+    var laterState = {
+      highestProcessedMessage: 4,
+      saveState: {
+        ensemble: { waitingForPlayers: false },
+        curly: { count: 100 }
+      }
+    };
+
+    before(() => {
+      on.incomingServerPacket(laterState);
+    });
+
+    beforeEach(() => {
+      frameStore.process(0.15, processFrame);
+
+      each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+    });
+
+    it('should discard processed frames', () => {
+      expect(currentState.get(curlyCount)).toEqual(2100);
+      expect(currentServerState.get(curlyCount)).toEqual(100);
+      expect(rawStateAccess.get('client').curly.count).toEqual(2100);
+
+      expect(onEachFrameSpy.callCount).toEqual(2);
+
+      expect(curlyChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([2100, 5001, undefined]);
+
+      expect(frameStore.current().id).toEqual(6);
+    });
+
+    it('should not reprocess frames');
+    it('should process new frames');
+  });
+
+  it.skip('when server state comes in before beforePhysicsFrame', () => {
     // first frame
 
     var laterState = {
@@ -386,7 +530,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
 
     // second frame
-    curlyChanges.reset()
+    curlyChanges.reset();
 
     each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
@@ -412,7 +556,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.called).toEqual(false);
   });
 
-  it('when server state comes in before onPhysicsFrame', () => {
+  it.skip('when server state comes in before onPhysicsFrame', () => {
 
     // first frame
 
@@ -450,7 +594,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
 
     // second frame
-    curlyChanges.reset()
+    curlyChanges.reset();
 
     each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
@@ -476,7 +620,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.called).toEqual(false);
   });
 
-  it('when server state comes in before afterPhysicsFrame', () => {
+  it.skip('when server state comes in before afterPhysicsFrame', () => {
 
     // first frame
 
@@ -514,7 +658,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
 
     // second frame
-    curlyChanges.reset()
+    curlyChanges.reset();
 
     each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
@@ -540,7 +684,7 @@ describe('curly scenarios', function () {
     expect(curlyChanges.called).toEqual(false);
   });
 
-  it('when server state comes in after afterPhysicsFrame', () => {
+  it.skip('when server state comes in after afterPhysicsFrame', () => {
 
     // first frame
 
@@ -580,7 +724,7 @@ describe('curly scenarios', function () {
     on.incomingServerPacket(laterState);
 
     // second frame
-    curlyChanges.reset()
+    curlyChanges.reset();
 
     each(beforePhysicsFrame, f => f(0.1, stateAccess.for('client')));
 

@@ -7,8 +7,8 @@ var sequence = require('distributedlife-sequence');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
-  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config'],
-  func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config) {
+  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config', 'FrameStore'],
+  func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config, frameStore) {
 
     let playerId;
     let deviceNumber;
@@ -42,6 +42,7 @@ module.exports = {
       packet.deviceNumber = deviceNumber;
       packet.playerId = playerId;
       packet.timestamp = time().present();
+      packet.clientFrame = frameStore().current().id;
 
       return packet;
     }

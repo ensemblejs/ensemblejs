@@ -197,7 +197,12 @@ module.exports = {
     }
 
     function resetRawStateBackToLatestServer (rawState) {
-      rawState.resetTo(clone(nextServerState));
+      if (nextServerState !== undefined) {
+        // latestServerState = clone(nextServerState);
+        rawState.resetTo(clone(nextServerState));
+
+        nextServerState = undefined;
+      }
     }
 
     define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
@@ -212,13 +217,14 @@ module.exports = {
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());
         detectChangesAndNotifyObservers();
-        resetRawStateBackToLatestServer(rawState());
+        // resetRawStateBackToLatestServer(rawState());
       };
     });
 
-    define()('OnIncomingServerPacket', function StateTracker () {
+    define()('OnIncomingServerPacket', ['RawStateAccess'], function StateTracker (rawState) {
       return function storeLatestServerState (packet) {
         saveLatestServerState(packet.saveState);
+        resetRawStateBackToLatestServer(rawState());
       };
     });
 

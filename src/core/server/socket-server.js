@@ -5,8 +5,8 @@ var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'SocketServer',
-  deps: ['RawStateAccess', 'LowestInputProcessed', 'On', 'DefinePlugin', 'Time', 'SavesList'],
-  func: function SocketServer (rawStateAccess, lowestInputProcessed, on, define, time, saves) {
+  deps: ['On', 'DefinePlugin', 'Time', 'SavesList'],
+  func: function SocketServer (on, define, time, saves) {
 
     var io;
     var sockets = {};

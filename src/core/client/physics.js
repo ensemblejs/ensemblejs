@@ -8,8 +8,8 @@ import define from '../../define';
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config'],
-  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config) {
+  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'],
+  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, frameStore) {
 
     var priorStep = time().present();
 
@@ -26,14 +26,17 @@ module.exports = {
       var delta = (now - priorStep) / 1000;
       priorStep = now;
 
-      var saveState = state().for(save.id);
-      var opts = [delta, saveState];
+      frameStore().process(delta, function onEachFrame (frame) {
+        var saveState = state().for(save.id);
+        const opts = [frame.delta, saveState];
 
-      callEachWithMutation(beforeFrame(), mutator, save.id, opts);
+        callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-      if (!saveState.get('ensemble.waitingForPlayers')) {
-        callForModeWithMutation(onFrame(), mutator, save, opts);
-      }
+        if (!saveState.get('ensemble.waitingForPlayers')) {
+          callForModeWithMutation(onFrame(), mutator, save, opts);
+        }
+      });
+
     }
 
     function paused (state) {
@@ -68,6 +71,15 @@ module.exports = {
         }
 
         ids = [];
+      };
+    });
+
+    define('InternalState', function PhysicsLoop () {
+      return {
+        PhysicsLoop: {
+          now: function now () { return time().present(); },
+          callRate: function callRate () { return rate.results().rate; }
+        }
       };
     });
 

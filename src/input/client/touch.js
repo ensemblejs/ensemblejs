@@ -40,8 +40,6 @@ module.exports = {
             t.x = touch.clientX - touch.target.offsetLeft;
             t.y = touch.clientY - touch.target.offsetTop;
             t.force = touch.force || touch.webkitForce || 1;
-          } else {
-            console.log(t);
           }
         });
 

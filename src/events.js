@@ -1,6 +1,6 @@
 'use strict';
 
-import define from './plugins/plug-n-play';
+import define from './define';
 import {startsWith} from 'lodash';
 
 export function before (name, ...rest) {
