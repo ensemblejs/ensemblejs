@@ -8,7 +8,7 @@ var logger = require('../../fake/logger');
 
 var stateMutator = require('../../../src/state/client/mutator').func(defer(logger));
 var state = plugin('StateAccess');
-var afterPhysicsFrame = plugin('AfterPhysicsFrame');
+// var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
 describe('state mutation on the client', function () {
 
@@ -37,7 +37,7 @@ describe('state mutation on the client', function () {
       }
     });
 
-    afterPhysicsFrame();
+    // afterPhysicsFrame();
   });
 
   describe('simple behaviour', function () {
@@ -51,7 +51,7 @@ describe('state mutation on the client', function () {
           }
         }
       });
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('state')).toBe('started');
       expect(state.for().for('controller').get('score')).toBe(0);
@@ -64,7 +64,7 @@ describe('state mutation on the client', function () {
           list: [4, 3]
         }
       });
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('list')).toEqual([4, 3]);
     });
@@ -75,7 +75,7 @@ describe('state mutation on the client', function () {
           list: []
         }
       });
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('list')).toEqual([]);
     });
@@ -98,7 +98,7 @@ describe('state mutation on the client', function () {
       it('should allow a function to be used to modify the existing value', () => {
         stateMutator(1, ['controller.child.age', happyBirthday]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().get('controller.child.age')).toBe(6);
       });
@@ -106,7 +106,7 @@ describe('state mutation on the client', function () {
       it('should work with adding to arrays', function () {
         stateMutator(1, ['controller.list', addItem]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().for('controller').get('list')).toEqual([4, 3]);
       });
@@ -114,7 +114,7 @@ describe('state mutation on the client', function () {
       it('should work with removing elements from arrays', function () {
         stateMutator(1, ['controller.list', resetList]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().for('controller').get('list')).toEqual([]);
       });
@@ -127,7 +127,7 @@ describe('state mutation on the client', function () {
 
       it('should not support adding+ to arrays', function () {
         stateMutator(1, ['controller.list+', addItem]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
          expect(logger.error.callCount).toBe(1);
          expect(logger.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
@@ -136,7 +136,7 @@ describe('state mutation on the client', function () {
       it('should not support removing- from arrays', function () {
         stateMutator(1, ['controller.idList-', addItem]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(logger.error.callCount).toBe(1);
          expect(logger.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
@@ -145,7 +145,7 @@ describe('state mutation on the client', function () {
       it('should not support replacing! arrays', function () {
         stateMutator(1, ['controller.idList!', addItem]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
          expect(logger.error.callCount).toBe(1);
          expect(logger.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
@@ -160,7 +160,7 @@ describe('state mutation on the client', function () {
         }
         stateMutator(1, ['controller.idList:4', addN]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().for('controller').get('idList')).toEqual([
           {id: 4, n: 'h'},
@@ -177,7 +177,7 @@ describe('state mutation on the client', function () {
 
         stateMutator(1, ['controller.idList:4.n', makeNZ]);
 
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().for('controller').get('idList')).toEqual([
           {id: 4, n: 'z'},
@@ -191,7 +191,7 @@ describe('state mutation on the client', function () {
     it('should support adding+ to arrays', function () {
       stateMutator(1, ['controller.list+', 3]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('list')).toEqual([4, 3]);
     });
@@ -199,7 +199,7 @@ describe('state mutation on the client', function () {
     it('should support adding+ to arrays of arrays', function () {
       stateMutator(1, ['controller.subPush:5.arr+', 5]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().get('controller.subPush:5.arr')).toEqual([5]);
     });
@@ -207,7 +207,7 @@ describe('state mutation on the client', function () {
     it('should support removing- from arrays', function () {
       stateMutator(1, ['controller.idList-', {id: 4}]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('idList')).toEqual([{id: 3}]);
     });
@@ -215,7 +215,7 @@ describe('state mutation on the client', function () {
     it('should support removing- from arrays of arrays', function () {
       stateMutator(1, ['controller.subPush:6.arr-', {id :3}]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().get('controller.subPush:6.arr')).toEqual([{id:4}]);
     });
@@ -223,7 +223,7 @@ describe('state mutation on the client', function () {
     it('should support replacing! arrays', function () {
       stateMutator(1, ['controller.idList!', {id: 4, n: 'a'}]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('idList')).toEqual([
         {id: 4, n: 'a'},
@@ -234,7 +234,7 @@ describe('state mutation on the client', function () {
     it('should support modifying! arrays of arrays', function () {
       stateMutator(1, ['controller.subPush:6.arr!', {id :3, derp: true}]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().get('controller.subPush:6.arr')).toEqual([{id :3, derp: true}, {id: 4}]);
     });
@@ -242,7 +242,7 @@ describe('state mutation on the client', function () {
     it('should support modifying: arrays', function () {
       stateMutator(1, ['controller.idList:4', {n: 'h'}]);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('idList')).toEqual([
         {id: 4, n: 'h'},
@@ -253,7 +253,7 @@ describe('state mutation on the client', function () {
     it('should support modifying arrays children', function () {
       stateMutator(1, ['controller.idList:4.n', 'z']);
 
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
 
       expect(state.for().for('controller').get('idList')).toEqual([
         {id: 4, n: 'z'},
@@ -265,19 +265,19 @@ describe('state mutation on the client', function () {
   describe('when you do not want to mutate state', function () {
     it('should do nothing with undefined', function () {
       stateMutator(1, undefined);
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
       expect(state.for().for('controller').get('state')).toBe('ready');
     });
 
     it('should do nothing with null', function () {
       stateMutator(1, null);
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
       expect(state.for().for('controller').get('state')).toBe('ready');
     });
 
     it('should do nothing with empty hashes', function () {
       stateMutator(1, {});
-      afterPhysicsFrame();
+      // afterPhysicsFrame();
       expect(state.for().for('controller').get('state')).toBe('ready');
     });
   });
@@ -288,14 +288,14 @@ describe('state mutation on the client', function () {
         stateMutator(1, []);
         stateMutator(1, ['controller.child.age']);
         stateMutator(1, ['controller.child.age', 123, 'third']);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should process arrays of arrays if the subarray is length 2', function () {
         stateMutator(1, [['controller.child.age', 123]]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(123);
 
         stateMutator(1, [
@@ -303,7 +303,7 @@ describe('state mutation on the client', function () {
           ['controller.start', 2],
           ['controller.score', 4],
         ]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
 
         expect(state.for().get('controller.child.age')).toBe(2321);
         expect(state.for().get('controller.start')).toBe(2);
@@ -314,31 +314,31 @@ describe('state mutation on the client', function () {
     describe('arrays of length 2', function () {
       it('should do nothing if first element of array is not string', function () {
         stateMutator(1, [123, 'controller.child.age']);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should do nothing if second element of array is undefined', function () {
         stateMutator(1, ['controller.child.age', undefined]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should do nothing if second element of array is null', function () {
         stateMutator(1, ['controller.child.age', null]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should do nothing if second element of array is empty hash', function () {
         stateMutator(1, ['controller.child.age', {}]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(5);
       });
 
       it('should unwrap dot strings into objects', function () {
         stateMutator(1, ['controller.child.age', 123]);
-        afterPhysicsFrame();
+        // afterPhysicsFrame();
         expect(state.for().get('controller.child.age')).toBe(123);
       });
     });

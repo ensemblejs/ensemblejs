@@ -8,7 +8,7 @@ var fakeLogger = require('../../fake/logger');
 
 var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeLogger));
 var state = plugin('StateAccess');
-var afterPhysicsFrame = plugin('AfterPhysicsFrame');
+// var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
 describe('state access', function () {
   beforeEach(function () {
