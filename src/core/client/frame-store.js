@@ -2,7 +2,6 @@
 
 import { each, reject, last, cloneDeep, map } from 'lodash';
 import { next } from 'distributedlife-sequence';
-import fs from 'fs';
 // import define from '../../define';
 
 // var frames = [];
@@ -30,10 +29,8 @@ module.exports = {
 
     function RecordData () {
       return function callback () {
-        fs.writeFile('csp.json', {
-          frames: frames,
-          fromServer: fromServer
-        }, 'utf8', err => console.error(err));
+        console.log(JSON.stringify(frames));
+        console.log(JSON.stringify(fromServer));
       };
     }
 

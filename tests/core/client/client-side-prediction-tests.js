@@ -89,7 +89,7 @@ var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(
 var stopPhysicsEngine = plugin('OnDisconnect');
 
 
-var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define));
+var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime));
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
