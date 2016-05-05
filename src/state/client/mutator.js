@@ -9,10 +9,9 @@ module.exports = {
   deps: ['Logger'],
   func: function Client (logger) {
     var root = {};
-    // var thisFrame = {};
 
     function readAndWarnAboutMissingState (node, key) {
-      var prop = read(node, key);
+      var prop = isFunction(key) ? key(node) : read(node, key);
 
       if (prop === undefined) {
         logger().error({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
@@ -104,12 +103,7 @@ module.exports = {
     });
 
     define('AfterPhysicsFrame', function RawStateAccess () {
-      return function mergeResultsFromLastFrame () {
-    //     root = merge(root, thisFrame, function mergeArrays (a, b) {
-    //       return isArray(a) ? b : undefined;
-    //     });
-    //     thisFrame = {};
-      };
+      return function mergeResultsFromLastFrame () {};
     });
 
     function isValidDotStringResult(result) {

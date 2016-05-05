@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, filter, reject, isString, isArray, set, has} from 'lodash';
+import {each, filter, reject, isString, isArray, set, has, isFunction} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var replaceIfPresent = require('../../util/replace-if-present');
 var sequence = require('distributedlife-sequence');
@@ -31,7 +31,7 @@ module.exports = {
 
         function loadPhysicsMap (physicsMap) {
           each(physicsMap, function(sources, physicsKey) {
-            let stringDynamic = filter(sources, isString);
+            let stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
             each(stringDynamic, function(sourceKey) {
               let sourceState = state().for(save.id).unwrap(sourceKey);
 
@@ -40,6 +40,7 @@ module.exports = {
 
 
             let configDyanmic = reject(sources, isString);
+            configDyanmic = reject(configDyanmic, isFunction);
             configDyanmic = filter(configDyanmic, s => has(s, 'sourceKey'));
             each(configDyanmic, function(config) {
               let sourceKey = config.sourceKey;
@@ -51,6 +52,7 @@ module.exports = {
 
 
             let statics = reject(sources, isString);
+            statics = reject(statics, isFunction);
             statics = reject(statics, s => has(s, 'sourceKey'));
             each(statics, function(source) {
               let adapter = source.via;

@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, filter, reject, isString, isArray, set, has} from 'lodash';
+import {each, filter, reject, isString, isArray, set, has, isFunction} from 'lodash';
 var forEachMode = require('../../util/modes').forEachMode;
 var replaceIfPresent = require('../../util/replace-if-present');
 var sequence = require('distributedlife-sequence');
@@ -11,6 +11,7 @@ module.exports = {
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, state) {
 
     function wireupDynamic (saveId, physicsKey, sourceKey, sourceState, adapter) {
+
       if (isArray(sourceState)) {
         tracker().onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey, adapter));
         tracker().onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey, adapter));
@@ -31,26 +32,26 @@ module.exports = {
       return function wireupPhysicsMap () {
         function loadPhysicsMap (map) {
           each(map, function(sources, physicsKey) {
-            let stringDynamic = filter(sources, isString);
+            let stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
             each(stringDynamic, function(sourceKey) {
               let sourceState = state().for('client').unwrap(sourceKey);
-
               wireupDynamic('client', physicsKey, sourceKey, sourceState);
             });
 
 
-            let configDyanamic = reject(sources, isString);
-            configDyanamic = filter(configDyanamic, s => has(s, 'sourceKey'));
-            each(configDyanamic, function eachDynamicConfig (config) {
+            let configDynamic = reject(sources, isString);
+            configDynamic = reject(configDynamic, isFunction);
+            configDynamic = filter(configDynamic, s => has(s, 'sourceKey'));
+            each(configDynamic, function eachDynamicConfig (config) {
               let sourceKey = config.sourceKey;
               let adapter = config.via;
               let sourceState = state().for('client').unwrap(config.sourceKey);
-
               wireupDynamic('client', physicsKey, sourceKey, sourceState, adapter);
             });
 
 
             let statics = reject(sources, isString);
+            statics = reject(statics, isFunction);
             statics = reject(statics, s => has(s, 'sourceKey'));
             each(statics, function(source) {
               let adapter = source.via;

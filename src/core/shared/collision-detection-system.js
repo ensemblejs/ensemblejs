@@ -80,17 +80,17 @@ module.exports = {
                   }
                 }
               });
-
-              if (!collided) {
-                if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
-                  return;
-                }
-
-                endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
-
-                collided = true;
-              }
             });
+
+            if (!collided) {
+              if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
+                return;
+              }
+
+              endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
+
+              collided = true;
+            }
           }
 
           each(target.and, doCollisionTest);

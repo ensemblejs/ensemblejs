@@ -2,6 +2,7 @@
 
 var sinon = require('sinon');
 var expect = require('expect');
+var isFunction = require('lodash').isFunction;
 
 var onChangeOf = sinon.spy();
 var onElementAdded = sinon.spy();
@@ -42,11 +43,20 @@ var state = {
   ],
   'array.empty': []
 };
+var objState = {
+  array: {
+    state: [
+      {id: 1, position: { x: 24, y: 35}},
+      {id: 2, position: { x: 43, y: 23}}
+    ]
+  }
+}
 var stateAccess = {
   for: function () {
     return {
       unwrap: function (key) {
-        return state[key];
+        console.log(key);
+        return isFunction(key) ? key(objState) : state[key];
       }
     };
   }
@@ -110,10 +120,15 @@ describe('physics system bridge', function () {
         return thing.position;
       }
 
+      function lens (state) {
+        return [state.array.state[0].position];
+      }
+
       beforeEach(function () {
         var physicsMap = ['*', {
           'keyA': [{sourceKey: 'array.state', via: pluckPosition}],
-          'keyB': [{sourceKey: 'source.state', via: pluckPosition}]
+          'keyB': [{sourceKey: 'source.state', via: pluckPosition}],
+          'keyC': [lens]
         }];
 
         var bridge = makeTestible('core/client/physics-system-bridge', {
@@ -148,6 +163,12 @@ describe('physics system bridge', function () {
         expect(physicsSystem.removed.firstCall.args).toEqual(['client', 'keyA', 'array.state']);
 
         expect(physicsSystem.updated.firstCall.args).toEqual(['client', 'source.state', pluckPosition]);
+
+        expect(physicsSystem.added.secondCall.args).toEqual(['client', 'keyC', lens, undefined]);
+
+        expect(physicsSystem.changed.secondCall.args).toEqual(['client', 'keyC', lens, undefined]);
+
+        expect(physicsSystem.removed.secondCall.args).toEqual(['client', 'keyC', lens]);
       });
     });
 

@@ -46,7 +46,7 @@ module.exports = {
     });
 
     function readAndWarnAboutMissingState (node, key) {
-      var prop = read(node, key);
+      var prop = isFunction(key) ? key(node) : read(node, key);
 
       if (prop === undefined) {
         logger.error({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');

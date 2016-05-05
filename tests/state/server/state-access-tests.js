@@ -98,6 +98,14 @@ describe('state access', function () {
       expect(state.for(1).unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
     });
 
+    it('should unwrap lenses', function () {
+      function lens (state) {
+        return state.controller.child.siblings;
+      }
+
+      expect(state.for(1).unwrap(lens)).toEqual({ name: 'Geoff' });
+    });
+
     it('should unwrap by id', function () {
       expect(state.for(1).unwrap('idArray:2')).toEqual({id: 2, c: 'd'});
     });

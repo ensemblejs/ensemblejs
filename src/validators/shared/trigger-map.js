@@ -54,7 +54,7 @@ module.exports = {
             if (source[prop] && !isArray(source[prop])) {
               source[prop] = [source[prop]];
             }
-          })
+          });
         });
       });
     }

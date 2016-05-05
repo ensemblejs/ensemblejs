@@ -13,9 +13,9 @@ var start13 = function () {};
 var during13 = function () {};
 var finish13 = function () {};
 
-var physicsSystem;
+var start14 = function () {};
 
-physicsSystem = makeTestible('core/shared/physics-system')[0];
+var physicsSystem = makeTestible('core/shared/physics-system')[0];
 
 physicsSystem.register(1, 'key1', 'dot1', {x: 0, y: 0});
 physicsSystem.register(1, 'key2', 'dot2', {x: 1, y: 1});
@@ -52,7 +52,8 @@ describe('collision detection system', function () {
             during: [during13],
             finish: [finish13]
           }
-        ]
+        ],
+        'empty': [{ and: ['alsoEmpty'], start: [start14]}]
       };
 
       cd = makeTestible('core/shared/collision-detection-system', {
