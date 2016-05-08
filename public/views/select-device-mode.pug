@@ -1,0 +1,10 @@
+include ../partials/links.pug
+
+=info
+=warning
+=error
+h1 #{game.name}
+h2 Select Device Mode
++makeLink(links.displayOnly)
++makeLink(links.displayAndController)
++makeLink(links.controllerOnly)

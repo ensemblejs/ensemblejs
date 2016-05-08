@@ -9,6 +9,7 @@ var continueSave = require('../../util/workflow/continue-save');
 var saveIsFull = require('../../util/workflow/save-is-full');
 var shareSave = require('../../util/workflow/share-save');
 var joinSave = require('../../util/workflow/join-save');
+var selectDeviceMode = require('../../util/workflow/select-device-mode');
 
 function pickGameView (req) {
   if (!req.query.deviceMode) {
@@ -38,17 +39,20 @@ module.exports = {
         addPlayerToSave(project, savesList(), time())
       ));
 
-      app.get('/saves/:saveId', get(
-        continueSave(savesList(), on()), pickGameView)
-      );
       app.get('/saves/:saveId/join', get(
         joinSave(project, savesList()), 'join.pug')
       );
-      app.get('/saves/:saveId/full', get(
-        saveIsFull(savesList()), 'full.pug')
-      );
       app.get('/saves/:saveId/share', get(
         shareSave(project, savesList()), 'share.pug')
+      );
+      app.get('/saves/:saveId/selectDeviceMode', get(
+        selectDeviceMode(project, savesList()), 'select-device-mode.pug')
+      );
+      app.get('/saves/:saveId', get(
+        continueSave(savesList(), on()), pickGameView)
+      );
+      app.get('/saves/:saveId/full', get(
+        saveIsFull(savesList()), 'full.pug')
       );
     }
 

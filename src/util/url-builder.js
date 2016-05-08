@@ -1,27 +1,41 @@
 'use strict';
 
+import {map} from 'lodash';
+
+function buildQueryString (q) {
+  if (q === undefined) {
+    return '';
+  }
+
+  var a = map(q, (v, k) => `${k}=${v}`).join('&');
+  return q !== undefined ? `?${a}` : '';
+}
+
 var urlBuilder = function (hostname) {
   return {
     game: function () {
       return {
         index: function () {
-          return hostname + '/';
+          return `${hostname}/`;
         }
       };
     },
     saves: function (saveId) {
       return {
-        join: function () {
-          return hostname + '/saves/' + saveId + '/join';
+        join: function (q) {
+          return `${hostname}/saves/${saveId}/join${buildQueryString(q)}`;
         },
-        continue: function () {
-          return hostname + '/saves/' + saveId;
+        continue: function (q) {
+          return `${hostname}/saves/${saveId}${buildQueryString(q)}`;
         },
-        share: function () {
-          return hostname + '/saves/' + saveId + '/share';
+        selectDeviceMode: function (q) {
+          return `${hostname}/saves/${saveId}/selectDeviceMode${buildQueryString(q)}`;
         },
-        full: function () {
-          return hostname + '/saves/' + saveId + '/full';
+        share: function (q) {
+          return `${hostname}/saves/${saveId}/share${buildQueryString(q)}`;
+        },
+        full: function (q) {
+          return `${hostname}/saves/${saveId}/full${buildQueryString(q)}`;
         }
       };
     }
