@@ -6,11 +6,10 @@ var buildContinueSaveJson = require('../json-builders/continue-save');
 var urlBuilder = require('../url-builder');
 var redirectTo = require('../workflow/promise').redirectTo;
 var logger = require('../../logging/server/logger').logger;
+import {supportedDeviceModes} from '../device-mode';
 
 import {hostname} from '../../util/hostname';
 import {includes} from 'lodash';
-
-const supportedDeviceModes = ['primary', 'observer', 'mobile', 'gamepad'];
 
 function continueSave (savesList, on) {
   function loadSaveIfNotLoaded (save) {
