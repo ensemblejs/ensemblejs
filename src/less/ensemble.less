@@ -6,6 +6,8 @@ body {
   margin: 0;
   overflow: hidden;
   padding: 0;
+
+  font-family: 'Cantarell';
 }
 
 html:full-screen {
@@ -329,4 +331,90 @@ p {
   .inverse-start-forward {
     .inverse-button;
   }
+}
+
+
+
+
+
+.call-to-action {
+  font-size: 2rem;
+  margin-top: 1rem;
+  text-align: center;
+  height: 10%
+}
+
+.group {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-basis: grow;
+}
+
+@media all and (orientation:portrait) {
+  .group {
+    flex-direction: column;
+  }
+
+  .box {
+    flex-direction: row;
+  }
+
+  .box .label {
+    width: 128px;
+  }
+
+  .box:last-child {
+    margin: 2% 2% 2% 0%;
+  }
+}
+
+@media all and (orientation:landscape) {
+  .group {
+    flex-direction: row;
+  }
+
+  .box {
+    flex-direction: column;
+  }
+
+  .box .label {
+    height: 128px;
+  }
+
+  .box:last-child {
+    margin: 2% 2% 2% 0%;
+  }
+}
+
+.box {
+  flex: 1 0 auto;
+  text-align: center;
+  align-self: center;
+
+  display: flex;
+}
+
+a.box {
+  text-decoration: none;
+  color: #ff;
+}
+
+.box img {
+  align-self: center;
+  margin: 2%;
+  width: 128px;
+  height: 128px;
+}
+
+.box:nth-child(1) {
+  margin: 2% 0% 2% 2%;
+}
+
+.box:nth-child(n+1) {
+  margin: 2% 2% 2% 2%;
+}
+
+.box .label {
+  margin: 2%;
+  align-self: center;
 }

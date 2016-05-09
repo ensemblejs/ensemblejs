@@ -221,7 +221,7 @@ describe('save routes', () => {
         it('should return the select device mode page', done => {
           request.get(url(uri), (err, res) => {
             expect(res.statusCode).toEqual(200);
-            expect(res.body).toInclude('Select Device Mode');
+            expect(res.body).toInclude('Select device mode');
             done(err);
           });
         });

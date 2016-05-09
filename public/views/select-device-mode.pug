@@ -1,10 +1,21 @@
-include ../partials/links.pug
+extends ../layouts/non-game-page.pug
 
-=info
-=warning
-=error
-h1 #{game.name}
-h2 Select Device Mode
-+makeLink(links.displayOnly)
-+makeLink(links.displayAndController)
-+makeLink(links.controllerOnly)
+block title
+  title #{game.name}
+
+block content
+  .call-to-action
+    .label Select device mode
+  .group
+    a.box(href=links.displayOnly.uri)
+      img(src="/ensemble/images/site/display-only.png")
+      .label
+        span #{links.displayOnly.name}
+    a.box(href=links.displayAndController.uri)
+      img(src="/ensemble/images/site/display-and-controller.png")
+      .label
+        span #{links.controllerOnly.name}
+    a.box(href=links.controllerOnly.uri)
+      img(src="/ensemble/images/site/controller-only.png")
+      .label
+        span #{links.displayOnly.name}
