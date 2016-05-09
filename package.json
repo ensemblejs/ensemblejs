@@ -16,10 +16,12 @@
   ],
   "scripts": {
     "start": "NODE_ENV=test gulp",
+    "build": "gulp framework:build",
     "unit": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
     "int": "NODE_ENV=test gulp framework:test:integration",
-    "prepublish": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
+    "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
+    "prepublish": "npm run build && npm run convert",
     "coverage": "codecov"
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
