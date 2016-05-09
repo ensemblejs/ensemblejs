@@ -1,6 +1,6 @@
 'use strict';
 
-import { filter, map, includes, reject } from 'lodash';
+import { filter, map, includes } from 'lodash';
 
 module.exports = {
   type: 'InputQueue',

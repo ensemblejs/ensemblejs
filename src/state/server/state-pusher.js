@@ -26,10 +26,6 @@ module.exports = {
           saveState: rawStateAccess().for(save.id)
         };
 
-        // if (skipThisPacket(packet, lastPacket)) {
-        //   return;
-        // }
-
         lastPacket = cloneDeep(packet);
 
         packet.id = sequence.next('server-origin-messages');
