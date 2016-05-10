@@ -5,7 +5,7 @@ var rename = require('gulp-rename');
 var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
 var autoprefixer = require('gulp-autoprefixer');
-var minifycss = require('gulp-minify-css');
+var cleanCSS = require('gulp-clean-css');
 var rename = require('gulp-rename');
 var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
@@ -23,9 +23,8 @@ function addTasks (gulp) {
       .pipe(sourcemaps.init())
       .pipe(less())
       .pipe(autoprefixer({ cascade: false }))
-      .pipe(sourcemaps.write(paths.genCss))
       .pipe(rename({suffix: '.min'}))
-      .pipe(minifycss())
+      .pipe(cleanCSS())
       .pipe(flatten())
       .pipe(gulp.dest('public/css'));
   });
