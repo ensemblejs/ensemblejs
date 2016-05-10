@@ -5,7 +5,7 @@ var cradle = Bluebird.promisifyAll(require('cradle'));
 var logger = require('../logging/server/logger').logger;
 import uuid from 'node-uuid';
 import config from './config';
-import {cloneDeep} from 'lodash';
+import clone from './fast-clone';
 
 cradle.setup({
   host: config.get().database.host,
@@ -73,7 +73,7 @@ export function get (database, id) {
   return connection
     .database(database)
     .getAsync(id)
-    .then(record => cloneDeep(record))
+    .then(record => clone(record))
     .then(record => {
       record.id = record._id;
       return record;

@@ -1,33 +1,22 @@
 'use strict';
 
-var each = require('lodash').each;
 var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 
-import define from '../../plugins/plug-n-play';
+import define from '../../define';
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'Profiler'],
-  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, profiler) {
+  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config'],
+  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config) {
 
-    var rate = profiler().timer('ensemblejs', 'client-physics', 'call-rate', 1);
     var priorStep = time().present();
 
     var save = {
       id: 'client',
       mode: mode()
     };
-
-    define('InternalState', function PhysicsLoop () {
-      return {
-        PhysicsLoop: {
-          now: function now () { return time().present(); },
-          callRate: function callRate () { return rate.results().rate; }
-        }
-      };
-    });
 
     function doPaused(now) {
       priorStep = now;
@@ -63,7 +52,7 @@ module.exports = {
       var now = time().present();
 
       if (shouldRunPhysicsEngine()) {
-        rate.track(doRunning, [now]);
+        doRunning(now);
       } else {
         doPaused(now);
       }
@@ -74,9 +63,9 @@ module.exports = {
     var ids = [];
     define('OnDisconnect', function PhysicsLoop () {
       return function stopPhysicsLoop () {
-        each(ids, function (id) {
-          clearInterval(id);
-        });
+        for (let i = 0; i < ids.length; i += 1) {
+          clearInterval(ids[i]);
+        }
 
         ids = [];
       };

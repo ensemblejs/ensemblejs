@@ -1,6 +1,6 @@
 'use strict';
 
-import { filter, map, includes } from 'lodash';
+import { filter } from '../../util/array';
 
 module.exports = {
   type: 'InputQueue',
@@ -25,11 +25,17 @@ module.exports = {
       };
     });
 
-    function HandlePacketLocally () {
-      function packetAlreadyOnQueue (packet) {
-        return includes(map(inputQueue, 'id'), packet.id);
+    function packetAlreadyOnQueue (packet) {
+      for (let i = 0; i < inputQueue.length; i += 1) {
+        if (inputQueue[i].id === packet.id) {
+          return true;
+        }
       }
 
+      return false;
+    }
+
+    function HandlePacketLocally () {
       return function putPacketOntoInputQueue (packet) {
         if (!config().client.clientSidePrediction) {
           return;

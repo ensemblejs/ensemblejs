@@ -1,7 +1,8 @@
 'use strict';
 
-import {each, merge, isArray, cloneDeep} from 'lodash';
+import {merge} from 'lodash';
 import {execute} from 'royal-sampler';
+import {isArray} from '../../util/is';
 var sequence = require('distributedlife-sequence');
 
 module.exports = {
@@ -9,9 +10,8 @@ module.exports = {
   deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config'],
   func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config) {
 
-    var playerId;
-    var deviceNumber;
-    var lastPacket = { mouse: {} };
+    let playerId;
+    let deviceNumber;
 
     function mergeArrays (a, b) {
       if (isArray(a)) {
@@ -26,19 +26,18 @@ module.exports = {
         return null;
       }
 
-      var packet = {
+      let packet = {
         pendingAcks: clientAcknowledgements().flush(),
       };
 
-      each(inputCaptureMethods(), function (getCurrentState) {
-        var state = getCurrentState();
-
+      const getCurrentState = inputCaptureMethods();
+      for(let i = 0; i < getCurrentState.length; i += 1) {
+        let state = getCurrentState[i]();
         if (state.receivedInput) {
           merge(packet, state, mergeArrays);
         }
-      });
+      }
 
-      lastPacket = cloneDeep(packet);
       packet.id = sequence.next('client-input');
       packet.deviceNumber = deviceNumber;
       packet.playerId = playerId;

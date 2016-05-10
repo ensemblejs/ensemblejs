@@ -4,22 +4,14 @@ var expect = require('expect');
 var sinon = require('sinon');
 var defer = require('../../support').defer;
 var plugins = require('../../support').plugin();
-var profiler = {
-  timer: function () {
-    return {
-      track: function(f) {
-        f();
-      }
-    };
-  }
-};
 
 var window = {
   requestAnimationFrame: sinon.spy()
 };
-var on = {
-  renderFrame: sinon.spy()
-};
+var onRenderFrame = [];
+var renderFrame = sinon.spy();
+onRenderFrame.push(renderFrame);
+
 var currentState = {
   get: function () { return true; }
 };
@@ -42,7 +34,7 @@ describe('the update loop', function () {
     beforeEach(function () {
       window.requestAnimationFrame.reset();
 
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(onRenderFrame), defer(currentState), defer(time), defer(plugins.define));
 
       stopUpdateLoop = plugins.deps().OnDisconnect();
 
@@ -60,7 +52,7 @@ describe('the update loop', function () {
 
   describe('on OnDisconnect', function () {
     beforeEach(function () {
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(onRenderFrame), defer(currentState), defer(time), defer(plugins.define));
 
       stopUpdateLoop = plugins.deps().OnDisconnect();
       stopUpdateLoop();
@@ -77,9 +69,9 @@ describe('the update loop', function () {
     beforeEach(function () {
       unpauseGame();
 
-      on.renderFrame.reset();
+      renderFrame.reset();
 
-      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(on), defer(currentState), defer(time), defer(plugins.define), defer(profiler));
+      startUpdateLoop = require('../../../src/core/client/render').func(defer(window), defer(onRenderFrame), defer(currentState), defer(time), defer(plugins.define));
       stopUpdateLoop = plugins.deps().OnDisconnect();
 
       startUpdateLoop();
@@ -97,7 +89,7 @@ describe('the update loop', function () {
       advanceTime(43);
       startUpdateLoop();
       stopUpdateLoop();
-      expect(on.renderFrame.lastCall.args).toEqual([0.043]);
+      expect(renderFrame.lastCall.args).toEqual([0.043]);
     });
 
     it('should consider paused frames when calculating the time since last frame', function() {
@@ -110,7 +102,7 @@ describe('the update loop', function () {
       startUpdateLoop();
       stopUpdateLoop();
 
-      expect(on.renderFrame.lastCall.args).toEqual([0.023]);
+      expect(renderFrame.lastCall.args).toEqual([0.023]);
     });
   });
 });

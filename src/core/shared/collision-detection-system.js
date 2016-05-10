@@ -37,64 +37,58 @@ module.exports = {
       return [saveId, ':', key1, ':', key2].join('');
     }
 
+    function doCollisionTest (aKey, bKey, aShapes, saveId, target, callbackDelegate) {
+
+      var collided = false;
+      var bShapes = physicsSystem().getByPhysicsKey(saveId, bKey);
+      var metadata = {};
+      metadata[aKey] = {
+        target: undefined,
+        shapes: aShapes
+      };
+      metadata[bKey] = {
+        target: undefined,
+        shapes: bShapes
+      };
+
+      function createOnCollisionCallback () {
+        collided = true;
+        onCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
+      }
+
+      checkAllShapes: for (let i = 0; i < aShapes.length; i += 1) {
+        metadata[aKey].target = aShapes[i];
+
+        for (let j = 0; j < bShapes.length; j += 1) {
+          metadata[bKey].target = bShapes[j];
+
+          test(aShapes[i], bShapes[j], createOnCollisionCallback);
+
+          if (collided) {
+            break checkAllShapes;
+          }
+        }
+      }
+
+      if (!collided) {
+        if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
+          return;
+        }
+
+        endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
+      }
+    }
+
     function detectCollisions (map, saveId, callbackDelegate) {
-      each(map, function (targets, aKey) {
-        each(targets, function (target) {
+      each(map, function eachCollisionMap (targets, aKey) {
+        for (let t = 0; t < targets.length; t += 1) {
           var aShapes = physicsSystem().getByPhysicsKey(saveId, aKey);
 
-          function doCollisionTest (bKey) {
-            var collided = false;
-            var bShapes = physicsSystem().getByPhysicsKey(saveId, bKey);
-            var metadata = {};
-            metadata[aKey] = {
-              target: undefined,
-              shapes: aShapes
-            };
-            metadata[bKey] = {
-              target: undefined,
-              shapes: bShapes
-            };
-
-            function createOnCollisionCallback () {
-              collided = true;
-              onCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
-            }
-
-            each(aShapes, function(a) {
-              if (collided) {
-                return;
-              }
-
-              metadata[aKey].target = a;
-
-              each(bShapes, function(b) {
-                if (collided) {
-                  return;
-                }
-
-                metadata[bKey].target = b;
-
-                if (!test(a, b, createOnCollisionCallback)) {
-                  if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
-                    return;
-                  }
-                }
-              });
-            });
-
-            if (!collided) {
-              if (!includes(hasStarted, createKey(saveId, aKey, bKey))) {
-                return;
-              }
-
-              endCollision(target, createKey(saveId, aKey, bKey), callbackDelegate, metadata);
-
-              collided = true;
-            }
+          for (let a = 0; a < targets[t].and.length; a += 1) {
+            let bKey = targets[t].and[a];
+            doCollisionTest(aKey, bKey, aShapes, saveId, targets[t], callbackDelegate);
           }
-
-          each(target.and, doCollisionTest);
-        });
+        }
       });
     }
 

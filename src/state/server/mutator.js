@@ -9,6 +9,7 @@ import {read} from '../../util/dot-string-support';
 import Bluebird from 'bluebird';
 
 var root = {};
+var changes = {};
 
 module.exports = {
   type: 'StateMutator',
@@ -22,6 +23,12 @@ module.exports = {
         },
         all: function all () {
           return root;
+        },
+        changes: function changesForSave (saveId) {
+          // var toSend = changes[saveId];
+          // changes[saveId] = {};
+          // return toSend;
+          return root[saveId];
         }
       };
     });

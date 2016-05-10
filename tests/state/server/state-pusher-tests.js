@@ -22,6 +22,9 @@ describe('the state pusher', function () {
       RawStateAccess: {
         for: function() {
           return saveState;
+        },
+        changes: function () {
+          return saveState;
         }
       },
       Logger: logger,

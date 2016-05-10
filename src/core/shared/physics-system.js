@@ -1,7 +1,7 @@
 'use strict';
 
 var autoResolve = require('distributedlife-sat').shapes.autoResolve;
-import {map, reject, flatten, uniq} from 'lodash';
+import {map, reject, uniq} from 'lodash';
 
 var physicsThings = {};
 var keyMappings = {};
@@ -59,11 +59,24 @@ function getBySourceKey (saveId, sourceKey) {
 }
 
 function getByPhysicsKey (saveId, physicsKey) {
+  // var sourceKeys = keyMappings[saveId][physicsKey];
+
+  // return flatten(map(sourceKeys, function(sourceKey) {
+  //   return getBySourceKey(saveId, sourceKey);
+  // }));
+
   var sourceKeys = keyMappings[saveId][physicsKey];
 
-  return flatten(map(sourceKeys, function(sourceKey) {
+  var entries = map(sourceKeys, function(sourceKey) {
     return getBySourceKey(saveId, sourceKey);
-  }));
+  });
+
+  var result = [];
+  for (let i = 0; i < entries.length; i += 1) {
+    result = result.concat(entries[i]);
+  }
+
+  return result;
 }
 
 function tick () {

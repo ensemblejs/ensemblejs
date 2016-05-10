@@ -1,19 +1,31 @@
 'use strict';
 
-import {intersection, first, isArray, last, filter, each, map} from 'lodash';
+import {last, map} from 'lodash';
+import {filter} from './array';
+import {isArray} from './is';
 import Bluebird from 'bluebird';
 
-function isApplicable (mode, plugin) {
-  var pluginMode = first(plugin);
-  if (isArray(pluginMode)) {
-    return intersection(['*', mode], pluginMode).length > 0;
-  } else {
-    return intersection(['*', mode], [pluginMode]).length > 0;
+function intersection (a, b) {
+  const result = [];
+
+  for (let i = 0; i < a.length; i += 1) {
+    for (let j = 0; j < b.length; j += 1) {
+      if (a[i] === b[j]) {
+        result.push(a);
+        break;
+      }
+    }
   }
+
+  return result;
+}
+
+function isApplicable (mode, plugin) {
+  return intersection(['*', mode], isArray(plugin[0]) ? plugin[0] : [plugin[0]]).length > 0;
 }
 
 function filterPluginsByMode (plugins, mode) {
-  return filter(plugins, function(plugin) {
+  return filter(plugins, function predicate (plugin) {
     return isApplicable(mode, plugin);
   });
 }
@@ -27,7 +39,9 @@ function forEachMode (plugins, mode, callback) {
 }
 
 function callEachPlugin (plugins, params = []) {
-  each(plugins, callback => callback(...params));
+  for (let i = 0; i < plugins.length; i += 1) {
+    plugins[i](...params);
+  }
 }
 
 function callEachPluginAndPromises (plugins, params = []) {
@@ -37,23 +51,23 @@ function callEachPluginAndPromises (plugins, params = []) {
 }
 
 function callEachWithMutation (plugins, mutator, saveId, params = []) {
-  each(plugins, function eachWithMutation (callback) {
-    mutator()(saveId, callback(...params));
-  });
+  for (let i = 0; i < plugins.length; i += 1) {
+    mutator()(saveId, plugins[i](...params));
+  }
 }
 
 function callForMode (plugins, mode, params) {
   var forMode = filterPluginsByMode(plugins, mode);
-  each(forMode, function callEachAndMutate (plugin) {
-    last(plugin)(...params);
-  });
+  for (let i = 0; i < forMode.length; i += 1) {
+    last(forMode[i])(...params);
+  }
 }
 
 function callForModeWithMutation (plugins, mutator, save, params) {
   var forMode = filterPluginsByMode(plugins, save.mode);
-  each(forMode, function callEachAndMutate (plugin) {
-    mutator()(save.id, last(plugin)(...params));
-  });
+  for (let i = 0; i < forMode.length; i += 1) {
+    mutator()(save.id, last(forMode[i])(...params));
+  }
 }
 
 function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {

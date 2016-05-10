@@ -1,9 +1,8 @@
 'use strict';
 
-var each = require('lodash').each;
-var filter = require('lodash').filter;
-var xor = require('lodash').xor;
-var chain = require('lodash').chain;
+import {each, xor, chain} from 'lodash';
+import {filter} from './array';
+
 var filterPluginsByMode = require('./modes').filterPluginsByMode;
 var stripMode = require('./modes').stripMode;
 
@@ -25,12 +24,14 @@ function pluckKeyHandler (key) {
 }
 
 function removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers) {
-  return function (handler) {
+  return function (handlers) {
     if (!waitingForPlayers) {
-      return handler;
+      return handlers;
     }
 
-    return filter(handler, { whenWaiting: true });
+    return filter(handlers, function whenWaiting (handler) {
+      return handler.whenWaiting;
+    });
   };
 }
 

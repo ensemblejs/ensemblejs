@@ -1,13 +1,39 @@
 'use strict';
 
-import {filter, get, map, includes, first, replace, tail} from 'lodash';
+import {filter, map, first, replace, tail} from 'lodash';
+import {isInString} from './is';
+
+const splitHistory = {};
+
+function splitString (path) {
+  if (splitHistory[path] === undefined) {
+    splitHistory[path] = path.split('.');
+  }
+
+  return splitHistory[path];
+}
+
+function get (node, path) {
+  const parts = splitString(path);
+  let ref = node;
+
+  for (let i = 0; i < parts.length; i += 1) {
+    if (ref[parts[i]] !== undefined) {
+      ref = ref[parts[i]];
+    } else {
+      return undefined;
+    }
+  }
+
+  return ref;
+}
 
 let accessState;
 function getArrayById (node, key) {
   let path = key.split(':')[0];
   let suffix = tail(key.split(':')).join(':');
 
-  if (includes(suffix, '.')) {
+  if (isInString(suffix, '.')) {
     let id = parseInt(suffix.split('.')[0], 10);
     let subPath = replace(suffix, /^[0-9]+\./, '');
 
@@ -30,9 +56,9 @@ function getChildren (node, key) {
 accessState = function read(node, key) {
   var prop;
 
-  if (includes(key, ':')) {
+  if (isInString(key, ':')) {
     prop = getArrayById(node, key);
-  } else if (includes(key, '*')) {
+  } else if (isInString(key, '*')) {
     prop = getChildren(node, key);
   } else {
     prop = get(node, key);

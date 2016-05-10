@@ -1,13 +1,16 @@
 'use strict';
 
-import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find} from 'lodash';
+import {each, isString, isFunction, find} from 'lodash';
 import {read} from '../../util/dot-string-support';
+import clone from '../../util/fast-clone';
+import {getById} from '../../util/array';
+import deepEqual from 'deep-equal';
+import {isArray} from '../../util/is';
 
 module.exports = {
   type: 'StateTracker',
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
-    var latestServerState;
     var nextServerState;
     var priorState;
     var currentState;
@@ -44,7 +47,7 @@ module.exports = {
     function hasChanged (f) {
       if (priorState === undefined) { return true; }
 
-      return !isEqual(f(priorState), f(currentState));
+      return !deepEqual(f(priorState), f(currentState));
     }
 
     function currentValue (f) {
@@ -88,20 +91,31 @@ module.exports = {
       return find(f(priorState), {id: model.id});
     }
 
+    function isInArray (array, id) {
+      for (let i = 0; i < array.length; i += 1) {
+        if (array[i].id === id) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     function elementAdded (f, model) {
-      return (filter(f(priorState), {id: model.id}).length === 0);
+      return isInArray(f(priorState), model.id);
     }
 
     function elementRemoved (f, model) {
-      return (filter(f(currentState), {id: model.id}).length === 0);
+      return isInArray(f(currentState), model.id);
     }
 
     function elementChanged (f, model) {
       if (priorState === undefined) { return true; }
 
-      var current = filter(f(currentState), {id: model.id});
-      var prior = filter(f(priorState), {id: model.id});
-      return !isEqual(current, prior);
+      var current = getById(f(currentState), model.id);
+      var prior = getById(f(priorState), model.id);
+
+      return !deepEqual(current, prior);
     }
 
     function handleObjects (change) {
@@ -129,7 +143,7 @@ module.exports = {
     }
 
     function handleArrays (change) {
-      each(change.operatesOn(change.focus), function (model) {
+      each(change.operatesOn(change.focus), function changeModel (model) {
         if (change.detectionFunc(change.focus, model)) {
 
           if (!currentElement(change.focus, model) && !priorElement(change.focus, model)) {
@@ -163,11 +177,15 @@ module.exports = {
       each(changes, function (change) {
         handle[change.type](change);
       });
+      // for (let i = 0; i < changes.length; i += 1) {
+      //   handle[changes[i].type](changes[i]);
+      // }
     }
 
     function updateState (newState) {
       priorState = currentState;
-      currentState = cloneDeep(newState, true);
+      currentState = null;
+      currentState = clone(newState);
     }
 
     function saveLatestServerState (serverState) {
@@ -175,13 +193,11 @@ module.exports = {
     }
 
     function saveInitialServerState (serverState) {
-      latestServerState = cloneDeep(serverState);
-      nextServerState = cloneDeep(serverState);
+      nextServerState = clone(serverState);
     }
 
     function resetRawStateBackToLatestServer (rawState) {
-      latestServerState = cloneDeep(nextServerState);
-      rawState.resetTo(cloneDeep(nextServerState));
+      rawState.resetTo(clone(nextServerState));
     }
 
     define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
@@ -249,7 +265,7 @@ module.exports = {
     function functionifyIfRequired (condition) {
       if (!isFunction(condition)) {
         return function equals (currentValue) {
-          return isEqual(currentValue, condition);
+          return deepEqual(currentValue, condition);
         };
       } else {
         return condition;

@@ -38,10 +38,6 @@ export function get (p, f) {
   };
 }
 
-function getIfExists (name) {
-  return plugins[name];
-}
-
 function deferredDependency (deferred) {
   return function deferredWrapper () {
     if (arguments.length > 0) {
@@ -66,40 +62,8 @@ function setModesForPlugin (plugin, type) {
   return plugin;
 }
 
-function createTimer (prefix, plugin, func = 'anonymous') {
-  var profiler = getIfExists('Profiler');
-  var timer = getIfExists('Timer');
-
-  if (timer) {
-    return profiler.timer(prefix, plugin, func, 1);
-  } else {
-    return undefined;
-  }
-}
-
-function isNotProfileExclusion(type) {
-  return type !== 'Time' && type !== 'Timer';
-}
-
-function wrapOriginalFunction (original, key, prefix, type) {
-  var timer = createTimer(prefix, type, key);
-
-  return function wrappedWithLoggingAndTimers () {
-    if (includes(traceOnly, type)) {
-      log.subdue(arguments, prefix + ':' + type, original);
-    } else {
-      log.plugin(arguments, prefix, type, original);
-    }
-
-    if (timer && isNotProfileExclusion(type)) {
-      timer.fromHere();
-      var result = original(...arguments);
-      timer.toHere();
-      return result;
-    } else {
-      return original(...arguments);
-    }
-  };
+function wrapOriginalFunction (original) {
+  return original;
 }
 
 function wrapEachElementOfArray (array, prefix, type) {

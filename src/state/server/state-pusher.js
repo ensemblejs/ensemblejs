@@ -1,6 +1,6 @@
 'use strict';
 
-import { each, isEqual, cloneDeep, reject } from 'lodash';
+import { each, cloneDeep, reject } from 'lodash';
 
 var sequence = require('distributedlife-sequence');
 var config = require('../../util/config');
@@ -12,10 +12,6 @@ module.exports = {
 
     var intervals = [];
 
-    function skipThisPacket (current, prior) {
-      return isEqual(current, prior);
-    }
-
     function start (save, socket) {
       var lastPacket = {};
       var id;
@@ -23,7 +19,7 @@ module.exports = {
       function updateClient () {
         var packet = {
           highestProcessedMessage: lowestInputProcessed()(save.id),
-          saveState: rawStateAccess().for(save.id)
+          saveState: rawStateAccess().changes(save.id)
         };
 
         lastPacket = cloneDeep(packet);
@@ -34,7 +30,7 @@ module.exports = {
         on().outgoingServerPacket(socket.id, packet);
       }
 
-      socket.emit('initialState', rawStateAccess().for(save.id));
+      socket.emit('initialState', rawStateAccess().changes(save.id));
 
       id = setInterval(updateClient, config.get().server.pushUpdateFrequency);
       intervals.push(id);

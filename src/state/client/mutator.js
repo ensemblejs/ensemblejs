@@ -1,8 +1,10 @@
 'use strict';
 
-import {isObject, isArray, isEqual, cloneDeep, isString, mergeWith as merge, filter, get, set, reject, map, includes, replace, isEmpty, isFunction} from 'lodash';
+import {isObject, isEqual, isString, mergeWith as merge, filter, set, reject, map, includes, replace, isEmpty, isFunction} from 'lodash';
 import define from '../../plugins/plug-n-play';
+import clone from '../../util/fast-clone';
 import {read} from '../../util/dot-string-support';
+import {isArray} from '../../util/is';
 
 module.exports = {
   type: 'StateMutator',
@@ -21,7 +23,7 @@ module.exports = {
     }
 
     function provideReadAccessToState (node) {
-      return function(key) {
+      return function get (key) {
         var prop = readAndWarnAboutMissingState(node, key);
 
         if (isObject(prop) && !isArray(prop)) {
@@ -36,7 +38,7 @@ module.exports = {
       var prop = readAndWarnAboutMissingState(node, key);
 
       if (isObject(prop)) {
-        return cloneDeep(prop);
+        return clone(prop);
       } else {
         return prop;
       }
@@ -170,7 +172,7 @@ module.exports = {
         }
 
         var nv = isFunction(value) ? value(
-          isEmpty(restOfPath) ? entry : get(entry, restOfPath)
+          isEmpty(restOfPath) ? entry : read(entry, restOfPath)
         ) : value;
 
         return isEmpty(restOfPath) ? merge(entry, nv) : set(entry, restOfPath, nv);

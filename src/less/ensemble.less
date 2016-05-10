@@ -1,7 +1,12 @@
+@ensemble-dark: #0E2A36;
+@ensemble-accent: #00b988;
+@ensemble-light: #e6d8bf;
+@ensemble-black: #000;
+@ensemble-white: #fff;
 @background-color: #4a4a4a;
 
 body {
-  background-color: @background-color;
+  background-color: @ensemble-dark;
   color: #fff;
   margin: 0;
   overflow: hidden;
@@ -11,7 +16,7 @@ body {
 }
 
 html:full-screen {
-  background-color: #222 !important;
+  background-color: @ensemble-black; !important;
 }
 
 .noselect {
@@ -396,7 +401,11 @@ p {
 
 a.box {
   text-decoration: none;
-  color: #ff;
+  color: @ensemble-white;
+}
+
+a.box:hover {
+  color: @ensemble-accent;
 }
 
 .box img {
