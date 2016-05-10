@@ -17,7 +17,8 @@ module.exports = {
   targets: {
     build: 'build/',
     clean: ['build/**', 'dist/**'],
-    dist: 'dist/'
+    dist: 'dist/',
+    distJs: 'dist/js/'
   },
 
   framework: {

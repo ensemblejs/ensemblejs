@@ -59,12 +59,6 @@ function getBySourceKey (saveId, sourceKey) {
 }
 
 function getByPhysicsKey (saveId, physicsKey) {
-  // var sourceKeys = keyMappings[saveId][physicsKey];
-
-  // return flatten(map(sourceKeys, function(sourceKey) {
-  //   return getBySourceKey(saveId, sourceKey);
-  // }));
-
   var sourceKeys = keyMappings[saveId][physicsKey];
 
   var entries = map(sourceKeys, function(sourceKey) {

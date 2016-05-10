@@ -1,0 +1,14 @@
+[
+  {
+    "name": "primary",
+    "label": "Desktop",
+    "icon": "/ensemble/images/device-modes/primary.png",
+    "template": "game.pug"
+  },
+  {
+    "name": "gamepad",
+    "label": "Controller Only",
+    "icon": "/ensemble/images/device-modes/gamepad.png",
+    "template": "gamepad.pug"
+  }
+]

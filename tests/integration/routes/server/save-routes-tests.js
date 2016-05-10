@@ -81,7 +81,13 @@ describe('save routes', () => {
     onServerStop = sut[1].OnServerStop();
 
     onServerStart('../dummy', {
-      id: 'distributedlife+pong', name: 'Pong', modes: ['arcade']
+      id: 'distributedlife+pong',
+      name: 'Pong',
+      modes: ['arcade'],
+      deviceModes: [
+        {name: 'primary', template: 'game.pug'},
+        {name: 'gamepad', template: 'gamepad.pug'}
+      ],
     });
   });
 
@@ -134,7 +140,7 @@ describe('save routes', () => {
           });
         });
 
-        describe('when the player has selected a device mode', done => {
+        describe('when the player has selected a device mode', () => {
           it('should redirect to selectDeviceMode on unsupported deviceMode', done => {
             request.post(posturl('/saves', {mode: 'arcade'}), () => {
               request.get(url(`${uri}?deviceMode=banana`), (err, res) => {

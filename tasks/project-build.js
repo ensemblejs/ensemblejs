@@ -17,6 +17,7 @@ var plumber = require('gulp-plumber');
 
 var paths = require('./paths');
 var generateEntrypointFile = require('./util/generate-entrypoint-file');
+var generateDeviceModeFile = require('./util/generate-device-mode-file');
 var onError = require('./util/error');
 
 function isDevelopment () {
@@ -57,8 +58,33 @@ function addTasks (gulp) {
     });
   });
 
+  gulp.task('copy-device-modes', ['project:prep'], function (done) {
+    fs.exists('game/js/device-modes.json', function (exists) {
+      var arr;
+      if (!exists) {
+        arr = ['primary', 'gamepad'];
+      } else {
+        arr = require(process.cwd() + '/game/js/device-modes.json');
+      }
+
+      var copyCount = 0;
+
+      function copied () {
+        copyCount += 1;
+        if (copyCount === arr.length) {
+          done();
+        }
+      }
+
+      var i;
+      for(i = 0; i < arr.length; i += 1) {
+        generateDeviceModeFile(arr[i], copied);
+      }
+    });
+  });
+
   gulp.task('generate-entrypoints', [
-    'copy-multi-entry-points', 'copy-single-entry-point'
+    'copy-multi-entry-points', 'copy-single-entry-point', 'copy-device-modes'
   ]);
 
   gulp.task('project:build:code', ['project:prep', 'generate-entrypoints'], function() {

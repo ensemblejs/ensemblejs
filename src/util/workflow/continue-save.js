@@ -6,12 +6,11 @@ var buildContinueSaveJson = require('../json-builders/continue-save');
 var urlBuilder = require('../url-builder');
 var redirectTo = require('../workflow/promise').redirectTo;
 var logger = require('../../logging/server/logger').logger;
-import {supportedDeviceModes} from '../device-mode';
 
 import {hostname} from '../../util/hostname';
-import {includes} from 'lodash';
+import {includes, map} from 'lodash';
 
-function continueSave (savesList, on) {
+function continueSave (project, savesList, on) {
   function loadSaveIfNotLoaded (save) {
     if (!save.loaded) {
       on.loadSave(save);
@@ -19,6 +18,8 @@ function continueSave (savesList, on) {
 
     return save;
   }
+
+  const supportedDeviceModes = map(project.deviceModes, 'name');
 
   return function buildJson (req) {
     const deviceMode = req.query.deviceMode;

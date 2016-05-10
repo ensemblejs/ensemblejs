@@ -1,5 +1,7 @@
 'use strict';
 
+import {filter} from 'lodash';
+
 var post = require('../../util/request-handling').post;
 var get = require('../../util/request-handling').get;
 
@@ -11,18 +13,12 @@ var shareSave = require('../../util/workflow/share-save');
 var joinSave = require('../../util/workflow/join-save');
 var selectDeviceMode = require('../../util/workflow/select-device-mode');
 
-function pickGameView (req) {
-  if (!req.query.deviceMode) {
-    return 'game.pug';
-  }
-  if (req.query.deviceMode === 'gamepad') {
-    return 'gamepad.pug';
-  }
-  if (req.query.deviceMode === 'mobile') {
-    return 'mobile.pug';
-  }
+function pickGameView (project) {
+  return function pickUsingDeviceModes (req) {
+    let deviceMode = filter(project.deviceModes, {name: req.query.deviceMode});
 
-  return 'game.pug';
+    return (deviceMode.length === 0) ? 'game.pug' : deviceMode[0].template;
+  };
 }
 
 module.exports = {
@@ -49,7 +45,7 @@ module.exports = {
         selectDeviceMode(project, savesList()), 'select-device-mode.pug')
       );
       app.get('/saves/:saveId', get(
-        continueSave(savesList(), on()), pickGameView)
+        continueSave(project, savesList(), on()), pickGameView(project))
       );
       app.get('/saves/:saveId/full', get(
         saveIsFull(savesList()), 'full.pug')

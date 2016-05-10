@@ -7,11 +7,8 @@ block content
   .call-to-action
     .label Select device mode
   .group
-    a.box(href=links.displayOnly.uri)
-      img(src="/ensemble/images/site/display-only.png")
-      .label
-        span #{links.displayOnly.name}
-    a.box(href=links.controllerOnly.uri)
-      img(src="/ensemble/images/site/controller-only.png")
-      .label
-        span #{links.controllerOnly.name}
+    each link in links
+      a.box(href=link.uri)
+        img(src=link.icon)
+        .label
+          span #{link.label}

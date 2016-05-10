@@ -12,7 +12,7 @@ var plugins = require('./plugins/plug-n-play').configure(logger, require('../con
 
 plugins.load({ type: 'Config', func: function Config() { return config; }});
 
-var foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'debug'];
+var foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'ui', 'debug'];
 
 each(foldersToLoad, function loadFolder(folder) {
   plugins.loadFrameworkPath(__dirname + '/' + folder + '/shared');
@@ -27,9 +27,16 @@ function runGameAtPath(path) {
   plugins.loadPath(path + '/js/events');
   plugins.loadPath(path + '/js/maps');
 
+  function getDeviceModes (path) {
+    let exists = require('fs').existsSync(path + '/js/device-modes.json');
+
+    return exists ? require(path + '/js/device-modes.json') : require('../config/default-device-modes');
+  }
+
   function publishStartServerEvent(exists) {
     var game = {
       modes: exists ? require(path + '/js/modes.json') : ['default'],
+      deviceModes: getDeviceModes(path),
       id: config.game.id,
       name: config.game.name
     };

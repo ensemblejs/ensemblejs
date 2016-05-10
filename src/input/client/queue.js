@@ -58,6 +58,7 @@ module.exports = {
     }
 
     define()('OnOutgoingClientPacket', HandlePacketLocally);
+    define()('OnIncomingPeerPacket', HandlePacketLocally);
     // define()('OnIncomingPeerPacket', function HandlePacketLocally () {
     //   function packetAlreadyOnQueue (packet) {
     //     return includes(map(inputQueue, 'id'), packet.id);
