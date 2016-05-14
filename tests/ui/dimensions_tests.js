@@ -1,50 +1,945 @@
 'use strict';
 
-var expect = require('expect');
-var window = {
-	innerWidth: 1000,
-	innerHeight: 400
-};
+/* eslint-disable no-magic-numbers */
 
-var config = {
-	client: {
-		aspectRatio: 2.6,
-		widescreenMinimumMargin: 32
-	}
-};
+import expect from 'expect';
+import {defer} from '../support';
 
-var defer = require('../support').defer;
+describe('dimensions', () => {
+	describe('when the aspect ratio is greater than 1', () => {
+		describe('when the minimum margin is less than the margin', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 32
+				}
+			};
 
-var dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
 
-describe('dimensions', function() {
-	it('should get the screen width', function() {
-		expect(dimensions().screenWidth).toBe(1000);
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(384.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(1000);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(385);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(107.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(1560);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(220);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(184.5);
+				});
+			});
+		});
+
+		describe('when the minimum margin has to be enforced', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 200
+				}
+			};
+			let dimensions;
+			const window = {innerWidth: 600, innerHeight: 630};
+
+			beforeEach(function () {
+				dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+			});
+
+			it('should set the screen dimensions', () => {
+				expect(dimensions().screenWidth).toBe(600);
+				expect(dimensions().screenHeight).toBe(630);
+			});
+
+			it('should determine orientation correctly', () => {
+				expect(dimensions().orientation).toBe('portrait');
+			});
+
+			it('should set usable width to the screen width', () => {
+				expect(dimensions().usableWidth).toBe(600);
+			});
+
+			it('should reduce usable height to maintain the aspect ratio', () => {
+				expect(dimensions().usableHeight).toBe(77);
+			});
+
+			it('should calculate the margin', () => {
+				expect(dimensions().margins.x).toBe(0);
+				expect(dimensions().margins.y).toBe(276.5);
+			});
+		});
+
+		describe('when the minimum margin is zero', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 0
+				}
+			};
+
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(384.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(1000);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(385);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(107.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(1560);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(220);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(184.5);
+				});
+			});
+		});
 	});
 
-	it('should get the screen height', function() {
-		expect(dimensions().screenHeight).toBe(400);
+	describe('when the aspect ratio is 1', () => {
+		describe('when the minimum margin is less than the margin', () => {
+			const config = {
+				client: {
+					aspectRatio: 1,
+					widescreenMinimumMargin: 32
+				}
+			};
+
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(200);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(200);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(700);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('square');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(536);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(536);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(32);
+					expect(dimensions().margins.y).toBe(32);
+				});
+			});
+		});
+
+		describe('when the minimum margin has to be enforced', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 200
+				}
+			};
+			let dimensions;
+			const window = {innerWidth: 600, innerHeight: 630};
+
+			beforeEach(function () {
+				dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+			});
+
+			it('should set the screen dimensions', () => {
+				expect(dimensions().screenWidth).toBe(600);
+				expect(dimensions().screenHeight).toBe(630);
+			});
+
+			it('should determine orientation correctly', () => {
+				expect(dimensions().orientation).toBe('portrait');
+			});
+
+			it('should set usable width to the screen width', () => {
+				expect(dimensions().usableWidth).toBe(600);
+			});
+
+			it('should reduce usable height to maintain the aspect ratio', () => {
+				expect(dimensions().usableHeight).toBe(77);
+			});
+
+			it('should calculate the margin', () => {
+				expect(dimensions().margins.x).toBe(0);
+				expect(dimensions().margins.y).toBe(276.5);
+			});
+		});
+
+		describe('when the minimum margin is zero', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 0
+				}
+			};
+
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(384.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(1000);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(385);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(107.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(1560);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(220);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(184.5);
+				});
+			});
+		});
 	});
 
-	it('should determine orientation correctly', function() {
-		expect(dimensions().orientation).toBe('portrait');
+	describe('when the aspect ratio is less than 1', () => {
+		describe('when the minimum margin is less than the margin', () => {
+			const config = {
+				client: {
+					aspectRatio: 0.38,
+					widescreenMinimumMargin: 32
+				}
+			};
+
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(380);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(1000);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(110);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(228);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(386);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(228);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(886);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(228);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(186);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+		});
+
+		describe('when the minimum margin has to be enforced', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 200
+				}
+			};
+			let dimensions;
+			const window = {innerWidth: 600, innerHeight: 630};
+
+			beforeEach(function () {
+				dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+			});
+
+			it('should set the screen dimensions', () => {
+				expect(dimensions().screenWidth).toBe(600);
+				expect(dimensions().screenHeight).toBe(630);
+			});
+
+			it('should determine orientation correctly', () => {
+				expect(dimensions().orientation).toBe('portrait');
+			});
+
+			it('should set usable width to the screen width', () => {
+				expect(dimensions().usableWidth).toBe(600);
+			});
+
+			it('should reduce usable height to maintain the aspect ratio', () => {
+				expect(dimensions().usableHeight).toBe(77);
+			});
+
+			it('should calculate the margin', () => {
+				expect(dimensions().margins.x).toBe(0);
+				expect(dimensions().margins.y).toBe(276.5);
+			});
+		});
+
+		describe('when the minimum margin is zero', () => {
+			const config = {
+				client: {
+					aspectRatio: 2.6,
+					widescreenMinimumMargin: 0
+				}
+			};
+
+			describe('when the screen is taller than it is wide', function () {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 1000};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(1000);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(384.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, less than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 1000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(1000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(1000);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(385);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(107.5);
+				});
+			});
+
+			describe('screen is wider than it is tall, more than aspect', () => {
+				let dimensions;
+				const window = {innerWidth: 2000, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(2000);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('landscape');
+				});
+
+				it('should reduce usable width to meet the aspect ratio', () => {
+					expect(dimensions().usableWidth).toBe(1560);
+				});
+
+				it('should set the usable height', () => {
+					expect(dimensions().usableHeight).toBe(600);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(220);
+					expect(dimensions().margins.y).toBe(0);
+				});
+			});
+
+			describe('when the width equals the height', () => {
+				let dimensions;
+				const window = {innerWidth: 600, innerHeight: 600};
+
+				beforeEach(function () {
+					dimensions = require('../../src/ui/dimensions').func(defer(config), defer(window)).get;
+				});
+
+				it('should set the screen dimensions', () => {
+					expect(dimensions().screenWidth).toBe(600);
+					expect(dimensions().screenHeight).toBe(600);
+				});
+
+				it('should determine orientation correctly', () => {
+					expect(dimensions().orientation).toBe('portrait');
+				});
+
+				it('should set usable width to the screen width', () => {
+					expect(dimensions().usableWidth).toBe(600);
+				});
+
+				it('should reduce usable height to maintain the aspect ratio', () => {
+					expect(dimensions().usableHeight).toBe(231);
+				});
+
+				it('should calculate the margin', () => {
+					expect(dimensions().margins.x).toBe(0);
+					expect(dimensions().margins.y).toBe(184.5);
+				});
+			});
+		});
 	});
 
-	it('should calculate the maximum usable height and width to create a space that will fit preserving aspect ration', function() {
-		expect(dimensions().usableWidth).toBe(1040);
-		expect(dimensions().usableHeight).toBe(336);
-	});
+	describe('when the aspect ratio is "device"', () => {
+		let dimensions;
+		const window = {innerWidth: 1000, innerHeight: 400};
 
-	it('should use the device aspect ratio when instructed', function () {
-		var dimensions = require('../../src/ui/dimensions').func(defer({
-			client: {
-				aspectRatio: 'device',
-				widescreenMinimumMargin: 0
-			}
-		}), defer(window)).get;
+		beforeEach(function () {
+			dimensions = require('../../src/ui/dimensions').func(defer({
+				client: {
+					aspectRatio: 'device',
+					widescreenMinimumMargin: 0
+				}
+			}), defer(window)).get;
+		});
 
-		expect(dimensions().usableWidth).toBe(1000);
-		expect(dimensions().usableHeight).toBe(400);
-		expect(dimensions().ratio).toBe(2.5);
+		it('should use the device aspect ratio', function () {
+
+
+			expect(dimensions().usableWidth).toBe(1000);
+			expect(dimensions().usableHeight).toBe(400);
+			expect(dimensions().ratio).toBe(2.5);
+		});
 	});
 });

@@ -1,6 +1,9 @@
 'use strict';
 
 const UseDeviceAspectRatio = 'device';
+const Landscape = 'landscape';
+const Portrait = 'portrait';
+const Square = 'square';
 
 module.exports = {
   deps: ['Config', 'Window'],
@@ -14,55 +17,83 @@ module.exports = {
       }
     }
 
+    function calculateMargin (actual, usable) {
+      return Math.round(actual - usable) / 2;
+    }
+
+    function determineOrientation (margins) {
+      if (margins.x === margins.y) {
+        return Square;
+      } else {
+        return margins.x > margins.y ? Landscape : Portrait;
+      }
+    }
+
     return {
       get: function get () {
-        var actualWidth = window().innerWidth;
-        var actualHeight = window().innerHeight;
-        var ratio = getRatioAsConfigured();
-        var heightBasedOnWidth = Math.round(actualWidth / ratio);
-        var widthBasedOnHeight = Math.round(actualHeight * ratio);
-        var totalMargin = config().client.widescreenMinimumMargin * 2;
+        const actualWidth = window().innerWidth;
+        const actualHeight = window().innerHeight;
+        const ratio = getRatioAsConfigured();
+        const heightBasedOnWidth = Math.round(actualWidth / ratio);
+        const widthBasedOnHeight = Math.round(actualHeight * ratio);
+        const totalMargin = config().client.widescreenMinimumMargin * 2;
 
-        var usableWidth;
-        var usableHeight;
-        var orientation;
+        let usableWidth;
+        let usableHeight;
 
-        if (heightBasedOnWidth >= actualHeight) {
-          if (widthBasedOnHeight + totalMargin > actualWidth) {
-            usableWidth = actualWidth - totalMargin;
-            usableHeight = heightBasedOnWidth;
-          } else {
-            usableWidth = widthBasedOnHeight;
-            usableHeight = actualHeight;
-          }
+        const isSquare = heightBasedOnWidth === widthBasedOnHeight;
+        const tooHighToFitScreen = heightBasedOnWidth >= actualHeight;
+        const tooHighToFitWithinMargins = heightBasedOnWidth + totalMargin > actualHeight;
+        const tooWideToFitWithinMargings = widthBasedOnHeight + totalMargin > actualWidth;
 
-          orientation = 'landscape';
+        if (isSquare) {
+          usableWidth = actualWidth - totalMargin;
+          usableHeight = actualHeight - totalMargin;
         } else {
-          if (heightBasedOnWidth + totalMargin > actualHeight) {
-            usableWidth = widthBasedOnHeight;
-            usableHeight = actualHeight - totalMargin;
+          if (tooHighToFitScreen) {
+            usableHeight = actualHeight;
+
+            if (tooWideToFitWithinMargings) {
+              const scaledDownWidth = Math.round((actualHeight - totalMargin) / ratio);
+              usableWidth = scaledDownWidth;
+            } else {
+              usableWidth = widthBasedOnHeight;
+            }
           } else {
             usableWidth = actualWidth;
-            usableHeight = heightBasedOnWidth;
-          }
 
-          orientation = 'portrait';
+            if (tooHighToFitWithinMargins) {
+              const scaledDownHeight = Math.round((actualWidth - totalMargin) / ratio);
+              usableHeight = scaledDownHeight;
+            } else {
+              usableHeight = heightBasedOnWidth;
+            }
+          }
         }
 
+        const margins = {
+          x: calculateMargin(actualWidth, usableWidth),
+          y: calculateMargin(actualHeight, usableHeight)
+        };
+
         return {
-          usableWidth: usableWidth,
-          usableHeight: usableHeight,
-          marginSides: Math.round(actualWidth - usableWidth) / 2,
-          marginTopBottom: Math.round(actualHeight - usableHeight) / 2,
-          orientation: orientation,
+          usableWidth,
+          usableHeight,
+          marginSides: margins.x,
+          marginTopBottom: margins.y,
+          margins,
+          orientation: determineOrientation(margins),
           screenWidth: actualWidth,
           screenHeight: actualHeight,
-          ratio: ratio,
+          ratio,
           landscape: function landscape () {
-            return orientation === 'landscape';
+            return orientation === Landscape;
           },
           portrait: function portrait () {
-            return orientation === 'portrait';
+            return orientation === Portrait;
+          },
+          square: function square () {
+            return orientation === Square;
           }
         };
       }
