@@ -37,12 +37,12 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
-					expect(dimensions().usableHeight).toBe(231);
+					expect(dimensions().usableHeight).toBe(167);
 				});
 
 				it('should calculate the margin', () => {
 					expect(dimensions().margins.x).toBe(0);
-					expect(dimensions().margins.y).toBe(384.5);
+					expect(dimensions().margins.y).toBe(416.5);
 				});
 			});
 
@@ -68,12 +68,12 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
-					expect(dimensions().usableHeight).toBe(385);
+					expect(dimensions().usableHeight).toBe(321);
 				});
 
 				it('should calculate the margin', () => {
 					expect(dimensions().margins.x).toBe(0);
-					expect(dimensions().margins.y).toBe(107.5);
+					expect(dimensions().margins.y).toBe(139.5);
 				});
 			});
 
@@ -95,7 +95,7 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable width to meet the aspect ratio', () => {
-					expect(dimensions().usableWidth).toBe(1560);
+					expect(dimensions().usableWidth).toBe(1496);
 				});
 
 				it('should set the usable height', () => {
@@ -103,7 +103,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(220);
+					expect(dimensions().margins.x).toBe(252);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -130,12 +130,12 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
-					expect(dimensions().usableHeight).toBe(231);
+					expect(dimensions().usableHeight).toBe(167);
 				});
 
 				it('should calculate the margin', () => {
 					expect(dimensions().margins.x).toBe(0);
-					expect(dimensions().margins.y).toBe(184.5);
+					expect(dimensions().margins.y).toBe(216.5);
 				});
 			});
 		});
@@ -342,12 +342,12 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
-					expect(dimensions().usableHeight).toBe(600);
+					expect(dimensions().usableHeight).toBe(536);
 				});
 
 				it('should calculate the margin', () => {
 					expect(dimensions().margins.x).toBe(0);
-					expect(dimensions().margins.y).toBe(200);
+					expect(dimensions().margins.y).toBe(232);
 				});
 			});
 
@@ -369,7 +369,7 @@ describe('dimensions', () => {
 				});
 
 				it('should set usable width to the screen width', () => {
-					expect(dimensions().usableWidth).toBe(600);
+					expect(dimensions().usableWidth).toBe(536);
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
@@ -377,7 +377,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(200);
+					expect(dimensions().margins.x).toBe(232);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -400,7 +400,7 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable width to meet the aspect ratio', () => {
-					expect(dimensions().usableWidth).toBe(600);
+					expect(dimensions().usableWidth).toBe(536);
 				});
 
 				it('should set the usable height', () => {
@@ -408,7 +408,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(700);
+					expect(dimensions().margins.x).toBe(732);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -643,7 +643,7 @@ describe('dimensions', () => {
 				});
 
 				it('should set usable width to the screen width', () => {
-					expect(dimensions().usableWidth).toBe(380);
+					expect(dimensions().usableWidth).toBe(316);
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
@@ -651,7 +651,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(110);
+					expect(dimensions().margins.x).toBe(142);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -674,7 +674,7 @@ describe('dimensions', () => {
 				});
 
 				it('should set usable width to the screen width', () => {
-					expect(dimensions().usableWidth).toBe(228);
+					expect(dimensions().usableWidth).toBe(164);
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
@@ -682,7 +682,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(386);
+					expect(dimensions().margins.x).toBe(418);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -705,7 +705,7 @@ describe('dimensions', () => {
 				});
 
 				it('should reduce usable width to meet the aspect ratio', () => {
-					expect(dimensions().usableWidth).toBe(228);
+					expect(dimensions().usableWidth).toBe(164);
 				});
 
 				it('should set the usable height', () => {
@@ -713,7 +713,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(886);
+					expect(dimensions().margins.x).toBe(918);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});
@@ -736,7 +736,7 @@ describe('dimensions', () => {
 				});
 
 				it('should set usable width to the screen width', () => {
-					expect(dimensions().usableWidth).toBe(228);
+					expect(dimensions().usableWidth).toBe(164);
 				});
 
 				it('should reduce usable height to maintain the aspect ratio', () => {
@@ -744,7 +744,7 @@ describe('dimensions', () => {
 				});
 
 				it('should calculate the margin', () => {
-					expect(dimensions().margins.x).toBe(186);
+					expect(dimensions().margins.x).toBe(218);
 					expect(dimensions().margins.y).toBe(0);
 				});
 			});

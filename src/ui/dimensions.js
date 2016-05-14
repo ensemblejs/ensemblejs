@@ -57,7 +57,7 @@ module.exports = {
               const scaledDownWidth = Math.round((actualHeight - totalMargin) / ratio);
               usableWidth = scaledDownWidth;
             } else {
-              usableWidth = widthBasedOnHeight;
+              usableWidth = widthBasedOnHeight - totalMargin;
             }
           } else {
             usableWidth = actualWidth;
@@ -66,7 +66,7 @@ module.exports = {
               const scaledDownHeight = Math.round((actualWidth - totalMargin) / ratio);
               usableHeight = scaledDownHeight;
             } else {
-              usableHeight = heightBasedOnWidth;
+              usableHeight = heightBasedOnWidth - totalMargin;
             }
           }
         }
@@ -87,13 +87,13 @@ module.exports = {
           screenHeight: actualHeight,
           ratio,
           landscape: function landscape () {
-            return orientation === Landscape;
+            return determineOrientation(margins) === Landscape;
           },
           portrait: function portrait () {
-            return orientation === Portrait;
+            return determineOrientation(margins) === Portrait;
           },
           square: function square () {
-            return orientation === Square;
+            return determineOrientation(margins) === Square;
           }
         };
       }
