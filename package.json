@@ -91,7 +91,7 @@
     "clipboard": "^1.5.10",
     "compression": "^1.5.1",
     "connect-flash": "^0.1.1",
-    "cookie-parser": "^1.4.0",
+    "cookie-parser": "^1.4.2",
     "cors": "^2.7.1",
     "cradle": "^0.7.1",
     "deep-equal": "git+https://github.com/distributedlife/node-deep-equal.git",
