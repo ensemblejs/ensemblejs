@@ -6,14 +6,13 @@
 @background-color: #4a4a4a;
 
 body {
-  background-color: @ensemble-dark;
   color: @ensemble-light;
+  background-color: @ensemble-accent;
   margin: 0;
   overflow: hidden;
   padding: 0;
   text-align: center;
   font-family: 'Raleway';
-  padding: 1em;
 }
 
 .button {
@@ -26,16 +25,15 @@ body {
   padding: 10px 20px;
   text-decoration: none;
   text-transform: uppercase;
-  background: @ensemble-accent; 
+  background: @ensemble-accent;
   border: 0 none;
-  color: @ensemble-light;
+  color: @ensemble-white;
 }
 
 .button:hover {
   background: @ensemble-light;
   color: @ensemble-dark;
 }
-
 
 .secondary-button {
   &:extend(.button);
@@ -78,7 +76,6 @@ body {
 
 h1 {
   font-size: 3em;
-  // color: @ensemble-accent;
 }
 
 html:full-screen {
@@ -464,11 +461,11 @@ p {
 
 a.box {
   text-decoration: none;
-  color: @ensemble-light;
+  color: @ensemble-white;
 }
 
 a.box:hover {
-  color: @ensemble-accent;
+  color: @ensemble-light;
 }
 
 .box img {
@@ -494,19 +491,17 @@ a.box:hover {
 
 
 
-
-
 .modal {
   height: 100%;
   left: 0;
   position: fixed;
   top: 0;
   width: 100%;
-  background-color: @ensemble-dark;
+  background-color: @ensemble-accent;
   text-align: center;
 }
 
-.heading {
+.header {
   height: 10%;
   width: 100%;
   display: flex;
@@ -519,21 +514,19 @@ a.box:hover {
   }
 }
 
-.modal {
-  .contents {
-    width: 100%;
-    height: 50%;
-    padding: 5% 0;
-  }
+.contents {
+  width: 100%;
+  height: 50%;
+  padding: 5% 0;
+}
 
-  .options {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    flex: 0;
-  }
+.options {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 0;
 }
 
 .one-option {
@@ -543,12 +536,17 @@ a.box:hover {
 
 p {
   font-size: 1.1rem;
-  color: @ensemble-white;
+  color: @ensemble-dark;
 }
 
 p.label {
   margin-top: 1rem;
   font-style: italic;
+}
+
+p.copy {
+  text-align: center;
+  margin-top: 1rem;
 }
 
 .qr {
@@ -593,19 +591,23 @@ p.label {
   .tap-button-shell;
   .pulse-animation;
 
-  background-color: lighten(@ensemble-accent, 25%);
+  background-color: lighten(@ensemble-dark, 25%);
 }
 
 .tap-button {
   .tap-button-shell;
-  background-color: @ensemble-accent;
+  background-color: @ensemble-dark;
 
   .label {
     top: 1rem;
     position: relative;
 
-    color: @ensemble-dark;
+    color: @ensemble-accent;
 
     font-size: 3em;
+  }
+
+  a {
+    .label;
   }
 }

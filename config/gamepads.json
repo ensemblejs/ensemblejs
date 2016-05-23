@@ -1,5 +1,6 @@
 {
   "debug": {
+    "layout": "gamepad",
     "leftSide": ["left-stick"],
     "rightSide": [
       "face-0", "up", "down", "home", "start-forward", "select-back", "right",
@@ -8,10 +9,8 @@
     "class": "virtual-gamepad"
   },
   "4-way": {
+    "layout": "4-way",
     "leftSide": [
-      "up", "down", "right", "left"
-    ],
-    "rightSide": [
       "up", "down", "right", "left"
     ],
     "class": "virtual-gamepad"

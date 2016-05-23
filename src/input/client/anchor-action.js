@@ -25,7 +25,6 @@ module.exports = {
 
     function handleClickOrTouch (func, value, e) {
       if (!value) {
-        console.log(e);
         logger.warn({value}, 'No action found for AnchorAction');
       }
 
@@ -61,7 +60,7 @@ module.exports = {
 
     function bindToElement (element) {
       if (!includes(supportsInput, deviceMode())) {
-        logger.warn({element: element}, 'AnchorAction add called on display that does not support input');
+        logger.warn({element: element}, 'AnchorAction add called on device that does not support input');
         return;
       }
 

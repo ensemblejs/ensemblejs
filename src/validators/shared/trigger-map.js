@@ -2,6 +2,8 @@
 
 import { each, isArray, isString, isObject, last, filter, includes } from 'lodash';
 
+const Empty = 0;
+
 module.exports = {
   type: 'TriggerMapValidator',
   deps: ['TriggerMap', 'DefinePlugin', 'Logger'],
@@ -13,12 +15,12 @@ module.exports = {
 
     function shouldDefaultToEqualsTrue (source) {
       const keys = filter(Object.keys(source), key => includes(defaultToEqual, key));
-      return keys.length === 0;
+      return keys.length === Empty;
     }
 
     function isMissingCallback (source) {
       const keys = filter(Object.keys(source), key => includes(requiresOneOf, key));
-      return keys.length === 0;
+      return keys.length === Empty;
     }
 
     function validateMap (map) {
@@ -29,7 +31,7 @@ module.exports = {
           sources = map[key];
         }
 
-        if (sources.length === 0) {
+        if (sources.length === Empty) {
           logger().error({key: key}, 'Trigger Map entry must have at least one entry.');
         }
 

@@ -21,10 +21,12 @@ module.exports = {
     }
 
     function show () {
+      $()('#canvas').hide();
       $()('#overlay').hide();
       $()('#share').show();
     }
     function hide () {
+      $()('#canvas').show();
       $()('#overlay').show();
       $()('#share').hide();
     }
