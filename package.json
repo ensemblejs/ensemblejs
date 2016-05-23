@@ -187,7 +187,7 @@
     "jsdom": "^9.1.0",
     "jshint": "^2.9.1-rc2",
     "jshint-stylish": "^2.0.1",
-    "mocha": "^2.2.5",
+    "mocha": "2.4.5",
     "modernizr": "^3.3.1",
     "node-notifier": "^4.5.0",
     "sinon": "^1.15.4"
