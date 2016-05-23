@@ -24,40 +24,31 @@ module.exports = {
     }
 
     function handleClickOrTouch (func, value, e) {
+      if (!value) {
+        console.log(e);
+        logger.warn({value}, 'No action found for AnchorAction');
+      }
+
       func(value);
       e.preventDefault();
       e.stopPropagation();
     }
 
     function addTouchBindings (element) {
-      var action = element.data('action');
+      const action = element.data('action');
 
-      element.on('touchstart', function (e) {
-        handleClickOrTouch(press, action, e);
-      });
-      element.on('touchend', function (e) {
-        handleClickOrTouch(release, action, e);
-      });
-      element.on('touchcancel', function (e) {
-        handleClickOrTouch(release, action, e);
-      });
-      element.on('touchleave', function (e) {
-        handleClickOrTouch(release, action, e);
-      });
+      element.on('touchstart', e => handleClickOrTouch(press, action, e));
+      element.on('touchend', e => handleClickOrTouch(release, action, e));
+      element.on('touchcancel', e => handleClickOrTouch(release, action, e));
+      element.on('touchleave', e => handleClickOrTouch(release, action, e));
     }
 
     function addMouseBindings(element) {
-      var action = element.data('action');
+      const action = element.data('action');
 
-      element.on('mousedown', function (e) {
-        handleClickOrTouch(press, action, e);
-      });
-      element.on('mouseup', function (e) {
-        handleClickOrTouch(release, action, e);
-      });
-      element.on('click', function (e) {
-        handleClickOrTouch(singlePress, action, e);
-      });
+      element.on('mousedown', e => handleClickOrTouch(press, action, e));
+      element.on('mouseup', e => handleClickOrTouch(release, action, e));
+      element.on('click', e => handleClickOrTouch(singlePress, action, e));
     }
 
     function addBindings() {

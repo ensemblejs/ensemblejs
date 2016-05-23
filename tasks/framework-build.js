@@ -4,11 +4,7 @@ var autoprefixer = require('gulp-autoprefixer');
 var rename = require('gulp-rename');
 var flatten = require('gulp-flatten');
 var plumber = require('gulp-plumber');
-var autoprefixer = require('gulp-autoprefixer');
 var cleanCSS = require('gulp-clean-css');
-var rename = require('gulp-rename');
-var flatten = require('gulp-flatten');
-var plumber = require('gulp-plumber');
 var less = require('gulp-less');
 var sourcemaps = require('gulp-sourcemaps');
 

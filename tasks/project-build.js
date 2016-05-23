@@ -11,9 +11,6 @@ var sourcemaps = require('gulp-sourcemaps');
 var through2 = require('through2');
 var path = require('path');
 var less = require('gulp-less');
-var rename = require('gulp-rename');
-var flatten = require('gulp-flatten');
-var plumber = require('gulp-plumber');
 
 var paths = require('./paths');
 var generateEntrypointFile = require('./util/generate-entrypoint-file');

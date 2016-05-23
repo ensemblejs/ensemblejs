@@ -1,8 +1,12 @@
 #share.modal
-  .close.icon
-    img(src="/ensemble/images/site/close.svg", data-action="close-share")
-  .call-to-action
-    Play with friends.
-  #qrcode
-  script(src="/ensemble/js/3rd-party/qrcode.js")
-  script(src="/ensemble/js/util/generate-qrcode.js", data-url=url)
+  .header
+    h1 Add player
+  .contents
+    .qr
+      #qrcode
+      p.label Scan the QR code to join the game.
+  .options
+    .one-option
+      .tap-pulse
+      .tap-button(data-action='close-share')
+        .label ►
