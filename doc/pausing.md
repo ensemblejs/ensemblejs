@@ -1,0 +1,3 @@
+# Pausing
+
+Pausing modes
