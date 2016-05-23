@@ -142,14 +142,14 @@ describe('physics system bridge', function () {
         expect(onElementRemoved.firstCall.args).toEqual(['array.state', removedCallback]);
         expect(onElementRemoved.secondCall.args).toEqual(['array.empty', removedCallback]);
 
-        expect(physicsSystem.added.firstCall.args).toEqual(['2', 'key', 'array.state', undefined]);
-        expect(physicsSystem.added.secondCall.args).toEqual(['2', 'key', 'array.empty', undefined]);
+        expect(physicsSystem.added.firstCall.args).toEqual([2, 'key', 'array.state', undefined]);
+        expect(physicsSystem.added.secondCall.args).toEqual([2, 'key', 'array.empty', undefined]);
 
-        expect(physicsSystem.changed.firstCall.args).toEqual(['2', 'key', 'array.state', undefined]);
-        expect(physicsSystem.changed.secondCall.args).toEqual(['2', 'key', 'array.empty', undefined]);
+        expect(physicsSystem.changed.firstCall.args).toEqual([2, 'key', 'array.state', undefined]);
+        expect(physicsSystem.changed.secondCall.args).toEqual([2, 'key', 'array.empty', undefined]);
 
-        expect(physicsSystem.removed.firstCall.args).toEqual(['2', 'key', 'array.state']);
-        expect(physicsSystem.removed.secondCall.args).toEqual(['2', 'key', 'array.empty']);
+        expect(physicsSystem.removed.firstCall.args).toEqual([2, 'key', 'array.state']);
+        expect(physicsSystem.removed.secondCall.args).toEqual([2, 'key', 'array.empty']);
       });
     });
 
@@ -195,11 +195,11 @@ describe('physics system bridge', function () {
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
-        expect(physicsSystem.added.firstCall.args).toEqual(['2', 'keyA', 'array.state', pluckPosition]);
+        expect(physicsSystem.added.firstCall.args).toEqual([2, 'keyA', 'array.state', pluckPosition]);
 
-        expect(physicsSystem.changed.firstCall.args).toEqual(['2', 'keyA', 'array.state', pluckPosition]);
+        expect(physicsSystem.changed.firstCall.args).toEqual([2, 'keyA', 'array.state', pluckPosition]);
 
-        expect(physicsSystem.removed.firstCall.args).toEqual(['2', 'keyA', 'array.state']);
+        expect(physicsSystem.removed.firstCall.args).toEqual([2, 'keyA', 'array.state']);
 
         expect(physicsSystem.updated.firstCall.args).toEqual([2, 'source.state', pluckPosition]);
 

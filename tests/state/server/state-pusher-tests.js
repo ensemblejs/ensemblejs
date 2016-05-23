@@ -85,7 +85,7 @@ describe('the state pusher', function () {
         push();
 
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
-        expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual(['1', {
+        expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
           saveState: {hi: 'there', altered: true},
           id: 2,
           highestProcessedMessage: undefined,
