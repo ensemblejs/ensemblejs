@@ -22,8 +22,7 @@
     "int": "NODE_ENV=test gulp framework:test:integration",
     "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
     "prepublish": "npm run build && npm run convert",
-    "coverage": "codecov",
-    "posttest": "notify -t \"ensemblejs\" -m \"tests complete\""
+    "coverage": "codecov"
   },
   "author": "Ryan Boucher <ryan.boucher@distributedlife.com> (http://distributedlife.com)",
   "contributors": [
