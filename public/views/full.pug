@@ -1,24 +1,44 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    link(rel="stylesheet", href="/ensemble/css/normalize.min.css")
-    link(rel="stylesheet", href="/ensemble/css/ensemble.min.css")
-    if dashboard || debugMode
-      link(rel="stylesheet", href="/ensemble/css/dashboard.min.css")
-    link(rel="stylesheet", href="/game/css/game.min.css")
-  body
-    .content
-      .game-info
-        a(href="/" alt=game.name)
-          img(src="/game/assets/images/icon64.png")
-        p.title #{game.name}
-      .game-full
-        img(src="/ensemble/images/site/full.svg" alt="Game is full.")
-        p.primary-message Game Full
-        p.secondary-message This game does not support broadcasting to observers.
-        .button
-          a.call-to-action(href="/") Start New Game
-      .credits
-        a(href="http://ensemblejs.com")
-          img(src="/ensemble/images/site/ensemble.png" alt="supported by ensemblejs")
+extends ../layouts/non-game-page.pug
+
+block content
+  include ../partials/full-icon.pug
+  h2 This game is full and does not offer spectator mode.
+  div
+    a(href='modes').button Create New Game
+  div
+    a.secondary-button(href='/') Home
+  //- h1 Modes
+  //- each link in links.length ? links : ['There are no modes for this game.']
+  //-   form(id="the-form", method=link.method, action=link.uri)
+  //-     input(type="hidden", name="mode", value=link.data.mode)
+  //-     a#form-action.button #{link.name}
+
+//- append scripts
+//-   script(src="/ensemble/js/util/anchor-post-form.js")
+
+
+
+//- doctype html
+//- html(lang="en")
+//-   head
+//-     meta(charset="UTF-8")
+//-     link(rel="stylesheet", href="/ensemble/css/normalize.min.css")
+//-     link(rel="stylesheet", href="/ensemble/css/ensemble.min.css")
+//-     if dashboard || debugMode
+//-       link(rel="stylesheet", href="/ensemble/css/dashboard.min.css")
+//-     link(rel="stylesheet", href="/game/css/game.min.css")
+//-   body
+//-     .content
+//-       .game-info
+//-         a(href="/" alt=game.name)
+//-           img(src="/game/assets/images/icon64.png")
+//-         p.title #{game.name}
+//-       .game-full
+//-         img(src="/ensemble/images/site/full.svg" alt="Game is full.")
+//-         p.primary-message Game Full
+//-         p.secondary-message This game does not support broadcasting to observers.
+//-         .button
+//-           a.call-to-action(href="/") Start New Game
+//-       .credits
+//-         a(href="http://ensemblejs.com")
+//-           img(src="/ensemble/images/site/ensemble.png" alt="supported by ensemblejs")

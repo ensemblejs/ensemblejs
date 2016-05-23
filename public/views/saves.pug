@@ -1,11 +1,17 @@
+extends ../layouts/non-game-page.pug
 include ../partials/links.pug
 
-h1 #{game.name}
-p The ensemblejs framework generates this page. If you want your own splash page then you create an saves.pug in your /game/views/pages/ folder. The framework will defer to that folder first and fallback to pre-packaged files.
-H2 Welcome
-h2 Continue A Game
-p You have the following saves in progress
-ul
-  each save in saves.length ? saves : ['You have no saved games.']
-    li
-      +makeLink(save)
+block content
+  h1 #{game.name}
+  h2 Saves
+  if saves.length > 0
+    p You have the following saves in progress
+    each save in saves
+      form(id="the-form", method=save.method, action=save.uri)
+        input(type="hidden", name="mode", value=save.data.mode)
+        a#form-action.button #{save.name}
+  else 
+    p You have no saved games.
+
+append scripts
+  script(src="/ensemble/js/util/anchor-post-form.js")

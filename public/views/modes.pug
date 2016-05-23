@@ -1,0 +1,14 @@
+extends ../layouts/non-game-page.pug
+
+block content
+  h1 Modes
+  div
+    each link in links.length ? links : ['There are no modes for this game.']
+      form(id="the-form", method=link.method, action=link.uri)
+        input(type="hidden", name="mode", value=link.data.mode)
+        a#form-action.button #{link.name}
+  div
+    a(href='/').secondary-button Back
+
+append scripts
+  script(src="/ensemble/js/util/anchor-post-form.js")

@@ -7,12 +7,78 @@
 
 body {
   background-color: @ensemble-dark;
-  color: #fff;
+  color: @ensemble-light;
   margin: 0;
   overflow: hidden;
   padding: 0;
+  text-align: center;
+  font-family: 'Raleway';
+  padding: 1em;
+}
 
-  font-family: 'Cantarell';
+.button {
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
+  font-family: 'Raleway';
+  font-size: 1.2em;
+  margin: 10px;
+  padding: 10px 20px;
+  text-decoration: none;
+  text-transform: uppercase;
+  background: @ensemble-accent; 
+  border: 0 none;
+  color: @ensemble-light;
+}
+
+.button:hover {
+  background: @ensemble-light;
+  color: @ensemble-dark;
+}
+
+
+.secondary-button {
+  &:extend(.button);
+  border: 2px solid @ensemble-light;
+  background: @ensemble-dark;
+  color: @ensemble-light;
+}
+
+.secondary-button:hover {
+  background: @ensemble-light;
+  color: @ensemble-dark;
+}
+
+.logo {
+  height: 300px;
+  width: 300px;
+  margin: -15px;
+  margin-top: -15px;
+  padding: 0px;
+  margin-bottom: -0px;
+  .background {
+    fill: #0e2a36;
+  }
+  .nodes {
+    fill: #00b988;
+  }
+  .play {
+    fill: #e6d8bf;
+  }
+}
+
+.full-icon {
+  .foreground {
+    fill: @ensemble-accent;
+  }
+  width: 13em;
+  margin: 2em;
+
+}
+
+h1 {
+  font-size: 3em;
+  // color: @ensemble-accent;
 }
 
 html:full-screen {
@@ -398,7 +464,7 @@ p {
 
 a.box {
   text-decoration: none;
-  color: @ensemble-white;
+  color: @ensemble-light;
 }
 
 a.box:hover {

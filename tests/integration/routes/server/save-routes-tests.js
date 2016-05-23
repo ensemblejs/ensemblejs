@@ -199,7 +199,7 @@ describe('save routes', () => {
       it('should return the full game page', done => {
         request.get(url(uri), (err, res) => {
           expect(res.statusCode).toEqual(200);
-          expect(res.body).toInclude('Full');
+          expect(res.body).toInclude('full');
           done(err);
         });
       });
