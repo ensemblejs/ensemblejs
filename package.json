@@ -127,7 +127,7 @@
     "gulp-uglify": "^1.5.3",
     "gulp-util": "^3.0.7",
     "helmet-crossdomain": "^0.1.0",
-    "helmet-csp": "^1.0.1",
+    "helmet-csp": "^1.2.0",
     "i18n": "^0.8.1",
     "ienoopen": "^1.0.0",
     "ip": "^1.1.3",
