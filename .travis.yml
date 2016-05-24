@@ -1,7 +1,6 @@
 language: node_js
 os:
 - linux
-- osx
 node_js:
 - '6'
 - '5'
@@ -11,7 +10,8 @@ before_script:
 script: npm test
 after_success:
 - npm run coverage
-compiler: clang-3.6
+compiler:
+  - clang
 env:
 - CXX=clang-3.6
 sudo: false
