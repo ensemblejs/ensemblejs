@@ -26,9 +26,13 @@ module.exports = {
       var delta = (now - priorStep) / 1000;
       priorStep = now;
 
-      frameStore().process(delta, function onEachFrame (frame) {
+      if (delta > 1) {
+        delta = 0;
+      }
+
+      frameStore().process(delta, function onEachFrame (frameDelta) {
         var saveState = state().for(save.id);
-        const opts = [frame.delta, saveState];
+        const opts = [frameDelta, saveState];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
@@ -36,11 +40,10 @@ module.exports = {
           callForModeWithMutation(onFrame(), mutator, save, opts);
         }
       });
-
     }
 
-    function paused (state) {
-      return state.ensemble.paused;
+    function paused (s) {
+      return s.ensemble.paused;
     }
 
     function shouldRunPhysicsEngine () {
@@ -64,7 +67,7 @@ module.exports = {
     }
 
     var ids = [];
-    define('OnDisconnect', function PhysicsLoop () {
+    define('OnDisconnect', function OnDisconnect () {
       return function stopPhysicsLoop () {
         for (let i = 0; i < ids.length; i += 1) {
           clearInterval(ids[i]);
@@ -74,11 +77,10 @@ module.exports = {
       };
     });
 
-    define('InternalState', function PhysicsLoop () {
+    define('InternalState', function InternalState () {
       return {
         PhysicsLoop: {
-          now: function now () { return time().present(); },
-          callRate: function callRate () { return rate.results().rate; }
+          now: () => time().present()
         }
       };
     });

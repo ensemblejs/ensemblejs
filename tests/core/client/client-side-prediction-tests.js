@@ -93,6 +93,7 @@ var frameStore = require('../../../src/core/client/frame-store').func(defer(rawS
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
+onClientStart.push(frameStorePluginDeps.OnClientStart());
 
 function tracking (state) { return state.namespace.tracking; }
 function count (state) { return state.namespace.count; }
@@ -311,7 +312,7 @@ describe('CSP: after on AfterPhysicsFrame', function () {
   });
 });
 
-describe.only('curly scenarios', function () {
+describe('curly scenarios', function () {
   var curlyChanges = sinon.spy();
   var initialState = {
     ensemble: { waitingForPlayers: false },
@@ -319,14 +320,10 @@ describe.only('curly scenarios', function () {
   };
   function curlyCount (state) { return state.curly.count; }
   function curlyInputCallback (state) {
-    console.log('input');
     return { curly: { count: state.for('curly').get('count') + 1 }};
-    // return { curly: { count: state.curly.count + 1 } };
   }
   function curlyLogic (delta, state) {
-    console.log('logic');
     return { curly: { count: state.for('curly').get('count') + 1000 }};
-    // return { curly: { count: state.curly.count + 1000 }};
   }
 
   var onEachFrameSpy = sinon.spy();
@@ -458,7 +455,7 @@ describe.only('curly scenarios', function () {
 
   describe('with new server state', () => {
     var laterState = {
-      highestProcessedMessage: 4,
+      highestProcessedMessage: 3,
       saveState: {
         ensemble: { waitingForPlayers: false },
         curly: { count: 100 }
@@ -475,21 +472,18 @@ describe.only('curly scenarios', function () {
       each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
     });
 
-    it('should discard processed frames', () => {
-      expect(currentState.get(curlyCount)).toEqual(2100);
+    it('should replay all frames since the server state', () => {
+      expect(currentState.get(curlyCount)).toEqual(3101);
       expect(currentServerState.get(curlyCount)).toEqual(100);
-      expect(rawStateAccess.get('client').curly.count).toEqual(2100);
+      expect(rawStateAccess.get('client').curly.count).toEqual(3101);
 
-      expect(onEachFrameSpy.callCount).toEqual(2);
+      expect(onEachFrameSpy.callCount).toEqual(3);
 
       expect(curlyChanges.callCount).toEqual(1);
-      expect(curlyChanges.firstCall.args).toEqual([2100, 5001, undefined]);
+      expect(curlyChanges.firstCall.args).toEqual([3101, 5001, undefined]);
 
       expect(frameStore.current().id).toEqual(6);
     });
-
-    it('should not reprocess frames');
-    it('should process new frames');
   });
 
   it.skip('when server state comes in before beforePhysicsFrame', () => {
@@ -748,5 +742,145 @@ describe.only('curly scenarios', function () {
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.called).toEqual(false);
+  });
+});
+
+describe.only('the pacman problem', function () {
+  const sequenceOfEvents = [
+    {client: {id: 1, delta: 0}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 208}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 2, delta: 0.20908999997377395}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 208}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 3, delta: 0.16518500000238417}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 205.68403079986572}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 205.68403079986572}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 4, delta: 0.16459500002861022}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 191.73009664058685}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 5, delta: 0.14091500002145768}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 191.73009664058685}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 6, delta: 0.3724949999451637}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 191.73009664058685}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 0, saveState: { v: {x: 191.73009664058685}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 7, delta: 0.34306500005722046}},
+    {server: { highestProcessedMessage: 2, saveState: { v: {x: 179.7251378393173}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 2, saveState: { v: {x: 179.7251378393173}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 8, delta: 0.25871499997377395}},
+    {server: { highestProcessedMessage: 3, saveState: { v: {x: 179.7251378393173}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 3, saveState: { v: {x: 179.7251378393173}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 9, delta: 0.18326999998092652}},
+    {server: { highestProcessedMessage: 4, saveState: { v: {x: 168.06166808128356}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 10, delta: 0.162125}},
+    {server: { highestProcessedMessage: 4, saveState: { v: {x: 168.06166808128356}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 11, delta: 0.15427500003576278}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 168.06166808128356}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 168.06166808128356}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 12, delta: 0.194125}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 154.41450152397155}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 13, delta: 0.17720999997854234}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 154.41450152397155}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 14, delta: 0.17524000000953674}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 154.41450152397155}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 154.41450152397155}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 15, delta: 0.19433499997854234}},
+    {server: { highestProcessedMessage: 5, saveState: { v: {x: 154.41450152397155}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 16, delta: 0.22802000004053116}},
+    {server: { highestProcessedMessage: 6, saveState: { v: {x: 139.92333664417265}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 17, delta: 0.2403299999833107}},
+    {server: { highestProcessedMessage: 6, saveState: { v: {x: 139.92333664417265}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 7, saveState: { v: {x: 139.92333664417265}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 18, delta: 0.2073100000023842}},
+    {server: { highestProcessedMessage: 7, saveState: { v: {x: 139.92333664417265}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 19, delta: 0.26683999997377394}},
+    {server: { highestProcessedMessage: 7, saveState: { v: {x: 127.1198571205139}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 20, delta: 0.23996000003814696}},
+    {server: { highestProcessedMessage: 7, saveState: { v: {x: 127.1198571205139}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 8, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 21, delta: 0.27352499997615815}},
+    {server: { highestProcessedMessage: 8, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 22, delta: 0.25806999999284747}},
+    {server: { highestProcessedMessage: 8, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 23, delta: 0.3181100000143051}},
+    {server: { highestProcessedMessage: 10, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 10, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 24, delta: 0.29867500001192093}},
+    {server: { highestProcessedMessage: 10, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 25, delta: 0.31721499997377395}},
+    {server: { highestProcessedMessage: 10, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 26, delta: 0.30586500000953676}},
+    {server: { highestProcessedMessage: 11, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 11, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 27, delta: 0.36617500001192094}},
+    {server: { highestProcessedMessage: 12, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 28, delta: 0.3467949999570847}},
+    {server: { highestProcessedMessage: 12, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 29, delta: 0.38554000002145766}},
+    {server: { highestProcessedMessage: 12, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 12, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 30, delta: 0.2090799999833107}},
+    {server: { highestProcessedMessage: 13, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 31, delta: 0.3151700000166893}},
+    {server: { highestProcessedMessage: 13, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {client: {id: 32, delta: 0.302125}},
+    {server: { highestProcessedMessage: 13, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}},
+    {server: { highestProcessedMessage: 13, saveState: { v: {x: 114.50135264396665}, ensemble: { waitingForPlayers: false }}}}
+  ];
+
+  var vxChanges = sinon.spy();
+  var initialState = {
+    ensemble: { waitingForPlayers: false },
+    v: {x: 208}
+  };
+  function vx (state) { return state.v.x; }
+  function moveX (delta, state) {
+    const c = state.for('v').get('x');
+
+    return ['v.x', c + (-80 * delta)];
+  }
+
+  before(() => {
+    each(onClientStart, callback => callback(initialState));
+
+    onPhysicsFrame.push(moveX);
+
+    tracker.onChangeOf('v.x', vxChanges);
+  });
+
+  beforeEach(function () {
+    vxChanges.reset();
+  });
+
+  function processFrame (delta) {
+    each(beforePhysicsFrame, f => {
+      mutator('client', f(delta, stateAccess.for('client')));
+    });
+    each(onPhysicsFrame, f => {
+      mutator('client', f(delta, stateAccess.for('client')));
+    });
+  }
+
+  it('should iterate through the frames', () => {
+    sequenceOfEvents.forEach(event => {
+      if (event.client) {
+        const delta = event.client.delta;
+        frameStore.process(delta, processFrame);
+        each(afterPhysicsFrame, f => f(delta, stateAccess.for('client')));
+      }
+
+      if (event.server) {
+        console.log('---');
+        // console.log('client', currentState.get(vx));
+        on.incomingServerPacket(event.server);
+        // console.log('server', currentServerState.get(vx));
+      }
+    });
+
+    expect(currentState.get(vx)).toEqual(1000);
+    expect(currentServerState.get(vx)).toEqual(0);
+    expect(rawStateAccess.get('client').curly.count).toEqual(1000);
+
+    expect(vxChanges.callCount).toEqual(1);
+    expect(vxChanges.firstCall.args).toEqual([1000, 0, undefined]);
+
+    expect(frameStore.current().id).toEqual(1);
   });
 });

@@ -55,7 +55,7 @@ module.exports = {
 						suitableActions = filter(suitableActions, 'whenWaiting');
 					}
 
-					each(suitableActions, function(action) {
+					each(suitableActions, function (action) {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
 							logger.debug({key: 'nothing'}, 'ActionMap called');
 
@@ -69,7 +69,6 @@ module.exports = {
 
 				function createOnMatchingCallback (callback) {
 					return function onMatchingActionMap (currentInput, key, action, inputData) {
-
 						if (action.ack) {
 							return;
 						}
@@ -77,9 +76,9 @@ module.exports = {
 						logger.debug({key: key}, 'ActionMap called');
 
 						mutate()(
-				      currentInput.save.id,
-				      callback(action.call, action.noEventKey, inputData)
-				    );
+							currentInput.save.id,
+							callback(action.call, action.noEventKey, inputData)
+						);
 					};
 				}
 
@@ -105,25 +104,22 @@ module.exports = {
 					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 
-					lowestInputProcessed[currentInput.save.id] = currentInput.rawData.clientFrame;
-				}
 
-				if (userInput.length > lengthOfInputStackAtStart) {
-					logger.warn('More input was received than processed.');
+					lowestInputProcessed[currentInput.save.id] = currentInput.rawData.clientFrame;
 				}
 			};
 		});
 
 		define()('LowestInputProcessed', function LowestInputProcessed () {
 			return function getFor (saveId) {
-				return lowestInputProcessed[saveId];
+				return lowestInputProcessed[saveId] || 0;
 			};
 		});
 
 		define()('InternalState', function () {
 			return {
 				OnInput: {
-					queueLength: function () { return userInput.length; },
+					queueLength: function () { return userInput.length; }
 				}
 			};
 		});

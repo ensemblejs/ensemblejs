@@ -174,12 +174,7 @@ module.exports = {
     };
 
     function detectChangesAndNotifyObservers () {
-      each(changes, function (change) {
-        handle[change.type](change);
-      });
-      // for (let i = 0; i < changes.length; i += 1) {
-      //   handle[changes[i].type](changes[i]);
-      // }
+      each(changes, change => handle[change.type](change));
     }
 
     function updateState (newState) {
@@ -196,47 +191,36 @@ module.exports = {
       nextServerState = clone(serverState);
     }
 
-    function resetRawStateBackToLatestServer (rawState) {
-      if (nextServerState !== undefined) {
-        // latestServerState = clone(nextServerState);
-        rawState.resetTo(clone(nextServerState));
-
-        nextServerState = undefined;
-      }
-    }
-
-    define()('OnClientStart', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
         saveInitialServerState(state);
-        resetRawStateBackToLatestServer(rawState());
+        rawState().resetTo(clone(state));
         updateState(rawState().get());
       };
     });
 
-    define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());
         detectChangesAndNotifyObservers();
-        // resetRawStateBackToLatestServer(rawState());
       };
     });
 
-    define()('OnIncomingServerPacket', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
       return function storeLatestServerState (packet) {
         saveLatestServerState(packet.saveState);
-        resetRawStateBackToLatestServer(rawState());
       };
     });
 
-    define()('CurrentState', function StateTracker () {
+    define()('CurrentState', () => {
       return {
-        get: function get (model) { return currentValue(model); }
+        get: currentValue
       };
     });
 
-    define()('CurrentServerState', function StateTracker () {
+    define()('CurrentServerState', () => {
       return {
-        get: function get (model) { return currentServerValue(model); }
+        get: currentServerValue
       };
     });
 
@@ -270,12 +254,12 @@ module.exports = {
 
     function functionifyIfRequired (condition) {
       if (!isFunction(condition)) {
-        return function equals (currentValue) {
-          return deepEqual(currentValue, condition);
+        return function equals (current) {
+          return deepEqual(current, condition);
         };
-      } else {
-        return condition;
       }
+
+      return condition;
     }
 
     function onChangeTo (model, condition, callback, data) {
