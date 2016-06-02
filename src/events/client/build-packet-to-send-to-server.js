@@ -14,9 +14,7 @@ module.exports = {
     let deviceNumber;
 
     function mergeArrays (a, b) {
-      if (isArray(a)) {
-        return a.concat(b);
-      }
+      return isArray(a) ? a.concat(b) : undefined;
     }
 
     function paused (state) { return state.ensemble.paused; }
@@ -27,7 +25,12 @@ module.exports = {
       }
 
       let packet = {
-        pendingAcks: clientAcknowledgements().flush(),
+        id: sequence.next('client-input'),
+        deviceNumber: deviceNumber,
+        playerId: playerId,
+        timestamp: time().present(),
+        clientFrame: frameStore().current().id,
+        pendingAcks: clientAcknowledgements().flush()
       };
 
       const getCurrentState = inputCaptureMethods();
@@ -37,12 +40,6 @@ module.exports = {
           merge(packet, state, mergeArrays);
         }
       }
-
-      packet.id = sequence.next('client-input');
-      packet.deviceNumber = deviceNumber;
-      packet.playerId = playerId;
-      packet.timestamp = time().present();
-      packet.clientFrame = frameStore().current().id;
 
       return packet;
     }

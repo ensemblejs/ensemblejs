@@ -1,6 +1,6 @@
 'use strict';
 
-import { each, cloneDeep, reject } from 'lodash';
+import { each, reject } from 'lodash';
 
 var sequence = require('distributedlife-sequence');
 var config = require('../../util/config');
@@ -13,19 +13,15 @@ module.exports = {
     var intervals = [];
 
     function start (save, socket) {
-      var lastPacket = {};
       var id;
 
       function updateClient () {
         var packet = {
+          id: sequence.next('server-origin-messages'),
+          timestamp: time().present(),
           highestProcessedMessage: lowestInputProcessed()(save.id),
           saveState: rawStateAccess().changes(save.id)
         };
-
-        lastPacket = cloneDeep(packet);
-
-        packet.id = sequence.next('server-origin-messages');
-        packet.timestamp = time().present();
 
         on().outgoingServerPacket(socket.id, packet);
       }
@@ -37,8 +33,6 @@ module.exports = {
 
       define()('OnClientDisconnect', function OnClientDisconnect () {
         return function resetLastPacketSentAndStopPushing () {
-          lastPacket = {};
-
           clearInterval(id);
           intervals = reject(intervals, (interval) => interval === id);
         };

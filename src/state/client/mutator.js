@@ -66,7 +66,7 @@ module.exports = {
               },
               unwrap: function (key) {
                 return accessAndCloneState(root[namespace], key);
-              },
+              }
             };
           },
           player: function forPlayer (playerId) {
@@ -78,7 +78,7 @@ module.exports = {
                   },
                   unwrap: function (key) {
                     return accessAndCloneState(root, genKey(playerId, namespace, key));
-                  },
+                  }
                 };
               },
               get: function get (key) {
@@ -86,7 +86,7 @@ module.exports = {
               },
               unwrap: function (key) {
                 return accessAndCloneState(root, genKey(playerId, key));
-              },
+              }
             };
           }
         };
@@ -187,7 +187,7 @@ module.exports = {
       '!': applyReplaceAction
     };
 
-    applyResult = function applyResult (saveId, dotString, value) {
+    applyResult = function (saveId, dotString, value) {
       let modifierSymbol = dotString[dotString.length - 1];
       var dotStringSansModifier = dotString.split(modifierSymbol)[0];
 
@@ -237,7 +237,7 @@ module.exports = {
       }
     }
 
-    mutate = function mutate (saveId, result) {
+    mutate = function (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
