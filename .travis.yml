@@ -11,19 +11,17 @@ script: npm test
 after_success:
 - npm run coverage
 compiler:
-  - clang
+  - g++
 env:
-- CXX=clang-3.6
+- CXX=g++-4.8
 sudo: false
 services:
   - couchdb
 addons:
   apt:
     sources:
-    - llvm-toolchain-precise-3.6
     - ubuntu-toolchain-r-test
     packages:
-    - clang-3.6
     - g++-4.8
 notifications:
   slack:
