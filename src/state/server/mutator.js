@@ -1,10 +1,11 @@
 'use strict';
 
-import {isObject, isArray, isString, isEqual, cloneDeep, mergeWith as merge, each, filter, get, set, includes, replace, map, reject, isEmpty, isFunction} from 'lodash';
+import {isObject, isArray, isString, isEqual, mergeWith as merge, each, filter, get, set, includes, replace, map, reject, isEmpty, isFunction} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
 import {read} from '../../util/dot-string-support';
+const { clone } = require('../../util/fast-clone');
 
 import Bluebird from 'bluebird';
 
@@ -78,7 +79,7 @@ module.exports = {
       var prop = readAndWarnAboutMissingState(node, key);
 
       if (isObject(prop)) {
-        return cloneDeep(prop);
+        return clone(prop);
       } else {
         return prop;
       }

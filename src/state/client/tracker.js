@@ -2,22 +2,22 @@
 
 import {each, isString, isFunction, find} from 'lodash';
 import {read} from '../../util/dot-string-support';
-import clone from '../../util/fast-clone';
 import {getById} from '../../util/array';
 import deepEqual from 'deep-equal';
 import {isArray} from '../../util/is';
+const { clone } = require('../../util/fast-clone');
 
 module.exports = {
   type: 'StateTracker',
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
-    var nextServerState;
-    var priorState;
-    var currentState;
-    var changes = [];
+    let nextServerState;
+    let priorState;
+    let currentState;
+    let changes = [];
 
     function invokeCallback (callback, currentModel, priorModel, data) {
-      var args = isArray(data) ? [].concat(data) : [data];
+      let args = isArray(data) ? [].concat(data) : [data];
 
       args.unshift(priorModel);
       args.unshift(currentModel);
@@ -30,7 +30,7 @@ module.exports = {
     }
 
     function invokeCallbackWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
-      var args = isArray(data) ? [].concat(data) : [data];
+      let args = isArray(data) ? [].concat(data) : [data];
 
       if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);
@@ -112,8 +112,8 @@ module.exports = {
     function elementChanged (f, model) {
       if (priorState === undefined) { return true; }
 
-      var current = getById(f(currentState), model.id);
-      var prior = getById(f(priorState), model.id);
+      let current = getById(f(currentState), model.id);
+      let prior = getById(f(priorState), model.id);
 
       return !deepEqual(current, prior);
     }
@@ -168,7 +168,7 @@ module.exports = {
       });
     }
 
-    var handle = {
+    let handle = {
       'array': handleArrays,
       'object': handleObjects
     };
@@ -193,6 +193,7 @@ module.exports = {
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
+        console.log(state);
         saveInitialServerState(state);
         rawState().resetTo(clone(state));
         updateState(rawState().get());
@@ -230,9 +231,9 @@ module.exports = {
       }
 
       return function stateFromDotString (state) {
-        var prop = read(state, model);
+        let prop = read(state, model);
         if (prop === undefined) {
-          logger().warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          logger().warn({ model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
         }
 
         return prop;
@@ -240,7 +241,7 @@ module.exports = {
     }
 
     function onChangeOf (model, callback, data) {
-      var change = {
+      let change = {
         type: 'object',
         originalFocus: model,
         focus: functionifyDotStrings(model),
@@ -263,9 +264,9 @@ module.exports = {
     }
 
     function onChangeTo (model, condition, callback, data) {
-      var when = functionifyIfRequired(condition);
+      let when = functionifyIfRequired(condition);
 
-      var change = {
+      let change = {
         type: 'object',
         originalFocus: model,
         focus: functionifyDotStrings(model),
@@ -287,7 +288,7 @@ module.exports = {
     }
 
     function onElementChanged (focusArray, callback, data) {
-      var change = {
+      let change = {
         type: 'array',
         originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
@@ -302,7 +303,7 @@ module.exports = {
     }
 
     function onElementAdded (focusArray, onCallback, data) {
-      var change = {
+      let change = {
         type: 'array',
         originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
@@ -319,7 +320,7 @@ module.exports = {
     }
 
     function onElementRemoved (focusArray, callback, data) {
-      var change = {
+      let change = {
         type: 'array',
         originalFocus: focusArray,
         focus: functionifyDotStrings(focusArray),
@@ -339,13 +340,6 @@ module.exports = {
       onElementRemoved(focusArray, removed, data);
     }
 
-    return {
-      onChangeOf: onChangeOf,
-      onChangeTo: onChangeTo,
-      onElement: onElement,
-      onElementChanged: onElementChanged,
-      onElementAdded: onElementAdded,
-      onElementRemoved: onElementRemoved
-    };
+    return { onChangeOf, onChangeTo, onElement, onElementChanged, onElementAdded, onElementRemoved };
   }
 };
