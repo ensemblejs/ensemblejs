@@ -5,7 +5,7 @@ var cradle = Bluebird.promisifyAll(require('cradle'));
 var logger = require('../logging/server/logger').logger;
 import uuid from 'node-uuid';
 import config from './config';
-import clone from './fast-clone';
+const { clone } = require('./fast-clone');
 
 cradle.setup({
   host: config.get().database.host,

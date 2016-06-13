@@ -2,7 +2,7 @@
 
 import {isObject, isEqual, isString, mergeWith as merge, filter, set, reject, map, includes, replace, isEmpty, isFunction} from 'lodash';
 import define from '../../plugins/plug-n-play';
-import clone from '../../util/fast-clone';
+const { clone } = require('../../util/fast-clone');
 import {read} from '../../util/dot-string-support';
 import {isArray} from '../../util/is';
 

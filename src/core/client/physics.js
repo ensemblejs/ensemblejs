@@ -73,6 +73,8 @@ module.exports = {
           clearInterval(ids[i]);
         }
 
+        frameStore().reset();
+
         ids = [];
       };
     });

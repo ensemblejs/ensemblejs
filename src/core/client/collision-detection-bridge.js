@@ -1,7 +1,8 @@
 'use strict';
 
 let forEachMode = require('../../util/modes').forEachMode;
-import {clone, reject, isUndefined} from 'lodash';
+const { clone } = require('../../util/fast-clone');
+import {reject, isUndefined} from 'lodash';
 
 module.exports = {
   type: 'CollisionDetectionBridge',

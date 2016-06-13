@@ -87,7 +87,7 @@ describe('the state pusher', function () {
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
           saveState: {hi: 'there', altered: true},
-          id: 2,
+          id: 6,
           highestProcessedMessage: undefined,
           timestamp: 1000
         }]);
@@ -98,7 +98,7 @@ describe('the state pusher', function () {
 
         push();
 
-        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(3);
+        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(7);
       });
 
       it('should record the sent time of each packet', function () {

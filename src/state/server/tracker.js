@@ -1,7 +1,8 @@
 'use strict';
 
-import {each, isArray, isString, isEqual, isFunction, cloneDeep, filter, find} from 'lodash';
+import {each, isArray, isString, isEqual, isFunction, filter, find} from 'lodash';
 import {read} from '../../util/dot-string-support';
+const { clone } = require('../../util/fast-clone');
 
 var logger = require('../../logging/server/logger').logger;
 
@@ -172,7 +173,7 @@ module.exports = {
 
       return function takeLatestCopyOfRawState () {
         priorState = currentState;
-        currentState = cloneDeep(rawState().all(), true);
+        currentState = clone(rawState().all(), true);
         detectChangesAndNotifyObservers();
       };
     });

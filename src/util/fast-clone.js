@@ -1,6 +1,6 @@
 'use strict';
 
-export default function clone (thing) {
+export function clone (thing) {
   if (thing === undefined) {
     return undefined;
   }

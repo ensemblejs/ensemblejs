@@ -1,6 +1,6 @@
 'use strict';
 
-var clone = require('lodash').clone;
+const { clone } = require('../../util/fast-clone');
 
 module.exports = {
   type: 'ClientAcknowledgements',
