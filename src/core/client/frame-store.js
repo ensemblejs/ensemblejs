@@ -6,8 +6,8 @@ const { clone } = require('../../util/fast-clone');
 
 module.exports = {
   type: 'FrameStore',
-  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time'],
-  func: function FrameStore (rawState, queue, define, time) {
+  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time', 'DeviceMode'],
+  func: function FrameStore (rawState, queue, define, time, mode) {
     let fromServer;
     let frames = [];
     let inputForNextFrame = [];
@@ -64,7 +64,7 @@ module.exports = {
           // timestamp: time().present(), absolute or relative to start?
           save: {
             id: 'client',
-            mode: 'default' // TODO: mode()
+            mode: mode()
           }
         });
       };
