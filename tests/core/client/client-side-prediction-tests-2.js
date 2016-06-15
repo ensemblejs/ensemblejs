@@ -3,16 +3,13 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var each = require('lodash').each;
-const numeral = require('numeral');
 
 var logger = require('../../fake/logger');
 import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
 
-let sequenceCounter = 1;
 let sequence = require('distributedlife-sequence');
-sequence.next = () => sequenceCounter++;
 
 var config = {
   client: {
@@ -34,16 +31,6 @@ var trackerPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var frameStorePlugins = require('../../support').plugin();
-
-var profiler = {
-  timer: function () {
-    return {
-      track: function(f) {
-        f();
-      }
-    };
-  }
-};
 
 var onClientStart = [];
 var onOutgoingClientPacket = [];
@@ -68,7 +55,6 @@ var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(d
 
 var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
-var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
 var currentServerState = trackerPluginsDeps.CurrentServerState();
@@ -77,23 +63,11 @@ onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawS
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
 
-var clientState = {
-  get: function () {return false;}
-};
-
-var serverState = {
-  get: function () {return false;}
-};
-
-
 var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime));
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
-
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
-var stopPhysicsEngine = plugin('OnDisconnect');
 
 describe('curly scenarios', function () {
   var curlyChanges = sinon.spy();
@@ -110,8 +84,14 @@ describe('curly scenarios', function () {
   }
 
   var onEachFrameSpy = sinon.spy();
+  let next;
 
   before(() => {
+    next = sinon.stub(sequence, 'next');
+    for (let i = 0; i < 15; i++) {
+      next.onCall(i).returns(i + 1);
+    }
+
     each(onClientStart, callback => callback(initialState));
     each(onClientStart, callback => callback(initialState));
 
@@ -125,6 +105,10 @@ describe('curly scenarios', function () {
   beforeEach(function () {
     onEachFrameSpy.reset();
     curlyChanges.reset();
+  });
+
+  after(() => {
+    next.restore();
   });
 
   it('should have a known base line', () => {

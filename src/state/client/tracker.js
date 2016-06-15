@@ -193,7 +193,6 @@ module.exports = {
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
-        console.log(state);
         saveInitialServerState(state);
         rawState().resetTo(clone(state));
         updateState(rawState().get());

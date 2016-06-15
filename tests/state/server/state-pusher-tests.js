@@ -6,11 +6,10 @@ var makeTestible = require('../../support').makeTestible;
 var fakeOn = require('../../fake/on');
 var each = require('lodash');
 var logger = require('../../fake/logger');
-var fakeOn = require('../../fake/on');
 var fakeTime = require('../../fake/time').at(1000);
 
 var saveState = {
-  hi: 'there',
+  hi: 'there'
 };
 
 describe('the state pusher', function () {
@@ -30,7 +29,7 @@ describe('the state pusher', function () {
       Logger: logger,
       LowestInputProcessed: sinon.spy(),
       On: fakeOn,
-      Time: fakeTime,
+      Time: fakeTime
     });
 
     start = module[0].start;
@@ -87,7 +86,7 @@ describe('the state pusher', function () {
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
           saveState: {hi: 'there', altered: true},
-          id: 6,
+          id: 2,
           highestProcessedMessage: undefined,
           timestamp: 1000
         }]);
@@ -98,7 +97,7 @@ describe('the state pusher', function () {
 
         push();
 
-        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(7);
+        expect(fakeOn.outgoingServerPacket.firstCall.args[1].id).toEqual(3);
       });
 
       it('should record the sent time of each packet', function () {
