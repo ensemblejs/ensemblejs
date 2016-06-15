@@ -50,14 +50,11 @@ var objState = {
       {id: 2, position: { x: 43, y: 23}}
     ]
   }
-}
+};
 var stateAccess = {
   for: function () {
     return {
-      unwrap: function (key) {
-        console.log(key);
-        return isFunction(key) ? key(objState) : state[key];
-      }
+      unwrap: (key) => isFunction(key) ? key(objState) : state[key]
     };
   }
 };
@@ -120,8 +117,8 @@ describe('physics system bridge', function () {
         return thing.position;
       }
 
-      function lens (state) {
-        return [state.array.state[0].position];
+      function lens (s) {
+        return [s.array.state[0].position];
       }
 
       beforeEach(function () {
@@ -175,7 +172,7 @@ describe('physics system bridge', function () {
     describe('a physics map with a source key that points to an array', function () {
       beforeEach(function () {
         var physicsMap = ['*', {
-          'key': ['array.state', 'array.empty'],
+          'key': ['array.state', 'array.empty']
         }];
 
         var bridge = makeTestible('core/client/physics-system-bridge', {

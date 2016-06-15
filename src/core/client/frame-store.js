@@ -1,20 +1,20 @@
 'use strict';
 
 const { each, reject, last, map } = require('lodash');
-const { next } = require('distributedlife-sequence');
+const sequence = require('distributedlife-sequence');
 const { clone } = require('../../util/fast-clone');
 
 module.exports = {
   type: 'FrameStore',
   deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time'],
   func: function FrameStore (rawState, queue, define, time) {
-    let fromServer = undefined;
+    let fromServer;
     let frames = [];
     let inputForNextFrame = [];
 
     function add (delta) {
       frames.push({
-        id: next('frame'),
+        id: sequence.next('frame'),
         delta,
         timestamp: time().present(),
         input: inputForNextFrame,
@@ -90,7 +90,7 @@ module.exports = {
 
     function reset () {
       frames = [];
-      fromServer = undefined;
+      fromServer = null;
       inputForNextFrame = [];
     }
 

@@ -10,10 +10,6 @@ import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
 
-let sequenceCounter = 1;
-let sequence = require('distributedlife-sequence');
-sequence.next = () => sequenceCounter++;
-
 var config = {
   client: {
     clientSidePrediction: true,
@@ -29,21 +25,13 @@ define('Time', function Time () {
   return fakeTime;
 });
 
+let sequence = require('distributedlife-sequence');
+
 var defer = require('../../support').defer;
 var trackerPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var frameStorePlugins = require('../../support').plugin();
-
-var profiler = {
-  timer: function () {
-    return {
-      track: function(f) {
-        f();
-      }
-    };
-  }
-};
 
 var onClientStart = [];
 var onOutgoingClientPacket = [];
@@ -57,7 +45,6 @@ var dimensions = {};
 
 var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
-// afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
 
@@ -69,7 +56,6 @@ var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(d
 
 var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
-var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
 var currentServerState = trackerPluginsDeps.CurrentServerState();
@@ -78,23 +64,11 @@ onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawS
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
 
-var clientState = {
-  get: function () {return false;}
-};
-
-var serverState = {
-  get: function () {return false;}
-};
-
-
 var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime));
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
-
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
-var stopPhysicsEngine = plugin('OnDisconnect');
 
 describe('the pacman problem', function () {
   const sequenceOfEvents = [
@@ -200,7 +174,14 @@ describe('the pacman problem', function () {
     return ['v.x', c + (-80 * delta)];
   }
 
+  let next;
+
   before(() => {
+    next = sinon.stub(sequence, 'next');
+    for (let i = 0; i < 15; i++) {
+      next.onCall(i).returns(i + 1);
+    }
+
     frameStore.reset();
 
     each(onClientStart, callback => callback(initialState));
@@ -208,6 +189,10 @@ describe('the pacman problem', function () {
     onPhysicsFrame.push(moveX);
 
     tracker.onChangeOf('v.x', vxChanges);
+  });
+
+  after(() => {
+    next.restore();
   });
 
   function processFrame (delta) {
@@ -230,7 +215,7 @@ describe('the pacman problem', function () {
 
           frameStore.process(delta, processFrame);
 
-          vxChanges.reset()
+          vxChanges.reset();
           each(afterPhysicsFrame, f => f(delta, stateAccess.for('client')));
         });
 
@@ -249,13 +234,11 @@ describe('the pacman problem', function () {
         });
 
         it('should emit state change events', () => {
-          console.log(vxChanges.callCount);
-          console.log(expected.changes);
           expect(vxChanges.callCount).toEqual(expected.changes.length);
 
           expected.changes.forEach((change, i) => {
             expect(vxChanges.getCall(i).args).toEqual(change);
-          })
+          });
         });
 
         it('should have the correct frame count', () => {

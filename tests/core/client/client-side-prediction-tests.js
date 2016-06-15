@@ -3,16 +3,13 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var each = require('lodash').each;
-const numeral = require('numeral');
 
 var logger = require('../../fake/logger');
 import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
 
-let sequenceCounter = 1;
 let sequence = require('distributedlife-sequence');
-sequence.next = () => sequenceCounter++;
 
 var config = {
   client: {
@@ -35,16 +32,6 @@ var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var frameStorePlugins = require('../../support').plugin();
 
-var profiler = {
-  timer: function () {
-    return {
-      track: function(f) {
-        f();
-      }
-    };
-  }
-};
-
 var onClientStart = [];
 var onOutgoingClientPacket = [];
 var onIncomingServerPacket = [];
@@ -55,7 +42,7 @@ var actionMap = [];
 var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
 var dimensions = {};
 
-var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
+require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 // afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
@@ -72,7 +59,6 @@ var on = require('../../../src/events/shared/on').func(defer(mutator), defer(sta
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
-var currentServerState = trackerPluginsDeps.CurrentServerState();
 onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
 onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
@@ -119,7 +105,14 @@ function gameLogic (delta, state) {
 }
 
 describe('CSP: after on AfterPhysicsFrame', function () {
+  let next;
+
   beforeEach(function () {
+    next = sinon.stub(sequence, 'next');
+    for (let i = 0; i < 5; i++) {
+      next.onCall(i).returns(i + 1);
+    }
+
     var initialState = {
       ensemble: { waitingForPlayers: false },
       namespace: {
@@ -131,6 +124,10 @@ describe('CSP: after on AfterPhysicsFrame', function () {
     each(onClientStart, function (callback) {
       callback(initialState);
     });
+  });
+
+  afterEach(() => {
+    next.restore();
   });
 
   describe('when no input or logic', function () {
