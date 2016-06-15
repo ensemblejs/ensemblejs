@@ -1,7 +1,5 @@
 'use strict';
 
-//jshint browser:true
-
 var logging = require('./logging/client/logger');
 var Bluebird = require('bluebird');
 var request = Bluebird.promisifyAll(require('request'));
@@ -15,7 +13,7 @@ var plugins = require('./plugins/plug-n-play').configure(logging.logger, require
 
 plugins.set('Window', window);
 plugins.set('Modernizr', Modernizr);
-plugins.set('DeviceMode', deviceMode || 'observer');//jshint ignore:line
+plugins.set('DeviceMode', deviceMode || 'observer');//eslint ignore:line
 plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
 function getConfig(response) {
@@ -23,7 +21,7 @@ function getConfig(response) {
     type: 'Config',
     func: function Config() {
       var config = JSON.parse(response.body);
-      config.nothing = function nothing() {};
+      config.nothing = function nothing() { return; };
 
       return config;
     }
@@ -84,7 +82,7 @@ function loadDefaults() {
 export function run() {
   logging.logger.info(`ensemblejs@${packageInfo.version} client started.`);
 
-  request.getAsync(plugins.get('ServerUrl') + '/config')
+  request.getAsync(`${plugins.get('ServerUrl')}/config`)
     .then(getConfig)
     .then(setLogLevel)
     .then(loadDefaults)

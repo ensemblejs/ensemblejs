@@ -32,23 +32,15 @@ module.exports = {
 
       patch(socket);
 
-      function emit (name, ...args) {
-        // logger.info(` ensemblejs:socket-emit:${name}`);
-        socket.emit(name, ...args);
-      }
-
       var saveId = last(window().location.pathname.split('/'));
       set('SaveId', saveId);
-      emit('saveId', saveId);
+      socket.emit('saveId', saveId);
 
       socket.on('startTime', function setServerOffset (serverOffset) {
         time().setOffset(serverOffset - time().present());
       });
 
-      socket.on('connect', function connect () {
-        on().connect('client', mode());
-      });
-
+      socket.on('connect', () => on().connect('client', mode()));
       socket.on('disconnect', disconnect);
 
       socket.on('playerNumber', function savePlayerId (playerNumber) {
@@ -79,7 +71,7 @@ module.exports = {
         logger.info('Heartbeat received from server');
       });
       function sendHeartbeat () {
-        emit('heartbeat');
+        socket.emit('heartbeat');
       }
       var id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
       intervals.push(id);
@@ -88,13 +80,13 @@ module.exports = {
       define('PauseBehaviour', function PauseBehaviour () {
         function pause () {
           if (includes(supportsInput, deviceMode())) {
-            emit('pause');
+            socket.emit('pause');
           }
         }
 
         function unpause () {
           if (includes(supportsInput, deviceMode())) {
-            emit('unpause');
+            socket.emit('unpause');
           }
         }
 
@@ -138,14 +130,14 @@ module.exports = {
         $()(window().document).on('msvisibilitychange', pauseIfHidden);
         $()(window().document).on('webkitvisibilitychange', pauseIfHidden);
 
-        define('OnOutgoingClientPacket', function SocketClient () {
+        define('OnOutgoingClientPacket', () => {
           return function sendPacketToServer (packet) {
             socket.emit('input', packet);
           };
         });
       }
 
-      define('OnIncomingServerPacket', function SocketClient () {
+      define('OnIncomingServerPacket', () => {
         return function ackPacketReceived (packet) {
           socket.emit('ack', packet.id);
         };
