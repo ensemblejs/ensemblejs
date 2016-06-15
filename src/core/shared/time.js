@@ -1,14 +1,14 @@
 'use strict';
 
-var now = require('present');
-var moment = require('moment');
+const now = require('present');
+const moment = require('moment');
 
 module.exports = {
   type: 'Time',
   func: function Time () {
-    var timeOffset = 0;
-    var start = now();
-    var startUnix = moment().unix();
+    const start = now();
+    const startUnix = moment().unix();
+    let timeOffset = 0;
 
     return {
       setOffset: function setOffset (offset) {
@@ -16,6 +16,9 @@ module.exports = {
       },
       present: function present () {
         return now() + timeOffset;
+      },
+      absolute: function absolute () {
+        return moment().unix();
       },
       sinceStart: function sinceStart () {
         return now() - start;

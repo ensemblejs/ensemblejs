@@ -61,7 +61,7 @@ module.exports = {
           id: packet.id,
           rawData: packet,
           playerId: packet.playerId,
-          // timestamp: time().present(), absolute or relative to start?
+          timestamp: time().absolute(),
           save: {
             id: 'client',
             mode: mode()
