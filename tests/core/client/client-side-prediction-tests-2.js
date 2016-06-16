@@ -152,7 +152,7 @@ describe('curly scenarios', function () {
       expect(currentServerState.get(curlyCount)).toEqual(0);
       expect(rawStateAccess.get('client').curly.count).toEqual(2000);
 
-      expect(onEachFrameSpy.callCount).toEqual(2);
+      expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
       expect(curlyChanges.firstCall.args).toEqual([2000, 1000, undefined]);
@@ -165,7 +165,7 @@ describe('curly scenarios', function () {
       expect(currentServerState.get(curlyCount)).toEqual(0);
       expect(rawStateAccess.get('client').curly.count).toEqual(3000);
 
-      expect(onEachFrameSpy.callCount).toEqual(3);
+      expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
       expect(curlyChanges.firstCall.args).toEqual([3000, 2000, undefined]);
@@ -190,7 +190,7 @@ describe('curly scenarios', function () {
       expect(currentServerState.get(curlyCount)).toEqual(0);
       expect(rawStateAccess.get('client').curly.count).toEqual(4001);
 
-      expect(onEachFrameSpy.callCount).toEqual(4);
+      expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
       expect(curlyChanges.firstCall.args).toEqual([4001, 3000, undefined]);
@@ -203,7 +203,7 @@ describe('curly scenarios', function () {
       expect(currentServerState.get(curlyCount)).toEqual(0);
       expect(rawStateAccess.get('client').curly.count).toEqual(5001);
 
-      expect(onEachFrameSpy.callCount).toEqual(5);
+      expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
       expect(curlyChanges.firstCall.args).toEqual([5001, 4001, undefined]);

@@ -17,12 +17,10 @@ module.exports = {
         id: sequence.next('frame'),
         delta,
         timestamp: time().present(),
-        input: inputForNextFrame,
+        input: inputForNextFrame.splice(0),
         pre: null,
         post: null
       });
-
-      inputForNextFrame = [];
     }
 
     function current () {
@@ -76,15 +74,20 @@ module.exports = {
       let state = fromServer;
 
       each(frames, frame => {
-        rawState().resetTo(clone(state));
+        if (!frame.pre) {
+          frame.pre = state;
+        }
+        if (!frame.post) {
+          rawState().resetTo(clone(frame.pre));
 
-        queue().set(frame.input);
+          queue().set(frame.input);
+          runLogicOnFrame(frame.delta);
+          queue().clear();
 
-        runLogicOnFrame(frame.delta);
+          frame.post = clone(rawState().get());
+        }
 
-        queue().clear();
-
-        state = clone(rawState().get());
+        state = frame.post;
       });
     }
 
