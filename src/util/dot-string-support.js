@@ -3,6 +3,7 @@
 import {filter, map, first, replace, tail} from 'lodash';
 import {isInString} from './is';
 
+const Base = 10;
 const splitHistory = {};
 
 function splitString (path) {
@@ -14,35 +15,25 @@ function splitString (path) {
 }
 
 function get (node, path) {
-  const parts = splitString(path);
-  let ref = node;
-
-  for (let i = 0; i < parts.length; i += 1) {
-    if (ref[parts[i]] !== undefined) {
-      ref = ref[parts[i]];
-    } else {
-      return undefined;
-    }
-  }
-
-  return ref;
+  return node !== undefined ? node.getIn(splitString(path)) : node;
 }
 
-let accessState;
+let read;
 function getArrayById (node, key) {
   let path = key.split(':')[0];
   let suffix = tail(key.split(':')).join(':');
 
   if (isInString(suffix, '.')) {
-    let id = parseInt(suffix.split('.')[0], 10);
+    let id = parseInt(suffix.split('.')[0], Base);
     let subPath = replace(suffix, /^[0-9]+\./, '');
 
-    let subNode = first(filter(get(node, path), {id: id}));
+    let subNode = get(node, path).filter(x => x.get('id') === id).first();
 
-    return accessState(subNode, subPath);
+    return read(subNode, subPath);
   } else {
-    let id = parseInt(suffix, 10);
-    return first(filter(get(node, path), {id: id}));
+    let id = parseInt(suffix, Base);
+
+    return get(node, path).filter(x => x.get('id') === id).first();
   }
 }
 
@@ -50,10 +41,10 @@ function getChildren (node, key) {
   let path = key.split('*.')[0];
   let suffix = key.split('*.')[1];
 
-  return map(get(node, path), subNode => accessState(subNode, suffix));
+  return get(node, path).map(subNode => read(subNode, suffix));
 }
 
-accessState = function read(node, key) {
+read = function read(node, key) {
   var prop;
 
   if (isInString(key, ':')) {
@@ -67,4 +58,4 @@ accessState = function read(node, key) {
   return prop;
 };
 
-export const read = accessState;
+module.exports = { read };
