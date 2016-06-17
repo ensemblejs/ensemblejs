@@ -2,7 +2,7 @@
 
 const { each, reject, last, map } = require('lodash');
 const sequence = require('distributedlife-sequence');
-const { clone } = require('../../util/fast-clone');
+const Immutable = require('immutable');
 
 module.exports = {
   type: 'FrameStore',
@@ -41,13 +41,13 @@ module.exports = {
 
     function OnClientStart () {
       return function storeInitialServerState (state) {
-        fromServer = state;
+        fromServer = Immutable.fromJS(state);
       };
     }
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        fromServer = clone(packet.saveState);
+        fromServer = Immutable.Map(packet.saveState);
         dropFrames(packet.highestProcessedMessage);
         resetPreAndPost();
       };
@@ -78,13 +78,13 @@ module.exports = {
           frame.pre = state;
         }
         if (!frame.post) {
-          rawState().resetTo(clone(frame.pre));
+          rawState().resetTo(frame.pre.toJS());
 
           queue().set(frame.input);
           runLogicOnFrame(frame.delta);
           queue().clear();
 
-          frame.post = clone(rawState().get());
+          frame.post = Immutable.fromJS(rawState().get());
         }
 
         state = frame.post;

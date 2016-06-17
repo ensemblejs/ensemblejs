@@ -221,7 +221,8 @@ describe('the pacman problem', function () {
 
         it('should have the correct client state', () => {
           const csActual = numeral(currentState.get(vx)).format('0.00');
-          const rawActual = numeral(rawStateAccess.get('client').v.x).format('0.00');
+
+          const rawActual = numeral(rawStateAccess.get('client').get('v').get('x')).format('0.00');
 
           expect(csActual).toEqual(expected.current);
           expect(rawActual).toEqual(expected.raw);

@@ -6,6 +6,7 @@ var isEqual = require('lodash').isEqual;
 var defer = require('../../support').defer;
 var plugin = require('../../support').plugin();
 var modulePath = '../../../src/state/client/tracker';
+const Immutable = require('immutable');
 
 var the = function (name) { return function (state) { return state[name]; }; };
 var to = function (name) { return function (state) { return state[name]; }; };
@@ -24,12 +25,12 @@ var rawStateAccess = {
 };
 
 function forceCurrentRawState (newState) {
-	rawStateAccess.get = function () { return newState; };
+	rawStateAccess.get = function () { return Immutable.fromJS(newState); };
 }
 
 var logger = require('../../fake/logger');
 
-describe('StateTracker', function () {
+describe('StateTracker on the client', function () {
 	var callback = sinon.spy();
 	var callback2 = sinon.spy();
 	var afterPhysicsFrame;

@@ -1,6 +1,6 @@
 'use strict';
 
-import {isObject, isEqual, isString, filter, set, reject, map, includes, replace, isEmpty, isFunction} from 'lodash';
+import {isEqual, isString, filter, set, includes, replace, isEmpty, isFunction} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {read} from '../../util/dot-string-support';
 import {isArray} from '../../util/is';
@@ -15,7 +15,7 @@ module.exports = {
     let root = Immutable.fromJS({});
 
     function readAndWarnAboutMissingState (node, key) {
-      let prop = isFunction(key) ? key(node) : read(node, key);
+      let prop = isFunction(key) ? key(node.toJS()) : read(node, key);
 
       if (prop === undefined) {
         logger().error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
@@ -24,10 +24,16 @@ module.exports = {
       return prop;
     }
 
-    function provideReadAccessToState (node) {
+    function wrapWithReadOnly (node) {
       return function get (key) {
-        return readAndWarnAboutMissingState(node, key);
+        const prop = readAndWarnAboutMissingState(node, key);
+        return Map.isMap(prop) ? wrapWithReadOnly(prop) : prop;
       };
+    }
+
+    function accessAndCloneState (node, key) {
+      const prop = readAndWarnAboutMissingState(node, key);
+      return Map.isMap(prop) || List.isList(prop) ? prop.toJS() : prop;
     }
 
     function genKey (playerId, namespace, key) {
@@ -36,31 +42,27 @@ module.exports = {
       return `players:${playerId}.${suffix}`;
     }
 
-    let stateAccess = {
+    const stateAccess = {
       for: function forSave () {
         return {
-          get: function get (key) {
-            return provideReadAccessToState(root)(key);
-          },
+          get: key => wrapWithReadOnly(root)(key),
+          unwrap: key => accessAndCloneState(root, key),
           for: function forNamespace (namespace) {
             return {
-              get: function get (key) {
-                return provideReadAccessToState(root.get(namespace))(key);
-              }
+              get: key => wrapWithReadOnly(root.get(namespace))(key),
+              unwrap: key => accessAndCloneState(root.get(namespace), key)
             };
           },
           player: function forPlayer (playerId) {
             return {
               for: function forNamespace (namespace) {
                 return {
-                  get: function get (key) {
-                    return provideReadAccessToState(root)(genKey(playerId, namespace, key));
-                  }
+                  get: key => wrapWithReadOnly(root)(genKey(playerId, namespace, key)),
+                  unwrap: key => accessAndCloneState(root, genKey(playerId, namespace, key))
                 };
               },
-              get: function get (key) {
-                return provideReadAccessToState(root)(genKey(playerId, key));
-              }
+              get: key => wrapWithReadOnly(root)(genKey(playerId, key)),
+              unwrap: key => accessAndCloneState(root, genKey(playerId, key))
             };
           }
         };
@@ -73,13 +75,17 @@ module.exports = {
 
     define('RawStateAccess', function RawStateAccess () {
       return {
-        get: function get () { return root; },
-        resetTo: function resetTo (newState) { root = newState; }
+        get: () => root,
+        resetTo: function resetTo (newState) {
+          root = Immutable.fromJS(newState);
+        }
       };
     });
 
     define('AfterPhysicsFrame', function RawStateAccess () {
-      return function mergeResultsFromLastFrame () {};
+      return function mergeResultsFromLastFrame () {
+        //remove me
+      };
     });
 
     function isValidDotStringResult(result) {
@@ -137,40 +143,27 @@ module.exports = {
     }
 
     function applyOnArrayElement (saveId, dotString, value) {
-      // console.log('applyOnArrayElement', saveId, dotString, value);
-
       const pathToArray = dotString.split(':')[0];
       const id = parseInt(dotString.split(':')[1], 10);
       const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
       let entries = stateAccess.for(saveId).get(pathToArray);
 
-      // console.log('entries', entries);
 
       let mod = entries.map(entry => {
         if (entry.get('id') !== id) {
           return entry;
         }
 
-        // console.log('entry', entry);
-
         let nv = isFunction(value)
           ? value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath))
           : value;
-
-        // console.log(restOfPath, entry, nv)
 
         return isEmpty(restOfPath)
           ? entry.mergeDeep(nv)
           : entry.setIn(restOfPath.split('.'), nv);
       });
 
-      // console.log('post-applyOnArrayElement', pathToArray, mod);
-
-      // console.log('>>>>', mod);
-      // console.log('<<<<', set({}, pathToArray, mod));
-      // console.log('<<<<', Immutable.fromJS({}).setIn(pathToArray.split('.'), mod));
-      // return set({}, pathToArray, mod);
       return Immutable.fromJS({}).setIn(pathToArray.split('.'), mod);
     }
 
@@ -197,34 +190,28 @@ module.exports = {
         return handler(saveId, dotStringSansModifier, entries, value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
-      } else {
-        const c = stateAccess.for(saveId).get(dotString);
-
-        return set({}, dotString, isFunction(value) ? value(c) : value);
       }
+
+      const c = stateAccess.for(saveId).get(dotString);
+      return set({}, dotString, isFunction(value) ? value(c) : value);
     };
 
     function mutateNonArray (saveId, result) {
-      // console.log('result', result);
+      let resultToMerge = result;
 
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
         }
 
-        result = applyResult(saveId, result[0], result[1]);
-
-        // console.log('after-applyResult', result);
+        resultToMerge = applyResult(saveId, result[0], result[1]);
       }
 
       function recurseMapsOnly (prev, next) {
         return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
       }
 
-      // console.log('root-before', root.toJSON());
-      // console.log('pre-merge', result);
-      root = root.mergeWith(recurseMapsOnly, result);
-      // console.log('root-after', root.toJSON());
+      root = root.mergeWith(recurseMapsOnly, resultToMerge);
     }
 
     function isArrayOfArrays (result) {
@@ -241,11 +228,8 @@ module.exports = {
         return false;
       }
 
-      if (isArrayOfArrays(result)) {
-        mutateArrayOfArrays(saveId, result);
-      } else {
-        mutateNonArray(saveId, result);
-      }
+      const f = isArrayOfArrays(result) ? mutateArrayOfArrays : mutateNonArray;
+      return f(saveId, result);
     };
 
     return mutate;

@@ -5,7 +5,7 @@ import {read} from '../../util/dot-string-support';
 import {getById} from '../../util/array';
 import deepEqual from 'deep-equal';
 import {isArray} from '../../util/is';
-const { clone } = require('../../util/fast-clone');
+const Immutable = require('immutable');
 
 module.exports = {
   type: 'StateTracker',
@@ -16,8 +16,8 @@ module.exports = {
     let currentState;
     let changes = [];
 
-    function invokeCallback (callback, currentModel, priorModel, data) {
-      let args = isArray(data) ? [].concat(data) : [data];
+    function invoke (callback, currentModel, priorModel, data) {
+      const args = isArray(data) ? [].concat(data) : [data];
 
       args.unshift(priorModel);
       args.unshift(currentModel);
@@ -29,8 +29,8 @@ module.exports = {
       return priorModel ? priorModel.id : currentModel.id;
     }
 
-    function invokeCallbackWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
-      let args = isArray(data) ? [].concat(data) : [data];
+    function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
+      const args = isArray(data) ? [].concat(data) : [data];
 
       if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);
@@ -47,7 +47,7 @@ module.exports = {
     function hasChanged (f) {
       if (priorState === undefined) { return true; }
 
-      return !deepEqual(f(priorState), f(currentState));
+      return !deepEqual(f(priorState.toJS()), f(currentState.toJS()));
     }
 
     function currentValue (f) {
@@ -55,7 +55,9 @@ module.exports = {
         return undefined;
       }
 
-      return f(currentState);
+      console.log(currentState);
+
+      return f(currentState.toJS());
     }
 
     function currentServerValue (f) {
@@ -63,7 +65,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(nextServerState);
+      return f(nextServerState.toJS());
     }
 
     function priorValue (f) {
@@ -71,7 +73,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(priorState);
+      return f(priorState.toJS());
     }
 
     function currentElement (f, model) {
@@ -79,8 +81,7 @@ module.exports = {
         return undefined;
       }
 
-
-      return find(f(currentState), {id: model.id});
+      return find(f(currentState.toJS()), {id: model.id});
     }
 
     function priorElement (f, model) {
@@ -88,7 +89,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(priorState), {id: model.id});
+      return find(f(priorState.toJS()), {id: model.id});
     }
 
     function isInArray (array, id) {
@@ -102,18 +103,18 @@ module.exports = {
     }
 
     function elementAdded (f, model) {
-      return isInArray(f(priorState), model.id);
+      return isInArray(f(priorState.toJS()), model.id);
     }
 
     function elementRemoved (f, model) {
-      return isInArray(f(currentState), model.id);
+      return isInArray(f(currentState.toJS()), model.id);
     }
 
     function elementChanged (f, model) {
       if (priorState === undefined) { return true; }
 
-      let current = getById(f(currentState), model.id);
-      let prior = getById(f(priorState), model.id);
+      const current = getById(f(currentState.toJS()), model.id);
+      const prior = getById(f(priorState.toJS()), model.id);
 
       return !deepEqual(current, prior);
     }
@@ -121,7 +122,7 @@ module.exports = {
     function handleObjects (change) {
       if (hasChanged(change.focus)) {
         if (!change.when) {
-          invokeCallback(
+          invoke(
             change.callback,
             currentValue(change.focus),
             priorValue(change.focus),
@@ -132,7 +133,7 @@ module.exports = {
         }
 
         if (change.when(currentValue(change.focus))) {
-          invokeCallback(
+          invoke(
             change.callback,
             currentValue(change.focus),
             priorValue(change.focus),
@@ -151,7 +152,7 @@ module.exports = {
             return;
           }
 
-          invokeCallbackWithId(
+          invokeWithId(
             change.callback,
             currentElement(change.focus, model),
             priorElement(change.focus, model),
@@ -164,7 +165,7 @@ module.exports = {
 
     function sendCurrentContentsNow (change) {
       each(currentValue(change.focus), function(element) {
-        invokeCallbackWithId(change.callback, element, undefined, change.data);
+        invokeWithId(change.callback, element, undefined, change.data);
       });
     }
 
@@ -180,21 +181,21 @@ module.exports = {
     function updateState (newState) {
       priorState = currentState;
       currentState = null;
-      currentState = clone(newState);
+      currentState = newState;
     }
 
     function saveLatestServerState (serverState) {
-      nextServerState = serverState;
+      nextServerState = Immutable.fromJS(serverState);
     }
 
     function saveInitialServerState (serverState) {
-      nextServerState = clone(serverState);
+      nextServerState = Immutable.fromJS(serverState);
     }
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
         saveInitialServerState(state);
-        rawState().resetTo(clone(state));
+        rawState().resetTo(state);
         updateState(rawState().get());
       };
     });
@@ -248,7 +249,7 @@ module.exports = {
         data: data
       };
 
-      invokeCallback(callback, currentValue(change.focus), priorValue(change.focus), data);
+      invoke(callback, currentValue(change.focus), priorValue(change.focus), data);
       changes.push(change);
     }
 
@@ -275,7 +276,7 @@ module.exports = {
       };
 
       if (change.when(currentValue(change.focus))) {
-        invokeCallback(
+        invoke(
           change.callback,
           currentValue(change.focus),
           priorValue(change.focus),

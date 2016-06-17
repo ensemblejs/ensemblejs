@@ -114,7 +114,7 @@ describe('curly scenarios', function () {
   it('should have a known base line', () => {
     expect(currentState.get(curlyCount)).toEqual(0);
     expect(currentServerState.get(curlyCount)).toEqual(0);
-    expect(rawStateAccess.get('client').curly.count).toEqual(0);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(0);
     expect(inputQueue.length()).toEqual(0);
   });
 
@@ -137,7 +137,7 @@ describe('curly scenarios', function () {
     it('should process one frame', () => {
       expect(currentState.get(curlyCount)).toEqual(1000);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').curly.count).toEqual(1000);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(1000);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
@@ -150,7 +150,7 @@ describe('curly scenarios', function () {
     it('should should remember prior frame, process new frame', () => {
       expect(currentState.get(curlyCount)).toEqual(2000);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').curly.count).toEqual(2000);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(2000);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
@@ -163,7 +163,7 @@ describe('curly scenarios', function () {
     it('should should remember 2 prior frames, process new frame', () => {
       expect(currentState.get(curlyCount)).toEqual(3000);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').curly.count).toEqual(3000);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(3000);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
@@ -188,7 +188,7 @@ describe('curly scenarios', function () {
     it('should process one frame', () => {
       expect(currentState.get(curlyCount)).toEqual(4001);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').curly.count).toEqual(4001);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(4001);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
@@ -201,7 +201,7 @@ describe('curly scenarios', function () {
     it('should not process the input twice', () => {
       expect(currentState.get(curlyCount)).toEqual(5001);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').curly.count).toEqual(5001);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(5001);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
@@ -234,7 +234,7 @@ describe('curly scenarios', function () {
     it('should replay all frames since the server state', () => {
       expect(currentState.get(curlyCount)).toEqual(3101);
       expect(currentServerState.get(curlyCount)).toEqual(100);
-      expect(rawStateAccess.get('client').curly.count).toEqual(3101);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(3101);
 
       expect(onEachFrameSpy.callCount).toEqual(3);
 
@@ -262,21 +262,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.callCount).toEqual(1);
@@ -289,21 +289,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.called).toEqual(false);
@@ -317,7 +317,7 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     var laterState = {
@@ -334,14 +334,14 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
     expect(curlyChanges.callCount).toEqual(1);
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
@@ -353,21 +353,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.called).toEqual(false);
@@ -381,14 +381,14 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     var laterState = {
@@ -405,7 +405,7 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
     expect(curlyChanges.callCount).toEqual(1);
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
@@ -417,21 +417,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(1);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.called).toEqual(false);
@@ -445,21 +445,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(100);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(100);
-    expect(rawStateAccess.get('client').curly.count).toEqual(100);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(100);
     expect(inputQueue.length()).toEqual(2);
     expect(curlyChanges.callCount).toEqual(1);
     expect(curlyChanges.firstCall.args).toEqual([102, 100, undefined]);
@@ -483,21 +483,21 @@ describe('curly scenarios', function () {
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(onPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(102);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(102);
     expect(inputQueue.length()).toEqual(2);
 
     each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
 
     expect(currentState.get(curlyCount)).toEqual(102);
     expect(currentServerState.get(curlyCount)).toEqual(101);
-    expect(rawStateAccess.get('client').curly.count).toEqual(101);
+    expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(101);
     expect(inputQueue.length()).toEqual(1);
 
     expect(curlyChanges.called).toEqual(false);

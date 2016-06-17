@@ -19,18 +19,9 @@ module.exports = {
 
     define()('RawStateAccess', function RawStateAccess () {
       return {
-        for: function forSave (saveId) {
-          return root[saveId];
-        },
-        all: function all () {
-          return root;
-        },
-        changes: function changesForSave (saveId) {
-          // var toSend = changes[saveId];
-          // changes[saveId] = {};
-          // return toSend;
-          return root[saveId];
-        }
+        for: saveId => root[saveId],
+        all: () => root,
+        changes: saveId => root[saveId]
       };
     });
 
