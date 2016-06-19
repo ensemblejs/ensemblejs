@@ -31,7 +31,7 @@ function added (saveId, physicsKey, sourceKey, adapter) {
   physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey] || [];
 
   return function calledWhenElementAdded (id, current) {
-    var physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    let physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
     physicsModel.id = id;
 
     physicsThings[saveId][sourceKey].push(physicsModel);
@@ -40,7 +40,7 @@ function added (saveId, physicsKey, sourceKey, adapter) {
 
 function changed (saveId, physicsKey, sourceKey, adapter) {
   return function calledWhenElementChanged (id, current) {
-    var physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    let physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
     physicsModel.id = id;
 
     physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
@@ -59,13 +59,13 @@ function getBySourceKey (saveId, sourceKey) {
 }
 
 function getByPhysicsKey (saveId, physicsKey) {
-  var sourceKeys = keyMappings[saveId][physicsKey];
+  const sourceKeys = keyMappings[saveId][physicsKey];
 
-  var entries = map(sourceKeys, function(sourceKey) {
+  const entries = map(sourceKeys, function(sourceKey) {
     return getBySourceKey(saveId, sourceKey);
   });
 
-  var result = [];
+  let result = [];
   for (let i = 0; i < entries.length; i += 1) {
     result = result.concat(entries[i]);
   }

@@ -15,7 +15,7 @@ module.exports = {
     }
 
     function number(state) {
-      var seed = state.get('ensemble.randomSeed');
+      var seed = state.ensemble.randomSeed;
       var n = generators[seed]();
 
       return n;

@@ -32,16 +32,12 @@ describe('meaningful random numbers', function () {
   });
 
   describe('getting a number', function () {
-    var state = {get: sinon.stub().returns(4)};
+    var state = { ensemble: { randomSeed: 4 }};
     var res;
 
     beforeEach(function () {
       meaningfulRandon.setup(4);
       res = meaningfulRandon.number(state);
-    });
-
-    it('should get the seed from the state', function () {
-      expect(state.get.firstCall.args).toEqual(['ensemble.randomSeed']);
     });
 
     it('should return a number', function () {

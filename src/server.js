@@ -19,6 +19,12 @@ each(foldersToLoad, function loadFolder(folder) {
   plugins.loadFrameworkPath(__dirname + '/' + folder + '/server');
 });
 
+function getDeviceModes (path) {
+  let exists = require('fs').existsSync(path + '/js/device-modes.json');
+
+  return exists ? require(path + '/js/device-modes.json') : require('../config/default-device-modes');
+}
+
 function runGameAtPath(path) {
   logger.info('ensemblejs@' + frameworkInfo().version + ' started.');
 
@@ -26,12 +32,6 @@ function runGameAtPath(path) {
   plugins.loadPath(path + '/js/state');
   plugins.loadPath(path + '/js/events');
   plugins.loadPath(path + '/js/maps');
-
-  function getDeviceModes (path) {
-    let exists = require('fs').existsSync(path + '/js/device-modes.json');
-
-    return exists ? require(path + '/js/device-modes.json') : require('../config/default-device-modes');
-  }
 
   function publishStartServerEvent(exists) {
     var game = {

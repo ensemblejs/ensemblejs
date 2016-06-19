@@ -10,21 +10,19 @@ import define from '../../define';
 module.exports = {
   type: 'OnClientReady',
   deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'],
-  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, state, mode, config, frameStore) {
+  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
 
-    var priorStep = time().present();
+    let priorStep = time().present();
 
-    var save = {
-      id: 'client',
-      mode: mode()
-    };
+    const save = { id: 'client', mode: mode() };
+    const paused = state => state.ensemble.paused;
 
     function doPaused(now) {
       priorStep = now;
     }
 
     function doRunning (now) {
-      var delta = (now - priorStep) / 1000;
+      let delta = (now - priorStep) / 1000;
       priorStep = now;
 
       if (delta > 1) {
@@ -32,19 +30,15 @@ module.exports = {
       }
 
       frameStore().process(delta, function onEachFrame (frameDelta) {
-        var saveState = state().for(save.id);
-        const opts = [frameDelta, saveState];
+        const state = stateAccess().for(save.id).all();
+        const opts = [frameDelta, state];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (!saveState.get('ensemble.waitingForPlayers')) {
+        if (!state.ensemble.waitingForPlayers) {
           callForModeWithMutation(onFrame(), mutator, save, opts);
         }
       });
-    }
-
-    function paused (s) {
-      return s.ensemble.paused;
     }
 
     function shouldRunPhysicsEngine () {
@@ -56,7 +50,7 @@ module.exports = {
     }
 
     function step() {
-      var now = time().present();
+      const now = time().present();
 
       if (shouldRunPhysicsEngine()) {
         doRunning(now);
@@ -67,7 +61,7 @@ module.exports = {
       callEachPlugin(afterFrame());
     }
 
-    var ids = [];
+    let ids = [];
     define('OnDisconnect', function OnDisconnect () {
       return function stopPhysicsLoop () {
         ids.forEach(cancel => cancel());

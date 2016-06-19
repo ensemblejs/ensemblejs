@@ -23,9 +23,7 @@ var model = {
 
 var state = {
 	a: 'b',
-	get: function () {
-		return true;
-	}
+	ensemble: { waitingForPlayers: true }
 };
 
 var actions = [];

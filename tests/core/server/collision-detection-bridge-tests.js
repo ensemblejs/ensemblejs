@@ -25,13 +25,10 @@ physicsSystem.create(2, 'key1', 'dot1', {x: 0, y: 0});
 physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
 physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
 
-var data = {
-  'ensemble.saveId': 3,
-  'ensemble.mode': 'arcade'
-};
 var state = {
-  get: function (what) {
-    return data[what];
+  ensemble: {
+    saveId: 3,
+    mode: 'arcade'
   }
 };
 

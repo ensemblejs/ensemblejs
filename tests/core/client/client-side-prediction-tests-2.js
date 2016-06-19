@@ -77,10 +77,10 @@ describe('curly scenarios', function () {
   };
   function curlyCount (state) { return state.curly.count; }
   function curlyInputCallback (state) {
-    return { curly: { count: state.for('curly').get('count') + 1 }};
+    return { curly: { count: state.curly.count + 1 }};
   }
   function curlyLogic (delta, state) {
-    return { curly: { count: state.for('curly').get('count') + 1000 }};
+    return { curly: { count: state.curly.count + 1000 }};
   }
 
   var onEachFrameSpy = sinon.spy();
@@ -120,10 +120,10 @@ describe('curly scenarios', function () {
 
   function processFrame (frame) {
     each(beforePhysicsFrame, f => {
-      mutator('client', f(frame.delta, stateAccess.for('client')));
+      mutator('client', f(frame.delta, stateAccess.for('client').all()));
     });
     each(onPhysicsFrame, f => {
-      mutator('client', f(frame.delta, stateAccess.for('client')));
+      mutator('client', f(frame.delta, stateAccess.for('client').all()));
     });
   }
 
@@ -228,7 +228,7 @@ describe('curly scenarios', function () {
     beforeEach(() => {
       frameStore.process(0.15, processFrame);
 
-      each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client')));
+      each(afterPhysicsFrame, f => f(0.1, stateAccess.for('client').all()));
     });
 
     it('should replay all frames since the server state', () => {

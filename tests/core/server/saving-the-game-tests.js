@@ -7,13 +7,14 @@ var logger = require('../../../src/logging/server/logger').logger;
 var time = require('../../fake/time').at(0);
 var makeTestible = require('../../support').makeTestible;
 var saves = require('../../../src/util/models/saves');
+const Immutable = require('immutable');
 
 describe('continual saving', function () {
   var onSaveReady;
   var afterPhysicsFrame;
 
   var rawStateAccess = {
-    for: sinon.stub().returns({my: 'game'})
+    for: sinon.stub().returns(Immutable.fromJS({my: 'game'}))
   };
 
   beforeEach(function () {
@@ -59,7 +60,7 @@ describe('continual saving', function () {
         });
 
         afterPhysicsFrame = db[1].AfterPhysicsFrame();
-        afterPhysicsFrame(0, { get: sinon.stub().returns(1) });
+        afterPhysicsFrame(0, { ensemble: { saveId: 1 } });
       });
 
       afterEach(function () {
@@ -85,7 +86,7 @@ describe('continual saving', function () {
         });
 
         afterPhysicsFrame = db[1].AfterPhysicsFrame();
-        afterPhysicsFrame(0, { get: sinon.stub().returns(1) });
+        afterPhysicsFrame(0, { ensemble: { saveId: 1 } });
       });
 
       afterEach(function () {
@@ -97,13 +98,13 @@ describe('continual saving', function () {
       });
     });
 
-    describe('othere autosave behaviours', function () {
+    describe('other autosave behaviours', function () {
       beforeEach(function () {
         sinon.stub(config, 'get').returns({
           ensemble: {
             autoSaveBehaviour: 'other'
           },
-          nothing: function () {}
+          nothing: () => undefined
         });
 
         var db = makeTestible('core/server/continual-save', {
@@ -112,7 +113,7 @@ describe('continual saving', function () {
         });
 
         afterPhysicsFrame = db[1].AfterPhysicsFrame();
-        afterPhysicsFrame({ get: sinon.stub().returns(1) });
+        afterPhysicsFrame(0, { ensemble: { saveId: 1 } });
       });
 
       afterEach(function () {

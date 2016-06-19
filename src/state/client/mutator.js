@@ -15,25 +15,25 @@ module.exports = {
     let root = Immutable.fromJS({});
 
     function readAndWarnAboutMissingState (node, key) {
-      let prop = isFunction(key) ? key(node.toJS()) : read(node, key);
-
-      if (prop === undefined) {
+      let val = isFunction(key) ? key(node.toJS()) : read(node, key);
+      if (val === undefined) {
         logger().error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
       }
 
-      return prop;
+      return val;
     }
 
     function wrapWithReadOnly (node) {
       return function get (key) {
-        const prop = readAndWarnAboutMissingState(node, key);
-        return Map.isMap(prop) ? wrapWithReadOnly(prop) : prop;
+        const val = readAndWarnAboutMissingState(node, key);
+
+        return Map.isMap(val) ? wrapWithReadOnly(val) : val;
       };
     }
 
     function accessAndCloneState (node, key) {
-      const prop = readAndWarnAboutMissingState(node, key);
-      return Map.isMap(prop) || List.isList(prop) ? prop.toJS() : prop;
+      const val = readAndWarnAboutMissingState(node, key);
+      return Map.isMap(val) || List.isList(val) ? val.toJS() : val;
     }
 
     function genKey (playerId, namespace, key) {
@@ -45,6 +45,7 @@ module.exports = {
     const stateAccess = {
       for: function forSave () {
         return {
+          all: () => root.toJS(),
           get: key => wrapWithReadOnly(root)(key),
           unwrap: key => accessAndCloneState(root, key),
           for: function forNamespace (namespace) {
@@ -76,9 +77,7 @@ module.exports = {
     define('RawStateAccess', function RawStateAccess () {
       return {
         get: () => root,
-        resetTo: function resetTo (newState) {
-          root = Immutable.fromJS(newState);
-        }
+        resetTo: newState => (root = newState)
       };
     });
 
@@ -149,7 +148,6 @@ module.exports = {
 
       let entries = stateAccess.for(saveId).get(pathToArray);
 
-
       let mod = entries.map(entry => {
         if (entry.get('id') !== id) {
           return entry;
@@ -211,7 +209,7 @@ module.exports = {
         return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
       }
 
-      root = root.mergeWith(recurseMapsOnly, resultToMerge);
+      root = root.mergeWith(recurseMapsOnly, Immutable.fromJS(resultToMerge));
     }
 
     function isArrayOfArrays (result) {

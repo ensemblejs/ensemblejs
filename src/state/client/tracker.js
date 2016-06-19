@@ -55,8 +55,6 @@ module.exports = {
         return undefined;
       }
 
-      console.log(currentState);
-
       return f(currentState.toJS());
     }
 
@@ -195,7 +193,7 @@ module.exports = {
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
         saveInitialServerState(state);
-        rawState().resetTo(state);
+        rawState().resetTo(Immutable.fromJS(state));
         updateState(rawState().get());
       };
     });

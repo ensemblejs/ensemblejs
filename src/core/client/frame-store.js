@@ -47,7 +47,7 @@ module.exports = {
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        fromServer = Immutable.Map(packet.saveState);
+        fromServer = Immutable.fromJS(packet.saveState);
         dropFrames(packet.highestProcessedMessage);
         resetPreAndPost();
       };
@@ -78,13 +78,13 @@ module.exports = {
           frame.pre = state;
         }
         if (!frame.post) {
-          rawState().resetTo(frame.pre.toJS());
+          rawState().resetTo(frame.pre);
 
           queue().set(frame.input);
           runLogicOnFrame(frame.delta);
           queue().clear();
 
-          frame.post = Immutable.fromJS(rawState().get());
+          frame.post = rawState().get();
         }
 
         state = frame.post;

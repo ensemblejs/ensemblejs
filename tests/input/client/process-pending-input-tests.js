@@ -5,7 +5,6 @@ var expect = require('expect');
 
 var defer = require('../../support').defer;
 var plugin = require('../../support').plugin();
-var fakeLogger = require('../../support').fakeLogger;
 
 var model = {
 	noEvent: sinon.spy(),
@@ -28,12 +27,6 @@ var currentState = {
 	}
 };
 
-var currentState = {
-	get: function () {
-		return true;
-	}
-};
-
 var actions = [];
 var rawData = {};
 var beforePhysicsFrame;
@@ -49,12 +42,7 @@ var inputQueue = {
 	get: function(i) { return queue[i]; }
 };
 function newUserInput (rawData, timestamp, save, playerId) {
-	queue.push({
-		rawData: rawData,
-		timestamp: timestamp,
-		save: save,
-		playerId: playerId
-	});
+	queue.push({ rawData, timestamp, save, playerId});
 }
 
 var fakeLogger = require('../../fake/logger');
@@ -98,7 +86,7 @@ describe('Input Bindings', function() {
 			'cursor': [{call: model.cursorEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model' }],
 			'nothing': [{call: model.noEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
 			'left-stick': [{call: model.leftStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
-			'right-stick': [{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}],
+			'right-stick': [{call: model.rightStickEvent, noEventKey: 'model', whenWaiting: true}, {call: model.waiting, noEventKey: 'model'}]
 		}];
 
 

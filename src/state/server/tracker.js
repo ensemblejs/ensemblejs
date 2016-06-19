@@ -1,8 +1,7 @@
 'use strict';
 
-import {each, isArray, isString, isEqual, isFunction, filter, find} from 'lodash';
+import {isArray, isString, isEqual, isFunction, filter, find} from 'lodash';
 import {read} from '../../util/dot-string-support';
-const { clone } = require('../../util/fast-clone');
 
 var logger = require('../../logging/server/logger').logger;
 
@@ -54,7 +53,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(currentState[saveId]);
+      return f(currentState[saveId].toJS());
     }
 
     function priorValue (f, saveId) {
@@ -62,7 +61,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(priorState[saveId]);
+      return f(priorState[saveId].toJS());
     }
 
     function currentElement (f, model, saveId) {
@@ -70,7 +69,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(currentState[saveId]), {id: model.id});
+      return find(f(currentState[saveId].toJS()), {id: model.id});
     }
 
     function priorElement (f, model, saveId) {
@@ -78,22 +77,23 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(priorState[saveId]), {id: model.id});
+      return find(f(priorState[saveId].toJS()), {id: model.id});
     }
 
     function elementAdded (f, model, saveId) {
-      return (filter(f(priorState[saveId]), {id: model.id}).length === 0);
+      return (filter(f(priorState[saveId].toJS()), {id: model.id}).length === 0);
     }
 
     function elementRemoved (f, model, saveId) {
-      return (filter(f(currentState[saveId]), {id: model.id}).length === 0);
+      return (filter(f(currentState[saveId].toJS()), {id: model.id}).length === 0);
     }
 
     function elementChanged (f, model, saveId) {
       if (priorState === undefined) { return true; }
 
-      var current = filter(f(currentState[saveId]), {id: model.id});
-      var prior = filter(f(priorState[saveId]), {id: model.id});
+      const current = filter(f(currentState[saveId].toJS()), {id: model.id});
+      const prior = filter(f(priorState[saveId].toJS()), {id: model.id});
+
       return !isEqual(current, prior);
     }
 
@@ -122,18 +122,8 @@ module.exports = {
     }
 
     function handleArrays (change) {
-
-      each(change.operatesOn(change.focus, change.saveId), function (model) {
+      change.operatesOn(change.focus, change.saveId).forEach(model => {
         if (change.detectionFunc(change.focus, model, change.saveId)) {
-
-
-          // if (!currentElement(change.focus, model) && !priorElement(change.focus, model)) {
-          //   logger.error({change: change}, 'Attempting to track changes in array where not all elements have an "id" property.');
-
-
-          //   return;
-          // }
-
           invokeCallbackWithId(
             change.callback,
             currentElement(change.focus, model, change.saveId),
@@ -146,7 +136,7 @@ module.exports = {
     }
 
     function sendCurrentContentsNow (change) {
-      each(currentValue(change.focus, change.saveId), function(element) {
+      currentValue(change.focus, change.saveId).forEach(element => {
         invokeCallbackWithId(change.callback, element, undefined, change.data);
       });
     }
@@ -157,23 +147,20 @@ module.exports = {
     };
 
     function detectChangesAndNotifyObservers () {
-      each(changes, function (change) {
-        handle[change.type](change);
-      });
+      changes.forEach(change => handle[change.type](change));
     }
 
-    define()('OnServerReady', ['RawStateAccess'], function StateTracker (rawState) {
+    define()('OnServerReady', ['RawStateAccess'], rawState => {
       return function storeInitialServerState () {
         priorState = currentState;
         currentState = rawState().all();
       };
     });
 
-    define()('AfterPhysicsFrame', ['RawStateAccess'], function StateTracker (rawState) {
-
+    define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
       return function takeLatestCopyOfRawState () {
         priorState = currentState;
-        currentState = clone(rawState().all(), true);
+        currentState = rawState().all();
         detectChangesAndNotifyObservers();
       };
     });
@@ -186,7 +173,7 @@ module.exports = {
       return function stateFromDotString (state) {
         var prop = read(state, model);
         if (prop === undefined) {
-          logger.warn({ model: model, state: state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          logger.warn({ model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
         }
 
         return prop;
@@ -195,12 +182,12 @@ module.exports = {
 
     function functionifyIfRequired (condition) {
       if (!isFunction(condition)) {
-        return function equals (currentValue) {
-          return isEqual(currentValue, condition);
+        return function equals (current) {
+          return isEqual(current, condition);
         };
-      } else {
-        return condition;
       }
+
+      return condition;
     }
 
     return {
@@ -211,6 +198,7 @@ module.exports = {
             saveId: saveId,
             type: 'object',
             focus: functionifyDotStrings(model),
+            rawFocus: model,
             callback: callback,
             data: data
           };
@@ -226,6 +214,7 @@ module.exports = {
             saveId: saveId,
             type: 'object',
             focus: functionifyDotStrings(model),
+            rawFocus: model,
             'when': when,
             callback: callback,
             data: data
@@ -249,6 +238,7 @@ module.exports = {
             saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
+            rawFocus: focusArray,
             callback: callback,
             detectionFunc: elementChanged,
             operatesOn: currentValue,
@@ -263,6 +253,7 @@ module.exports = {
             saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
+            rawFocus: focusArray,
             callback: onCallback,
             detectionFunc: elementAdded,
             operatesOn: currentValue,
@@ -279,6 +270,7 @@ module.exports = {
             saveId: saveId,
             type: 'array',
             focus: functionifyDotStrings(focusArray),
+            rawFocus: focusArray,
             callback: callback,
             detectionFunc: elementRemoved,
             operatesOn: priorValue,

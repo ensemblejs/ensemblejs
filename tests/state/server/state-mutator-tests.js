@@ -32,12 +32,13 @@ describe('state mutation on the server', function () {
             name: 'Geoff'
           }
         }
-      }
+      },
+      players: []
     });
 
     stateMutator(12, {
       controller: {
-        start: 0,
+        start: 0
       }
     });
 
@@ -46,7 +47,7 @@ describe('state mutation on the server', function () {
 
   afterEach(function () {
     logger.error.restore();
-  })
+  });
 
   describe('simple behaviour', function () {
     it('should allow a single value to mutate', function () {
@@ -87,7 +88,7 @@ describe('state mutation on the server', function () {
         }
       });
 
-      expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 3]);
     });
   });
 
@@ -114,13 +115,13 @@ describe('state mutation on the server', function () {
       it('should work with adding to arrays', function () {
         stateMutator(1, ['controller.list', addItem]);
 
-        expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
+        expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 3]);
       });
 
       it('should work with removing elements from arrays', function () {
         stateMutator(1, ['controller.list', resetList]);
 
-        expect(state.for(1).for('controller').get('list')).toEqual([]);
+        expect(state.for(1).for('controller').get('list').toJS()).toEqual([]);
       });
     });
 
@@ -158,7 +159,7 @@ describe('state mutation on the server', function () {
         }
         stateMutator(1, ['controller.idList:4', addN]);
 
-        expect(state.for(1).for('controller').get('idList')).toEqual([
+        expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
           {id: 4, n: 'h'},
           {id: 3}
         ]);
@@ -173,7 +174,7 @@ describe('state mutation on the server', function () {
 
         stateMutator(1, ['controller.idList:4.n', makeNZ]);
 
-        expect(state.for(1).for('controller').get('idList')).toEqual([
+        expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
           {id: 4, n: 'z'},
           {id: 3}
         ]);
@@ -185,13 +186,13 @@ describe('state mutation on the server', function () {
     it('should support adding+ to arrays', function () {
       stateMutator(1, ['controller.list+', 5]);
 
-      expect(state.for(1).for('controller').get('list')).toEqual([4, 5]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 5]);
     });
 
     it('should support adding+ to arrays of arrays', function () {
       stateMutator(1, ['controller.subPush:5.arr+', 5]);
 
-      expect(state.for(1).get('controller.subPush:5.arr')).toEqual([5]);
+      expect(state.for(1).get('controller.subPush:5.arr').toJS()).toEqual([5]);
     });
 
      it('should work with emptying arrays', function () {
@@ -201,19 +202,19 @@ describe('state mutation on the server', function () {
         }
       });
 
-      expect(state.for(1).for('controller').get('list')).toEqual([]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([]);
     });
 
     it('should support removing- from arrays', function () {
       stateMutator(1, ['controller.idList-', {id: 3}]);
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([{id: 4}]);
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([{id: 4}]);
     });
 
     it('should support modifying! arrays', function () {
       stateMutator(1, ['controller.idList!', {id: 4, n: 'a'}]);
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'a'},
         {id: 3}
       ]);
@@ -222,7 +223,7 @@ describe('state mutation on the server', function () {
     it('should support modifying: arrays', function () {
       stateMutator(1, ['controller.idList:4', {n: 'h'}]);
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'h'},
         {id: 3}
       ]);
@@ -231,7 +232,7 @@ describe('state mutation on the server', function () {
     it('should support modifying arrays children', function () {
       stateMutator(1, ['controller.idList:4.n', 'z']);
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'z'},
         {id: 3}
       ]);
@@ -318,7 +319,7 @@ describe('state mutation on the server', function () {
         stateMutator(1, [
           ['controller.child.age', 2321],
           ['controller.start', 2],
-          ['controller.score', 4],
+          ['controller.score', 4]
         ]);
 
         expect(state.for(1).get('controller.child.age')).toBe(2321);
@@ -355,7 +356,7 @@ describe('state mutation on the server', function () {
 
       it('should work where the second argument is an array', function () {
         stateMutator(1, ['controller.list', [1, 2, 3]]);
-        expect(state.for(1).get('controller.list')).toEqual([1, 2, 3]);
+        expect(state.for(1).get('controller.list').toJS()).toEqual([1, 2, 3]);
       });
     });
   });
@@ -375,19 +376,31 @@ describe('state mutation on the server', function () {
 
     it('should store the save state and keep it in memory', function () {
       expect(saves.getById.firstCall.args).toEqual([3]);
-      expect(rawState.for(3)).toEqual({ensemble: { waitingForPlayers: true, paused: true }});
+      expect(rawState.for(3).toJS()).toEqual({ensemble: { waitingForPlayers: true, paused: true }});
     });
 
     it('should set waitingForPlayers to true', function () {
-      expect(rawState.for(3).ensemble.waitingForPlayers).toBe(true);
+      expect(rawState.for(3).get('ensemble').get('waitingForPlayers')).toBe(true);
     });
 
     it('should set paused to true', function () {
-      expect(rawState.for(3).ensemble.paused).toBe(true);
+      expect(rawState.for(3).get('ensemble').get('paused')).toBe(true);
     });
 
     it('should call on save ready', function () {
       expect(on.saveReady.called).toEqual(true);
+    });
+  });
+
+  describe('specific error scenarios', () => {
+    beforeEach(() => {
+      stateMutator(1, [ 'players+', {
+        id: 1, pacman: { position: { x: 100, y: 100 } }
+      }]);
+    });
+
+    it('should not crash with entry.get is not a function', () => {
+      stateMutator(1, [['players:1.pacman.position', { x: 208, y: 368 }]] );
     });
   });
 });

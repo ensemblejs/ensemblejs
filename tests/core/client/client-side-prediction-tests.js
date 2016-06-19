@@ -88,7 +88,7 @@ function count (state) { return state.namespace.count; }
 function inputCallback (state) {
   return {
     namespace: {
-      count: state.for('namespace').get('count') + 10,
+      count: state.namespace.count + 10,
       tracking: 'after-input'
     }
   };
@@ -98,7 +98,7 @@ actionMap.push(['*', { space: [{call: inputCallback} ] }]);
 function gameLogic (delta, state) {
   return {
     namespace: {
-      count: state.for('namespace').get('count') + 1,
+      count: state.namespace.count + 1,
       tracking: 'after-game-logic'
     }
   };
@@ -144,13 +144,13 @@ describe('CSP: after on AfterPhysicsFrame', function () {
     });
 
     it('should reset the RawState back to last known server state', function () {
-      expect(resetTo.firstCall.args).toEqual([{
+      expect(resetTo.firstCall.args[0].toJS()).toEqual({
         ensemble: { waitingForPlayers: false },
         namespace: {
           count: 0,
           tracking: 'initial-server-state'
         }
-      }]);
+      });
     });
   });
 

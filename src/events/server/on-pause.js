@@ -6,11 +6,11 @@ module.exports = {
   func: function OnPause (config, connections) {
     return function pauseSave (state) {
       if (config().ensemble.pause === 'never') {
-        return;
+        return undefined;
       }
       if (config().ensemble.pause === 'all-offline') {
-        if (connections().onlineCount(state.get('ensemble.saveId')) !== 0) {
-          return;
+        if (connections().onlineCount(state.ensemble.saveId) !== 0) {
+          return undefined;
         }
       }
 

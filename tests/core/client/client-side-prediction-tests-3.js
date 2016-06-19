@@ -169,9 +169,7 @@ describe('the pacman problem', function () {
   };
   function vx (state) { return state.v.x; }
   function moveX (delta, state) {
-    const c = state.for('v').get('x');
-
-    return ['v.x', c + (-80 * delta)];
+    return ['v.x', state.v.x + (-80 * delta)];
   }
 
   let next;
@@ -197,10 +195,10 @@ describe('the pacman problem', function () {
 
   function processFrame (delta) {
     each(beforePhysicsFrame, f => {
-      mutator('client', f(delta, stateAccess.for('client')));
+      mutator('client', f(delta, stateAccess.for('client').all()));
     });
     each(onPhysicsFrame, f => {
-      mutator('client', f(delta, stateAccess.for('client')));
+      mutator('client', f(delta, stateAccess.for('client').all()));
     });
   }
 
@@ -216,7 +214,7 @@ describe('the pacman problem', function () {
           frameStore.process(delta, processFrame);
 
           vxChanges.reset();
-          each(afterPhysicsFrame, f => f(delta, stateAccess.for('client')));
+          each(afterPhysicsFrame, f => f(delta, stateAccess.for('client').all()));
         });
 
         it('should have the correct client state', () => {

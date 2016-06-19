@@ -13,8 +13,8 @@ module.exports = {
       return function callSystemWithRelevantMapsAndSaveId (delta, state) {
         let changes = [];
 
-        const saveId = state.get('ensemble.saveId');
-        const mode = state.get('ensemble.mode');
+        const saveId = state.ensemble.saveId;
+        const mode = state.ensemble.mode;
 
         forEachMode(maps(), mode, function (map) {
 

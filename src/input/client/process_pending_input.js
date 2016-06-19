@@ -17,7 +17,7 @@ module.exports = {
 		define()('InternalState', ['InputQueue'], function (inputQueue) {
 			return {
 				OnInputClient: {
-					queueLength: function () { return inputQueue().length(); },
+					queueLength: function () { return inputQueue().length(); }
 				}
 			};
 		});
@@ -28,7 +28,7 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.get('ensemble.waitingForPlayers');
+				var waitingForPlayers = state.ensemble.waitingForPlayers;
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -75,7 +75,7 @@ module.exports = {
 				}
 
 				function createOnMatchingCallback (callback) {
-					return function invokeCallbackAndMutate (currentInput, key, action, inputData) {
+					return function invokeCallbackAndMutate (input, key, action, inputData) {
 
 						if (action.ack) {
 							return;
@@ -84,9 +84,9 @@ module.exports = {
 						logger().debug({key: key}, 'ActionMap called');
 
 						mutate()(
-				      currentInput.save.id,
-				      callback(action.call, action.noEventKey, inputData)
-				    );
+							input.save.id,
+							callback(action.call, action.noEventKey, inputData)
+						);
 					};
 				}
 
@@ -96,7 +96,7 @@ module.exports = {
 				var onMatchingMouseCallback = createOnMatchingCallback(mouseCallback);
 
 				var lengthOfInputStackAtStart = inputQueue().length();
-				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
+				for (let i = 0; i < lengthOfInputStackAtStart; i += 1) {
 					currentInput = inputQueue().get(i);
 					if (currentInput === undefined) {
 						continue;
@@ -118,8 +118,8 @@ module.exports = {
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, onMatchingMouseCallback);
 
 					let forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
-					for (let i = 0; i < forMode.length; i += 1) {
-						runNoInputHandlers(forMode[i]);
+					for (let j = 0; j < forMode.length; j += 1) {
+						runNoInputHandlers(forMode[j]);
 					}
 				}
 			};

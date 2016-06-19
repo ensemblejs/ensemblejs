@@ -10,7 +10,7 @@ module.exports = {
         paused: false,
         waitingForPlayers: true,
         started: time().present(),
-        worldTime: 0,
+        worldTime: 0
       },
       players: []
     };

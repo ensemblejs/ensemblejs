@@ -13,7 +13,7 @@ module.exports = {
       }
 
       each(config.get().game.modes, function (mode) {
-        let save = {id: mode, mode: mode};
+        const save = {id: mode, mode};
         on().newSave(save);
         on().saveReady(save);
       });

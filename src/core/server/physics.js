@@ -9,24 +9,24 @@ var config = require('../../util/config');
 module.exports = {
   type: 'OnServerStart',
   deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'DefinePlugin', 'Time', 'Profiler'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, state, mutator, saves, define, time, profiler) {
+  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, define, time, profiler) {
     var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
     var priorStepTime = time().present();
     var ids = [];
 
     function pausedSaves (save) {
-      return state().for(save.id).get('ensemble.paused');
+      return stateAccess().for(save.id).get('ensemble.paused');
     }
 
     function update (delta) {
       var running = reject(saves().loaded(), pausedSaves);
       each(running, function callUpdateOnEach (save) {
-        var saveState = state().for(save.id);
-        var opts = [delta, saveState];
+        var state = stateAccess().for(save.id).all();
+        var opts = [delta, state];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (saveState.get('ensemble.waitingForPlayers')) {
+        if (state.ensemble.waitingForPlayers) {
           return;
         }
 
@@ -48,14 +48,14 @@ module.exports = {
       rate.toHere();
     }
 
-    define()('OnServerStop', function ServerPhysicsEngine () {
+    define()('OnServerStop', () => {
       return function stopEngine () {
         each(ids, clearInterval);
         ids = [];
       };
     });
 
-    define()('InternalState', function ServerPhysicsEngine () {
+    define()('InternalState', () => {
       return {
         ServerSideEngine: {
           now: function () { return time().present(); },

@@ -42,13 +42,13 @@ module.exports = {
         return;
       }
 
-      logger().warn({job: job}, 'Can\'t cancel job as it has never been added. Are you sure the job name is spelt correctly?');
+      logger().warn({job}, "Can't cancel job as it has never been added. Are you sure the job name is spelt correctly?");
     }
 
     define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (delta, state) {
-        var jobs = state.get('ensemble.jobs');
-        var saveId = state.get('ensemble.saveId');
+        var jobs = state.ensemble.jobs;
+        var saveId = state.ensemble.saveId;
 
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
@@ -68,8 +68,8 @@ module.exports = {
         toCancel = [];
 
         let jobsToSave = reject(jobs, ready);
-        if (isEmpty(state.get('ensemble.jobs')) && isEmpty(jobsToSave)) {
-          return;
+        if (isEmpty(state.ensemble.jobs) && isEmpty(jobsToSave)) {
+          return undefined;
         }
 
         return ['ensemble.jobs', jobsToSave];

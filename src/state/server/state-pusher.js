@@ -20,13 +20,13 @@ module.exports = {
           id: sequence.next('server-origin-messages'),
           timestamp: time().present(),
           highestProcessedMessage: lowestInputProcessed()(save.id),
-          saveState: rawStateAccess().changes(save.id)
+          saveState: rawStateAccess().for(save.id)
         };
 
         on().outgoingServerPacket(socket.id, packet);
       }
 
-      socket.emit('initialState', rawStateAccess().changes(save.id));
+      socket.emit('initialState', rawStateAccess().for(save.id));
 
       id = setInterval(updateClient, config.get().server.pushUpdateFrequency);
       intervals.push(id);
