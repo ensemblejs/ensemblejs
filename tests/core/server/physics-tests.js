@@ -18,7 +18,11 @@ var state = {
 	for: function () {
 		return {
 			all: () => values,
-			get: key => values[key]
+			get: key => {
+				let prop = values;
+				key.split('.').forEach(part => (prop = prop[part]));
+				return prop;
+			}
 		};
 	}
 };

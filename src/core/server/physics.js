@@ -5,6 +5,7 @@ var reject = require('lodash').reject;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var config = require('../../util/config');
+const setFixedInterval = require('fixed-setinterval');
 
 module.exports = {
   type: 'OnServerStart',
@@ -50,7 +51,7 @@ module.exports = {
 
     define()('OnServerStop', () => {
       return function stopEngine () {
-        each(ids, clearInterval);
+        each(ids, cancel => cancel());
         ids = [];
       };
     });
@@ -66,7 +67,7 @@ module.exports = {
 
     return function run () {
       step();
-      ids.push(setInterval(step, config.get().server.physicsUpdateLoop));
+      ids.push(setFixedInterval(step, config.get().server.physicsUpdateLoop));
     };
   }
 };

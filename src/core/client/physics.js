@@ -3,7 +3,7 @@
 var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
-var setFixedInterval = require('fixed-setinterval');
+const setFixedInterval = require('fixed-setinterval');
 
 import define from '../../define';
 
@@ -26,7 +26,7 @@ module.exports = {
       priorStep = now;
 
       if (delta > 1) {
-        delta = 0;
+        delta = 0.16;
       }
 
       frameStore().process(delta, function onEachFrame (frameDelta) {

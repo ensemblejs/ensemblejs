@@ -77,8 +77,11 @@ module.exports = {
         if (!frame.pre) {
           frame.pre = state;
         }
+
+        state = frame.pre;
+
         if (!frame.post) {
-          rawState().resetTo(frame.pre);
+          rawState().resetTo(state);
 
           queue().set(frame.input);
           runLogicOnFrame(frame.delta);

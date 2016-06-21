@@ -82,7 +82,7 @@ export function make (namespace, type, name, frequency = config.measure.frequenc
     };
 
     function sum (set) {
-      return reduce(set, (sum, n) => sum + n, 0);
+      return reduce(set, (t, n) => t + n, 0);
     }
 
     function average (set) {
