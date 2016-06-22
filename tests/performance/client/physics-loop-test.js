@@ -55,7 +55,6 @@ require('../../../src/input/client/process_pending_input').func(defer(actionMap)
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
 
 var trackerPluginsDeps = trackerPlugins.deps();
-var currentState = trackerPluginsDeps.CurrentState();
 onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
 onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
@@ -79,26 +78,14 @@ onClientStart.push(frameStorePluginDeps.OnClientStart());
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(time), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
 var stopPhysicsEngine = plugin('OnDisconnect');
 
-function count (state) { return state.namespace.count; }
-
 let startTimes = [];
-
-function fib(n) {
-  var a = 0, b = 1, t;
-  while (n-- > 0) {
-    t = a;
-    a = b;
-    b += t;
-  }
-  return a;
-}
 
 let blockedDuration = [];
 function doHardWorkFor (duration) {
   const start = now();
 
   if (duration) {
-    fib(duration);
+    while (now() < start + duration);
   }
 
   blockedDuration.push(now() - start);
@@ -188,11 +175,6 @@ describe('Physics Frames Performance', function () {
     }
   });
 
-  beforeEach(() => {
-    startTimes = [];
-    blockedDuration = [];
-  });
-
   after(() => {
     next.restore();
   });
@@ -202,41 +184,32 @@ describe('Physics Frames Performance', function () {
   const KB = 1000;
   const MB = 1000 * KB;
 
-  const fxCounts = [1, 10];//, 100];//, 1000];
+  const fxCounts = [1, 10, 100, 250, 500, 1000];
   const effort = ['trivial-ms', '5ms'];//, '10ms'];//, '15ms'];
   const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1 * MB];
-  const serverStateInterval = [45, 100, 250, 500, 1000, 10000, 'never-'];
+  const serverStateInterval = ['never-', 10000];//, 1000, 500, 250, 100, 45];
 
-  const cycles = {
-    '1-trivial-ms': 0,
-    '10-trivial-ms': 0,
-    '100-trivial-ms': 0,
-    '1000-trivial-ms': 0,
-    '1-5ms': 1900000,
-    '10-5ms': 275000,
-    '100-5ms': 25000,
-    '1000-5ms': 3000,
-    '1-10ms': 4500000,
-    '10-10ms': 600000,
-    '100-10ms': 55000,
-    '1000-10ms': 8000,
-    '1-15ms': 6500000,
-    '10-15ms': 900000,
-    '100-15ms': 95000,
-    '1000-15ms': 10000
+  const totalDuration = {
+    'trivial-ms': 0,
+    '5ms': 5,
+    '10ms': 10,
+    '15ms': 15
   };
 
   fxCounts.forEach(fx => {
     effort.forEach(totalMs => {
       dataSizes.forEach(kb => {
         serverStateInterval.forEach(interval => {
-          const fibCycles = cycles[`${fx}-${totalMs}`];
+          let fEffort = totalDuration[totalMs];
+          if (totalDuration[totalMs] > 0) {
+            fEffort /= fx;
+          }
 
           const name = `${fx} fx, ${totalMs}, ${kb} bytes, ${interval}ms server refresh`;
 
           permutations.push({
             name: name,
-            code: Array(fx).fill(logic(fibCycles)),
+            code: Array(fx).fill(logic(fEffort)),
             data: data(kb === 'minimal-' ? 0 : kb),
             fxCount: fx,
             serverRate: interval
@@ -261,6 +234,8 @@ describe('Physics Frames Performance', function () {
         each(onClientStart, cb => cb(initialState));
 
         frameCount = 0;
+        startTimes = [];
+        blockedDuration = [];
 
         permutation.code.forEach(code => (onPhysicsFrame.push(['*', code])));
 
@@ -293,16 +268,12 @@ describe('Physics Frames Performance', function () {
       });
 
       it('should run at 60 fps or better', () => {
-        // const frames2 = currentState.get(count);
-        // console.log(frameCount, frames2);
         const durationInSeconds = (stop - start) / 1000;
         const fps = Math.floor(frameCount / durationInSeconds);
 
         results.push({name: permutation.name, fps: fps});
 
         expect(fps).toBeGreaterThanOrEqualTo(60);
-
-        // console.log(`Running at ${fps}fps`);
       });
 
       it.skip('should call the physics loop every ~15ms', () => {
@@ -315,8 +286,8 @@ describe('Physics Frames Performance', function () {
           timeSincePrior.push(startTimes[i] - startTimes[i - 1]);
         }
 
-        // logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
-        // logDataAboutSamples('Blocked (ms)', blockedDuration);
+        logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
+        logDataAboutSamples('Blocked (ms)', blockedDuration);
 
         expect(average(timeSincePrior)).toBeLessThanOrEqualTo(16);
 

@@ -31,7 +31,6 @@ function runTestsInPath (gulp, path, scope, cb) {
 
 function runTestsWithoutInstrumentation (gulp, path) {
   return gulp.src(path, {read: false})
-    .pipe(plumber({errorHandler: onError}))
     .pipe(mocha({ reporter: 'spec', timeout: 10000 }));
 }
 
