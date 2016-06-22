@@ -1,7 +1,6 @@
 'use strict';
 
 var mocha = require('gulp-mocha');
-var mocha = require('gulp-mocha');
 var istanbul = require('gulp-istanbul');
 var coveralls = require('gulp-coveralls');
 var isparta = require('isparta');
@@ -52,7 +51,7 @@ function addTasks (gulp) {
   });
 
   gulp.task('framework:run-all-tests', function (cb) {
-    return runTestsInPath(gulp, paths.framework.allTests, 'int', cb);
+    return runTestsInPath(gulp, paths.framework.allTests, 'all', cb);
   });
 
   gulp.task('framework:coveralls', ['framework:test'], function() {
@@ -60,6 +59,8 @@ function addTasks (gulp) {
   });
 
   gulp.task('framework:test:unit', ['framework:run-unit-tests']);
+
+  gulp.task('framework:test:perf', ['framework:run-perf-tests']);
 
   gulp.task('framework:test:integration', gulpSequence(
     'db:start', 'framework:run-integration-tests', 'db:stop')

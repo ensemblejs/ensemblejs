@@ -118,7 +118,7 @@ function logic (duration) {
 
     doHardWorkFor(duration);
 
-    return { namespace: { count: state.for('namespace').get('count') + 1 } };
+    return { namespace: { count: state.namespace.count + 1 } };
   };
 }
 

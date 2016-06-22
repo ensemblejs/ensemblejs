@@ -19,6 +19,7 @@
     "build": "gulp framework:build",
     "unit": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
+    "perf": "NODE_ENV=test gulp framework:test:perf",
     "int": "NODE_ENV=test gulp framework:test:integration",
     "perf": "NODE_ENV=test gulp framework:test:perf",
     "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
