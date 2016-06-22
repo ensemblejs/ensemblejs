@@ -6,6 +6,7 @@ var each = require('lodash').each;
 const now = require('present');
 const {sortBy} = require('lodash');
 const histogram = require('ascii-histogram');
+const chart = require('ascii-chart');
 const setFixedInterval = require('fixed-setinterval');
 
 var logger = require('../../fake/logger');
@@ -81,6 +82,7 @@ var stopPhysicsEngine = plugin('OnDisconnect');
 let startTimes = [];
 
 let blockedDuration = [];
+let framesProcessedThisFrame = 0;
 function doHardWorkFor (duration) {
   const start = now();
 
@@ -88,15 +90,25 @@ function doHardWorkFor (duration) {
     while (now() < start + duration);
   }
 
-  blockedDuration.push(now() - start);
+  blockedDuration.push(Math.round(now() - start));
+  framesProcessedThisFrame += 1;
 }
 
 let frameCount = 0;
+let frameStoreDurations = [];
+let framesProcessed = [];
 const originalFrameStoreProcess = frameStore.process;
 frameStore.process = function countFrames (delta, runLogicOnFrame) {
   frameCount += 1;
 
+  const start = now ();
+
   originalFrameStoreProcess(delta, runLogicOnFrame);
+
+  framesProcessed.push(framesProcessedThisFrame);
+  framesProcessedThisFrame = 0;
+
+  frameStoreDurations.push(Math.ceil(now() - start));
 };
 
 function logic (duration) {
@@ -150,6 +162,12 @@ function logDataAboutSamples (name, samples) {
   console.log(histogram(asHistogram));
 }
 
+function barChart (name, samples) {
+  console.log(name);
+
+  console.log(chart(samples, { width: 250, height: 20 }));
+}
+
 function data (size) {
   return {
     ensemble: { waitingForPlayers: false },
@@ -170,7 +188,7 @@ describe('Physics Frames Performance', function () {
 
   before(() => {
     next = sinon.stub(sequence, 'next');
-    for (let i = 0; i < 500000; i++) {
+    for (let i = 0; i < 50000; i++) {
       next.onCall(i).returns(i + 1);
     }
   });
@@ -184,10 +202,10 @@ describe('Physics Frames Performance', function () {
   const KB = 1000;
   const MB = 1000 * KB;
 
-  const fxCounts = [1, 10, 100, 250, 500, 1000];
+  const fxCounts = [1, 10, 100, 250];//, 500, 1000]; //1, 10
   const effort = ['trivial-ms', '5ms'];//, '10ms'];//, '15ms'];
-  const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1 * MB];
-  const serverStateInterval = ['never-', 10000];//, 1000, 500, 250, 100, 45];
+  const dataSizes = ['minimal-'];//, 1 * KB, 10 * KB, 100 * KB, 1 * MB];
+  const serverStateInterval = ['never-', 45];//, , 5000, 1000, 500, 250, 100, 45];
 
   const totalDuration = {
     'trivial-ms': 0,
@@ -198,19 +216,19 @@ describe('Physics Frames Performance', function () {
 
   fxCounts.forEach(fx => {
     effort.forEach(totalMs => {
-      dataSizes.forEach(kb => {
+      dataSizes.forEach(b => {
         serverStateInterval.forEach(interval => {
           let fEffort = totalDuration[totalMs];
           if (totalDuration[totalMs] > 0) {
             fEffort /= fx;
           }
 
-          const name = `${fx} fx, ${totalMs}, ${kb} bytes, ${interval}ms server refresh`;
+          const name = `${fx} f(x), ${totalMs}, ${b}b, ${interval}ms server refresh`;
 
           permutations.push({
             name: name,
             code: Array(fx).fill(logic(fEffort)),
-            data: data(kb === 'minimal-' ? 0 : kb),
+            data: data(b === 'minimal-' ? 0 : b),
             fxCount: fx,
             serverRate: interval
           });
@@ -229,11 +247,15 @@ describe('Physics Frames Performance', function () {
       let stop;
 
       before(done => {
+        console.log(`Running ${permutation.name}`);
+
         var initialState = permutation.data;
 
         each(onClientStart, cb => cb(initialState));
 
         frameCount = 0;
+        frameStoreDurations = [];
+        framesProcessed = [];
         startTimes = [];
         blockedDuration = [];
 
@@ -244,11 +266,13 @@ describe('Physics Frames Performance', function () {
 
         let stopPushServerState;
         if (permutation.serverRate !== 'never-') {
+
           stopPushServerState = setFixedInterval(() => {
             onIncomingServerPacket.forEach(cb => cb({
               saveState: permutation.data
             }));
           }, permutation.serverRate);
+
         }
 
         setTimeout(() => {
@@ -273,10 +297,15 @@ describe('Physics Frames Performance', function () {
 
         results.push({name: permutation.name, fps: fps});
 
+        logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations);
+
+        barChart('Duration of FrameStore.process', frameStoreDurations);
+        barChart('f(x) processed per frame', framesProcessed);
+
         expect(fps).toBeGreaterThanOrEqualTo(60);
       });
 
-      it.skip('should call the physics loop every ~15ms', () => {
+      it('should call the physics loop every ~15ms', () => {
         let timeSincePrior = [];
         for(let i = 0; i < startTimes.length; i += 1) {
           if (i === 0) {
