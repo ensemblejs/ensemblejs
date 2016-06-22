@@ -1,7 +1,6 @@
 'use strict';
 
 import {last, map} from 'lodash';
-import {filter} from './array';
 import {isArray} from './is';
 import Bluebird from 'bluebird';
 
@@ -25,23 +24,16 @@ function isApplicable (mode, plugin) {
 }
 
 function filterPluginsByMode (plugins, mode) {
-  return filter(plugins, function predicate (plugin) {
-    return isApplicable(mode, plugin);
-  });
+  return plugins.filter(plugin => isApplicable(mode, plugin));
 }
 
 function forEachMode (plugins, mode, callback) {
-  var forMode = filterPluginsByMode(plugins, mode);
-
-  for (let i = 0; i < forMode.length; i += 1) {
-    callback(last(forMode[i]));
-  }
+  const forMode = filterPluginsByMode(plugins, mode);
+  forMode.forEach(plugin => callback(last(plugin)));
 }
 
 function callEachPlugin (plugins, params = []) {
-  for (let i = 0; i < plugins.length; i += 1) {
-    plugins[i](...params);
-  }
+  plugins.forEach(plugin => plugin(...params));
 }
 
 function callEachPluginAndPromises (plugins, params = []) {
@@ -51,27 +43,21 @@ function callEachPluginAndPromises (plugins, params = []) {
 }
 
 function callEachWithMutation (plugins, mutator, saveId, params = []) {
-  for (let i = 0; i < plugins.length; i += 1) {
-    mutator()(saveId, plugins[i](...params));
-  }
+  plugins.forEach(plugin => mutator()(saveId, plugin(...params)));
 }
 
 function callForMode (plugins, mode, params) {
-  var forMode = filterPluginsByMode(plugins, mode);
-  for (let i = 0; i < forMode.length; i += 1) {
-    last(forMode[i])(...params);
-  }
+  const forMode = filterPluginsByMode(plugins, mode);
+  forMode.forEach(plugin => last(plugin)(...params));
 }
 
 function callForModeWithMutation (plugins, mutator, save, params) {
-  var forMode = filterPluginsByMode(plugins, save.mode);
-  for (let i = 0; i < forMode.length; i += 1) {
-    mutator()(save.id, last(forMode[i])(...params));
-  }
+  const forMode = filterPluginsByMode(plugins, save.mode);
+  forMode.forEach(plugin => mutator()(save.id, last(plugin)(...params)));
 }
 
 function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {
-  var forMode = filterPluginsByMode(plugins, save.mode);
+  const forMode = filterPluginsByMode(plugins, save.mode);
   return Bluebird.all(map(forMode, function callEachAndMutate (plugin) {
     return mutator()(save.id, last(plugin)(...params));
   }));

@@ -11,7 +11,7 @@ let timers = [];
 let exact = [];
 let wildcard = [
   'ensemblejs.',
-  'Game.',
+  'Game.'
 ];
 
 function shouldMeasureKey (key) {
@@ -39,7 +39,7 @@ export default function timer (namespace, type, name, frequency) {
 }
 
 define('Profiler', function Profiler () {
-  return { timer: timer };
+  return { timer };
 });
 
 on('ServerStart', function Profiler () {
@@ -50,15 +50,15 @@ on('ClientStart', function Profiler () {
   return removeTimersNotConfigured;
 });
 
-before('PhysicsFrame', function BeforePhysicsFrame () {
-  function printTimingResults () {
-    each(timers, function print (timingData) {
-      plugin('Metrics').profile(timingData.key, timingData.flush());
-    });
-  }
+// before('PhysicsFrame', function BeforePhysicsFrame () {
+//   function printTimingResults () {
+//     each(timers, function print (timingData) {
+//       plugin('Metrics').profile(timingData.key, timingData.flush());
+//     });
+//   }
 
-  return execute(printTimingResults).every(5).seconds();
-});
+//   return execute(printTimingResults).every(5).seconds();
+// });
 
 on('Disconnect', ['Time', 'Logger'], function Profiler (time, logger) {
   return function printTimingResults () {

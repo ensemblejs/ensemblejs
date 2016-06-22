@@ -1,6 +1,6 @@
 'use strict';
 
-const { each, reject, last, map } = require('lodash');
+const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const Immutable = require('immutable');
 
@@ -12,13 +12,12 @@ module.exports = {
     let frames = [];
     let inputForNextFrame = [];
 
-    function add (delta) {
+    function add (Δ) {
       frames.push({
         id: sequence.next('frame'),
-        delta,
+        Δ,
         timestamp: time().present(),
         input: inputForNextFrame.splice(0),
-        pre: null,
         post: null
       });
     }
@@ -28,15 +27,17 @@ module.exports = {
     }
 
     function dropFrames (highestProcessedMessage) {
-      frames = reject(frames, frame => frame.id <= highestProcessedMessage);
+      frames = frames.filter(frame => frame.id > highestProcessedMessage);
     }
 
-    function resetPreAndPost () {
-      frames = map(frames, frame => {
-        frame.pre = null;
+    function resetCache () {
+      frames = frames.map(frame => {
         frame.post = null;
         return frame;
       });
+      // frames.forEach(frame => {
+      //   frame.post = null;
+      // });
     }
 
     function OnClientStart () {
@@ -49,7 +50,7 @@ module.exports = {
       return function handle (packet) {
         fromServer = Immutable.fromJS(packet.saveState);
         dropFrames(packet.highestProcessedMessage);
-        resetPreAndPost();
+        resetCache();
       };
     }
 
@@ -68,30 +69,24 @@ module.exports = {
       };
     }
 
-    function process (delta, runLogicOnFrame) {
-      add(delta);
+    function process (Δ, runLogicOnFrame) {
+      add(Δ);
 
-      let state = fromServer;
-
-      each(frames, frame => {
-        if (!frame.pre) {
-          frame.pre = state;
-        }
-
-        state = frame.pre;
-
+      function processFrame (state, frame) {
         if (!frame.post) {
           rawState().resetTo(state);
 
           queue().set(frame.input);
-          runLogicOnFrame(frame.delta);
+          runLogicOnFrame(frame.Δ);
           queue().clear();
 
           frame.post = rawState().get();
         }
 
-        state = frame.post;
-      });
+        return frame.post;
+      }
+
+      frames.reduce(processFrame, fromServer);
     }
 
     function reset () {

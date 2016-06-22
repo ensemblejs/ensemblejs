@@ -202,10 +202,10 @@ describe('Physics Frames Performance', function () {
   const KB = 1000;
   const MB = 1000 * KB;
 
-  const fxCounts = [1, 10, 100, 250];//, 500, 1000]; //1, 10
-  const effort = ['trivial-ms', '5ms'];//, '10ms'];//, '15ms'];
-  const dataSizes = ['minimal-'];//, 1 * KB, 10 * KB, 100 * KB, 1 * MB];
-  const serverStateInterval = ['never-', 45];//, , 5000, 1000, 500, 250, 100, 45];
+  const fxCounts = [1, 10, 100, 250, 500, 1000];
+  const effort = ['trivial-ms', '5ms', '10ms', '15ms'];
+  const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1 * MB];
+  const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
   const totalDuration = {
     'trivial-ms': 0,

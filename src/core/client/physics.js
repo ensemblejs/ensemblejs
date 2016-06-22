@@ -21,24 +21,26 @@ module.exports = {
       priorStep = now;
     }
 
+    function onEachFrame (frameDelta) {
+      const state = stateAccess().for(save.id).all();
+      const opts = [frameDelta, state];
+
+      callEachWithMutation(beforeFrame(), mutator, save.id, opts);
+
+      if (!state.ensemble.waitingForPlayers) {
+        callForModeWithMutation(onFrame(), mutator, save, opts);
+      }
+    }
+
     function doRunning (now) {
-      let delta = (now - priorStep) / 1000;
+      let Δ = (now - priorStep) / 1000;
       priorStep = now;
 
-      if (delta > 1) {
-        delta = 0.16;
+      if (Δ > 1) {
+        Δ = 0.16;
       }
 
-      frameStore().process(delta, function onEachFrame (frameDelta) {
-        const state = stateAccess().for(save.id).all();
-        const opts = [frameDelta, state];
-
-        callEachWithMutation(beforeFrame(), mutator, save.id, opts);
-
-        if (!state.ensemble.waitingForPlayers) {
-          callForModeWithMutation(onFrame(), mutator, save, opts);
-        }
-      });
+      frameStore().process(Δ, onEachFrame);
     }
 
     function shouldRunPhysicsEngine () {
