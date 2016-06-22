@@ -3,6 +3,7 @@
 var callEachPlugin = require('../../util/modes').callEachPlugin;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
+var setFixedInterval = require('fixed-setinterval');
 
 import define from '../../define';
 
@@ -69,9 +70,7 @@ module.exports = {
     var ids = [];
     define('OnDisconnect', function OnDisconnect () {
       return function stopPhysicsLoop () {
-        for (let i = 0; i < ids.length; i += 1) {
-          clearInterval(ids[i]);
-        }
+        ids.forEach(cancel => cancel());
 
         frameStore().reset();
 
@@ -89,7 +88,7 @@ module.exports = {
 
     return function run () {
       step();
-      ids.push(setInterval(step, config().client.physicsUpdateLoop));
+      ids.push(setFixedInterval(step, config().client.physicsUpdateLoop));
     };
   }
 };

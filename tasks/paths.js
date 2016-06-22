@@ -25,9 +25,10 @@ module.exports = {
     clean: ['public/css/*.css', 'data/db', 'data/logs'],
     js: ['ensemble.js', 'src/**/*.js'],
     less: ['src/less/**/*.less'],
-    unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js'],
+    unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js', '!tests/performance/**/*.js'],
     integrationTests: ['tests/integration/*.js', 'tests/integration/**/*.js'],
-    allTests: ['tests/*.js', 'tests/**/*.js'],
+    performanceTests: ['tests/performance/*.js', 'tests/performance/**/*.js'],
+    allTests: ['tests/*.js', 'tests/**/*.js', '!tests/performance/**/*.js'],
     coveragejs: [
       'ensemble.js',
       'src/**/*.js',

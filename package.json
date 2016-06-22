@@ -20,6 +20,7 @@
     "unit": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
     "int": "NODE_ENV=test gulp framework:test:integration",
+    "perf": "NODE_ENV=test gulp framework:test:perf",
     "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
     "prepublish": "npm run build && npm run convert",
     "coverage": "codecov"
@@ -106,6 +107,7 @@
     "express-bunyan-logger": "^1.3.0",
     "express-session": "^1.11.3",
     "factor-bundle": "^2.5.0",
+    "fixed-setinterval": "git+https://github.com/distributedlife/fixed-timeout.git",
     "frameguard": "^2.0.0",
     "git-repo-info": "^1.1.2",
     "gulp": "^3.9.1",

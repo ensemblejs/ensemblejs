@@ -30,6 +30,12 @@ function runTestsInPath (gulp, path, scope, cb) {
     });
 }
 
+function runTestsWithoutInstrumentation (gulp, path) {
+  return gulp.src(path, {read: false})
+    .pipe(plumber({errorHandler: onError}))
+    .pipe(mocha({ reporter: 'spec', timeout: 10000 }));
+}
+
 function addTasks (gulp) {
   require('./cleanup')(gulp);
 
@@ -39,6 +45,10 @@ function addTasks (gulp) {
 
   gulp.task('framework:run-integration-tests', function (cb) {
     return runTestsInPath(gulp, paths.framework.integrationTests, 'int', cb);
+  });
+
+  gulp.task('framework:run-performance-tests', function () {
+    return runTestsWithoutInstrumentation(gulp, paths.framework.performanceTests);
   });
 
   gulp.task('framework:run-all-tests', function (cb) {
@@ -54,6 +64,8 @@ function addTasks (gulp) {
   gulp.task('framework:test:integration', gulpSequence(
     'db:start', 'framework:run-integration-tests', 'db:stop')
   );
+
+  gulp.task('framework:test:perf', ['framework:run-performance-tests']);
 
   gulp.task('framework:test', gulpSequence('db:start', 'framework:run-all-tests', 'db:stop'));
 }
