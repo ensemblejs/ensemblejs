@@ -24,7 +24,7 @@ module.exports = {
 
 		define()('BeforePhysicsFrame', ['InputQueue'], function ProcessPendingInputClient (inputQueue) {
 
-			return function processPendingInput (delta, state) {
+			return function processPendingInput (Δ, state) {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
@@ -106,7 +106,7 @@ module.exports = {
 					data = {
 						timestamp: currentInput.timestamp,
 						playerId: currentInput.playerId,
-						delta: delta
+						Δ
 					};
 
 					parseKeysAndKeypresses(actionMaps(), currentInput, waitingForPlayers, onMatchingKeyAndKeypressCallback);

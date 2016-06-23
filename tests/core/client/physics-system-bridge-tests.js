@@ -59,8 +59,21 @@ var stateAccess = {
   }
 };
 var scopedState = {
-  unwrap: function (key) {
-    return state[key];
+  source: {
+    state: {position: { x: 4, y: 5}}
+  },
+  different: {
+    state: {position: { x: 4, y: 5}}
+  },
+  second: {
+    state: {position: { x: 24, y: 35}}
+  },
+  array: {
+    state: [
+      {id: 1, position: { x: 24, y: 35}},
+      {id: 2, position: { x: 43, y: 23}}
+    ],
+    empty: []
   }
 };
 

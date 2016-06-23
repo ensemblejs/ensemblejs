@@ -122,7 +122,7 @@ describe('Input Bindings', function() {
 
 		it('should pass in the standard event data', function () {
 			beforePhysicsFrame(16, currentState);
-			var expected = {timestamp: undefined, playerId: 3, delta: 16};
+			var expected = {timestamp: undefined, playerId: 3, Δ: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(currentState);
 			expect(model.noEvent.firstCall.args[1]).toEqual({});
@@ -183,7 +183,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			beforePhysicsFrame(16, currentState);
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -204,7 +204,7 @@ describe('Input Bindings', function() {
 			newUserInput(rawData, undefined, save, playerId);
 			beforePhysicsFrame(16, currentState);
 
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -213,7 +213,7 @@ describe('Input Bindings', function() {
 
 			beforePhysicsFrame(16, currentState);
 
-			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyPressEvent.called).toBe(false);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
@@ -258,7 +258,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			beforePhysicsFrame(16, currentState);
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -273,7 +273,7 @@ describe('Input Bindings', function() {
 			newUserInput(rawData, undefined, save, playerId);
 			beforePhysicsFrame(16, currentState);
 
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -282,7 +282,7 @@ describe('Input Bindings', function() {
 			beforePhysicsFrame(16, currentState);
 
 			expect(model.keyEvent.called).toBe(false);
-			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.keyPressEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'key'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.keyModCtrl.called).toBe(false);
 			expect(model.keyPressModCtrl.called).toBe(false);
 			expect(mutator.called).toBe(true);
@@ -367,7 +367,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			beforePhysicsFrame(16, currentState);
-			expect(model.touchEvent.firstCall.args).toEqual([currentState, {x: 4, y: 5}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.touchEvent.firstCall.args).toEqual([currentState, {x: 4, y: 5}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 
@@ -423,7 +423,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with the touch coordinates, event data and supplied data', function() {
 			beforePhysicsFrame(16, currentState);
-			expect(model.cursorEvent.firstCall.args).toEqual([currentState, {x:6 , y:7}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.cursorEvent.firstCall.args).toEqual([currentState, {x:6 , y:7}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 
@@ -470,7 +470,7 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with a force of one, event data and supplied data', function() {
 			beforePhysicsFrame(16, currentState);
-			expect(model.mouseClickEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'button1'}, {timestamp: undefined, playerId: 3, delta: 16}]);
+			expect(model.mouseClickEvent.firstCall.args).toEqual([currentState, {force: 1, key: 'button1'}, {timestamp: undefined, playerId: 3, Δ: 16}]);
 			expect(model.mouseDownEvent.called).toBe(false);
 			expect(mutator.called).toBe(true);
 		});
@@ -506,8 +506,8 @@ describe('Input Bindings', function() {
 
 		it('should call any matching functions with direction vector and the fource', function () {
 			beforePhysicsFrame(16, currentState);
-			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, {x: 0.1, y: 1.0}, {timestamp: Date.now(), playerId: 3, delta: 16}]);
-			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, {x: 0.9, y: 0.3}, {timestamp: Date.now(), playerId: 3, delta: 16}]);
+			expect(model.leftStickEvent.firstCall.args).toEqual([currentState, {x: 0.1, y: 1.0}, {timestamp: Date.now(), playerId: 3, Δ: 16}]);
+			expect(model.rightStickEvent.firstCall.args).toEqual([currentState, {x: 0.9, y: 0.3}, {timestamp: Date.now(), playerId: 3, Δ: 16}]);
 			expect(mutator.called).toBe(true);
 		});
 

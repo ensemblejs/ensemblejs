@@ -5,15 +5,15 @@ var sinon = require('sinon');
 
 var makeTestible = require('../../support').makeTestible;
 
-var start12 = function () {};
-var during12 = function () {};
-var finish12 = function () {};
+var start12 = function () { return undefined; };
+var during12 = function () { return undefined; };
+var finish12 = function () { return undefined; };
 
-var start13 = function () {};
-var during13 = function () {};
-var finish13 = function () {};
+var start13 = function () { return undefined; };
+var during13 = function () { return undefined; };
+var finish13 = function () { return undefined; };
 
-var start14 = function () {};
+var start14 = function () { return undefined; };
 
 var physicsSystem = makeTestible('core/shared/physics-system')[0];
 
@@ -206,7 +206,7 @@ describe('collision detection system', function () {
       };
 
       var cd = makeTestible('core/shared/collision-detection-system', {
-        PhysicsSystem: physicsSystem,
+        PhysicsSystem: physicsSystem
       })[0];
 
       callbackDelegate.reset();
@@ -252,7 +252,7 @@ describe('collision detection system', function () {
       };
 
       cd = makeTestible('core/shared/collision-detection-system', {
-        PhysicsSystem: physicsSystem,
+        PhysicsSystem: physicsSystem
       })[0];
 
       callbackDelegate.reset();

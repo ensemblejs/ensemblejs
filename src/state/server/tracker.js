@@ -19,6 +19,8 @@ module.exports = {
       args.unshift(priorModel);
       args.unshift(currentModel);
 
+      console.log('change callback', currentModel, priorModel, data);
+
       callback(...args);
     }
 
@@ -45,11 +47,18 @@ module.exports = {
       if (priorState === undefined) { return true; }
       if (priorState[saveId] === undefined) { return true; }
 
-      return !isEqual(f(priorState[saveId]), f(currentState[saveId]));
+      console.log(
+        f(priorState[saveId].toJS()), f(currentState[saveId].toJS())
+      );
+
+      return !isEqual(f(priorState[saveId].toJS()), f(currentState[saveId].toJS()));
     }
 
     function currentValue (f, saveId) {
       if (currentState === undefined) {
+        return undefined;
+      }
+      if (currentState[saveId] === undefined) {
         return undefined;
       }
 
@@ -58,6 +67,9 @@ module.exports = {
 
     function priorValue (f, saveId) {
       if (priorState === undefined) {
+        return undefined;
+      }
+      if (priorState[saveId] === undefined) {
         return undefined;
       }
 
@@ -99,6 +111,7 @@ module.exports = {
 
     function handleObjects (change) {
       if (hasChanged(change.focus, change.saveId)) {
+        console.log('changed');
         if (!change.when) {
           invokeCallback(
             change.callback,
@@ -153,6 +166,7 @@ module.exports = {
     define()('OnServerReady', ['RawStateAccess'], rawState => {
       return function storeInitialServerState () {
         priorState = currentState;
+        currentState = null;
         currentState = rawState().all();
       };
     });
@@ -160,6 +174,7 @@ module.exports = {
     define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
       return function takeLatestCopyOfRawState () {
         priorState = currentState;
+        currentState = null;
         currentState = rawState().all();
         detectChangesAndNotifyObservers();
       };

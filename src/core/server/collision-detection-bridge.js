@@ -10,20 +10,21 @@ module.exports = {
   func: function CollisionDetectionBridge (define, maps, system) {
 
     function OnPhysicsFrame () {
-      return function callSystemWithRelevantMapsAndSaveId (delta, state) {
+      return function callSystemWithRelevantMapsAndSaveId (Δ, state) {
         let changes = [];
 
         const saveId = state.ensemble.saveId;
         const mode = state.ensemble.mode;
 
-        forEachMode(maps(), mode, function (map) {
+        function onCollision (callback, map, metadata) {
+          let args = [Δ, state, metadata].concat(clone(map.data) || []);
 
-          function onCollision (callback, collisionMap, metadata) {
-            let onCollisionArgs = [delta, state, metadata].concat(clone(collisionMap.data) || []);
+          console.log('collision', state);
 
-            changes.push(callback(...onCollisionArgs));
-          }
+          changes.push(callback(...args));
+        }
 
+        forEachMode(maps(), mode, map => {
           system().detectCollisions(map, saveId, onCollision);
         });
 

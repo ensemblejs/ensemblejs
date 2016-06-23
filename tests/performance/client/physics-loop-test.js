@@ -45,7 +45,17 @@ var afterPhysicsFrame = [];
 var actionMap = [];
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
-var mutator = require('../../../src/state/client/mutator').func(defer(logger));
+
+const theRealMutator = require('../../../src/state/client/mutator').func(defer(logger));
+let mutatorTimeForFrame = 0;
+function mutator (saveId, result) {
+  const start = now();
+
+  theRealMutator(saveId, result);
+
+  mutatorTimeForFrame += now() - start;
+}
+
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
 
@@ -61,13 +71,8 @@ onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawS
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
 
-var clientState = {
-  get: () => {return false;}
-};
-
-var serverState = {
-  get: () => {return false;}
-};
+var clientState = { get: () => false };
+var serverState = { get: () => false };
 
 var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(time), defer('default'));
 
@@ -97,9 +102,14 @@ function doHardWorkFor (duration) {
 let frameCount = 0;
 let frameStoreDurations = [];
 let framesProcessed = [];
+let totalGameDevTime = [];
+let totalMutatorTime = [];
+let gameDevTimeForFrame = 0;
 const originalFrameStoreProcess = frameStore.process;
 frameStore.process = function countFrames (delta, runLogicOnFrame) {
   frameCount += 1;
+  gameDevTimeForFrame = 0;
+  mutatorTimeForFrame = 0;
 
   const start = now ();
 
@@ -109,14 +119,19 @@ frameStore.process = function countFrames (delta, runLogicOnFrame) {
   framesProcessedThisFrame = 0;
 
   frameStoreDurations.push(Math.ceil(now() - start));
+  totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
+  totalMutatorTime.push(Math.ceil(mutatorTimeForFrame));
 };
 
 function logic (duration) {
   return function whileAwayTheHours (delta, state) {
-    startTimes.push(now());
+    const start = now();
+
+    startTimes.push(start);
 
     doHardWorkFor(duration);
 
+    gameDevTimeForFrame += now() - start;
     return { namespace: { count: state.namespace.count + 1 } };
   };
 }
@@ -202,10 +217,10 @@ describe('Physics Frames Performance', function () {
   const KB = 1000;
   const MB = 1000 * KB;
 
-  const fxCounts = [1, 10, 100, 250, 500, 1000];
-  const effort = ['trivial-ms', '5ms', '10ms', '15ms'];
-  const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1 * MB];
-  const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+  const fxCounts = [100];//1, 10, 100, 250, 500, 1000];
+  const effort = ['5ms'];//trivial-ms', '5ms', '10ms', '15ms'];
+  const dataSizes = ['minimal-'];//, 1 * KB, 10 * KB, 100 * KB, 1 * MB];
+  const serverStateInterval = ['never-'];//, 5000, 1000, 500, 250, 100, 45];
 
   const totalDuration = {
     'trivial-ms': 0,
@@ -256,6 +271,8 @@ describe('Physics Frames Performance', function () {
         frameCount = 0;
         frameStoreDurations = [];
         framesProcessed = [];
+        totalGameDevTime = [];
+        totalMutatorTime = [];
         startTimes = [];
         blockedDuration = [];
 
@@ -297,10 +314,18 @@ describe('Physics Frames Performance', function () {
 
         results.push({name: permutation.name, fps: fps});
 
-        logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations);
+        // logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations);
 
-        barChart('Duration of FrameStore.process', frameStoreDurations);
-        barChart('f(x) processed per frame', framesProcessed);
+        let frameworkDuration = [];
+        for (let i = 0; i < frameStoreDurations.length; i += 1) {
+          frameworkDuration.push(frameStoreDurations[i] - totalGameDevTime[i]);
+        }
+
+        // barChart('Duration of FrameStore.process', frameStoreDurations);
+        // barChart('Duration of GameDev Logic', totalGameDevTime);
+        logDataAboutSamples('Duration of Framework Code', frameworkDuration);
+        logDataAboutSamples('Duration of Mutator Code', totalMutatorTime);
+        // barChart('f(x) processed per frame', framesProcessed);
 
         expect(fps).toBeGreaterThanOrEqualTo(60);
       });
@@ -315,8 +340,8 @@ describe('Physics Frames Performance', function () {
           timeSincePrior.push(startTimes[i] - startTimes[i - 1]);
         }
 
-        logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
-        logDataAboutSamples('Blocked (ms)', blockedDuration);
+        // logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
+        // logDataAboutSamples('Blocked (ms)', blockedDuration);
 
         expect(average(timeSincePrior)).toBeLessThanOrEqualTo(16);
 

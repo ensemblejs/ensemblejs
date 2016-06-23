@@ -18,7 +18,7 @@ module.exports = {
         Δ,
         timestamp: time().present(),
         input: inputForNextFrame.splice(0),
-        post: null
+        cached: null
       });
     }
 
@@ -32,12 +32,9 @@ module.exports = {
 
     function resetCache () {
       frames = frames.map(frame => {
-        frame.post = null;
+        frame.cached = null;
         return frame;
       });
-      // frames.forEach(frame => {
-      //   frame.post = null;
-      // });
     }
 
     function OnClientStart () {
@@ -72,21 +69,21 @@ module.exports = {
     function process (Δ, runLogicOnFrame) {
       add(Δ);
 
-      function processFrame (state, frame) {
-        if (!frame.post) {
+      function processEachFrame (state, frame) {
+        if (!frame.cached) {
           rawState().resetTo(state);
 
           queue().set(frame.input);
           runLogicOnFrame(frame.Δ);
           queue().clear();
 
-          frame.post = rawState().get();
+          frame.cached = rawState().get();
         }
 
-        return frame.post;
+        return frame.cached;
       }
 
-      frames.reduce(processFrame, fromServer);
+      frames.reduce(processEachFrame, fromServer);
     }
 
     function reset () {

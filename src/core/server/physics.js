@@ -10,43 +10,38 @@ const setFixedInterval = require('fixed-setinterval');
 module.exports = {
   type: 'OnServerStart',
   deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'DefinePlugin', 'Time', 'Profiler'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, define, time, profiler) {
-    var rate = profiler().timer('ensemblejs', 'server-physics', 'call-rate', 1);
-    var priorStepTime = time().present();
-    var ids = [];
+  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, define, time) {
+
+    let priorStepTime = time().present();
+    let ids = [];
 
     function pausedSaves (save) {
       return stateAccess().for(save.id).get('ensemble.paused');
     }
 
-    function update (delta) {
-      var running = reject(saves().loaded(), pausedSaves);
+    function update (Δ) {
+      const running = reject(saves().loaded(), pausedSaves);
       each(running, function callUpdateOnEach (save) {
-        var state = stateAccess().for(save.id).all();
-        var opts = [delta, state];
+        const state = stateAccess().for(save.id).all();
+        const opts = [Δ, state];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (state.ensemble.waitingForPlayers) {
-          return;
+        if (!state.ensemble.waitingForPlayers) {
+          callForModeWithMutation(onFrame(), mutator, save, opts);
         }
 
-        callForModeWithMutation(onFrame(), mutator, save, opts);
         callEachWithMutation(afterFrame(), mutator, save.id, opts);
       });
     }
 
     function step () {
-      rate.fromHere();
+      const now = time().present();
+      const Δ = (now - priorStepTime) / 1000;
 
-      var now = time().present();
-      var delta = (now - priorStepTime) / 1000;
-
-      update(delta);
+      update(Δ);
 
       priorStepTime = now;
-
-      rate.toHere();
     }
 
     define()('OnServerStop', () => {
@@ -59,8 +54,7 @@ module.exports = {
     define()('InternalState', () => {
       return {
         ServerSideEngine: {
-          now: function () { return time().present(); },
-          callRate: function callRate () { return rate.results().rate; }
+          now: function () { return time().present(); }
         }
       };
     });

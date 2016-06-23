@@ -10,8 +10,8 @@ module.exports = {
 
     return function initialiseEffects () {
       define()('OnPhysicsFrame', function OnRenderFrame () {
-        return function tickEffects (delta) {
-          each(effects, effect => effect.tick(delta));
+        return function tickEffects (Δ) {
+          each(effects, effect => effect.tick(Δ));
 
           const finished = filter(effects, effect => !effect.isAlive());
           each(finished, effect => effect.done && effect.done());

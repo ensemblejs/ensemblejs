@@ -21,9 +21,9 @@ module.exports = {
       priorStep = now;
     }
 
-    function onEachFrame (frameDelta) {
+    function onEachFrame (Δ) {
       const state = stateAccess().for(save.id).all();
-      const opts = [frameDelta, state];
+      const opts = [Δ, state];
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
@@ -39,6 +39,7 @@ module.exports = {
       if (Δ > 1) {
         Δ = 0.16;
       }
+
 
       frameStore().process(Δ, onEachFrame);
     }

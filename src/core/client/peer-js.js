@@ -15,7 +15,7 @@ function getPeerId (saveId, playerNumber, deviceNumber) {
   return `${saveId}-${playerNumber}-${deviceNumber}`;
 }
 
-function reconnectToBroker (peer) {
+function reconnectToBroker () {
   if (peer === null) {
     return;
   }
@@ -78,7 +78,7 @@ function OnClientReady (eventRouter, SaveId, config) {
     peer.on('connection', handleIncomingConnections);
     peer.on('disconnected', function() {
       info('PeerJS disconnected from broker.');
-      reconnectToBroker(peer);
+      reconnectToBroker();
     });
 
     peer.on('error', err => {
@@ -107,9 +107,11 @@ function OnOutgoingClientPacket (config) {
 
 function OnDisconnect () {
   return function disconnectFromBroker () {
-    info('Disconnecting from PeerJS Broker.');
-    peer.disconnect();
-    peer = null;
+    if (peer) {
+      info('Disconnecting from PeerJS Broker.');
+      peer.disconnect();
+      peer = null;
+    }
   };
 }
 

@@ -18,8 +18,8 @@ module.exports = {
 
       logger.info('Enabled: "continual" save.');
 
-      function saveEveryFrame (delta, state) {
-        saves.save(rawState().for(state.ensemble.saveId).toJS(), time().present());
+      function saveEveryFrame (Δ, state) {
+        saves.save(state, time().present());
       }
 
       return execute(saveEveryFrame).every(config.get().ensemble.autoSaveThrottle).calls();
