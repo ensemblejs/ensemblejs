@@ -242,10 +242,8 @@ module.exports = {
         return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : Immutable.fromJS(next);
       }
 
-      // console.log('pre-merge', resultToMerge);
       root[saveId] = root[saveId] || Immutable.fromJS({});
       root[saveId] = root[saveId].mergeWith(recurseMapsOnly, Immutable.fromJS(resultToMerge));
-      // console.log('post-merge', JSON.stringify(root[saveId]));
     }
 
     function isArrayOfArrays (result) {
@@ -276,8 +274,6 @@ module.exports = {
     };
 
     return function mutate (saveId, result) {
-      // console.log('>', saveId);
-      // console.log(result);
       return oMutate(saveId, result);
     };
   }
