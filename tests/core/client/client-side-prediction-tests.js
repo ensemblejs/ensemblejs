@@ -47,6 +47,8 @@ var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 // afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
+var applyPendingMerges = plugin('AfterPhysicsFrame');
+afterPhysicsFrame.push(applyPendingMerges);
 
 var mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(plugin('Config')));
@@ -104,7 +106,7 @@ function gameLogic (delta, state) {
   };
 }
 
-describe('CSP: after on AfterPhysicsFrame', function () {
+describe.skip('CSP: after on AfterPhysicsFrame', function () {
   let next;
 
   beforeEach(function () {

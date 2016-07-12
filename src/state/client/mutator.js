@@ -4,9 +4,36 @@ import {isEqual, isString, filter, set, includes, replace, isEmpty, isFunction} 
 import define from '../../plugins/plug-n-play';
 import {read} from '../../util/dot-string-support';
 import {isArray} from '../../util/is';
-// const { logger } = require('../../logging/client/logger');
 const Immutable = require('immutable');
 const { List, Map } = require('immutable');
+
+function recurseMapsOnly (prev, next) {
+  return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+}
+
+function isArrayOfArrays (result) {
+  return filter(result, isArray).length === result.length;
+}
+
+const cache = {};
+function genKey (playerId, namespace, key) {
+  if (cache[playerId] && cache[playerId][namespace] && cache[playerId][namespace][key]) {
+    return cache[playerId][namespace][key];
+  }
+
+  const suffix = key === undefined ? namespace : `${namespace}.${key}`;
+
+  cache[playerId] = {};
+  cache[playerId][namespace] = {};
+  cache[playerId][namespace][key] = `players:${playerId}.${suffix}`;
+
+  return cache[playerId][namespace][key];
+}
+
+const Empty = {};
+const InitialFunctionLimit = 250;
+const pendingMerges = Array(InitialFunctionLimit).fill(Empty);
+let position = 0;
 
 module.exports = {
   type: 'StateMutator',
@@ -34,12 +61,6 @@ module.exports = {
     function accessAndCloneState (node, key) {
       const val = readAndWarnAboutMissingState(node, key);
       return Map.isMap(val) || List.isList(val) ? val.toJS() : val;
-    }
-
-    function genKey (playerId, namespace, key) {
-      const suffix = key === undefined ? namespace : `${namespace}.${key}`;
-
-      return `players:${playerId}.${suffix}`;
     }
 
     const stateAccess = {
@@ -70,22 +91,28 @@ module.exports = {
       }
     };
 
-    define('StateAccess', function StateAccess () {
-      return stateAccess;
-    });
+    define('StateAccess', () => stateAccess);
 
-    define('RawStateAccess', function RawStateAccess () {
-      return {
-        get: () => root,
-        resetTo: newState => (root = newState)
-      };
-    });
+    function applyPendingMerges () {
+      root = root.withMutations(r => {
+        pendingMerges.forEach(pendingMerge => {
+          // const asImmutable = Immutable.fromJS(pendingMerge);
+          r.mergeWith(recurseMapsOnly, pendingMerge);
+        });
+      });
 
-    define('AfterPhysicsFrame', function RawStateAccess () {
-      return function mergeResultsFromLastFrame () {
-        //remove me
-      };
-    });
+      for (var i = 0; i < position; i++) {
+        pendingMerges[i] = Empty;
+      }
+
+      position = 0;
+    }
+
+    define('AfterPhysicsFrame', () => applyPendingMerges);
+    define('RawStateAccess', () => ({
+      get: () => root,
+      resetTo: newState => (root = newState)
+    }));
 
     function isValidDotStringResult(result) {
       if (result.length !== 2) {
@@ -136,7 +163,8 @@ module.exports = {
     }
 
     function applyReplaceAction (saveId, dotString, entries, value) {
-      const mod = entries.map(entry => entry.get('id') === value.id ? value : entry);
+      const mod = entries.map(x => x.get('id') === value.id ? value : x);
+      // const mod = entries.filterNot(x => x.get('id') === value.id).push(value);
 
       return applyResult(saveId, dotString, mod);
     }
@@ -205,15 +233,13 @@ module.exports = {
         resultToMerge = applyResult(saveId, result[0], result[1]);
       }
 
-      function recurseMapsOnly (prev, next) {
-        return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+      if (position < InitialFunctionLimit) {
+        pendingMerges[position] = resultToMerge;
+      } else {
+        pendingMerges.push(resultToMerge);
       }
 
-      root = root.mergeWith(recurseMapsOnly, Immutable.fromJS(resultToMerge));
-    }
-
-    function isArrayOfArrays (result) {
-      return filter(result, isArray).length === result.length;
+      position += 1;
     }
 
     let mutate;
@@ -221,13 +247,16 @@ module.exports = {
       results.forEach(result => mutate(saveId, result));
     }
 
-    mutate = function (saveId, result) {
+    mutate = (saveId, result) => {
       if (ignoreResult(result)) {
         return false;
       }
 
-      const f = isArrayOfArrays(result) ? mutateArrayOfArrays : mutateNonArray;
-      return f(saveId, result);
+      if (isArrayOfArrays(result)) {
+        return mutateArrayOfArrays(saveId, result);
+      }
+
+      return mutateNonArray(saveId, result);
     };
 
     return mutate;

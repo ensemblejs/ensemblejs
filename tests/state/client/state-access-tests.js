@@ -8,6 +8,7 @@ var fakeLogger = require('../../fake/logger');
 
 var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeLogger));
 var state = plugin('StateAccess');
+var afterPhysicsFrame = plugin('AfterPhysicsFrame')
 
 describe('state access on client', function () {
   beforeEach(function () {
@@ -30,6 +31,8 @@ describe('state access on client', function () {
         { id: 3, controller: { score: 34 } }
       ]
     });
+
+    afterPhysicsFrame();
   });
 
   it('should return the value you asked for', function () {

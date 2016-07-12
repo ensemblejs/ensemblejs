@@ -19,8 +19,6 @@ module.exports = {
       args.unshift(priorModel);
       args.unshift(currentModel);
 
-      // console.log('change callback', currentModel, priorModel, data);
-
       callback(...args);
     }
 
@@ -46,10 +44,6 @@ module.exports = {
     function hasChanged (f, saveId) {
       if (priorState === undefined) { return true; }
       if (priorState[saveId] === undefined) { return true; }
-
-      // console.log(
-      //   f(priorState[saveId].toJS()), f(currentState[saveId].toJS())
-      // );
 
       return !isEqual(f(priorState[saveId].toJS()), f(currentState[saveId].toJS()));
     }
@@ -111,7 +105,6 @@ module.exports = {
 
     function handleObjects (change) {
       if (hasChanged(change.focus, change.saveId)) {
-        // console.log('changed');
         if (!change.when) {
           invokeCallback(
             change.callback,
@@ -167,28 +160,15 @@ module.exports = {
       return function storeInitialServerState () {
         priorState = currentState;
         currentState = null;
-        currentState = rawState().all();
+        currentState = clone(rawState().all());
       };
     });
 
     define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
       return function takeLatestCopyOfRawState () {
-        // console.log('before-prior', priorState && priorState[1] && priorState[1].toJS());
-        // console.log('before-current', currentState && currentState[1] && currentState[1].toJS());
-        // console.log('*********************');
-
         priorState = currentState;
         currentState = null;
-
-        // console.log('mid-prior', priorState && priorState[1] && priorState[1].toJS());
-        // console.log('mid-current', currentState && currentState[1] && currentState[1].toJS());
-        // console.log('*********************');
-
         currentState = clone(rawState().all());
-
-        // console.log('after-prior', priorState && priorState[1] && priorState[1].toJS());
-        // console.log('after-current', currentState && currentState[1] && currentState[1].toJS());
-        // console.log('*********************');
 
         detectChangesAndNotifyObservers();
       };

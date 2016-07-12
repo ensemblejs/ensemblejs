@@ -189,12 +189,8 @@ export default function define (type, deps, func) {
   load(boilerplate(type, deps, func));
 }
 
-export function configure (logger, arrays, defaultMode, traceOnlyPlugins) {
+export function configure (logger, arrays = [], defaultMode = [], traceOnlyPlugins = []) {
   log = logging.setupLogger(logger);
-
-  arrays = arrays || [];
-  defaultMode = defaultMode || [];
-  traceOnlyPlugins = traceOnlyPlugins || [];
 
   each(arrays, function(name) {
     plugins[name] = [];

@@ -12,18 +12,20 @@ module.exports = {
   deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'],
   func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
 
-    let priorStep = time().present();
+    let prior = time().present();
 
     const save = { id: 'client', mode: mode() };
     const paused = state => state.ensemble.paused;
 
     function doPaused(now) {
-      priorStep = now;
+      prior = now;
     }
 
+    let state;
+    let opts;
     function onEachFrame (Δ) {
-      const state = stateAccess().for(save.id).all();
-      const opts = [Δ, state];
+      state = stateAccess().for(save.id).all();
+      opts = [Δ, state];
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
@@ -33,8 +35,8 @@ module.exports = {
     }
 
     function doRunning (now) {
-      let Δ = (now - priorStep) / 1000;
-      priorStep = now;
+      let Δ = (now - prior) / 1000;
+      prior = now;
 
       if (Δ > 1) {
         Δ = 0.16;

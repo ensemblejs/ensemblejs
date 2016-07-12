@@ -47,6 +47,7 @@ var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlu
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
+afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 
 var mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(plugin('Config')));

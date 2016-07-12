@@ -28,8 +28,7 @@ function filterPluginsByMode (plugins, mode) {
 }
 
 function forEachMode (plugins, mode, callback) {
-  const forMode = filterPluginsByMode(plugins, mode);
-  forMode.forEach(plugin => callback(last(plugin)));
+  filterPluginsByMode(plugins, mode).forEach(plugin => callback(plugin[1]));
 }
 
 function callEachPlugin (plugins, params = []) {
@@ -47,19 +46,18 @@ function callEachWithMutation (plugins, mutator, saveId, params = []) {
 }
 
 function callForMode (plugins, mode, params) {
-  const forMode = filterPluginsByMode(plugins, mode);
-  forMode.forEach(plugin => last(plugin)(...params));
+  filterPluginsByMode(plugins, mode).forEach(plugin => plugin[1](...params));
 }
 
 function callForModeWithMutation (plugins, mutator, save, params) {
   const forMode = filterPluginsByMode(plugins, save.mode);
-  forMode.forEach(plugin => mutator()(save.id, last(plugin)(...params)));
+  forMode.forEach(plugin => mutator()(save.id, plugin[1](...params)));
 }
 
 function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {
   const forMode = filterPluginsByMode(plugins, save.mode);
   return Bluebird.all(map(forMode, function callEachAndMutate (plugin) {
-    return mutator()(save.id, last(plugin)(...params));
+    return mutator()(save.id, plugin[1](...params));
   }));
 }
 

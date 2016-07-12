@@ -1,9 +1,28 @@
 'use strict';
 
+const now = require('present');
+const v8 = require('v8');
+// var memwatch = require('memwatch-next');
+// memwatch.on('leak', console.log);
+// memwatch.on('stats', console.log);
+
+let gcDurations = [];
+let timeBetweenGC = [];
+var gc = (require('gc-stats'))();
+let gcStart = now();
+let gcStatsDuration;
+gc.on('stats', function (stats) {
+    gcStatsDuration = now() - gcStart;
+    gcStart = now();
+
+    // console.log('GC happened', stats.diff);
+    gcDurations.push(stats.pauseMS);
+    timeBetweenGC.push(Math.ceil(gcStatsDuration));
+});
+
 var expect = require('expect');
 var sinon = require('sinon');
 var each = require('lodash').each;
-const now = require('present');
 const {sortBy} = require('lodash');
 const histogram = require('ascii-histogram');
 const chart = require('ascii-chart');
@@ -26,9 +45,7 @@ define('Config', function Config() {
 });
 
 var time = require('../../../src/core/shared/time').func();
-define('Time', function Time () {
-  return time;
-});
+define('Time', () => time);
 
 var defer = require('../../support').defer;
 var trackerPlugins = require('../../support').plugin();
@@ -46,18 +63,37 @@ var actionMap = [];
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 
-const theRealMutator = require('../../../src/state/client/mutator').func(defer(logger));
-let mutatorTimeForFrame = 0;
-function mutator (saveId, result) {
-  const start = now();
-
-  theRealMutator(saveId, result);
-
-  mutatorTimeForFrame += now() - start;
-}
+const mutator = require('../../../src/state/client/mutator').func(defer(logger));
 
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
+var realApplyPlendingMerges = plugin('AfterPhysicsFrame');
+
+let usedHeapSize;
+let usedHeapSizePosition;
+let totalMutatorTime;
+let applyPendingMergesStart;
+let applyPendingMergesDuration;
+function applyPendingMerges ()  {
+  // const memoryBefore = v8.getHeapStatistics().used_heap_size;
+  // const newSpaceBefore = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
+  applyPendingMergesStart = now();
+
+  realApplyPlendingMerges();
+
+  applyPendingMergesDuration = now() - applyPendingMergesStart;
+  // const memoryAfter = v8.getHeapStatistics().used_heap_size;
+  // const newSpaceAfter = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
+  totalMutatorTime.push(Math.ceil(applyPendingMergesDuration));
+
+  // console.log(memoryAfter - memoryBefore);
+  // console.log(newSpaceAfter - newSpaceBefore);
+  // usedHeapSize.push(memoryAfter - memoryBefore);
+  // if (applyPendingMergesDuration > 8) {
+  //   console.log('long frame');
+  // }
+}
+afterPhysicsFrame.push(applyPendingMerges);
 
 const mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(time), defer(plugin('Config')));
@@ -84,65 +120,78 @@ onClientStart.push(frameStorePluginDeps.OnClientStart());
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(time), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
 var stopPhysicsEngine = plugin('OnDisconnect');
 
-let startTimes = [];
+// let startTimes = null;
 
-let blockedDuration = [];
-let framesProcessedThisFrame = 0;
+// let blockedDuration = [];
+// let rawBlockedDuration = [];
+// let framesProcessedThisFrame = 0;
+let doHardWorkForStart;
 function doHardWorkFor (duration) {
-  const start = now();
+  doHardWorkForStart = now();
 
   if (duration) {
-    while (now() < start + duration);
+    while (now() < doHardWorkForStart + duration); // eslint-disable-line
   }
 
-  blockedDuration.push(Math.round(now() - start));
-  framesProcessedThisFrame += 1;
+  // blockedDuration.push(Math.round(now() - start));
+  // rawBlockedDuration.push(Math.round(now() - start));
+  // rawBlockedDuration.push(now() - start);
+  // framesProcessedThisFrame += 1;
 }
 
 let frameCount = 0;
-let frameStoreDurations = [];
-let framesProcessed = [];
-let totalGameDevTime = [];
-let totalMutatorTime = [];
-let gameDevTimeForFrame = 0;
+// let frameStoreDurations = [];
+// let framesProcessed = [];
+// let totalGameDevTime = [];
+// let gameDevTimeForFrame = 0;
 const originalFrameStoreProcess = frameStore.process;
 frameStore.process = function countFrames (delta, runLogicOnFrame) {
   frameCount += 1;
-  gameDevTimeForFrame = 0;
-  mutatorTimeForFrame = 0;
+  // gameDevTimeForFrame = 0;
 
-  const start = now ();
+  // const start = now ();
 
   originalFrameStoreProcess(delta, runLogicOnFrame);
 
-  framesProcessed.push(framesProcessedThisFrame);
-  framesProcessedThisFrame = 0;
+  // framesProcessed.push(framesProcessedThisFrame);
+  // framesProcessedThisFrame = 0;
 
-  frameStoreDurations.push(Math.ceil(now() - start));
-  totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
-  totalMutatorTime.push(Math.ceil(mutatorTimeForFrame));
+  // frameStoreDurations.push(Math.ceil(now() - start));
+  // totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
 };
 
+// let startOfWhileAwayTheHours;
 function logic (duration) {
   return function whileAwayTheHours (delta, state) {
-    const start = now();
+    // startOfWhileAwayTheHours = now();
 
-    startTimes.push(start);
+    // startTimes.push(startOfWhileAwayTheHours);
 
     doHardWorkFor(duration);
 
-    gameDevTimeForFrame += now() - start;
     return { namespace: { count: state.namespace.count + 1 } };
   };
 }
 
-function sum (set) {
-  return set.reduce((t, n) => t + n, 0);
-}
+// return { namespace: { count: state.namespace.count + 1 } };
+// return ['namespace.count', state.namespace.count + 1];
+// return ['namespace.count', old => old + 1];
 
-function average (set) {
-  return sum(set) / set.length;
-}
+
+
+
+
+
+
+
+
+// function sum (set) {
+//   return set.reduce((t, n) => t + n, 0);
+// }
+
+// function average (set) {
+//   return sum(set) / set.length;
+// }
 
 function getPercentile (percentile, values) {
   if (values.length === 0) {
@@ -159,7 +208,7 @@ function getPercentile (percentile, values) {
 }
 
 function logDataAboutSamples (name, samples) {
-  const sortedSamples = sortBy(samples);
+  const sortedSamples = sortBy(samples.filter(sample => sample !== undefined));
 
   console.log(name);
 
@@ -180,7 +229,9 @@ function logDataAboutSamples (name, samples) {
 function barChart (name, samples) {
   console.log(name);
 
-  console.log(chart(samples, { width: 250, height: 20 }));
+  const used = samples.filter(sample => sample !== undefined);
+
+  console.log(chart(used, { width: 300, height: 20, tight: true }));
 }
 
 function data (size) {
@@ -191,36 +242,63 @@ function data (size) {
   };
 }
 
-const MochaTimeout = 10000;
+const TestDuration = 10000;
+const MochaTimeout = TestDuration * 2;
 const aSecond = 1000;
 const aMinute = 60;
-const TestDuration = MochaTimeout - aSecond;
+
+
+const HeapSizeSampleHz = 50;
 
 describe('Physics Frames Performance', function () {
-  this.timeout(MochaTimeout);
+  this.timeout(MochaTimeout); // eslint-disable-line
 
   let next;
+  let profile;
+  let testHasStarted;
 
   before(() => {
+    testHasStarted = false;
+
     next = sinon.stub(sequence, 'next');
     for (let i = 0; i < 50000; i++) {
       next.onCall(i).returns(i + 1);
     }
+
+    profile = setFixedInterval(() => {
+      if (!testHasStarted) {
+        return;
+      }
+
+      // usedHeapSize.push(v8.getHeapStatistics().used_heap_size);
+      // usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
+      usedHeapSize[usedHeapSizePosition] = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
+      usedHeapSizePosition += 1;
+    }, HeapSizeSampleHz);
   });
+
+  // var hd;
+  // beforeEach(() => {
+  //   hd = new memwatch.HeapDiff();
+  // });
+
+  // afterEach(() => {
+  //   console.log(JSON.stringify(hd.end()));
+  // });
 
   after(() => {
     next.restore();
+    profile();
   });
 
   let permutations = [];
 
   const KB = 1000;
-  const MB = 1000 * KB;
 
-  const fxCounts = [1, 10, 100, 250, 500, 1000];
-  const effort = ['trivial-ms', '5ms', '10ms', '15ms'];
-  const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1 * MB];
-  const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+  const fxCounts = [250];//1, 10, 100, 250, 500, 1000];
+  const effort = ['trivial-ms'];//, '5ms', '10ms'];//, '15ms'];
+  const dataSizes = [1 * KB];//, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+  const serverStateInterval = [45];//'never-'];//, 5000, 1000, 500, 250, 100, 45];
 
   const totalDuration = {
     'trivial-ms': 0,
@@ -269,16 +347,22 @@ describe('Physics Frames Performance', function () {
         each(onClientStart, cb => cb(initialState));
 
         frameCount = 0;
-        frameStoreDurations = [];
-        framesProcessed = [];
-        totalGameDevTime = [];
-        totalMutatorTime = [];
-        startTimes = [];
-        blockedDuration = [];
+        usedHeapSize = Array(500);
+        usedHeapSizePosition = 0;
+        // frameStoreDurations = [];
+        // framesProcessed = [];
+        // totalGameDevTime = [];
+        totalMutatorTime = Array(1000);
+        // startTimes = Array(150000);
+        gcDurations = Array(500);
+        timeBetweenGC = Array(500);
+        // blockedDuration = [];
+        // rawBlockedDuration = [];
 
         permutation.code.forEach(code => (onPhysicsFrame.push(['*', code])));
 
         start = now();
+        testHasStarted = true;
         startPhysicsEngine();
 
         let stopPushServerState;
@@ -316,36 +400,40 @@ describe('Physics Frames Performance', function () {
 
         // logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations);
 
-        let frameworkDuration = [];
-        for (let i = 0; i < frameStoreDurations.length; i += 1) {
-          frameworkDuration.push(frameStoreDurations[i] - totalGameDevTime[i]);
-        }
+        // let frameworkDuration = [];
+        // for (let i = 0; i < frameStoreDurations.length; i += 1) {
+        //   frameworkDuration.push(frameStoreDurations[i] - totalGameDevTime[i]);
+        // }
 
         // barChart('Duration of FrameStore.process', frameStoreDurations);
         // barChart('Duration of GameDev Logic', totalGameDevTime);
-        logDataAboutSamples('Duration of Framework Code', frameworkDuration);
+        // logDataAboutSamples('Duration of Framework Code', frameworkDuration);
         logDataAboutSamples('Duration of Mutator Code', totalMutatorTime);
+        logDataAboutSamples('GC Pauses', gcDurations);
+        logDataAboutSamples('Time between GC pauses', timeBetweenGC);
+        // barChart('Mutator Duration', totalMutatorTime);
+        barChart('Heap Size', usedHeapSize);
         // barChart('f(x) processed per frame', framesProcessed);
 
         expect(fps).toBeGreaterThanOrEqualTo(60);
       });
 
-      it('should call the physics loop every ~15ms', () => {
-        let timeSincePrior = [];
-        for(let i = 0; i < startTimes.length; i += 1) {
-          if (i === 0) {
-            continue;
-          }
+      it.skip('should call the physics loop every ~15ms', () => {
+        // let timeSincePrior = [];
+        // for(let i = 0; i < startTimes.length; i += 1) {
+        //   if (i === 0) {
+        //     continue;
+        //   }
 
-          timeSincePrior.push(startTimes[i] - startTimes[i - 1]);
-        }
+        //   timeSincePrior.push(startTimes[i] - startTimes[i - 1]);
+        // }
 
         // logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
         // logDataAboutSamples('Blocked (ms)', blockedDuration);
 
-        expect(average(timeSincePrior)).toBeLessThanOrEqualTo(16);
+        // expect(average(timeSincePrior)).toBeLessThanOrEqualTo(16);
 
-        console.log(`Total blocked duration ${sum(blockedDuration)} for an average of ${average(blockedDuration)}`);
+        // console.log(`Total blocked duration ${sum(rawBlockedDuration)} for an average of ${average(rawBlockedDuration)}`);
       });
     });
   });
@@ -356,7 +444,7 @@ describe('Physics Frames Performance', function () {
         const percent = Math.round(result.fps / 60 * 100);
         const padding = Array(3 - String(percent).split('').length).fill(' ').join('');
 
-        console.log(`[${result.fps >= 60 ? '*' : ' '}][${padding}${percent}%][${result.fps} fps] ${result.name}`);
+        console.log(`[${padding}${percent}%] ${result.name}`);
       });
     });
   });

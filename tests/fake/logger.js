@@ -1,6 +1,6 @@
 'use strict';
 
-var sinon = require('sinon');
+const sinon = require('sinon');
 
 function logMessageOnly () {
   if (arguments.length === 1) {
@@ -10,9 +10,9 @@ function logMessageOnly () {
   }
 }
 
-function silent () {}
+const silent = () => undefined;
 
-var logging = {
+const logging = {
   loaded: sinon.spy(),
   plugin: sinon.spy(),
   subdue: sinon.spy(),

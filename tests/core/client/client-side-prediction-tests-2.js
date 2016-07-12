@@ -46,6 +46,7 @@ var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlu
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
+var applyPendingMerges = plugin('AfterPhysicsFrame');
 
 var mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(plugin('Config')));
@@ -62,6 +63,7 @@ onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
 onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
+afterPhysicsFrame.push(applyPendingMerges);
 
 var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime), defer('default'));
 var frameStorePluginDeps = frameStorePlugins.deps();
@@ -69,7 +71,7 @@ onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
 
-describe('curly scenarios', function () {
+describe.skip('curly scenarios', function () {
   var curlyChanges = sinon.spy();
   var initialState = {
     ensemble: { waitingForPlayers: false },

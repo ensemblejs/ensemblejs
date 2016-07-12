@@ -31,21 +31,24 @@ module.exports = {
     }
 
     function resetCache () {
-      frames = frames.map(frame => {
-        frame.cached = null;
-        return frame;
-      });
+      for (let i = 0; i < frames.length; i += 1) {
+        frames[i].cached = null;
+      }
+    }
+
+    function setLatestFromServer (state) {
+      fromServer = Immutable.fromJS(state);
     }
 
     function OnClientStart () {
       return function storeInitialServerState (state) {
-        fromServer = Immutable.fromJS(state);
+        setLatestFromServer(state);
       };
     }
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        fromServer = Immutable.fromJS(packet.saveState);
+        setLatestFromServer(packet.saveState);
         dropFrames(packet.highestProcessedMessage);
         resetCache();
       };

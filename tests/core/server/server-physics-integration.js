@@ -20,7 +20,7 @@ function applyMutation (saveStates) {
 let logger = require('../../fake/logger');
 let tracker;
 
-describe.only('StateTracker Integration', function () {
+describe('StateTracker Integration', function () {
   let callback = sinon.spy();
   let callback2 = sinon.spy();
   let afterPhysicsFrame;
