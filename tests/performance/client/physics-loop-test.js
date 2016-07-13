@@ -1,27 +1,92 @@
 'use strict';
 
+const TestDuration = 20000;
+
+const aMinute = 60;
+const aSecond = 1000;
+const KB = 1000;
+const HeapSizeSampleHz = 50;
+const MochaTimeout = TestDuration * 2;
+const SkipFirst = 1000;
+
+const dataSizes = [1 * KB];//, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+const effort = ['trivial-ms', '5ms', '10ms'];//, '15ms'];
+const fxCounts = [100, 250];//1, 10, 100, 250, 500, 1000];
+const serverStateInterval = [45];//'never-'];//, 5000, 1000, 500, 250, 100, 45];
+
+const Toggles = {
+  memwatch: false,
+  heapSize: false,
+  gc: false
+};
+
 const now = require('present');
 const v8 = require('v8');
-// var memwatch = require('memwatch-next');
-// memwatch.on('leak', console.log);
-// memwatch.on('stats', console.log);
+const memwatch = require('memwatch-next');
 
-let gcDurations = [];
-let timeBetweenGC = [];
-var gc = (require('gc-stats'))();
-let gcStart = now();
-let gcStatsDuration;
-gc.on('stats', function (stats) {
-    gcStatsDuration = now() - gcStart;
-    gcStart = now();
+function memwatchLeakAndStats () {
+  if (!Toggles.memwatch) {
+    return;
+  }
 
-    // console.log('GC happened', stats.diff);
-    gcDurations.push(stats.pauseMS);
-    timeBetweenGC.push(Math.ceil(gcStatsDuration));
-});
+  memwatch.on('leak', console.log);
+  memwatch.on('stats', console.log);
+}
+
+memwatchLeakAndStats();
+
+function preallocatedResultsPool (size, postProcessing) {
+  let results = Array(size);
+  let index = 0 ;
+
+  return {
+    push: value => {
+      if (index < size) {
+        results[index] = value;
+      } else {
+        results.push(value);
+      }
+
+      index += 1;
+    },
+    get: () => postProcessing(results.filter(sample => sample !== undefined)),
+    reset: () => {
+      results = Array(size);
+      index =0 ;
+    }
+  };
+}
+
+let timeBetweenGC = {
+  1: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
+  2: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
+  4: preallocatedResultsPool(100, samples => samples.map(Math.ceil))
+};
+
+let gcDurations = {
+  1: preallocatedResultsPool(100, samples => samples),
+  2: preallocatedResultsPool(100, samples => samples),
+  4: preallocatedResultsPool(100, samples => samples)
+};
+
+let usedHeapSize = preallocatedResultsPool(500, samples => samples);
+
+if (Toggles.gc) {
+  var gc = (require('gc-stats'))();
+  let gcStart = now();
+  let gcStatsDuration;
+
+  gc.on('stats', function (stats) {
+      gcStatsDuration = now() - gcStart;
+      gcStart = now();
+
+      // console.log('GC happened', stats.gctype);
+      gcDurations[stats.gctype].push(stats.pauseMS);
+      timeBetweenGC[stats.gctype].push(gcStatsDuration);
+  });
+}
 
 var expect = require('expect');
-var sinon = require('sinon');
 var each = require('lodash').each;
 const {sortBy} = require('lodash');
 const histogram = require('ascii-histogram');
@@ -33,7 +98,6 @@ import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
 
-let sequence = require('distributedlife-sequence');
 
 define('Config', function Config() {
   return {
@@ -69,22 +133,20 @@ var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
 var realApplyPlendingMerges = plugin('AfterPhysicsFrame');
 
-let usedHeapSize;
-let usedHeapSizePosition;
-let totalMutatorTime;
-let applyPendingMergesStart;
-let applyPendingMergesDuration;
+// let totalMutatorTime;
+// let applyPendingMergesStart;
+// let applyPendingMergesDuration;
 function applyPendingMerges ()  {
   // const memoryBefore = v8.getHeapStatistics().used_heap_size;
   // const newSpaceBefore = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
-  applyPendingMergesStart = now();
+  // applyPendingMergesStart = now();
 
   realApplyPlendingMerges();
 
-  applyPendingMergesDuration = now() - applyPendingMergesStart;
+  // applyPendingMergesDuration = now() - applyPendingMergesStart;
   // const memoryAfter = v8.getHeapStatistics().used_heap_size;
   // const newSpaceAfter = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
-  totalMutatorTime.push(Math.ceil(applyPendingMergesDuration));
+  // totalMutatorTime.push(Math.ceil(applyPendingMergesDuration));
 
   // console.log(memoryAfter - memoryBefore);
   // console.log(newSpaceAfter - newSpaceBefore);
@@ -185,13 +247,13 @@ function logic (duration) {
 
 
 
-// function sum (set) {
-//   return set.reduce((t, n) => t + n, 0);
-// }
+function sum (set) {
+  return set.reduce((t, n) => t + n, 0);
+}
 
-// function average (set) {
-//   return sum(set) / set.length;
-// }
+function average (set) {
+  return sum(set) / set.length;
+}
 
 function getPercentile (percentile, values) {
   if (values.length === 0) {
@@ -242,63 +304,53 @@ function data (size) {
   };
 }
 
-const TestDuration = 10000;
-const MochaTimeout = TestDuration * 2;
-const aSecond = 1000;
-const aMinute = 60;
-
-
-const HeapSizeSampleHz = 50;
-
 describe('Physics Frames Performance', function () {
   this.timeout(MochaTimeout); // eslint-disable-line
 
-  let next;
   let profile;
   let testHasStarted;
+  let timeTestStarted;
 
   before(() => {
     testHasStarted = false;
-
-    next = sinon.stub(sequence, 'next');
-    for (let i = 0; i < 50000; i++) {
-      next.onCall(i).returns(i + 1);
-    }
 
     profile = setFixedInterval(() => {
       if (!testHasStarted) {
         return;
       }
+      if (timeTestStarted === undefined) {
+        timeTestStarted = now();
+        return;
+      }
+      if (now() - timeTestStarted < SkipFirst) {
+        return;
+      }
 
-      // usedHeapSize.push(v8.getHeapStatistics().used_heap_size);
-      // usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
-      usedHeapSize[usedHeapSizePosition] = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
-      usedHeapSizePosition += 1;
+      if (Toggles.heapSize) {
+        usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
+      }
     }, HeapSizeSampleHz);
   });
 
-  // var hd;
-  // beforeEach(() => {
-  //   hd = new memwatch.HeapDiff();
-  // });
+  var hd;
+  beforeEach(() => {
+    if (Toggles.memwatch) {
+      hd = new memwatch.HeapDiff();
+    }
+  });
 
-  // afterEach(() => {
-  //   console.log(JSON.stringify(hd.end()));
-  // });
+  afterEach(() => {
+    if (Toggles.memwatch) {
+      console.log(JSON.stringify(hd.end()));
+    }
+  });
 
   after(() => {
-    next.restore();
     profile();
+    timeTestStarted = undefined;
   });
 
   let permutations = [];
-
-  const KB = 1000;
-
-  const fxCounts = [250];//1, 10, 100, 250, 500, 1000];
-  const effort = ['trivial-ms'];//, '5ms', '10ms'];//, '15ms'];
-  const dataSizes = [1 * KB];//, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-  const serverStateInterval = [45];//'never-'];//, 5000, 1000, 500, 250, 100, 45];
 
   const totalDuration = {
     'trivial-ms': 0,
@@ -347,15 +399,21 @@ describe('Physics Frames Performance', function () {
         each(onClientStart, cb => cb(initialState));
 
         frameCount = 0;
-        usedHeapSize = Array(500);
-        usedHeapSizePosition = 0;
+
+        if (Toggles.heapSize) {
+          usedHeapSize.reset();
+        }
         // frameStoreDurations = [];
         // framesProcessed = [];
         // totalGameDevTime = [];
-        totalMutatorTime = Array(1000);
+        // totalMutatorTime = Array(1000);
         // startTimes = Array(150000);
-        gcDurations = Array(500);
-        timeBetweenGC = Array(500);
+        gcDurations['1'].reset();
+        gcDurations['2'].reset();
+        gcDurations['4'].reset();
+        timeBetweenGC['1'].reset();
+        timeBetweenGC['2'].reset();
+        timeBetweenGC['4'].reset();
         // blockedDuration = [];
         // rawBlockedDuration = [];
 
@@ -408,12 +466,20 @@ describe('Physics Frames Performance', function () {
         // barChart('Duration of FrameStore.process', frameStoreDurations);
         // barChart('Duration of GameDev Logic', totalGameDevTime);
         // logDataAboutSamples('Duration of Framework Code', frameworkDuration);
-        logDataAboutSamples('Duration of Mutator Code', totalMutatorTime);
-        logDataAboutSamples('GC Pauses', gcDurations);
-        logDataAboutSamples('Time between GC pauses', timeBetweenGC);
+        // logDataAboutSamples('Duration of Mutator Code', totalMutatorTime);
         // barChart('Mutator Duration', totalMutatorTime);
-        barChart('Heap Size', usedHeapSize);
         // barChart('f(x) processed per frame', framesProcessed);
+
+        if (Toggles.gc) {
+          logDataAboutSamples('GC Pauses (minor)', gcDurations['1'].get());
+          logDataAboutSamples('GC Pauses (major)', gcDurations['2'].get());
+          logDataAboutSamples('Time between (minor) GC pauses', timeBetweenGC['1'].get());
+          logDataAboutSamples('Time between (major) GC pauses', timeBetweenGC['2'].get());
+        }
+
+        if (Toggles.heapSize) {
+          barChart('Heap Size', usedHeapSize.get());
+        }
 
         expect(fps).toBeGreaterThanOrEqualTo(60);
       });
