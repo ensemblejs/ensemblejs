@@ -23,16 +23,15 @@ function genKey (playerId, namespace, key) {
 
   const suffix = key === undefined ? namespace : `${namespace}.${key}`;
 
-  cache[playerId] = {};
-  cache[playerId][namespace] = {};
+  cache[playerId] = cache[playerId] || {};
+  cache[playerId][namespace] = cache[playerId][namespace] || {};
   cache[playerId][namespace][key] = `players:${playerId}.${suffix}`;
 
   return cache[playerId][namespace][key];
 }
 
-const Empty = {};
 const InitialFunctionLimit = 250;
-const pendingMerges = Array(InitialFunctionLimit).fill(Empty);
+const pendingMerges = Array(InitialFunctionLimit).fill(null);
 let position = 0;
 
 module.exports = {
@@ -102,7 +101,7 @@ module.exports = {
       });
 
       for (var i = 0; i < position; i++) {
-        pendingMerges[i] = Empty;
+        pendingMerges[i] = null;
       }
 
       position = 0;
