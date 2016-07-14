@@ -30,7 +30,7 @@ function genKey (playerId, namespace, key) {
   return cache[playerId][namespace][key];
 }
 
-const InitialFunctionLimit = 250;
+const InitialFunctionLimit = 1000;
 const pendingMerges = Array(InitialFunctionLimit).fill(null);
 let position = 0;
 

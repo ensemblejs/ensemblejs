@@ -1,6 +1,6 @@
 'use strict';
 
-const TestDuration = 20000;
+const TestDuration = 9000;
 
 const aMinute = 60;
 const aSecond = 1000;
@@ -9,10 +9,10 @@ const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
-const dataSizes = [1 * KB];//, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-const effort = ['trivial-ms', '5ms', '10ms'];//, '15ms'];
-const fxCounts = [100, 250];//1, 10, 100, 250, 500, 1000];
-const serverStateInterval = [45];//'never-'];//, 5000, 1000, 500, 250, 100, 45];
+const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+const effort = ['minimal-', '5ms', '10ms', '15ms'];
+const fxCounts = [1, 10, 100, 250, 500, 1000];
+const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
 const Toggles = {
   memwatch: false,
@@ -57,19 +57,27 @@ function preallocatedResultsPool (size, postProcessing) {
   };
 }
 
-let timeBetweenGC = {
-  1: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-  2: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-  4: preallocatedResultsPool(100, samples => samples.map(Math.ceil))
-};
+let timeBetweenGC = {};
+let gcDurations = {};
 
-let gcDurations = {
-  1: preallocatedResultsPool(100, samples => samples),
-  2: preallocatedResultsPool(100, samples => samples),
-  4: preallocatedResultsPool(100, samples => samples)
-};
+if (Toggles.gc) {
+  timeBetweenGC = {
+    1: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
+    2: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
+    4: preallocatedResultsPool(100, samples => samples.map(Math.ceil))
+  };
 
-let usedHeapSize = preallocatedResultsPool(500, samples => samples);
+  gcDurations = {
+    1: preallocatedResultsPool(100, samples => samples),
+    2: preallocatedResultsPool(100, samples => samples),
+    4: preallocatedResultsPool(100, samples => samples)
+  };
+}
+
+let usedHeapSize;
+if (Toggles.heapSize) {
+  usedHeapSize = preallocatedResultsPool(500, samples => samples);
+}
 
 if (Toggles.gc) {
   var gc = (require('gc-stats'))();
@@ -408,12 +416,14 @@ describe('Physics Frames Performance', function () {
         // totalGameDevTime = [];
         // totalMutatorTime = Array(1000);
         // startTimes = Array(150000);
-        gcDurations['1'].reset();
-        gcDurations['2'].reset();
-        gcDurations['4'].reset();
-        timeBetweenGC['1'].reset();
-        timeBetweenGC['2'].reset();
-        timeBetweenGC['4'].reset();
+        if (Toggles.gc) {
+          gcDurations['1'].reset();
+          gcDurations['2'].reset();
+          gcDurations['4'].reset();
+          timeBetweenGC['1'].reset();
+          timeBetweenGC['2'].reset();
+          timeBetweenGC['4'].reset();
+        }
         // blockedDuration = [];
         // rawBlockedDuration = [];
 
