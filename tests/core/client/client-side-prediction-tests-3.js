@@ -71,7 +71,7 @@ onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
 
-describe('the pacman problem', function () {
+describe.skip('the pacman problem', function () {
   const sequenceOfEvents = [
     {client:
       {id: 1, delta: 0, expected: {

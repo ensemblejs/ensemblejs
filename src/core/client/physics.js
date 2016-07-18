@@ -42,7 +42,6 @@ module.exports = {
         Δ = 0.16;
       }
 
-
       frameStore().process(Δ, onEachFrame);
     }
 

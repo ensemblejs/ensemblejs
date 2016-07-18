@@ -9,15 +9,20 @@ const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
-const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-const effort = ['minimal-', '5ms', '10ms', '15ms'];
-const fxCounts = [1, 10, 100, 250, 500, 1000];
-const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+// const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+// const effort = ['minimal-', '5ms', '10ms', '15ms'];
+// const fxCounts = [1, 10, 100, 250, 500, 1000];
+// const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+
+const dataSizes = ['minimal-'];
+const effort = ['5ms', '10ms'];
+const fxCounts = [100, 250];
+const serverStateInterval = [45];
 
 const Toggles = {
   memwatch: false,
-  heapSize: false,
-  gc: false
+  heapSize: true,
+  gc: true
 };
 
 const now = require('present');
@@ -72,14 +77,7 @@ if (Toggles.gc) {
     2: preallocatedResultsPool(100, samples => samples),
     4: preallocatedResultsPool(100, samples => samples)
   };
-}
 
-let usedHeapSize;
-if (Toggles.heapSize) {
-  usedHeapSize = preallocatedResultsPool(500, samples => samples);
-}
-
-if (Toggles.gc) {
   var gc = (require('gc-stats'))();
   let gcStart = now();
   let gcStatsDuration;
@@ -94,18 +92,21 @@ if (Toggles.gc) {
   });
 }
 
-var expect = require('expect');
-var each = require('lodash').each;
+let usedHeapSize;
+if (Toggles.heapSize) {
+  usedHeapSize = preallocatedResultsPool(500, samples => samples);
+}
+
+const expect = require('expect');
+const each = require('lodash').each;
 const {sortBy} = require('lodash');
 const histogram = require('ascii-histogram');
 const chart = require('ascii-chart');
 const setFixedInterval = require('fixed-setinterval');
-
-var logger = require('../../fake/logger');
+const logger = require('../../fake/logger');
 import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
-
 
 define('Config', function Config() {
   return {
@@ -116,30 +117,29 @@ define('Config', function Config() {
   };
 });
 
-var time = require('../../../src/core/shared/time').func();
+const time = require('../../../src/core/shared/time').func();
 define('Time', () => time);
 
-var defer = require('../../support').defer;
-var trackerPlugins = require('../../support').plugin();
-var processPendingInputPlugins = require('../../support').plugin();
-var inputQueuePlugins = require('../../support').plugin();
-var frameStorePlugins = require('../../support').plugin();
+const defer = require('../../support').defer;
+const trackerPlugins = require('../../support').plugin();
+const processPendingInputPlugins = require('../../support').plugin();
+const inputQueuePlugins = require('../../support').plugin();
+const frameStorePlugins = require('../../support').plugin();
 
-var onClientStart = [];
-var onOutgoingClientPacket = [];
-var onIncomingServerPacket = [];
-var beforePhysicsFrame = [];
-var onPhysicsFrame = [];
-var afterPhysicsFrame = [];
-var actionMap = [];
+let onClientStart = [];
+let onOutgoingClientPacket = [];
+let onIncomingServerPacket = [];
+let beforePhysicsFrame = [];
+let onPhysicsFrame = [];
+let afterPhysicsFrame = [];
+let actionMap = [];
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
-
 const mutator = require('../../../src/state/client/mutator').func(defer(logger));
 
-var rawStateAccess = plugin('RawStateAccess');
-var stateAccess = plugin('StateAccess');
-var realApplyPlendingMerges = plugin('AfterPhysicsFrame');
+const rawStateAccess = plugin('RawStateAccess');
+const stateAccess = plugin('StateAccess');
+const realApplyPlendingMerges = plugin('AfterPhysicsFrame');
 
 // let totalMutatorTime;
 // let applyPendingMergesStart;
@@ -191,8 +191,7 @@ var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(
 var stopPhysicsEngine = plugin('OnDisconnect');
 
 // let startTimes = null;
-
-// let blockedDuration = [];
+let blockedDuration = [];
 // let rawBlockedDuration = [];
 // let framesProcessedThisFrame = 0;
 let doHardWorkForStart;
@@ -203,8 +202,8 @@ function doHardWorkFor (duration) {
     while (now() < doHardWorkForStart + duration); // eslint-disable-line
   }
 
-  // blockedDuration.push(Math.round(now() - start));
-  // rawBlockedDuration.push(Math.round(now() - start));
+  // blockedDuration.push(Math.round(now() - doHardWorkForStart));
+  // rawBlockedDuration.push(Math.round(now() - doHardWorkForStart));
   // rawBlockedDuration.push(now() - start);
   // framesProcessedThisFrame += 1;
 }
@@ -212,12 +211,12 @@ function doHardWorkFor (duration) {
 let frameCount = 0;
 // let frameStoreDurations = [];
 // let framesProcessed = [];
-// let totalGameDevTime = [];
-// let gameDevTimeForFrame = 0;
+let totalGameDevTime = [];
+let gameDevTimeForFrame = 0;
 const originalFrameStoreProcess = frameStore.process;
 frameStore.process = function countFrames (delta, runLogicOnFrame) {
   frameCount += 1;
-  // gameDevTimeForFrame = 0;
+  gameDevTimeForFrame = 0;
 
   // const start = now ();
 
@@ -227,25 +226,36 @@ frameStore.process = function countFrames (delta, runLogicOnFrame) {
   // framesProcessedThisFrame = 0;
 
   // frameStoreDurations.push(Math.ceil(now() - start));
-  // totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
+  totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
 };
 
-// let startOfWhileAwayTheHours;
+function fib(n) {
+  let a = 0, b = 1, t;
+  let doHardWorkForStart = now();
+  while (n-- > 0) {
+    t = a;
+    a = b;
+    b += t;
+  }
+  gameDevTimeForFrame += now() - doHardWorkForStart;
+  return a;
+}
+
+// const response = { namespace: { count: 1 } };
 function logic (duration) {
   return function whileAwayTheHours (delta, state) {
-    // startOfWhileAwayTheHours = now();
+    // startTimes.push(now());
 
-    // startTimes.push(startOfWhileAwayTheHours);
-
-    doHardWorkFor(duration);
+    // fib(80);
+    doHardWorkFor(duration)
 
     return { namespace: { count: state.namespace.count + 1 } };
+    // return ['namespace.count', state.namespace.count + 1];
+    // return ['namespace.count', old => old + 1];
+    // return response;
   };
 }
 
-// return { namespace: { count: state.namespace.count + 1 } };
-// return ['namespace.count', state.namespace.count + 1];
-// return ['namespace.count', old => old + 1];
 
 
 
@@ -413,7 +423,7 @@ describe('Physics Frames Performance', function () {
         }
         // frameStoreDurations = [];
         // framesProcessed = [];
-        // totalGameDevTime = [];
+        totalGameDevTime = [];
         // totalMutatorTime = Array(1000);
         // startTimes = Array(150000);
         if (Toggles.gc) {
@@ -424,7 +434,7 @@ describe('Physics Frames Performance', function () {
           timeBetweenGC['2'].reset();
           timeBetweenGC['4'].reset();
         }
-        // blockedDuration = [];
+        blockedDuration = [];
         // rawBlockedDuration = [];
 
         permutation.code.forEach(code => (onPhysicsFrame.push(['*', code])));

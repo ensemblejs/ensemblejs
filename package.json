@@ -140,6 +140,7 @@
     "jsdom": "^9.4.5",
     "jshint-stylish": "^2.2.0",
     "lodash": "^4.13.1",
+    "memory-pool": "^1.2.0",
     "mkdirp": "^0.5.1",
     "mocha": "^3.0.0",
     "moment": "^2.14.1",

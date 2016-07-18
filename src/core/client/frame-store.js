@@ -3,6 +3,7 @@
 const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const Immutable = require('immutable');
+var MemoryPool = require('memory-pool');
 
 module.exports = {
   type: 'FrameStore',
@@ -12,14 +13,28 @@ module.exports = {
     let frames = [];
     let inputForNextFrame = [];
 
-    function add (Δ) {
-      frames.push({
-        id: sequence.next('frame'),
-        Δ,
-        timestamp: time().present(),
-        input: inputForNextFrame.splice(0),
+    function makeFrame () {
+      return {
+        id: null,
+        Δ: null,
+        timestamp: null,
+        input: null,
         cached: null
-      });
+      };
+    }
+
+    var framePool = new MemoryPool(20, makeFrame, 10);
+
+    function add (Δ) {
+      let frame = framePool.allocate();
+
+      frame.id = sequence.next('frame');
+      frame.Δ = Δ;
+      frame.timestamp = time().present();
+      frame.input = inputForNextFrame.splice(0);
+      frame.cached = null;
+
+      frames.push(frame);
     }
 
     function current () {
@@ -27,6 +42,9 @@ module.exports = {
     }
 
     function dropFrames (highestProcessedMessage) {
+      const free = frames.filter(frame => frame.id <= highestProcessedMessage);
+      free.forEach(frame => frame.free());
+
       frames = frames.filter(frame => frame.id > highestProcessedMessage);
     }
 

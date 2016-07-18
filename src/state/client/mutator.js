@@ -30,8 +30,8 @@ function genKey (playerId, namespace, key) {
   return cache[playerId][namespace][key];
 }
 
-const InitialFunctionLimit = 1000;
-const pendingMerges = Array(InitialFunctionLimit).fill(null);
+const GrowSize = 250;
+const pendingMerges = Array(GrowSize).fill(null);
 let position = 0;
 
 module.exports = {
@@ -95,7 +95,7 @@ module.exports = {
     function applyPendingMerges () {
       root = root.withMutations(r => {
         pendingMerges.forEach(pendingMerge => {
-          // const asImmutable = Immutable.fromJS(pendingMerge);
+      //     // const asImmutable = Immutable.fromJS(pendingMerge);
           r.mergeWith(recurseMapsOnly, pendingMerge);
         });
       });
@@ -232,13 +232,10 @@ module.exports = {
         resultToMerge = applyResult(saveId, result[0], result[1]);
       }
 
-      if (position < InitialFunctionLimit) {
-        pendingMerges[position] = resultToMerge;
-      } else {
-        pendingMerges.push(resultToMerge);
+      if (position === pendingMerges.length) {
+        Array.prototype.push.apply(pendingMerges, Array(GrowSize).fill(null));
       }
-
-      position += 1;
+      pendingMerges[position++] = resultToMerge;
     }
 
     let mutate;
