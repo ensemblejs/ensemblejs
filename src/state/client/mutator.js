@@ -1,11 +1,11 @@
 'use strict';
 
-import {isEqual, isString, filter, set, includes, replace, isEmpty, isFunction} from 'lodash';
+import {isEqual, isString, filter, set, includes, replace, isEmpty, isFunction, merge} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {read} from '../../util/dot-string-support';
 import {isArray} from '../../util/is';
 const Immutable = require('immutable');
-const { List, Map } = require('immutable');
+const { Map } = require('immutable');
 
 function recurseMapsOnly (prev, next) {
   return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
@@ -30,15 +30,12 @@ function genKey (playerId, namespace, key) {
   return cache[playerId][namespace][key];
 }
 
-const GrowSize = 250;
-const pendingMerges = Array(GrowSize).fill(null);
-let position = 0;
-
 module.exports = {
   type: 'StateMutator',
   deps: ['Logger'],
   func: function Client (logger) {
     let root = Immutable.fromJS({});
+    let pendingMerge = {};
 
     function readAndWarnAboutMissingState (node, key) {
       let val = isFunction(key) ? key(node.toJS()) : read(node, key);
@@ -52,14 +49,13 @@ module.exports = {
     function wrapWithReadOnly (node) {
       return function get (key) {
         const val = readAndWarnAboutMissingState(node, key);
-
         return Map.isMap(val) ? wrapWithReadOnly(val) : val;
       };
     }
 
     function accessAndCloneState (node, key) {
       const val = readAndWarnAboutMissingState(node, key);
-      return Map.isMap(val) || List.isList(val) ? val.toJS() : val;
+      return (val.toJS !== undefined) ? val.toJS() : val;
     }
 
     const stateAccess = {
@@ -93,18 +89,8 @@ module.exports = {
     define('StateAccess', () => stateAccess);
 
     function applyPendingMerges () {
-      root = root.withMutations(r => {
-        pendingMerges.forEach(pendingMerge => {
-      //     // const asImmutable = Immutable.fromJS(pendingMerge);
-          r.mergeWith(recurseMapsOnly, pendingMerge);
-        });
-      });
-
-      for (var i = 0; i < position; i++) {
-        pendingMerges[i] = null;
-      }
-
-      position = 0;
+      root = root.mergeWith(recurseMapsOnly, pendingMerge);
+      pendingMerge = {};
     }
 
     define('AfterPhysicsFrame', () => applyPendingMerges);
@@ -189,7 +175,7 @@ module.exports = {
           : entry.setIn(restOfPath.split('.'), nv);
       });
 
-      return Immutable.fromJS({}).setIn(pathToArray.split('.'), mod);
+      return set({}, pathToArray, mod);
     }
 
     const trailingHandlers = {
@@ -207,9 +193,9 @@ module.exports = {
         const entries = stateAccess.for(saveId).get(dotStringSansModifier);
 
         if (isFunction(value)) {
-          logger().error({ dotString, prior: entries }, `Using a function on the ${modifierSymbol} operator is not supported. Remove the ${modifierSymbol} operator to acheive desired effect.`);
+          logger().error({ dotString, prior: entries }, `Using a function on the ${modifierSymbol} operator is not supported. Remove the ${modifierSymbol} operator to achieve desired effect.`);
 
-          return Immutable.fromJS({});
+          return {};
         }
 
         return handler(saveId, dotStringSansModifier, entries, value);
@@ -232,10 +218,7 @@ module.exports = {
         resultToMerge = applyResult(saveId, result[0], result[1]);
       }
 
-      if (position === pendingMerges.length) {
-        Array.prototype.push.apply(pendingMerges, Array(GrowSize).fill(null));
-      }
-      pendingMerges[position++] = resultToMerge;
+      pendingMerge = merge(pendingMerge, resultToMerge);
     }
 
     let mutate;

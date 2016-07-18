@@ -9,20 +9,20 @@ const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
-// const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-// const effort = ['minimal-', '5ms', '10ms', '15ms'];
-// const fxCounts = [1, 10, 100, 250, 500, 1000];
-// const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+const effort = ['minimal-', '5ms', '10ms', '15ms'];
+const fxCounts = [1, 10, 100, 250, 500, 1000];
+const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
-const dataSizes = ['minimal-'];
-const effort = ['5ms', '10ms'];
-const fxCounts = [100, 250];
-const serverStateInterval = [45];
+// const dataSizes = ['minimal-'];
+// const effort = ['5ms'];
+// const fxCounts = [100];
+// const serverStateInterval = [45];
 
 const Toggles = {
   memwatch: false,
-  heapSize: true,
-  gc: true
+  heapSize: false,
+  gc: false
 };
 
 const now = require('present');
@@ -229,25 +229,12 @@ frameStore.process = function countFrames (delta, runLogicOnFrame) {
   totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
 };
 
-function fib(n) {
-  let a = 0, b = 1, t;
-  let doHardWorkForStart = now();
-  while (n-- > 0) {
-    t = a;
-    a = b;
-    b += t;
-  }
-  gameDevTimeForFrame += now() - doHardWorkForStart;
-  return a;
-}
-
 // const response = { namespace: { count: 1 } };
 function logic (duration) {
   return function whileAwayTheHours (delta, state) {
     // startTimes.push(now());
 
-    // fib(80);
-    doHardWorkFor(duration)
+    doHardWorkFor(duration);
 
     return { namespace: { count: state.namespace.count + 1 } };
     // return ['namespace.count', state.namespace.count + 1];
@@ -311,7 +298,7 @@ function barChart (name, samples) {
 
   const used = samples.filter(sample => sample !== undefined);
 
-  console.log(chart(used, { width: 300, height: 20, tight: true }));
+  console.log(chart(used, { width: 500, height: 20, tight: true }));
 }
 
 function data (size) {
@@ -412,9 +399,7 @@ describe('Physics Frames Performance', function () {
       before(done => {
         console.log(`Running ${permutation.name}`);
 
-        var initialState = permutation.data;
-
-        each(onClientStart, cb => cb(initialState));
+        each(onClientStart, cb => cb(permutation.data));
 
         frameCount = 0;
 
