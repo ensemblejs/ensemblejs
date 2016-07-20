@@ -68,7 +68,7 @@ describe('continual saving', function () {
       });
 
       it('should not save the game', function () {
-        expect(saves.save.firstCall.args).toEqual([{my: 'game'}, 0]);
+        expect(saves.save.firstCall.args).toEqual([{ ensemble: { saveId: 1 } }, 0]);
       });
     });
 
@@ -94,7 +94,7 @@ describe('continual saving', function () {
       });
 
       it('should not save the game', function () {
-        expect(saves.save.firstCall.args).toEqual([{my: 'game'}, 0]);
+        expect(saves.save.firstCall.args).toEqual([{ ensemble: { saveId: 1 } }, 0]);
       });
     });
 

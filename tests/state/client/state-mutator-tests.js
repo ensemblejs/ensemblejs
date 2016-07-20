@@ -131,7 +131,7 @@ describe('state mutation on the client', function () {
         afterPhysicsFrame();
 
         expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
+        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to achieve desired effect.');
       });
 
       it('should not support removing- from arrays', function () {
@@ -140,7 +140,7 @@ describe('state mutation on the client', function () {
 
 
         expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
+        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to achieve desired effect.');
       });
 
       it('should not support replacing! arrays', function () {
@@ -149,7 +149,7 @@ describe('state mutation on the client', function () {
 
 
         expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
+        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to achieve desired effect.');
       });
 
       it('should support modifying: arrays', function () {
