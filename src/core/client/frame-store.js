@@ -7,8 +7,8 @@ var MemoryPool = require('memory-pool');
 
 module.exports = {
   type: 'FrameStore',
-  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time', 'DeviceMode'],
-  func: function FrameStore (rawState, queue, define, time, mode) {
+  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time', 'DeviceMode', 'ApplyPendingMerges'],
+  func: function FrameStore (rawState, queue, define, time, mode, applyPendingMerges) {
     let fromServer;
     let frames = [];
     let inputForNextFrame = [];
@@ -95,11 +95,13 @@ module.exports = {
           rawState().resetTo(state);
 
           queue().set(frame.input);
-          runLogicOnFrame(frame.Δ);
+          runLogicOnFrame(frame.Δ, state);
           queue().clear();
 
+          applyPendingMerges()();
           frame.cached = rawState().get();
         }
+
 
         return frame.cached;
       }

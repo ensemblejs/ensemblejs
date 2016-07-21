@@ -44,7 +44,6 @@ var dimensions = {};
 
 require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
-// afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
 var applyPendingMerges = plugin('AfterPhysicsFrame');

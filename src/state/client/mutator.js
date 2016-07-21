@@ -94,6 +94,7 @@ module.exports = {
     }
 
     define('AfterPhysicsFrame', () => applyPendingMerges);
+    define('ApplyPendingMerges', () => applyPendingMerges);
     define('RawStateAccess', () => ({
       get: () => root,
       resetTo: newState => (root = newState)
