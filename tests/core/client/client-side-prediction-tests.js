@@ -74,7 +74,7 @@ var serverState = {
 };
 
 
-var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime), defer('default'));
+var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime), defer('default'), defer(applyPendingMerges));
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
@@ -105,7 +105,7 @@ function gameLogic (delta, state) {
   };
 }
 
-describe.skip('CSP: after on AfterPhysicsFrame', function () {
+describe('CSP: after on AfterPhysicsFrame', function () {
   let next;
 
   beforeEach(function () {
@@ -212,7 +212,7 @@ describe.skip('CSP: after on AfterPhysicsFrame', function () {
       expect(currentState.get(count)).toEqual(10);
     });
 
-    it('when run twice it should result in same client state', function () {
+    it.skip('when run twice it should result in same client state', function () {
       startPhysicsEngine();
 
       expect(currentState.get(tracking)).toEqual('after-input');

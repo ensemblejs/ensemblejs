@@ -3,7 +3,10 @@
 const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const Immutable = require('immutable');
-var MemoryPool = require('memory-pool');
+const MemoryPool = require('memory-pool');
+
+const PoolStartSize = 20;
+const PoolGrowSize = 10;
 
 module.exports = {
   type: 'FrameStore',
@@ -23,10 +26,10 @@ module.exports = {
       };
     }
 
-    var framePool = new MemoryPool(20, makeFrame, 10);
+    const pool = new MemoryPool(PoolStartSize, makeFrame, PoolGrowSize);
 
     function add (Δ) {
-      let frame = framePool.allocate();
+      let frame = pool.allocate();
 
       frame.id = sequence.next('frame');
       frame.Δ = Δ;
@@ -43,15 +46,13 @@ module.exports = {
 
     function dropFrames (highestProcessedMessage) {
       const free = frames.filter(frame => frame.id <= highestProcessedMessage);
-      free.forEach(frame => frame.free());
+      free.forEach(frame => pool.free(frame));
 
       frames = frames.filter(frame => frame.id > highestProcessedMessage);
     }
 
     function resetCache () {
-      for (let i = 0; i < frames.length; i += 1) {
-        frames[i].cached = null;
-      }
+      frames.forEach(frame => (frame.cached = null));
     }
 
     function setLatestFromServer (state) {
@@ -102,7 +103,6 @@ module.exports = {
           frame.cached = rawState().get();
         }
 
-
         return frame.cached;
       }
 
@@ -110,6 +110,7 @@ module.exports = {
     }
 
     function reset () {
+      frames.forEach(frame => pool.free(frame));
       frames = [];
       fromServer = null;
       inputForNextFrame = [];

@@ -17,9 +17,7 @@ var config = {
     physicsUpdateLoop: 15
   }
 };
-define('Config', function Config() {
-  return config;
-});
+define('Config', () => config);
 
 var fakeTime = require('../../fake/time').at(2000);
 define('Time', function Time () {
@@ -71,15 +69,17 @@ onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
 
-describe.only('curly scenarios', function () {
+describe('curly scenarios', function () {
   var curlyChanges = sinon.spy();
+  var curlyInputChanges = sinon.spy();
   var initialState = {
     ensemble: { waitingForPlayers: false },
-    curly: { count: 0 }
+    curly: { count: 0, input: 0 }
   };
   function curlyCount (state) { return state.curly.count; }
+  function curlyInput (state) { return state.curly.input; }
   function curlyInputCallback (state) {
-    return { curly: { count: state.curly.count + 1 }};
+    return { curly: { input: state.curly.input + 1 }};
   }
   function curlyLogic (delta, state) {
     return { curly: { count: state.curly.count + 1000 }};
@@ -102,11 +102,13 @@ describe.only('curly scenarios', function () {
     onPhysicsFrame.push(onEachFrameSpy);
 
     tracker.onChangeOf('curly.count', curlyChanges);
+    tracker.onChangeOf('curly.input', curlyInputChanges);
   });
 
   beforeEach(function () {
     onEachFrameSpy.reset();
     curlyChanges.reset();
+    curlyInputChanges.reset();
   });
 
   after(() => {
@@ -117,6 +119,7 @@ describe.only('curly scenarios', function () {
     expect(currentState.get(curlyCount)).toEqual(0);
     expect(currentServerState.get(curlyCount)).toEqual(0);
     expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(0);
+    expect(rawStateAccess.get('client').get('curly').get('input')).toEqual(0);
     expect(inputQueue.length()).toEqual(0);
   });
 
@@ -188,27 +191,36 @@ describe.only('curly scenarios', function () {
     });
 
     it('should process one frame', () => {
-      expect(currentState.get(curlyCount)).toEqual(4001);
+      expect(currentState.get(curlyCount)).toEqual(4000);
+      expect(currentState.get(curlyInput)).toEqual(1);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(4001);
+      expect(currentServerState.get(curlyInput)).toEqual(0);
+      expect(rawStateAccess.get('client').get('curly').get('input')).toEqual(1);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(4000);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
-      expect(curlyChanges.firstCall.args).toEqual([4001, 3000, undefined]);
+      expect(curlyInputChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([4000, 3000, undefined]);
+      expect(curlyInputChanges.firstCall.args).toEqual([1, 0, undefined]);
 
       expect(frameStore.current().id).toEqual(4);
     });
 
     it('should not process the input twice', () => {
-      expect(currentState.get(curlyCount)).toEqual(5001);
+      expect(currentState.get(curlyCount)).toEqual(5000);
+      expect(currentState.get(curlyInput)).toEqual(1);
       expect(currentServerState.get(curlyCount)).toEqual(0);
-      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(5001);
+      expect(currentServerState.get(curlyInput)).toEqual(0);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(5000);
+      expect(rawStateAccess.get('client').get('curly').get('input')).toEqual(1);
 
       expect(onEachFrameSpy.callCount).toEqual(1);
 
       expect(curlyChanges.callCount).toEqual(1);
-      expect(curlyChanges.firstCall.args).toEqual([5001, 4001, undefined]);
+      expect(curlyInputChanges.callCount).toEqual(0);
+      expect(curlyChanges.firstCall.args).toEqual([5000, 4000, undefined]);
 
       expect(frameStore.current().id).toEqual(5);
     });
@@ -219,7 +231,7 @@ describe.only('curly scenarios', function () {
       highestProcessedMessage: 3,
       saveState: {
         ensemble: { waitingForPlayers: false },
-        curly: { count: 100 }
+        curly: { count: 100, input: 2 }
       }
     };
 
@@ -234,14 +246,19 @@ describe.only('curly scenarios', function () {
     });
 
     it('should replay all frames since the server state', () => {
-      expect(currentState.get(curlyCount)).toEqual(3101);
+      expect(currentState.get(curlyCount)).toEqual(3100);
+      expect(currentState.get(curlyInput)).toEqual(3);
       expect(currentServerState.get(curlyCount)).toEqual(100);
-      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(3101);
+      expect(currentServerState.get(curlyInput)).toEqual(2);
+      expect(rawStateAccess.get('client').get('curly').get('count')).toEqual(3100);
+      expect(rawStateAccess.get('client').get('curly').get('input')).toEqual(3);
 
       expect(onEachFrameSpy.callCount).toEqual(3);
 
       expect(curlyChanges.callCount).toEqual(1);
-      expect(curlyChanges.firstCall.args).toEqual([3101, 5001, undefined]);
+      expect(curlyInputChanges.callCount).toEqual(1);
+      expect(curlyChanges.firstCall.args).toEqual([3100, 5000, undefined]);
+      expect(curlyInputChanges.firstCall.args).toEqual([3, 1, undefined]);
 
       expect(frameStore.current().id).toEqual(6);
     });
