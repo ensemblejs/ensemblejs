@@ -47,7 +47,8 @@ var tracker = require('../../../src/state/client/tracker').func(defer(trackerPlu
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');
-afterPhysicsFrame.push(plugin('AfterPhysicsFrame'));
+const applyPendingMerges = plugin('AfterPhysicsFrame');
+afterPhysicsFrame.push(applyPendingMerges);
 
 var mode = 'default';
 var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(fakeTime), defer(plugin('Config')));
@@ -65,13 +66,13 @@ onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawS
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
 
-var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime), defer('default'));
+var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(fakeTime), defer('default'), defer(applyPendingMerges));
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
 
-describe.skip('the pacman problem', function () {
+describe('the pacman problem', function () {
   const sequenceOfEvents = [
     {client:
       {id: 1, delta: 0, expected: {
