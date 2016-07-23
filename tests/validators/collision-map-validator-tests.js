@@ -95,6 +95,14 @@ describe('collision map validator', function () {
     expect(map.key[0].finish).toBe(undefined);
   });
 
+  it('should ensure every "data" becomes an array', function () {
+    var map = ['*', {'key': { and: 'something'}}];
+    var validator = makeValidator(map);
+    validator.OnServerStart()();
+
+    expect(map.key[0].data).toBeAn(Array);
+  });
+
   it('must have an "and" key', function () {
     var map = ['*', {'key': { finish: empty}}];
     var validator = makeValidator(map);

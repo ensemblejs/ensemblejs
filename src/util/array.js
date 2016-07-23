@@ -1,5 +1,7 @@
 'use strict';
 
+import {isArray} from './is';
+
 export function getById (array, id) {
   for (let i = 0; i < array.length; i += 1) {
     if (array[i].id === id) {
@@ -20,4 +22,11 @@ export function filter (array, predicate) {
   }
 
   return results;
+}
+
+export function join (a, b) {
+  console.log('before', a, b);
+  Array.prototype.push.apply(a, isArray(b) ? b : [b]);
+  console.log('after', a);
+  return a;
 }

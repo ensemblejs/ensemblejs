@@ -2,7 +2,7 @@
 
 import {each, isString, isFunction, find} from 'lodash';
 import {read} from '../../util/dot-string-support';
-import {getById} from '../../util/array';
+import {getById, join} from '../../util/array';
 import deepEqual from 'deep-equal';
 import {isArray} from '../../util/is';
 const Immutable = require('immutable');
@@ -17,7 +17,7 @@ module.exports = {
     let changes = [];
 
     function invoke (callback, currentModel, priorModel, data) {
-      const args = isArray(data) ? [].concat(data) : [data];
+      const args = isArray(data) ? join([], data) : [data];
 
       args.unshift(priorModel);
       args.unshift(currentModel);
@@ -30,7 +30,7 @@ module.exports = {
     }
 
     function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
-      const args = isArray(data) ? [].concat(data) : [data];
+      const args = isArray(data) ? join([], data) : [data];
 
       if (priorModel || alwaysPassPrior) {
         args.unshift(priorModel);

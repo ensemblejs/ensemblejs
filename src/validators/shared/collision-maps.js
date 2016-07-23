@@ -32,6 +32,9 @@ module.exports = {
           if (!isArray(collisionMap.and)) {
             collisionMap.and = [collisionMap.and];
           }
+          if (collisionMap.data === undefined) {
+            collisionMap.data = [];
+          }
           if (!isArray(collisionMap.start) && collisionMap.start) {
             collisionMap.start = [collisionMap.start];
           }

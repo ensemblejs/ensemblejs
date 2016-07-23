@@ -3,6 +3,7 @@
 import {merge} from 'lodash';
 import {execute} from 'royal-sampler';
 import {isArray} from '../../util/is';
+import {join} from '../../util/array';
 var sequence = require('distributedlife-sequence');
 
 module.exports = {
@@ -14,7 +15,7 @@ module.exports = {
     let deviceNumber;
 
     function mergeArrays (a, b) {
-      return isArray(a) ? a.concat(b) : undefined;
+      return isArray(a) ? join(a, b) : undefined;
     }
 
     function paused (state) { return state.ensemble.paused; }

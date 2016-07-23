@@ -2,6 +2,7 @@
 
 var autoResolve = require('distributedlife-sat').shapes.autoResolve;
 import {map, reject, uniq} from 'lodash';
+import {join} from '../../util/array';
 
 var physicsThings = {};
 var keyMappings = {};
@@ -68,7 +69,7 @@ function getByPhysicsKey (saveId, physicsKey) {
 
   let result = [];
   for (let i = 0; i < entries.length; i += 1) {
-    result = result.concat(entries[i]);
+    join(result, entries[i]);
   }
 
   return result;

@@ -1,6 +1,7 @@
 'use strict';
 
 import {reject, filter, each, map, includes, isEmpty} from 'lodash';
+import {join} from '../../util/array';
 
 module.exports = {
   type: 'DelayedJobs',
@@ -57,7 +58,7 @@ module.exports = {
           mutate()(saveId, callback(state));
         }
 
-        jobs = jobs.concat(newJobs);
+        join(jobs, newJobs);
         each(filter(jobs, cancelled), devuxCheckJobName);
         jobs = reject(jobs, cancelled);
         jobs = tick(jobs, Δ);

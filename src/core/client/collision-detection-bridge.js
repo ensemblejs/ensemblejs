@@ -3,6 +3,7 @@
 let forEachMode = require('../../util/modes').forEachMode;
 const { clone } = require('../../util/fast-clone');
 import {reject, isUndefined} from 'lodash';
+import {join} from '../../util/array';
 
 module.exports = {
   type: 'CollisionDetectionBridge',
@@ -14,7 +15,8 @@ module.exports = {
         let changes = [];
 
         function onCollision (callback, map, metadata) {
-          let args = [Δ, state, metadata].concat(clone(map.data) || []);
+          let args = [Δ, state, metadata];
+          join(args, clone(map.data));
 
           changes.push(callback(...args));
         }
