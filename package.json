@@ -20,6 +20,7 @@
     "unit": "NODE_ENV=test gulp framework:test:unit",
     "test": "NODE_ENV=test gulp framework:test",
     "perf": "NODE_ENV=test gulp framework:test:perf",
+    "karma-perf": "karma start perf.conf.js",
     "int": "NODE_ENV=test gulp framework:test:integration",
     "perf": "NODE_ENV=test gulp framework:test:perf",
     "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",

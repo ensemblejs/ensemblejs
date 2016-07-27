@@ -9,15 +9,15 @@ const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
-const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-const effort = ['minimal-', '5ms', '10ms', '15ms'];
-const fxCounts = [1, 10, 100, 250, 500, 1000];
-const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
+// const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
+// const effort = ['minimal-', '5ms', '10ms', '15ms'];
+// const fxCounts = [1, 10, 100, 250, 500, 1000];
+// const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
-// const dataSizes = ['minimal-'];
-// const effort = ['5ms'];
-// const fxCounts = [100];
-// const serverStateInterval = [45];
+const dataSizes = [1000 * KB];
+const effort = ['5ms', '10ms'];
+const fxCounts = [100, 250];
+const serverStateInterval = [45];
 
 const Toggles = {
   memwatch: false,
@@ -26,11 +26,18 @@ const Toggles = {
 };
 
 const now = require('present');
-const v8 = require('v8');
-const memwatch = require('memwatch-next');
+
+const Node = (typeof window === 'undefined');
+
+let v8;
+let memwatch;
+if (Node) {
+  v8 = require((() => 'v8')());
+  memwatch = require('memwatch-next');
+}
 
 function memwatchLeakAndStats () {
-  if (!Toggles.memwatch) {
+  if (!Toggles.memwatch || !Node) {
     return;
   }
 
@@ -331,7 +338,7 @@ describe('Physics Frames Performance', function () {
         return;
       }
 
-      if (Toggles.heapSize) {
+      if (Toggles.heapSize && Node) {
         usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
       }
     }, HeapSizeSampleHz);
@@ -339,13 +346,13 @@ describe('Physics Frames Performance', function () {
 
   var hd;
   beforeEach(() => {
-    if (Toggles.memwatch) {
+    if (Toggles.memwatch && Node) {
       hd = new memwatch.HeapDiff();
     }
   });
 
   afterEach(() => {
-    if (Toggles.memwatch) {
+    if (Toggles.memwatch && Node) {
       console.log(JSON.stringify(hd.end()));
     }
   });
