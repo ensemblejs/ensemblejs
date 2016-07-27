@@ -7,8 +7,8 @@ var logger = require('../../logging/server/logger').logger;
 
 module.exports = {
   type: 'StateTracker',
-  deps: ['DefinePlugin'],
-  func: function StateTracker (define) {
+  deps: ['DefinePlugin', 'RawStateAccess'],
+  func: function StateTracker (define, rawState) {
     var priorState;
     var currentState;
     var changes = [];
@@ -156,20 +156,21 @@ module.exports = {
       changes.forEach(change => handle[change.type](change));
     }
 
-    define()('OnServerReady', ['RawStateAccess'], rawState => {
+    function syncWithRawState () {
+      priorState = currentState;
+      currentState = null;
+      currentState = clone(rawState().all());
+    }
+
+    define()('OnSaveReady', () => {
       return function storeInitialServerState () {
-        priorState = currentState;
-        currentState = null;
-        currentState = clone(rawState().all());
+        syncWithRawState();
       };
     });
 
-    define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
+    define()('AfterPhysicsFrame', () => {
       return function takeLatestCopyOfRawState () {
-        priorState = currentState;
-        currentState = null;
-        currentState = clone(rawState().all());
-
+        syncWithRawState();
         detectChangesAndNotifyObservers();
       };
     });
@@ -200,6 +201,7 @@ module.exports = {
     }
 
     return {
+      sync: syncWithRawState,
       for: function filterTrackerBySaveId (saveId) {
 
         function onChangeOf (model, callback, data) {
@@ -296,12 +298,12 @@ module.exports = {
         }
 
         return {
-          onChangeOf: onChangeOf,
-          onChangeTo: onChangeTo,
-          onElement: onElement,
-          onElementChanged: onElementChanged,
-          onElementAdded: onElementAdded,
-          onElementRemoved: onElementRemoved
+          onChangeOf,
+          onChangeTo,
+          onElement,
+          onElementChanged,
+          onElementAdded,
+          onElementRemoved
         };
       }
     };

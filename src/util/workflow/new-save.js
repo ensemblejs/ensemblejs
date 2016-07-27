@@ -8,14 +8,14 @@ import {hostname} from '../../util/hostname';
 function newSave (project, on, time) {
 
   function createNewSave (mode) {
-    var newSave = {
+    var save = {
       id: uuid.v4(),
       mode: mode
     };
 
-    on.newSave(newSave);
+    on.newSave(save);
 
-    return on.saveReady(newSave).then(() => newSave);
+    return on.saveReady(save).then(() => save);
   }
 
   return function buildJson (req) {

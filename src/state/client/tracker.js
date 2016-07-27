@@ -14,6 +14,8 @@ module.exports = {
     let nextServerState;
     let priorState;
     let currentState;
+    let priorStateAsJS;
+    let currentStateAsJS;
     let changes = [];
 
     function invoke (callback, currentModel, priorModel, data) {
@@ -47,7 +49,7 @@ module.exports = {
     function hasChanged (f) {
       if (priorState === undefined) { return true; }
 
-      return !deepEqual(f(priorState.toJS()), f(currentState.toJS()));
+      return !deepEqual(f(priorStateAsJS), f(currentStateAsJS));
     }
 
     function currentValue (f) {
@@ -55,7 +57,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(currentState.toJS());
+      return f(currentStateAsJS);
     }
 
     function currentServerValue (f) {
@@ -71,7 +73,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(priorState.toJS());
+      return f(priorStateAsJS);
     }
 
     function currentElement (f, model) {
@@ -79,7 +81,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(currentState.toJS()), {id: model.id});
+      return find(f(currentStateAsJS), {id: model.id});
     }
 
     function priorElement (f, model) {
@@ -87,7 +89,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(priorState.toJS()), {id: model.id});
+      return find(f(priorStateAsJS), {id: model.id});
     }
 
     function isInArray (array, id) {
@@ -101,18 +103,18 @@ module.exports = {
     }
 
     function elementAdded (f, model) {
-      return isInArray(f(priorState.toJS()), model.id);
+      return isInArray(f(priorStateAsJS), model.id);
     }
 
     function elementRemoved (f, model) {
-      return isInArray(f(currentState.toJS()), model.id);
+      return isInArray(f(currentStateAsJS), model.id);
     }
 
     function elementChanged (f, model) {
       if (priorState === undefined) { return true; }
 
-      const current = getById(f(currentState.toJS()), model.id);
-      const prior = getById(f(priorState.toJS()), model.id);
+      const current = getById(f(currentStateAsJS), model.id);
+      const prior = getById(f(priorStateAsJS), model.id);
 
       return !deepEqual(current, prior);
     }
@@ -172,7 +174,17 @@ module.exports = {
       'object': handleObjects
     };
 
+    function updateMutableView () {
+      if (priorState) {
+        priorStateAsJS = priorState.toJS();
+      }
+      if (currentState) {
+        currentStateAsJS = currentState.toJS();
+      }
+    }
+
     function detectChangesAndNotifyObservers () {
+      updateMutableView();
       each(changes, change => handle[change.type](change));
     }
 
@@ -186,15 +198,17 @@ module.exports = {
       nextServerState = Immutable.fromJS(serverState);
     }
 
-    function saveInitialServerState (serverState) {
-      nextServerState = Immutable.fromJS(serverState);
-    }
+    // function saveInitialServerState (serverState) {
+    //   nextServerState = Immutable.fromJS(serverState);
+    // }
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
-        saveInitialServerState(state);
+        saveLatestServerState(state);
         rawState().resetTo(Immutable.fromJS(state));
         updateState(rawState().get());
+
+        updateMutableView();
       };
     });
 
@@ -231,7 +245,7 @@ module.exports = {
       return function stateFromDotString (state) {
         let prop = read(state, model);
         if (prop === undefined) {
-          logger().warn({ model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+          logger().warn({model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
         }
 
         return prop;

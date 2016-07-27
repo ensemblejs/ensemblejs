@@ -8,8 +8,8 @@ import Bluebird from 'bluebird';
 
 module.exports = {
   type: 'DatabaseIntegration',
-  deps: ['DefinePlugin', 'RawStateAccess', 'On'],
-  func: function DbBridge (define, rawState, on) {
+  deps: ['DefinePlugin', 'On'],
+  func: function DbBridge (define, on) {
 
     function errorIfMissing (db) {
       return function doCheck (result) {

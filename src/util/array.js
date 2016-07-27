@@ -25,8 +25,6 @@ export function filter (array, predicate) {
 }
 
 export function join (a, b) {
-  console.log('before', a, b);
   Array.prototype.push.apply(a, isArray(b) ? b : [b]);
-  console.log('after', a);
   return a;
 }

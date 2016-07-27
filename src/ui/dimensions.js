@@ -12,91 +12,80 @@ module.exports = {
     function getRatioAsConfigured () {
       if (config().client.aspectRatio === UseDeviceAspectRatio) {
         return window().innerWidth / window().innerHeight;
-      } else {
-        return config().client.aspectRatio;
       }
+
+      return config().client.aspectRatio;
     }
 
-    function calculateMargin (actual, usable) {
-      return Math.round(actual - usable) / 2;
-    }
+    const margin = (actual, usable) => Math.round(actual - usable) / 2;
 
     function determineOrientation (margins) {
       if (margins.x === margins.y) {
         return Square;
-      } else {
-        return margins.x > margins.y ? Landscape : Portrait;
       }
+
+      return margins.x > margins.y ? Landscape : Portrait;
     }
 
-    return {
-      get: function get () {
-        const actualWidth = window().innerWidth;
-        const actualHeight = window().innerHeight;
-        const ratio = getRatioAsConfigured();
-        const heightBasedOnWidth = Math.round(actualWidth / ratio);
-        const widthBasedOnHeight = Math.round(actualHeight * ratio);
-        const totalMargin = config().client.widescreenMinimumMargin * 2;
+    function get () {
+      const actualWidth = window().innerWidth;
+      const actualHeight = window().innerHeight;
+      const ratio = getRatioAsConfigured();
+      const heightBasedOnWidth = Math.round(actualWidth / ratio);
+      const widthBasedOnHeight = Math.round(actualHeight * ratio);
+      const totalMargin = config().client.widescreenMinimumMargin * 2;
+      const isSquare = heightBasedOnWidth === widthBasedOnHeight;
+      const isTooHighToFitScreen = heightBasedOnWidth >= actualHeight;
+      const isTooHighToFitWithinMargins = heightBasedOnWidth + totalMargin > actualHeight;
+      const isTooWideToFitWithinMargings = widthBasedOnHeight + totalMargin > actualWidth;
 
-        let usableWidth;
-        let usableHeight;
+      let usableWidth;
+      let usableHeight;
 
-        const isSquare = heightBasedOnWidth === widthBasedOnHeight;
-        const tooHighToFitScreen = heightBasedOnWidth >= actualHeight;
-        const tooHighToFitWithinMargins = heightBasedOnWidth + totalMargin > actualHeight;
-        const tooWideToFitWithinMargings = widthBasedOnHeight + totalMargin > actualWidth;
+      if (isSquare) {
+        usableWidth = actualWidth - totalMargin;
+        usableHeight = actualHeight - totalMargin;
+      } else if (isTooHighToFitScreen) {
+        usableHeight = actualHeight;
 
-        if (isSquare) {
-          usableWidth = actualWidth - totalMargin;
-          usableHeight = actualHeight - totalMargin;
+        if (isTooWideToFitWithinMargings) {
+          const scaledDownWidth = Math.round((actualHeight - totalMargin) / ratio);
+          usableWidth = scaledDownWidth;
         } else {
-          if (tooHighToFitScreen) {
-            usableHeight = actualHeight;
-
-            if (tooWideToFitWithinMargings) {
-              const scaledDownWidth = Math.round((actualHeight - totalMargin) / ratio);
-              usableWidth = scaledDownWidth;
-            } else {
-              usableWidth = widthBasedOnHeight - totalMargin;
-            }
-          } else {
-            usableWidth = actualWidth;
-
-            if (tooHighToFitWithinMargins) {
-              const scaledDownHeight = Math.round((actualWidth - totalMargin) / ratio);
-              usableHeight = scaledDownHeight;
-            } else {
-              usableHeight = heightBasedOnWidth - totalMargin;
-            }
-          }
+          usableWidth = widthBasedOnHeight - totalMargin;
         }
+      } else {
+        usableWidth = actualWidth;
 
-        const margins = {
-          x: calculateMargin(actualWidth, usableWidth),
-          y: calculateMargin(actualHeight, usableHeight)
-        };
-
-        return {
-          usableWidth,
-          usableHeight,
-          marginSides: margins.x,
-          marginTopBottom: margins.y,
-          margins,
-          orientation: determineOrientation(margins),
-          screenWidth: actualWidth,
-          screenHeight: actualHeight,
-          ratio,
-          landscape: function landscape () {
-            return determineOrientation(margins) === Landscape;
-          },
-          portrait: function portrait () {
-            return determineOrientation(margins) === Portrait;
-          },
-          square: function square () {
-            return determineOrientation(margins) === Square;
-          }
-        };
+        if (isTooHighToFitWithinMargins) {
+          const scaledDownHeight = Math.round((actualWidth - totalMargin) / ratio);
+          usableHeight = scaledDownHeight;
+        } else {
+          usableHeight = heightBasedOnWidth - totalMargin;
+        }
       }
-    };
+
+      const margins = {
+        x: margin(actualWidth, usableWidth),
+        y: margin(actualHeight, usableHeight)
+      };
+
+      return {
+        usableWidth,
+        usableHeight,
+        marginSides: margins.x,
+        marginTopBottom: margins.y,
+        margins,
+        orientation: determineOrientation(margins),
+        screenWidth: actualWidth,
+        screenHeight: actualHeight,
+        ratio,
+        landscape: () => determineOrientation(margins) === Landscape,
+        portrait: () => determineOrientation(margins) === Portrait,
+        square: () => determineOrientation(margins) === Square
+      };
+    }
+
+    return { get };
   }
 };

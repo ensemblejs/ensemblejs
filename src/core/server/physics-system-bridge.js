@@ -19,7 +19,7 @@ module.exports = {
       } else {
         physicsSystem().register(saveId, physicsKey, sourceKey, adapter ? adapter(sourceState) : sourceState);
 
-        console.log(saveId, sourceKey);
+        // console.log(saveId, sourceKey);
         tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey, adapter));
       }
     }

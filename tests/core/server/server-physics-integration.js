@@ -29,10 +29,10 @@ describe('StateTracker Integration', function () {
   beforeEach(function () {
     callback.reset();
     callback2.reset();
-    tracker = require(modulePath).func(defer(trackerPlugins.define), defer(logger));
+    tracker = require(modulePath).func(defer(trackerPlugins.define), defer(rawStateAccess));
 
     deps = trackerPlugins.deps();
-    afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
+    afterPhysicsFrame = deps.AfterPhysicsFrame();
 
     tracker = tracker.for(1);
   });
@@ -291,11 +291,11 @@ describe('StateTracker Integration', function () {
       it('should invoked the callback with each existing elements in the array', function() {
         callback.reset();
         trackerPlugins.reset();
-        tracker = require(modulePath).func(defer(trackerPlugins.define), defer(logger));
+        tracker = require(modulePath).func(defer(trackerPlugins.define), defer(rawStateAccess));
         tracker = tracker.for(1);
 
         deps = trackerPlugins.deps();
-        afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
+        afterPhysicsFrame = deps.AfterPhysicsFrame();
 
         applyMutation([
           [1, { numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] }]
@@ -386,9 +386,9 @@ describe('StateTracker Integration', function () {
     let t2;
 
     beforeEach(function () {
-      tracker = require(modulePath).func(defer(trackerPlugins.define), defer(logger));
+      tracker = require(modulePath).func(defer(trackerPlugins.define), defer(rawStateAccess));
       deps = trackerPlugins.deps();
-      afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
+      afterPhysicsFrame = deps.AfterPhysicsFrame();
       t1 = tracker.for(1);
       t2 = tracker.for(2);
 

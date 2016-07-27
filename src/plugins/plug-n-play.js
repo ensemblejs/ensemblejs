@@ -4,7 +4,6 @@ let loader = require('./folder-loader.js');
 let isArray = require('lodash').isArray;
 let isString = require('lodash').isString;
 let isFunction = require('lodash').isFunction;
-let each = require('lodash').each;
 let map = require('lodash').map;
 let includes = require('lodash').includes;
 let logging = require('../logging/shared/logger');
@@ -12,12 +11,11 @@ let logging = require('../logging/shared/logger');
 let log;
 let plugins = {};
 let defaultModes = [];
-let traceOnly = [];
 
 export function plugin (name) {
   if (!plugins[name]) {
-    log.error({name: name, loaded: Object.keys(plugins)}, 'Plugin not found.');
-    throw new Error('No plugin defined for: "' + name + '"');
+    log.error({name, loaded: Object.keys(plugins)}, 'Plugin not found.');
+    throw new Error(`No plugin defined for: "${name}"`);
   }
 
   return plugins[name];
@@ -31,7 +29,7 @@ export function get (p, f) {
   return function () {
     if (!plugin(p)[f]) {
       log.error({plugin: Object.keys(p), f: f}, 'Attempted to execute function not found on plugin.');
-      return;
+      return undefined;
     }
 
     return plugin(p)[f](...arguments);
@@ -48,18 +46,18 @@ function deferredDependency (deferred) {
   };
 }
 
-function setModesForPlugin (plugin, type) {
+function setModesForPlugin (p, type) {
   if (!includes(defaultModes, type)) {
-    return plugin;
+    return p;
   }
-  if (!(plugin instanceof Array)) {
-    return [['*'], plugin];
+  if (!(p instanceof Array)) {
+    return [['*'], p];
   }
-  if (!(plugin[0] instanceof Array)) {
-    return [[plugin[0]], plugin[1]];
+  if (!(p[0] instanceof Array)) {
+    return [[p[0]], p[1]];
   }
 
-  return plugin;
+  return p;
 }
 
 function wrapOriginalFunction (original) {
@@ -70,9 +68,9 @@ function wrapEachElementOfArray (array, prefix, type) {
   return map(array, function wrapIfFunction (element) {
     if (element instanceof Function) {
       return wrapOriginalFunction(element, undefined, prefix, type);
-    } else {
-      return element;
     }
+
+    return element;
   });
 }
 
@@ -87,19 +85,19 @@ function wrapEachFunctionInObject (obj, prefix, type) {
 }
 
 function addLoggingToPlugin (module, prefix, args) {
-  var plugin = module.func(...args);
+  var p = module.func(...args);
 
-  if (plugin instanceof Function) {
-    return wrapOriginalFunction(plugin, module.name, prefix, module.type);
+  if (p instanceof Function) {
+    return wrapOriginalFunction(p, module.name, prefix, module.type);
   }
-  if (plugin instanceof Array) {
-    return wrapEachElementOfArray(plugin, prefix, module.type);
+  if (p instanceof Array) {
+    return wrapEachElementOfArray(p, prefix, module.type);
   }
-  if (!(plugin instanceof Object)) {
-    return plugin;
-  } else {
-    return wrapEachFunctionInObject(plugin, prefix, module.type);
+  if (!(p instanceof Object)) {
+    return p;
   }
+
+  return wrapEachFunctionInObject(p, prefix, module.type);
 }
 
 function checkModuleValidity (module) {
@@ -133,28 +131,28 @@ function load (module, prefix = ' ensemblejs') {
 
   checkModuleValidity(module);
 
-  module = loadSensibleDefaults(module);
-  module.name = logging.extractFunctionNameFromCode(module.func);
+  let m = loadSensibleDefaults(module);
+  m.name = logging.extractFunctionNameFromCode(m.func);
 
-  log.loaded(prefix, module.type, module.func);
+  log.loaded(prefix, m.type, m.func);
 
-  var args = map(module.deps, function (dep) {
+  var args = map(m.deps, function (dep) {
     return deferredDependency(dep);
   });
 
   var preparedPlugin = setModesForPlugin(
-    addLoggingToPlugin(module, prefix, args),
-    module.type
+    addLoggingToPlugin(m, prefix, args),
+    m.type
   );
 
-  if (isArray(plugins[module.type])) {
-    plugins[module.type].push(preparedPlugin);
+  if (isArray(plugins[m.type])) {
+    plugins[m.type].push(preparedPlugin);
   } else {
-    if (plugins[module.type]) {
-      log.warn({plugin: module}, 'Plugin has been loaded more than once. The latter calls will replace the former.');
+    if (plugins[m.type]) {
+      log.warn({plugin: m}, 'Plugin has been loaded more than once. The latter calls will replace the former.');
     }
 
-    plugins[module.type] = preparedPlugin;
+    plugins[m.type] = preparedPlugin;
   }
 }
 
@@ -171,18 +169,7 @@ export function set (name, thing) {
 }
 
 export function boilerplate (type, deps, func) {
-  if (deps instanceof Function) {
-    return {
-      type: type,
-      func: deps
-    };
-  } else {
-    return {
-      type: type,
-      deps: deps,
-      func: func
-    };
-  }
+  return (deps instanceof Function) ? {type, func: deps} : {type, deps, func};
 }
 
 export default function define (type, deps, func) {
@@ -192,37 +179,17 @@ export default function define (type, deps, func) {
 export function configure (logger, arrays = [], defaultMode = [], traceOnlyPlugins = []) {
   log = logging.setupLogger(logger);
 
-  each(arrays, function(name) {
-    plugins[name] = [];
-  });
+  arrays.forEach(name => (plugins[name] = []));
 
   defaultModes = defaultMode;
-  traceOnly = traceOnlyPlugins;
   logging.traceOnly(traceOnlyPlugins);
 
   plugins.Logger = log;
 
-  load({
-    type: 'DefinePlugin',
-    func: function DefinePlugin () {
-      return define;
-    }
-  });
-
-  load({
-    type: 'DynamicPluginLoader',
-    func: function DynamicPluginLoader () {
-      return {
-        get: plugin
-      };
-    }
-  });
+  load({ type: 'DefinePlugin', func: () => define });
+  load({ type: 'DynamicPluginLoader', func: () => ({ get: plugin }) });
 
   return {
-    load: load,
-    loadFrameworkPath: loadFrameworkPath,
-    loadPath: loadGameDevCode,
-    set: set,
-    get: plugin
+    load, loadFrameworkPath, loadPath: loadGameDevCode, set, get: plugin
   };
 }

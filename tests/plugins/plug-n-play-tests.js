@@ -8,7 +8,7 @@ var jsdom = require('jsdom').jsdom;
 describe('the plugin manager', function() {
 	var document = jsdom('<div id="a-div">With content.</div>');
 	global.window = document.parentWindow;
-	global.getComputedStyle = function() {};
+	global.getComputedStyle = function() { return undefined };
 	global.document = document;
 
 	var myModule = {
@@ -224,7 +224,7 @@ describe('the plugin manager', function() {
 		});
 
 		it('should not care if no default plugin types are supplied', function() {
-			require('../../src/plugins/plug-n-play').configure(logger, 'name', 'version');
+			require('../../src/plugins/plug-n-play').configure(logger, ['name'], 'version');
 		});
 
 		it('should defer all modules', function () {

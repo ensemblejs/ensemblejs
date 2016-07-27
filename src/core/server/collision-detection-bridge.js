@@ -19,7 +19,7 @@ module.exports = {
         function onCollision (callback, map, metadata) {
           let args = [Δ, state, metadata].concat(clone(map.data) || []);
 
-          console.log('collision', state);
+          // console.log('collision', state);
 
           changes.push(callback(...args));
         }

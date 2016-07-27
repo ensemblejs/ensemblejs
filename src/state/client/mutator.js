@@ -5,10 +5,9 @@ import define from '../../plugins/plug-n-play';
 import {read} from '../../util/dot-string-support';
 import {isArray} from '../../util/is';
 const Immutable = require('immutable');
-const { Map } = require('immutable');
 
 function recurseMapsOnly (prev, next) {
-  return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+  return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
 }
 
 function isArrayOfArrays (result) {
@@ -49,7 +48,7 @@ module.exports = {
     function wrapWithReadOnly (node) {
       return function get (key) {
         const val = readAndWarnAboutMissingState(node, key);
-        return Map.isMap(val) ? wrapWithReadOnly(val) : val;
+        return Immutable.Map.isMap(val) ? wrapWithReadOnly(val) : val;
       };
     }
 
@@ -167,13 +166,13 @@ module.exports = {
           return entry;
         }
 
-        let nv = isFunction(value)
-          ? value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath))
-          : value;
+        let nv = isFunction(value) ?
+          value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath)) :
+          value;
 
-        return isEmpty(restOfPath)
-          ? entry.mergeDeep(nv)
-          : entry.setIn(restOfPath.split('.'), nv);
+        return isEmpty(restOfPath) ?
+          entry.mergeDeep(nv) :
+          entry.setIn(restOfPath.split('.'), nv);
       });
 
       return set({}, pathToArray, mod);

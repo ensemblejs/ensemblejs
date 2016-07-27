@@ -9,7 +9,10 @@ var on = require('../../fake/on');
 var makeTestible = require('../../support').makeTestible;
 var sut = makeTestible('state/server/mutator');
 var stateMutator = sut[0];
-var onLoadSave = sut[1].OnLoadSave(defer(on));
+const tracker = {
+  sync: sinon.spy()
+};
+var onLoadSave = sut[1].OnLoadSave(defer(on), defer(tracker));
 var state = sut[1].StateAccess();
 var rawState = sut[1].RawStateAccess();
 
@@ -367,6 +370,8 @@ describe('state mutation on the server', function () {
         ensemble: { waitingForPlayers: false, paused: false }
       }));
 
+      tracker.sync.reset();
+
       onLoadSave({id: 3, mode: 'arcade'}).then(function () { done(); });
     });
 
@@ -385,6 +390,10 @@ describe('state mutation on the server', function () {
 
     it('should set paused to true', function () {
       expect(rawState.for(3).get('ensemble').get('paused')).toBe(true);
+    });
+
+    it('should force the state tracker to sync', function () {
+      expect(tracker.sync.called).toEqual(true);
     });
 
     it('should call on save ready', function () {

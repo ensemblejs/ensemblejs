@@ -59,6 +59,11 @@ module.exports = {
       callEachWithMutation(onNewSave(), mutator, save.id, [save]);
     }
 
+    function loadSave (save) {
+      console.log('load save');
+      callEachPlugin(onLoadSave(), [save]);
+    }
+
     function saveReady (save) {
       return callEachPluginAndPromises(onSaveReady(), [save]);
     }
@@ -137,37 +142,33 @@ module.exports = {
       callEachPlugin(onDatabaseReady());
     }
 
-    function loadSave (save) {
-      callEachPlugin(onLoadSave(), [save]);
-    }
-
     return {
-      clientConnect: clientConnect,
-      clientDeviceNumber: clientDeviceNumber,
-      clientDisconnect: clientDisconnect,
-      clientPlayerId: clientPlayerId,
-      clientStart: clientStart,
-      connect: connect,
-      databaseReady: databaseReady,
-      disconnect: disconnect,
-      error: error,
-      incomingClientInputPacket: incomingClientInputPacket,
-      incomingPeerPacket: incomingPeerPacket,
+      clientConnect,
+      clientDeviceNumber,
+      clientDisconnect,
+      clientPlayerId,
+      clientStart,
+      connect,
+      databaseReady,
+      disconnect,
+      error,
+      incomingClientInputPacket,
+      incomingPeerPacket,
       incomingServerPacket: createOnServerPacketCallback(),
-      input: input,
-      loadSave: loadSave,
-      mute: mute,
-      newPlayer: newPlayer,
-      newSave: newSave,
-      outgoingClientPacket: outgoingClientPacket,
-      outgoingServerPacket: outgoingServerPacket,
-      pause: pause,
-      playerGroupChange: playerGroupChange,
-      resume: resume,
-      saveReady: saveReady,
-      serverStart: serverStart,
-      serverStop: serverStop,
-      unmute: unmute
+      input,
+      loadSave,
+      mute,
+      newPlayer,
+      newSave,
+      outgoingClientPacket,
+      outgoingServerPacket,
+      pause,
+      playerGroupChange,
+      resume,
+      saveReady,
+      serverStart,
+      serverStop,
+      unmute
     };
   }
 };

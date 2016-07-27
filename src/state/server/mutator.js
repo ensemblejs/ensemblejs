@@ -6,7 +6,7 @@ var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
 import {read} from '../../util/dot-string-support';
 const Immutable = require('immutable');
-const {Map, List} = require('immutable');
+const {List} = require('immutable');
 import Bluebird from 'bluebird';
 
 const root = {};
@@ -31,15 +31,19 @@ module.exports = {
       return state;
     }
 
-    define()('OnLoadSave', ['On'], function (on) {
+    define()('OnLoadSave', ['On', 'StateTracker'], (on, tracker) => {
       return function loadSaveFromDb (save) {
         function keepInMemory (state) {
           root[save.id] = Immutable.fromJS(resetSaveOnLoad(state));
-
-          on().saveReady(save);
         }
 
-        return saves.getById(save.id).then(keepInMemory);
+        const forceTrackerToSync = () => (tracker().sync());
+        const onSaveReady = () => (on().saveReady(save));
+
+        return saves.getById(save.id)
+          .then(keepInMemory)
+          .then(forceTrackerToSync)
+          .then(onSaveReady);
       };
     });
 
@@ -56,13 +60,13 @@ module.exports = {
       return function get (key) {
         const val = readAndWarnAboutMissingState(node, key);
 
-        return Map.isMap(val) ? wrapWithReadOnly(val) : val;
+        return Immutable.Map.isMap(val) ? wrapWithReadOnly(val) : val;
       };
     }
 
     function accessAndCloneState (node, key) {
       const val = readAndWarnAboutMissingState(node, key);
-      return Map.isMap(val) || List.isList(val) ? val.toJS() : val;
+      return Immutable.Map.isMap(val) || List.isList(val) ? val.toJS() : val;
     }
 
     function genKey (playerId, namespace, key) {
@@ -99,9 +103,7 @@ module.exports = {
       }
     };
 
-    define()('StateAccess', function () {
-      return stateAccess;
-    });
+    define()('StateAccess', () => stateAccess);
 
     function isValidDotStringResult(result) {
       if (result.length !== 2) {
@@ -177,13 +179,13 @@ module.exports = {
           return entry;
         }
 
-        let nv = isFunction(value)
-          ? value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath))
-          : value;
+        let nv = isFunction(value) ?
+          value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath)) :
+          value;
 
-        return isEmpty(restOfPath)
-          ? entry.mergeDeep(nv)
-          : entry.setIn(restOfPath.split(Dot), Immutable.fromJS(nv));
+        return isEmpty(restOfPath) ?
+          entry.mergeDeep(nv) :
+          entry.setIn(restOfPath.split(Dot), Immutable.fromJS(nv));
       });
 
       return Immutable.fromJS({}).setIn(pathToArray.split(Dot), Immutable.fromJS(mod));
@@ -239,7 +241,7 @@ module.exports = {
       resultToMerge = stripOutAttemptsToMutateTrulyImmutableThings(resultToMerge);
 
       function recurseMapsOnly (prev, next) {
-        return Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : Immutable.fromJS(next);
+        return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : Immutable.fromJS(next);
       }
 
       root[saveId] = root[saveId] || Immutable.fromJS({});

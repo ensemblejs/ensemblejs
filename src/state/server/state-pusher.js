@@ -20,7 +20,7 @@ module.exports = {
           id: sequence.next('server-origin-messages'),
           timestamp: time().present(),
           highestProcessedMessage: lowestInputProcessed()(save.id),
-          saveState: rawStateAccess().for(save.id)
+          saveState: rawStateAccess().for(save.id).toJS()
         };
 
         on().outgoingServerPacket(socket.id, packet);
