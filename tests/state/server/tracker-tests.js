@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const defer = require('../../support').defer;
 const plugin = require('../../support').plugin();
 const modulePath = '../../../src/state/server/tracker';
-const Immutable = require('immutable');
 
 let tracker;
 const rawStateAccess = {
@@ -19,16 +18,14 @@ function forceCurrentRawState (saveStates) {
     let allState = {};
 
     saveStates.forEach(saveState => {
-      allState[saveState[0]] = Immutable.fromJS(saveState[1]);
+      allState[saveState[0]] = saveState[1];
     });
 
     return allState;
   };
 }
 
-let logger = require('../../fake/logger');
-
-describe('StateTracker', function () {
+describe('Server StateTracker', function () {
   let callback = sinon.spy();
   let callback2 = sinon.spy();
   let afterPhysicsFrame;

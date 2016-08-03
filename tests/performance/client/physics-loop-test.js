@@ -9,14 +9,14 @@ const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
-// const dataSizes = [1 * KB, 10 * KB, 100 * KB, 1000 * KB, 'minimal-'];
-// const effort = ['minimal-', '5ms', '10ms', '15ms'];
-// const fxCounts = [1, 10, 100, 250, 500, 1000];
+// const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1000 * KB];
+// const effort = ['minimal-', '5ms'];//, '10ms', '15ms'];
+// const fxCounts = [1000];//1, 10, 100, 250, 500, 1000];
 // const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
-const dataSizes = [1000 * KB];
-const effort = ['5ms', '10ms'];
-const fxCounts = [100, 250];
+const dataSizes = ['minimal-'];
+const effort = ['15ms'];
+const fxCounts = [1, 10, 100];
 const serverStateInterval = [45];
 
 const Toggles = {
@@ -119,7 +119,7 @@ define('Config', function Config() {
   return {
     client: {
       clientSidePrediction: true,
-      physicsUpdateLoop: 15
+      physicsUpdateLoop: 16
     }
   };
 });
@@ -368,6 +368,10 @@ describe('Physics Frames Performance', function () {
     'trivial-ms': 0,
     '5ms': 5,
     '10ms': 10,
+    '11ms': 11,
+    '12ms': 12,
+    '13ms': 13,
+    '14ms': 14,
     '15ms': 15
   };
 

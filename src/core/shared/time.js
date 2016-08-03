@@ -11,21 +11,12 @@ module.exports = {
     let timeOffset = 0;
 
     return {
-      setOffset: function setOffset (offset) {
-        timeOffset = offset;
-      },
-      present: function present () {
-        return now() + timeOffset;
-      },
-      absolute: function absolute () {
-        return moment().unix();
-      },
-      sinceStart: function sinceStart () {
-        return now() - start;
-      },
-      atStart: function atStart () {
-        return startUnix;
-      }
+      setOffset: offset => (timeOffset = offset),
+      present: () => now() + timeOffset,
+      absolute: () => moment().unix(),
+      precise: () => moment().valueOf(),
+      sinceStart: () => now() - start,
+      atStart: () => startUnix
     };
   }
 };

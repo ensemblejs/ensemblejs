@@ -8,7 +8,7 @@ module.exports = {
   func: function SaveProgress (raw, time) {
 
     function now (state) {
-      saves.save(raw.for(state.ensemble.saveId).toJS(), time().present());
+      saves.save(raw.for(state.ensemble.saveId), time().present());
     }
 
     return { now };

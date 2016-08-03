@@ -13,11 +13,8 @@ module.exports = {
   deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode', 'Config'],
   func: function SocketClient (window, mode, host, on, time, $, deviceMode, config) {
 
-    var intervals = [];
-
-    function url () {
-      return `${host()}/${mode()}/${deviceMode()}`;
-    }
+    let intervals = [];
+    const url = () => `${host()}/${mode()}/${deviceMode()}`;
 
     function disconnect () {
       each(intervals, function eachInterval (interval) {

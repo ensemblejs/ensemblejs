@@ -12,7 +12,7 @@ module.exports = {
   deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'DefinePlugin', 'Time'],
   func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, define, time) {
 
-    let priorStepTime = time().present();
+    let t0 = time().precise();
     let ids = [];
 
     function pausedSaves (save) {
@@ -35,13 +35,18 @@ module.exports = {
       });
     }
 
+    let accumulator = 0;
     function step () {
-      const now = time().present();
-      const Δ = (now - priorStepTime) / 1000;
+      const t1 = time().precise();
+      const frameLength = config.get().server.physicsUpdateLoop;
 
-      update(Δ);
+      accumulator += (t1 - t0);
+      t0 = t1;
 
-      priorStepTime = now;
+      while(accumulator >= frameLength) {
+        update(frameLength / 1000);
+        accumulator -= frameLength;
+      }
     }
 
     define()('OnServerStop', () => {

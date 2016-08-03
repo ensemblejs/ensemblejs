@@ -1,16 +1,15 @@
 'use strict';
 
-import {isArray, isString, isEqual, filter, set, includes, replace, isEmpty, isFunction} from 'lodash';
+import {isObject, isArray, isString, isEqual, mergeWith as merge, each, filter, get, set, includes, replace, map, reject, isEmpty, isFunction} from 'lodash';
 
 var logger = require('../../logging/server/logger').logger;
 var saves = require('../../util/models/saves');
 import {read} from '../../util/dot-string-support';
-const Immutable = require('immutable');
-const {List} = require('immutable');
+const { clone } = require('../../util/fast-clone');
+
 import Bluebird from 'bluebird';
 
-const root = {};
-const Dot = '.';
+var root = {};
 
 module.exports = {
   type: 'StateMutator',
@@ -19,8 +18,15 @@ module.exports = {
 
     define()('RawStateAccess', function RawStateAccess () {
       return {
-        for: saveId => root[saveId],
-        all: () => root
+        for: function forSave (saveId) {
+          return root[saveId];
+        },
+        all: function all () {
+          return root;
+        },
+        changes: function changesForSave (saveId) {
+          return root[saveId];
+        }
       };
     });
 
@@ -31,42 +37,48 @@ module.exports = {
       return state;
     }
 
-    define()('OnLoadSave', ['On', 'StateTracker'], (on, tracker) => {
+    define()('OnLoadSave', ['On'], function (on) {
       return function loadSaveFromDb (save) {
         function keepInMemory (state) {
-          root[save.id] = Immutable.fromJS(resetSaveOnLoad(state));
+          root[save.id] = resetSaveOnLoad(state);
+
+          on().saveReady(save);
         }
 
-        const forceTrackerToSync = () => (tracker().sync());
-        const onSaveReady = () => (on().saveReady(save));
-
-        return saves.getById(save.id)
-          .then(keepInMemory)
-          .then(forceTrackerToSync)
-          .then(onSaveReady);
+        return saves.getById(save.id).then(keepInMemory);
       };
     });
 
     function readAndWarnAboutMissingState (node, key) {
-      var val = isFunction(key) ? key(node.toJS()) : read(node, key);
-      if (val === undefined) {
-        logger.error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+      var prop = isFunction(key) ? key(node) : read(node, key);
+
+      if (prop === undefined) {
+        logger.error({ key: key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
       }
 
-      return val;
+      return prop;
     }
 
-    function wrapWithReadOnly (node) {
-      return function get (key) {
-        const val = readAndWarnAboutMissingState(node, key);
+    function provideReadAccessToState (node) {
+      return function(key) {
+        var prop = readAndWarnAboutMissingState(node, key);
 
-        return Immutable.Map.isMap(val) ? wrapWithReadOnly(val) : val;
+        if (isObject(prop) && !isArray(prop)) {
+          return provideReadAccessToState(prop);
+        } else {
+          return prop;
+        }
       };
     }
 
     function accessAndCloneState (node, key) {
-      const val = readAndWarnAboutMissingState(node, key);
-      return Immutable.Map.isMap(val) || List.isList(val) ? val.toJS() : val;
+      var prop = readAndWarnAboutMissingState(node, key);
+
+      if (isObject(prop)) {
+        return clone(prop);
+      } else {
+        return prop;
+      }
     }
 
     function genKey (playerId, namespace, key) {
@@ -75,46 +87,61 @@ module.exports = {
       return `players:${playerId}.${suffix}`;
     }
 
-    const stateAccess = {
+    var stateAccess = {
       for: function forSave (saveId) {
         return {
-          all: () => root[saveId].toJS(),
-          get: key => wrapWithReadOnly(root[saveId])(key),
-          unwrap: key => accessAndCloneState(root[saveId], key),
+          all: () => root[saveId],
+          get: function getUsingDotString (key) {
+            return provideReadAccessToState(root[saveId])(key);
+          },
+          unwrap: function unwrap (key) {
+            return accessAndCloneState(root[saveId], key);
+          },
           for: function forNamespace (namespace) {
             return {
-              get: key => wrapWithReadOnly(root[saveId].get(namespace))(key),
-              unwrap: key => accessAndCloneState(root[saveId].get(namespace), key)
+              get: function get (key) {
+                return provideReadAccessToState(root[saveId][namespace])(key);
+              },
+              unwrap: function unwrap (key) {
+                return accessAndCloneState(root[saveId][namespace], key);
+              },
             };
           },
           player: function forPlayer (playerId) {
             return {
               for: function forNamespace (namespace) {
                 return {
-                  get: key => wrapWithReadOnly(root[saveId])(genKey(playerId, namespace, key)),
-                  unwrap: key => accessAndCloneState(root[saveId], genKey(playerId, namespace, key))
+                  get: function get (key) {
+                    return provideReadAccessToState(root[saveId])(genKey(playerId, namespace, key));
+                  },
+                  unwrap: function unwrap (key) {
+                    return accessAndCloneState(root[saveId], genKey(playerId, namespace, key));
+                  },
                 };
               },
-              get: key => wrapWithReadOnly(root[saveId])(genKey(playerId, key)),
-              unwrap: key => accessAndCloneState(root[saveId], genKey(playerId, key))
+              get: function get (key) {
+                return provideReadAccessToState(root[saveId])(genKey(playerId, key));
+              },
+              unwrap: function unwrap (key) {
+                return accessAndCloneState(root[saveId], genKey(playerId, key));
+              },
             };
           }
         };
       }
     };
 
-    define()('StateAccess', () => stateAccess);
+    define()('StateAccess', function () {
+      return stateAccess;
+    });
 
     function isValidDotStringResult(result) {
       if (result.length !== 2) {
-        logger.error({result}, 'Dot.String support for state mutation expects an array of length 2.');
+        logger.error(result, 'Dot.String support for state mutation expects an array of length 2.');
         return false;
       }
       if (!isString(result[0])) {
-        logger.error({result}, 'Dot.String support for state mutation requires the first entry be a string.');
-        return false;
-      }
-      if (result[1] === undefined) {
+        logger.error(result, 'Dot.String support for state mutation requires the first entry be a string.');
         return false;
       }
       if (result[1] === null) {
@@ -152,19 +179,22 @@ module.exports = {
       return result;
     }
 
+    function replaceArrayDontMerge (a, b) {
+      return isArray(a) ? b : undefined;
+    }
+
     var applyResult;
     function applyPushAction (saveId, dotString, entries, value) {
-      return applyResult(saveId, dotString, entries.push(Immutable.fromJS(value)));
+      return applyResult(saveId, dotString, entries.concat([value]));
     }
 
     function applyPopAction (saveId, dotString, entries, value) {
-      return applyResult(saveId, dotString, entries.filterNot(x => x.get('id') === value.id));
+      return set({}, dotString, reject(entries, value));
     }
 
     function applyReplaceAction (saveId, dotString, entries, value) {
-      const mod = entries.map(entry => entry.get('id') === value.id ? value : entry);
-
-      return applyResult(saveId, dotString, mod);
+      let mod = map(entries, entry => entry.id === value.id ? value : entry);
+      return set({}, dotString, mod);
     }
 
     function applyOnArrayElement (saveId, dotString, value) {
@@ -172,80 +202,72 @@ module.exports = {
       const id = parseInt(dotString.split(':')[1], 10);
       const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
-      let entries = stateAccess.for(saveId).get(pathToArray);
+      let entries = stateAccess.for(saveId).unwrap(pathToArray);
 
-      let mod = entries.map(entry => {
-        if (entry.get('id') !== id) {
+      let mod = map(entries, entry => {
+        if (entry.id !== id) {
           return entry;
         }
 
-        let nv = isFunction(value) ?
-          value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath)) :
-          value;
+        var nv = isFunction(value) ? value(
+          isEmpty(restOfPath) ? entry : get(entry, restOfPath)
+        ) : value;
 
-        return isEmpty(restOfPath) ?
-          entry.mergeDeep(nv) :
-          entry.setIn(restOfPath.split(Dot), Immutable.fromJS(nv));
+        return isEmpty(restOfPath) ? merge(entry, nv) : set(entry, restOfPath, nv);
       });
 
-      return Immutable.fromJS({}).setIn(pathToArray.split(Dot), Immutable.fromJS(mod));
+      return set({}, pathToArray, mod);
     }
 
-    const trailingHandlers = {
+    let trailingHandlers = {
       '+': applyPushAction,
       '-': applyPopAction,
       '!': applyReplaceAction
     };
 
-    applyResult = function (saveId, dotString, value) {
-      const modifierSymbol = dotString[dotString.length - 1];
-      const dotStringSansModifier = dotString.split(modifierSymbol)[0];
+    applyResult = function applyResult (saveId, dotString, value) {
+      let modifierSymbol = dotString[dotString.length - 1];
+      var dotStringSansModifier = dotString.split(modifierSymbol)[0];
 
-      // console.log(saveId, dotString, value);
-
-      const handler = trailingHandlers[modifierSymbol];
+      var handler= trailingHandlers[modifierSymbol];
       if (handler) {
-        const entries = stateAccess.for(saveId).get(dotStringSansModifier);
+        let entries = stateAccess.for(saveId).unwrap(dotStringSansModifier);
 
         if (isFunction(value)) {
-          logger.error({ dotString, prior: entries }, `Using a function on the ${modifierSymbol} operator is not supported. Remove the ${modifierSymbol} operator to acheive desired effect.`);
+          logger.error({dotString: dotString, prior: entries}, `Using a function on the ${modifierSymbol} operator is not supported. Remove the ${modifierSymbol} operator to acheive desired effect.`);
 
-          return Immutable.fromJS({});
+          return {};
         }
 
         return handler(saveId, dotStringSansModifier, entries, value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
-      }
+      } else {
+        let valueToApply = value;
+        if (isFunction(value)) {
+          var c = stateAccess.for(saveId).unwrap(dotString);
 
-      let valueToApply = value;
-      if (isFunction(value)) {
-        const c = stateAccess.for(saveId).get(dotString);
-        valueToApply = value(c);
-      }
+          valueToApply = value(c);
+        }
 
-      return set({}, dotString, valueToApply);
+        return set({}, dotString, valueToApply);
+      }
     };
 
     function mutateNonArray (saveId, result) {
-      let resultToMerge = result;
-
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
         }
 
-        resultToMerge = applyResult(saveId, result[0], result[1]);
+        result = applyResult(saveId, result[0], result[1]);
       }
 
-      resultToMerge = stripOutAttemptsToMutateTrulyImmutableThings(resultToMerge);
 
-      function recurseMapsOnly (prev, next) {
-        return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : Immutable.fromJS(next);
-      }
+      result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
-      root[saveId] = root[saveId] || Immutable.fromJS({});
-      root[saveId] = root[saveId].mergeWith(recurseMapsOnly, Immutable.fromJS(resultToMerge));
+      root[saveId] = root[saveId] || {};
+      merge(root[saveId], result, replaceArrayDontMerge);
     }
 
     function isArrayOfArrays (result) {
@@ -256,27 +278,29 @@ module.exports = {
       return (result instanceof Bluebird);
     }
 
-    let oMutate;
-    function mutateArrayOfArrays (saveId, results) {
-      results.forEach(result => oMutate(saveId, result));
-    }
-
-    oMutate = function (saveId, result) {
+    function handleResult (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
 
-      if (isArrayOfArrays(result)) {
-        return mutateArrayOfArrays(saveId, result);
-      } else if (isPromise(result)) {
-        return result.then(value => oMutate(saveId, value));
+
+      function mutateArrayOfArrays (saveId, result) {
+        each(result, function(resultItem) {
+          handleResult(saveId, resultItem);
+        });
       }
 
-      return mutateNonArray(saveId, result);
-    };
+      if (isArrayOfArrays(result)) {
+        mutateArrayOfArrays(saveId, result);
+      } else if (isPromise(result)) {
+        return result.then(value => {
+          return handleResult(saveId, value);
+        });
+      } else {
+        mutateNonArray(saveId, result);
+      }
+    }
 
-    return function mutate (saveId, result) {
-      return oMutate(saveId, result);
-    };
+    return handleResult;
   }
 };

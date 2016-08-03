@@ -7,14 +7,13 @@ var logger = require('../../../src/logging/server/logger').logger;
 var time = require('../../fake/time').at(0);
 var makeTestible = require('../../support').makeTestible;
 var saves = require('../../../src/util/models/saves');
-const Immutable = require('immutable');
 
 describe('continual saving', function () {
   var onSaveReady;
   var afterPhysicsFrame;
 
   var rawStateAccess = {
-    for: sinon.stub().returns(Immutable.fromJS({my: 'game'}))
+    for: sinon.stub().returns({my: 'game'})
   };
 
   beforeEach(function () {

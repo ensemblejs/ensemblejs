@@ -60,7 +60,6 @@ module.exports = {
     }
 
     function loadSave (save) {
-      console.log('load save');
       callEachPlugin(onLoadSave(), [save]);
     }
 

@@ -7,6 +7,7 @@ module.exports = {
     return {
       present: () => time,
       absolute: () => time,
+      precise: () => time,
       setOffset: sinon.spy()
     };
   }

@@ -12,13 +12,13 @@ module.exports = {
   deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'],
   func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
 
-    let prior = time().present();
+    let t0 = time().precise();
 
     const save = { id: 'client', mode: mode() };
     const paused = state => state.ensemble.paused;
 
-    function doPaused(now) {
-      prior = now;
+    function doPaused(t1) {
+      t0 = t1;
     }
 
     let state;
@@ -34,15 +34,17 @@ module.exports = {
       }
     }
 
-    function doRunning (now) {
-      let Δ = (now - prior) / 1000;
-      prior = now;
+    let accumulator = 0;
+    function doRunning (t1) {
+      const frameLength = config().client.physicsUpdateLoop;
 
-      if (Δ > 1) {
-        Δ = 0.16;
+      accumulator += (t1 - t0);
+      t0 = t1;
+
+      while(accumulator >= frameLength) {
+        frameStore().process(frameLength / 1000, onEachFrame);
+        accumulator -= frameLength;
       }
-
-      frameStore().process(Δ, onEachFrame);
     }
 
     function shouldRunPhysicsEngine () {
@@ -54,12 +56,12 @@ module.exports = {
     }
 
     function step() {
-      const now = time().present();
+      const t1 = time().precise();
 
       if (shouldRunPhysicsEngine()) {
-        doRunning(now);
+        doRunning(t1);
       } else {
-        doPaused(now);
+        doPaused(t1);
       }
 
       callEachPlugin(afterFrame());

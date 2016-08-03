@@ -45,7 +45,7 @@ module.exports = {
       if (priorState === undefined) { return true; }
       if (priorState[saveId] === undefined) { return true; }
 
-      return !isEqual(f(priorState[saveId].toJS()), f(currentState[saveId].toJS()));
+      return !isEqual(f(priorState[saveId]), f(currentState[saveId]));
     }
 
     function currentValue (f, saveId) {
@@ -56,7 +56,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(currentState[saveId].toJS());
+      return f(currentState[saveId]);
     }
 
     function priorValue (f, saveId) {
@@ -67,7 +67,7 @@ module.exports = {
         return undefined;
       }
 
-      return f(priorState[saveId].toJS());
+      return f(priorState[saveId]);
     }
 
     function currentElement (f, model, saveId) {
@@ -75,7 +75,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(currentState[saveId].toJS()), {id: model.id});
+      return find(f(currentState[saveId]), {id: model.id});
     }
 
     function priorElement (f, model, saveId) {
@@ -83,22 +83,22 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(priorState[saveId].toJS()), {id: model.id});
+      return find(f(priorState[saveId]), {id: model.id});
     }
 
     function elementAdded (f, model, saveId) {
-      return (filter(f(priorState[saveId].toJS()), {id: model.id}).length === 0);
+      return (filter(f(priorState[saveId]), {id: model.id}).length === 0);
     }
 
     function elementRemoved (f, model, saveId) {
-      return (filter(f(currentState[saveId].toJS()), {id: model.id}).length === 0);
+      return (filter(f(currentState[saveId]), {id: model.id}).length === 0);
     }
 
     function elementChanged (f, model, saveId) {
       if (priorState === undefined) { return true; }
 
-      const current = filter(f(currentState[saveId].toJS()), {id: model.id});
-      const prior = filter(f(priorState[saveId].toJS()), {id: model.id});
+      const current = filter(f(currentState[saveId]), {id: model.id});
+      const prior = filter(f(priorState[saveId]), {id: model.id});
 
       return !isEqual(current, prior);
     }
@@ -157,7 +157,7 @@ module.exports = {
     }
 
     function syncWithRawState () {
-      priorState = currentState;
+      priorState = clone(currentState);
       currentState = null;
       currentState = clone(rawState().all());
     }

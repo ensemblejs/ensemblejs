@@ -8,7 +8,7 @@
     "widescreenMinimumMargin": 32,
     "element": "canvas",
     "inputElement": "input",
-    "physicsUpdateLoop": 15,
+    "physicsUpdateLoop": 16,
     "clientSidePrediction": true,
     "peerLatencyReduction": true,
     "metrics": false,
@@ -21,8 +21,8 @@
     }
   },
   "server": {
-    "physicsUpdateLoop": 15,
-    "pushUpdateFrequency": 45,
+    "physicsUpdateLoop": 16,
+    "pushUpdateFrequency": 48,
     "metrics": false
   },
   "ensemble": {
@@ -31,7 +31,7 @@
     "dashboard": false,
     "maxSavesPerPlayer": 1,
     "autoSaveBehaviour": "persistent",
-    "autoSaveThrottle": 5,
+    "autoSaveThrottle": 50,
     "locales": ["en"],
     "pause": "allowed"
   },
@@ -91,9 +91,7 @@
   },
   "measure": {
     "frequency": 25,
-    "timers": [
-      "ensemblejs.socket.latency"
-    ],
+    "timers": [],
     "timersIgnored": [
     ]
   }

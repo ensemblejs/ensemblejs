@@ -8,10 +8,10 @@ var each = require('lodash');
 var logger = require('../../fake/logger');
 var fakeTime = require('../../fake/time').at(1000);
 
-let actualState = {hi: 'there'};
-var saveState = {
-  toJS: () => actualState
-};
+let saveState = {hi: 'there'};
+// var saveState = {
+//   toJS: () => actualState
+// };
 
 describe('the state pusher', function () {
   var start;
@@ -81,7 +81,7 @@ describe('the state pusher', function () {
         push();
 
         fakeOn.outgoingServerPacket.reset();
-        actualState.altered = true;
+        saveState.altered = true;
         push();
 
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);

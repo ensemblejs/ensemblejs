@@ -106,7 +106,6 @@ module.exports = {
 					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 
-
 					lowestInputProcessed[currentInput.save.id] = currentInput.rawData.clientFrame;
 				}
 			};

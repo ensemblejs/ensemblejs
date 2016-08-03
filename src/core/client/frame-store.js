@@ -40,9 +40,7 @@ module.exports = {
       frames.push(frame);
     }
 
-    function current () {
-      return last(frames);
-    }
+    const current = () => last(frames);
 
     function dropFrames (highestProcessedMessage) {
       const free = frames.filter(frame => frame.id <= highestProcessedMessage);

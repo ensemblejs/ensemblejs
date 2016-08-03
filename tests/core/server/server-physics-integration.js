@@ -17,7 +17,6 @@ function applyMutation (saveStates) {
   });
 }
 
-let logger = require('../../fake/logger');
 let tracker;
 
 describe('StateTracker Integration', function () {
