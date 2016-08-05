@@ -57,6 +57,17 @@ module.exports = {
       fromServer = Immutable.fromJS(state);
     }
 
+    //this is the third time now
+    function recurseMapsOnly (prev, next) {
+      return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+    }
+
+    function applyLatestChangeDeltas (changeDeltas) {
+      changeDeltas.forEach(delta => {
+        fromServer = fromServer.mergeWith(recurseMapsOnly, delta);
+      });
+    }
+
     function OnClientStart () {
       return function storeInitialServerState (state) {
         setLatestFromServer(state);
@@ -65,7 +76,11 @@ module.exports = {
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        setLatestFromServer(packet.saveState);
+        // console.log(`Time packet took ${time().precise() - packet.measure}`);
+        // console.log(packet.changeDeltas);
+        // console.log(fromServer.toJS());
+
+        applyLatestChangeDeltas(packet.changeDeltas);
         dropFrames(packet.highestProcessedMessage);
         resetCache();
       };

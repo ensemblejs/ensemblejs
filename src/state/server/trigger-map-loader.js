@@ -36,7 +36,7 @@ module.exports = {
         .onChangeTo(when, isTrue, callbackWithMutation, data);
     }
 
-    define()('OnSaveReady', function OnSaveReady () {
+    define()('OnStateTrackerReady', () => {
       return function loadTriggerMaps (save) {
 
         function loadMapsForMode (map) {

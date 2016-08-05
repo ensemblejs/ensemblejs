@@ -4,7 +4,8 @@ import {execute} from 'royal-sampler';
 import {map} from 'lodash';
 
 let playerNumber;
-var lastKnownPlayerGroup = [];
+let lastKnownPlayerGroup = [];
+let lastKnownPlayerGroupChanged = true;
 
 function OnClientReady (tracker, $) {
   function updatePlayerCount (count) {
@@ -74,12 +75,19 @@ function OnPlayerGroupChange () {
       player.id = player.number;
       return player;
     });
+
+    lastKnownPlayerGroupChanged = true;
   };
 }
 
 
 function BeforePhysicsFrame () {
   function refreshPlayerList () {
+    if (!lastKnownPlayerGroupChanged) {
+      return undefined;
+    }
+
+    lastKnownPlayerGroupChanged = false;
     return ['ensembleDebug.players', lastKnownPlayerGroup];
   }
 

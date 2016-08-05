@@ -198,9 +198,15 @@ module.exports = {
       nextServerState = Immutable.fromJS(serverState);
     }
 
-    // function saveInitialServerState (serverState) {
-    //   nextServerState = Immutable.fromJS(serverState);
-    // }
+    function recurseMapsOnly (prev, next) {
+      return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+    }
+
+    function saveInitialServerState (changeDeltas) {
+      changeDeltas.forEach(delta => {
+        nextServerState = nextServerState.mergeWith(recurseMapsOnly, delta);
+      });
+    }
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
@@ -221,7 +227,7 @@ module.exports = {
 
     define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
       return function storeLatestServerState (packet) {
-        saveLatestServerState(packet.saveState);
+        saveInitialServerState(packet.changeDeltas);
       };
     });
 

@@ -42,7 +42,7 @@ module.exports = {
       t0 = t1;
 
       while(accumulator >= frameLength) {
-        frameStore().process(frameLength / 1000, onEachFrame);
+        frameStore().process(frameLength, onEachFrame);
         accumulator -= frameLength;
       }
     }

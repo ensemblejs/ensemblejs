@@ -9,26 +9,43 @@ const { clone } = require('../../util/fast-clone');
 
 import Bluebird from 'bluebird';
 
-var root = {};
-
 module.exports = {
   type: 'StateMutator',
   deps: ['DefinePlugin'],
   func: function StateMutator (define) {
+    let root = {};
+    let pendingMerge = {};
+    let changes = {};
 
     define()('RawStateAccess', function RawStateAccess () {
       return {
-        for: function forSave (saveId) {
-          return root[saveId];
-        },
-        all: function all () {
-          return root;
-        },
-        changes: function changesForSave (saveId) {
+        all: () => root,
+        flush: saveId => changes[saveId].splice(0),
+        for: saveId => root[saveId],
+        snapshot: saveId => {
+          changes[saveId].splice(0);
           return root[saveId];
         }
       };
     });
+
+    function replaceArrayDontMerge (a, b) {
+      return isArray(a) ? b : undefined;
+    }
+
+    function applyPendingMerges () {
+      merge(root, pendingMerge, replaceArrayDontMerge);
+
+      Object.keys(pendingMerge).forEach(saveId => {
+        changes[saveId] = changes[saveId] || [];
+        changes[saveId].push(pendingMerge[saveId]);
+      });
+
+      pendingMerge = {};
+    }
+
+    define()('AfterPhysicsFrame', () => applyPendingMerges);
+    define()('ApplyPendingMerges', () => applyPendingMerges);
 
     function resetSaveOnLoad (state) {
       state.ensemble.waitingForPlayers = true;
@@ -65,9 +82,9 @@ module.exports = {
 
         if (isObject(prop) && !isArray(prop)) {
           return provideReadAccessToState(prop);
-        } else {
-          return prop;
         }
+
+        return prop;
       };
     }
 
@@ -76,9 +93,9 @@ module.exports = {
 
       if (isObject(prop)) {
         return clone(prop);
-      } else {
-        return prop;
       }
+
+      return prop;
     }
 
     function genKey (playerId, namespace, key) {
@@ -99,32 +116,32 @@ module.exports = {
           },
           for: function forNamespace (namespace) {
             return {
-              get: function get (key) {
+              get: function (key) {
                 return provideReadAccessToState(root[saveId][namespace])(key);
               },
               unwrap: function unwrap (key) {
                 return accessAndCloneState(root[saveId][namespace], key);
-              },
+              }
             };
           },
           player: function forPlayer (playerId) {
             return {
               for: function forNamespace (namespace) {
                 return {
-                  get: function get (key) {
+                  get: function (key) {
                     return provideReadAccessToState(root[saveId])(genKey(playerId, namespace, key));
                   },
                   unwrap: function unwrap (key) {
                     return accessAndCloneState(root[saveId], genKey(playerId, namespace, key));
-                  },
+                  }
                 };
               },
-              get: function get (key) {
+              get: function (key) {
                 return provideReadAccessToState(root[saveId])(genKey(playerId, key));
               },
               unwrap: function unwrap (key) {
                 return accessAndCloneState(root[saveId], genKey(playerId, key));
-              },
+              }
             };
           }
         };
@@ -179,10 +196,6 @@ module.exports = {
       return result;
     }
 
-    function replaceArrayDontMerge (a, b) {
-      return isArray(a) ? b : undefined;
-    }
-
     var applyResult;
     function applyPushAction (saveId, dotString, entries, value) {
       return applyResult(saveId, dotString, entries.concat([value]));
@@ -225,7 +238,7 @@ module.exports = {
       '!': applyReplaceAction
     };
 
-    applyResult = function applyResult (saveId, dotString, value) {
+    applyResult = function (saveId, dotString, value) {
       let modifierSymbol = dotString[dotString.length - 1];
       var dotStringSansModifier = dotString.split(modifierSymbol)[0];
 
@@ -242,19 +255,20 @@ module.exports = {
         return handler(saveId, dotStringSansModifier, entries, value);
       } else if (includes(dotString, ':')) {
         return applyOnArrayElement(saveId, dotString, value);
-      } else {
-        let valueToApply = value;
-        if (isFunction(value)) {
-          var c = stateAccess.for(saveId).unwrap(dotString);
-
-          valueToApply = value(c);
-        }
-
-        return set({}, dotString, valueToApply);
       }
+
+      let valueToApply = value;
+      if (isFunction(value)) {
+        var c = stateAccess.for(saveId).unwrap(dotString);
+
+        valueToApply = value(c);
+      }
+
+      return set({}, dotString, valueToApply);
     };
 
-    function mutateNonArray (saveId, result) {
+    function mutateNonArray (saveId, toApply) {
+      let result = toApply;
       if (isArray(result)) {
         if (!isValidDotStringResult(result)) {
           return;
@@ -263,11 +277,10 @@ module.exports = {
         result = applyResult(saveId, result[0], result[1]);
       }
 
-
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
-      root[saveId] = root[saveId] || {};
-      merge(root[saveId], result, replaceArrayDontMerge);
+      console.log(`A pending merge approaches`, JSON.stringify(result));
+      merge(pendingMerge, {[saveId]: result}, replaceArrayDontMerge);
     }
 
     function isArrayOfArrays (result) {
@@ -278,28 +291,37 @@ module.exports = {
       return (result instanceof Bluebird);
     }
 
-    function handleResult (saveId, result) {
+    let handleResult;
+    function mutateArrayOfArrays (saveId, result) {
+      each(result, function(resultItem) {
+        return handleResult(saveId, resultItem);
+      });
+    }
+
+    handleResult = function (saveId, result) {
       if (ignoreResult(result)) {
         return false;
       }
 
-
-      function mutateArrayOfArrays (saveId, result) {
-        each(result, function(resultItem) {
-          handleResult(saveId, resultItem);
-        });
-      }
+      console.log(`It starts with a ${JSON.stringify(result)}`);
 
       if (isArrayOfArrays(result)) {
-        mutateArrayOfArrays(saveId, result);
+        return mutateArrayOfArrays(saveId, result);
       } else if (isPromise(result)) {
         return result.then(value => {
           return handleResult(saveId, value);
         });
-      } else {
-        mutateNonArray(saveId, result);
       }
-    }
+
+      return mutateNonArray(saveId, result);
+    };
+
+    define()('SyncMutator', () => {
+      return function (saveId, result) {
+        handleResult(saveId, result);
+        applyPendingMerges();
+      };
+    });
 
     return handleResult;
   }

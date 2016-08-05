@@ -18,18 +18,17 @@ module.exports = {
 
       function updateClient () {
         var packet = {
+          measure: time().precise(),
           id: sequence.next('server-origin-messages'),
           timestamp: time().present(),
           highestProcessedMessage: lowestInputProcessed()(save.id),
-          saveState: rawStateAccess().for(save.id)
+          changeDeltas: rawStateAccess().flush(save.id)
         };
-
-        console.log(`outgoing packet ${packet.highestProcessedMessage}`);
 
         on().outgoingServerPacket(socket.id, packet);
       }
 
-      socket.emit('initialState', rawStateAccess().for(save.id));
+      socket.emit('initialState', rawStateAccess().snapshot(save.id));
 
       cancel = setFixedInterval(updateClient, config.get().server.pushUpdateFrequency);
       intervals.push(cancel);

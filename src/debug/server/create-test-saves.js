@@ -7,8 +7,8 @@ var config = require('../../util/config');
 
 module.exports = {
   type: 'OnDatabaseReady',
-  deps: ['On', 'StateMutator'],
-  func: function CreateTestSaves (on, mutate) {
+  deps: ['On', 'SyncMutator'],
+  func: function CreateTestSaves (on, mutateNow) {
     return function spinupTestSeeds () {
       if (!config.get().debug.develop) {
         return;
@@ -35,7 +35,7 @@ module.exports = {
         };
 
         on().newSave(save);
-        mutate()(save.id, seed);
+        mutateNow()(save.id, seed);
         on().saveReady(save);
       });
     };

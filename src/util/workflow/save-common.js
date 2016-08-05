@@ -115,16 +115,16 @@ function errorIfModeIsNotValid (mode, project) {
 }
 
 module.exports = {
-  errorIfSaveDoesNotExist: errorIfSaveDoesNotExist,
-  redirectIfPlayerIsNotInSave: redirectIfPlayerIsNotInSave,
-  redirectIfSinglePlayer: redirectIfSinglePlayer,
-  redirectIfSaveHasNoSpace: redirectIfSaveHasNoSpace,
-  redirectIfPlayerIsInSave: redirectIfPlayerIsInSave,
-  errorIfSecretIsNotSupplied: errorIfSecretIsNotSupplied,
-  redirectIfSecretIsIncorrect: redirectIfSecretIsIncorrect,
-  redirectToContinueSave: redirectToContinueSave,
-  redirectToShareSave: redirectToShareSave,
-  addPlayer: addPlayer,
-  errorIfModeIsMissing: errorIfModeIsMissing,
-  errorIfModeIsNotValid: errorIfModeIsNotValid
+  errorIfSaveDoesNotExist,
+  redirectIfPlayerIsNotInSave,
+  redirectIfSinglePlayer,
+  redirectIfSaveHasNoSpace,
+  redirectIfPlayerIsInSave,
+  errorIfSecretIsNotSupplied,
+  redirectIfSecretIsIncorrect,
+  redirectToContinueSave,
+  redirectToShareSave,
+  addPlayer,
+  errorIfModeIsMissing,
+  errorIfModeIsNotValid
 };

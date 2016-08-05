@@ -4,7 +4,7 @@ import {each, last, merge} from 'lodash';
 var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
 
 
-function OnNewPlayer (playerStateSeeds, mutate) {
+function OnNewPlayer (playerStateSeeds, mutateNow) {
   return function initialiseStateForSave (save, playerId) {
     var playerState = {id: playerId};
 
@@ -12,7 +12,7 @@ function OnNewPlayer (playerStateSeeds, mutate) {
       playerState = merge(playerState, last(seed)(playerId));
     });
 
-    mutate()(save.id, ['players+', playerState]);
+    mutateNow()(save.id, ['players+', playerState]);
   };
 }
 
@@ -20,6 +20,6 @@ module.exports = {
   type: 'StateInitialiser',
   deps: ['DefinePlugin'],
   func: function StateInitialiser (define) {
-    define()('OnNewPlayer', ['PlayerStateSeed', 'StateMutator'], OnNewPlayer);
+    define()('OnNewPlayer', ['PlayerStateSeed', 'SyncMutator'], OnNewPlayer);
   }
 };

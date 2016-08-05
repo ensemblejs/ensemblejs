@@ -7,7 +7,10 @@ var plugin = require('../../support').plugin();
 var fakeLogger = require('../../fake/logger');
 
 var stateMutator = require('../../../src/state/server/mutator').func(defer(plugin.define), defer(fakeLogger));
-var state = plugin.deps().StateAccess();
+const deps = plugin.deps();
+var state = deps.StateAccess();
+var rawStateAccess = deps.RawStateAccess();
+var applyPendingMerges = deps.ApplyPendingMerges();
 
 describe('server state access', function () {
   beforeEach(function () {
@@ -30,6 +33,10 @@ describe('server state access', function () {
         { id: 3, controller: { score: 34 } }
       ]
     });
+
+    applyPendingMerges();
+
+    rawStateAccess.flush(1);
   });
 
   it('should return the value you asked for', function () {
@@ -56,16 +63,16 @@ describe('server state access', function () {
   it('should not allow mutable state on nested objects', function () {
     try {
       state.for(1).for('controller').get('child').age = 21;
-    } catch (Error) {}
+    } catch (e) { console.log('expected'); }
     try {
       state.for(1).get('controller.child').age = 21;
-    } catch (Error) {}
+    } catch (e) { console.log('expected'); }
     try {
       state.for(1).for('controller').get('child')('siblings').name = 'Roger';
-    } catch (Error) {}
+    } catch (e) { console.log('expected'); }
     try {
       state.for(1).get('controller.child.siblings').name = 'Roger';
-    } catch (Error) {}
+    } catch (e) { console.log('expected'); }
 
     expect(state.for(1).for('controller').get('age')).toNotEqual(21);
     expect(state.for(1).for('controller').get('child')('siblings')('name')).toNotEqual('Roger');
@@ -99,8 +106,8 @@ describe('server state access', function () {
     });
 
     it('should unwrap lenses', function () {
-      function lens (state) {
-        return state.controller.child.siblings;
+      function lens (s) {
+        return s.controller.child.siblings;
       }
 
       expect(state.for(1).unwrap(lens)).toEqual({ name: 'Geoff' });
@@ -181,6 +188,45 @@ describe('server state access', function () {
         value = 30;
 
         expect(state.for(1).player(1).unwrap('controller.score')).toEqual(10);
+      });
+    });
+  });
+
+  describe('raw state access', () => {
+    describe('flushing', () => {
+      it('should not return unapplied changed', () => {
+        stateMutator(1, ['controller.start', 3]);
+
+        expect(rawStateAccess.flush(1)).toEqual([]);
+      });
+
+      it('should return all changes that have been _applied_ since the last call', () => {
+        stateMutator(1, ['controller.start', 3]);
+        applyPendingMerges();
+
+        expect(rawStateAccess.flush(1)).toEqual([{
+          controller: { start: 3 }
+        }]);
+      });
+
+      it('should return multiple changes for the same prop', () => {
+        stateMutator(1, ['controller.start', 3]);
+        applyPendingMerges();
+        stateMutator(1, ['controller.start', 6]);
+        applyPendingMerges();
+
+        expect(rawStateAccess.flush(1)).toEqual([
+          { controller: { start: 3 } },
+          { controller: { start: 6 } }
+        ]);
+      });
+
+      it('should return an empty array on subsequent calls', () => {
+        stateMutator(1, ['controller.start', 3]);
+        applyPendingMerges();
+        rawStateAccess.flush(1);
+
+        expect(rawStateAccess.flush(1)).toEqual([]);
       });
     });
   });

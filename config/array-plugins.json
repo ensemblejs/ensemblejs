@@ -36,6 +36,7 @@
     "OnServerReady",
     "OnServerStart",
     "OnServerStop",
+    "OnStateTrackerReady",
     "OnUnmute",
     "PhysicsMap",
     "PlayerStateSeed",

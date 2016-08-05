@@ -28,7 +28,7 @@ module.exports = {
       physicsSystem().register(saveId, physicsKey, 'static' + sequence.next('static-physics'), source);
     }
 
-    function OnSaveReady () {
+    function OnStateTrackerReady () {
       return function wireupPhysicsMap (save) {
 
         function loadPhysicsMap (physicsMap) {
@@ -90,7 +90,7 @@ module.exports = {
       };
     }
 
-    define()('OnSaveReady', OnSaveReady);
+    define()('OnStateTrackerReady', OnStateTrackerReady);
     define()('OnPhysicsFrame', OnPhysicsFrame);
   }
 };

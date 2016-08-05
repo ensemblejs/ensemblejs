@@ -8,7 +8,7 @@
     "widescreenMinimumMargin": 32,
     "element": "canvas",
     "inputElement": "input",
-    "physicsUpdateLoop": 16,
+    "physicsUpdateLoop": 16.666666666,
     "clientSidePrediction": true,
     "peerLatencyReduction": true,
     "metrics": false,
@@ -21,7 +21,7 @@
     }
   },
   "server": {
-    "physicsUpdateLoop": 16,
+    "physicsUpdateLoop": 16.666666666,
     "pushUpdateFrequency": 48,
     "metrics": false
   },
