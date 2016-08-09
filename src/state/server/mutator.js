@@ -36,10 +36,10 @@ module.exports = {
     function applyPendingMerges () {
       merge(root, pendingMerge, replaceArrayDontMerge);
 
-      Object.keys(pendingMerge).forEach(saveId => {
-        changes[saveId] = changes[saveId] || [];
-        changes[saveId].push(pendingMerge[saveId]);
-      });
+      // Object.keys(pendingMerge).forEach(saveId => {
+      //   changes[saveId] = changes[saveId] || [];
+      //   changes[saveId].push(pendingMerge[saveId]);
+      // });
 
       pendingMerge = {};
     }
@@ -279,7 +279,7 @@ module.exports = {
 
       result = stripOutAttemptsToMutateTrulyImmutableThings(result);
 
-      console.log(`A pending merge approaches`, JSON.stringify(result));
+      // console.log(`A pending merge approaches`, JSON.stringify(result));
       merge(pendingMerge, {[saveId]: result}, replaceArrayDontMerge);
     }
 
@@ -303,7 +303,7 @@ module.exports = {
         return false;
       }
 
-      console.log(`It starts with a ${JSON.stringify(result)}`);
+      // console.log(`It starts with a ${JSON.stringify(result)}`);
 
       if (isArrayOfArrays(result)) {
         return mutateArrayOfArrays(saveId, result);
@@ -323,6 +323,17 @@ module.exports = {
       };
     });
 
-    return handleResult;
+    function mutate (saveId, result) {
+      if (ignoreResult(result)) {
+        return false;
+      }
+
+      changes[saveId] = changes[saveId] || [];
+      changes[saveId].push(result);
+
+      return handleResult(saveId, result);
+    }
+
+    return mutate;
   }
 };

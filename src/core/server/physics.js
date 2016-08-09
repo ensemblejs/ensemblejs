@@ -44,7 +44,7 @@ module.exports = {
       t0 = t1;
 
       while(accumulator >= frameLength) {
-        update(frameLength);
+        update(frameLength / 1000);
         accumulator -= frameLength;
       }
     }
