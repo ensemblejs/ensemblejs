@@ -59,7 +59,7 @@ var objState = {
 var stateAccess = {
   for: function () {
     return {
-      unwrap: (key) => isFunction(key) ? key(objState) : state[key]
+      get: (key) => isFunction(key) ? key(objState) : state[key]
     };
   }
 };

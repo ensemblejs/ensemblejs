@@ -56,6 +56,7 @@ function stripOutAttemptsToMutateTrulyImmutableThings (result) {
 export default function mutator (initialState = {}) {
   let root = initialState;
   let pendingMerge = {};
+  let changes = [];
 
   function readAndWarnAboutMissingState (node, key) {
     var prop = isFunction(key) ? key(node) : read(node, key);
@@ -201,10 +202,16 @@ export default function mutator (initialState = {}) {
     return prop;
   }
 
+  const addToChangesThenMutate = result => {
+    changes.push(result);
+    return mutate(result);
+  };
+
   return {
     get: getAt,
     applyPendingMerges,
-    mutate,
-    all: () => root
+    mutate: addToChangesThenMutate,
+    all: () => root,
+    flushChanges: () => changes.splice(0)
   };
 }

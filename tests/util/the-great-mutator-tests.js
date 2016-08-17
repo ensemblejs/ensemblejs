@@ -410,4 +410,22 @@ describe('the great mutator', function () {
       mutator.applyPendingMerges();
     });
   });
+
+  describe('changes', () => {
+    it('should track each mutation', () => {
+      mutator.mutate(['players:1.pacman.position', { x: 208, y: 368 }]);
+      mutator.mutate(['controller.start', 50]);
+      mutator.mutate({ something: 'darkside' });
+
+      expect(mutator.flushChanges()).toEqual([
+        ['players:1.pacman.position', { x: 208, y: 368 }],
+        ['controller.start', 50],
+        { something: 'darkside' }
+      ]);
+    });
+
+    it('should throw out changes once flushed', () => {
+      expect(mutator.flushChanges()).toEqual([]);
+    });
+  });
 });

@@ -35,7 +35,7 @@ module.exports = {
           each(physicsMap, function(sources, physicsKey) {
             let stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
             each(stringDynamic, function(sourceKey) {
-              let sourceState = stateAccess().for(save.id).unwrap(sourceKey);
+              let sourceState = stateAccess().for(save.id).get(sourceKey);
 
               wireupDynamic(save.id, physicsKey, sourceKey, sourceState);
             });
@@ -47,7 +47,7 @@ module.exports = {
             each(configDyanmic, function(config) {
               let sourceKey = config.sourceKey;
               let adapter = config.via;
-              let sourceState = stateAccess().for(save.id).unwrap(config.sourceKey);
+              let sourceState = stateAccess().for(save.id).get(config.sourceKey);
 
               wireupDynamic(save.id, physicsKey, sourceKey, sourceState, adapter);
             });

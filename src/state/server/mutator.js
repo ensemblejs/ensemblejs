@@ -12,12 +12,9 @@ module.exports = {
     define()('RawStateAccess', function RawStateAccess () {
       return {
         all: () => root,
-        // flush: saveId => changes[saveId].splice(0),
+        flush: saveId => root[saveId].flushChanges(),
         for: saveId => root[saveId].all(),
-        snapshot: saveId => {
-          // changes[saveId].splice(0);
-          return root[saveId];
-        }
+        snapshot: saveId => root[saveId]
       };
     });
 
@@ -53,7 +50,7 @@ module.exports = {
 
     define()('StateAccess', () => ({
       for: saveId => ({
-        all: () => root[saveId],
+        all: () => root[saveId].all(),
         get: key => root[saveId].get(key),
         for: namespace => ({
           get: key => root[saveId].get(`${namespace}.${key}`)
