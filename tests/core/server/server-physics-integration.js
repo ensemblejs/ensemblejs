@@ -1,25 +1,27 @@
 'use strict';
 
-
 const expect = require('expect');
 const sinon = require('sinon');
-const defer = require('../../support').defer;
+const { defer } = require('../../support');
 const mutatorPlugins = require('../../support').plugin();
 const trackerPlugins = require('../../support').plugin();
 const modulePath = '../../../src/state/server/tracker';
 
-let mutator = require('../../../src/state/server/mutator').func(defer(mutatorPlugins.define));
-let rawStateAccess = mutatorPlugins.deps().RawStateAccess();
+require('../../../src/state/server/mutator').func(defer(mutatorPlugins.define));
+const mutatorDeps = mutatorPlugins.deps();
+let mutateNow = mutatorDeps.SyncMutator();
+let applyPendingMerges = mutatorDeps.ApplyPendingMerges();
+let rawStateAccess = mutatorDeps.RawStateAccess();
 
 function applyMutation (saveStates) {
   saveStates.forEach(saveState => {
-    mutator(saveState[0], saveState[1]);
+    mutateNow(saveState[0], saveState[1]);
   });
 }
 
 let tracker;
 
-describe('StateTracker Integration', function () {
+describe('ServerPhysics-StateTracker Integration', function () {
   let callback = sinon.spy();
   let callback2 = sinon.spy();
   let afterPhysicsFrame;
@@ -53,6 +55,7 @@ describe('StateTracker Integration', function () {
       it('should invoke the callback when the change occurs', function() {
         applyMutation([[1, {property: 'changed'}]]);
         afterPhysicsFrame();
+
         expect(callback.callCount).toBe(1);
       });
 
@@ -197,6 +200,8 @@ describe('StateTracker Integration', function () {
       beforeEach(function () {
         applyMutation([[1, {obj: {child: 'value'}}]]);
         afterPhysicsFrame();
+        applyPendingMerges();
+
         tracker.onChangeOf('obj', callback, 'data');
         callback.reset();
       });

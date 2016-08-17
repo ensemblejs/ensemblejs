@@ -86,8 +86,8 @@ var makeTestible = require('../../support').makeTestible;
 
 var save = { id: 2, mode: 'save' };
 
-describe('physics system bridge', function () {
-  describe('on save ready', function () {
+describe('physics system bridge (on the server)', function () {
+  describe('OnStateTrackerReady', function () {
     describe('a physics map with one source key', function () {
       beforeEach(function () {
         var physicsMap = ['*', {
@@ -106,7 +106,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -142,7 +142,7 @@ describe('physics system bridge', function () {
         onElementChanged.reset();
         onElementRemoved.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should setup a trigger binding to wire the source changes with the physics system', function () {
@@ -196,7 +196,7 @@ describe('physics system bridge', function () {
         onElementChanged.reset();
         onElementRemoved.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -239,7 +239,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -276,7 +276,7 @@ describe('physics system bridge', function () {
         physicsSystem.updated.reset();
         onChangeOf.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -322,7 +322,7 @@ describe('physics system bridge', function () {
         onElementChanged.reset();
         onElementRemoved.reset();
 
-        bridge[1].OnSaveReady()(save);
+        bridge[1].OnStateTrackerReady()(save);
       });
 
       it('should pass the source state to the physics system', function () {
@@ -360,7 +360,7 @@ describe('physics system bridge', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      bridge[1].OnSaveReady()({id: 2, mode: 'arcade'});
+      bridge[1].OnStateTrackerReady()({id: 2, mode: 'arcade'});
     });
 
     it('should pass the source state to the physics system', function () {
@@ -397,8 +397,8 @@ describe('physics system bridge', function () {
       physicsSystem.updated.reset();
       onChangeOf.reset();
 
-      bridge[1].OnSaveReady()({id: 1, mode: 'arcade'});
-      bridge[1].OnSaveReady()({id: 2, mode: 'arcade'});
+      bridge[1].OnStateTrackerReady()({id: 1, mode: 'arcade'});
+      bridge[1].OnStateTrackerReady()({id: 2, mode: 'arcade'});
     });
 
     it('should pass the source state to the physics system', function () {

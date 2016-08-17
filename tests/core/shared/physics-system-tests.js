@@ -62,25 +62,25 @@ describe('the physics system', function () {
     });
 
     describe('the update function', function () {
-      var f, af;
+      var f1, f2;
       beforeEach(function () {
         physicsSystem.register(1, 'pKeyE', 'sourceE', {x: 1, y: 2});
         physicsSystem.register(2, 'pKeyE', 'sourceE', {x: 1, y: 2});
-        f = physicsSystem.updated(1, 'sourceE');
-        af = physicsSystem.updated(2, 'sourceE', double);
+        f1 = physicsSystem.updated(1, 'sourceE');
+        f2 = physicsSystem.updated(2, 'sourceE', double);
       });
 
       it('should update the current state', function () {
-        f({x: 6, y: 7});
+        f1({x: 6, y: 7});
 
         expect(physicsSystem.getByPhysicsKey(1, 'pKeyE')).toEqual([{x:6, y:7}]);
         expect(physicsSystem.getBySourceKey(1, 'sourceE')).toEqual({x:6, y:7});
       });
 
       it('should adapt the new state when there is an adapter', function () {
-        af({x: 6, y: 7});
+        f2({x: 6, y: 7});
 
-        expect(physicsSystem.getByPhysicsKey(2, 'pKeyE')).toEqual([{x:12, y:14}, {x:12, y:14}]);
+        expect(physicsSystem.getByPhysicsKey(2, 'pKeyE')).toEqual([{x:12, y:14}]);
         expect(physicsSystem.getBySourceKey(2, 'sourceE')).toEqual({x:12, y:14});
       });
     });

@@ -9,44 +9,37 @@ var logger = require('../../fake/logger');
 var fakeTime = require('../../fake/time').at(1000);
 
 let saveState = {hi: 'there'};
-// var saveState = {
-//   toJS: () => actualState
-// };
 
 describe('the state pusher', function () {
   var start;
-  var OnServerStop;
+  let setFixedInterval;
 
   beforeEach(() => {
+    setFixedInterval = sinon.spy();
+
     var module = makeTestible('state/server/state-pusher', {
       RawStateAccess: {
-        for: function() {
-          return saveState;
-        },
-        changes: function () {
-          return saveState;
-        }
+        for: () => saveState,
+        snapshot: () => saveState,
+        flush: () => [1, 3, 2]
       },
       Logger: logger,
       LowestInputProcessed: sinon.spy(),
       On: fakeOn,
       Time: fakeTime
+    }, {
+      'fixed-setinterval': setFixedInterval
     });
 
     start = module[0].start;
-    OnServerStop = module[1].OnServerStop();
 
     fakeOn.outgoingServerPacket.reset();
-
-    sinon.stub(global, 'setInterval');
   });
 
   afterEach(() => {
-    each(setInterval.returnValues, function(id) {
+    each(setFixedInterval.returnValues, function(id) {
       clearInterval(id);
     });
-
-    setInterval.restore();
   });
 
   describe('on start', () => {
@@ -67,14 +60,14 @@ describe('the state pusher', function () {
     });
 
     it('should send game state based on the configured frequency', function() {
-      expect(setInterval.firstCall.args[1]).toEqual(45);
+      expect(setFixedInterval.firstCall.args[1]).toEqual(48);
     });
 
     describe('on state push', function () {
       var push;
 
       beforeEach(() => {
-        push = setInterval.firstCall.args[0];
+        push = setFixedInterval.firstCall.args[0];
       });
 
       it('should send the packet', function () {
@@ -86,10 +79,11 @@ describe('the state pusher', function () {
 
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
-          saveState: {hi: 'there', altered: true},
           id: 2,
           highestProcessedMessage: undefined,
-          timestamp: 1000
+          timestamp: 1000,
+          measure: 1000,
+          changeDeltas: [1, 3, 2]
         }]);
       });
 
@@ -114,12 +108,6 @@ describe('the state pusher', function () {
   });
 
   describe('on client disconnect', () => {
-    // var OnClientDisconnect;
-
-    beforeEach(() => {
-      // start();
-      // OnClientDisconnect = module[1].OnClientDisconnect();
-    });
     it('should clear the interval for the client');
     it('should not clear other intervals');
   });

@@ -18,7 +18,7 @@ function forceCurrentRawState (saveStates) {
     let allState = {};
 
     saveStates.forEach(saveState => {
-      allState[saveState[0]] = saveState[1];
+      allState[saveState[0]] = { all: () => saveState[1] };
     });
 
     return allState;

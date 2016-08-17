@@ -83,15 +83,15 @@ module.exports = {
   type: 'PhysicsSystem',
   func: function EnsemblePhysicsSystem () {
     return {
-      tick: tick,
-      getBySourceKey: getBySourceKey,
-      getByPhysicsKey: getByPhysicsKey,
-      create: create,
+      added,
+      changed,
+      create,
+      getByPhysicsKey,
+      getBySourceKey,
       register: create,
-      updated: updated,
-      added: added,
-      changed: changed,
-      removed: removed
+      removed,
+      tick,
+      updated
     };
   }
 };

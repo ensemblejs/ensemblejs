@@ -19,7 +19,6 @@ var applyPendingMerges = sut[1].ApplyPendingMerges();
 var afterPhysicsFrame = sut[1].AfterPhysicsFrame();
 
 var saves = require('../../../src/util/models/saves');
-var logger = require('../../../src/logging/server/logger').logger;
 
 describe('state mutation on the server', function () {
   beforeEach(function () {
@@ -48,12 +47,6 @@ describe('state mutation on the server', function () {
     });
 
     applyPendingMerges();
-
-    sinon.stub(logger, 'error');
-  });
-
-  afterEach(function () {
-    logger.error.restore();
   });
 
   describe('simple behaviour', function () {
@@ -146,7 +139,11 @@ describe('state mutation on the server', function () {
 
     describe('using shorthand notation', function () {
       beforeEach(() => {
-        logger.error.reset();
+        sinon.spy(console, 'error');
+      });
+
+      afterEach(() => {
+        console.error.restore();
       });
 
       it('should support adding+ to arrays', function () {
@@ -154,8 +151,8 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
       });
 
       it('should support removing- from arrays', function () {
@@ -163,8 +160,8 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
       });
 
       it('should support replacing! arrays', function () {
@@ -172,8 +169,8 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
       });
 
       it('should support modifying: arrays', function () {

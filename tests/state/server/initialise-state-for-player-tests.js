@@ -1,49 +1,41 @@
 'use strict';
 
-import expect from 'expect';
+const expect = require('expect');
 
-var makeTestible = require('../../support').makeTestible;
-var defer = require('../../support').defer;
+const { requirePlugin } = require('../../support');
 
-var sut = makeTestible('state/server/mutator');
-var mutate = sut[0];
-var rawState = sut[1].RawStateAccess();
+const sut = requirePlugin('state/server/mutator');
+const rawState = sut[1].RawStateAccess();
+const mutateNow = sut[1].SyncMutator();
 
 describe('initialising state for a player', function () {
-  let newPlayer;
-  let save = {id: 10, mode: 'arcade'};
+  const save = {id: 10, mode: 'arcade'};
 
-  function playerSeed1 () {
-    return {a: 'b'};
-  }
+  const playerSeed1 = () => ({a: 'b'});
+  const playerSeed2 = (id) => ({c: 'd', in: id});
 
-  function playerSeed2 (id) {
-    return {c: 'd', in: id};
-  }
+  let initialiseStateForPlayer;
 
   beforeEach(() => {
-    mutate(10, { players: []});
+    mutateNow(save.id, { players: []});
 
-    var initialiseStateForPlayer = makeTestible('state/server/initialise-state-for-player');
-
-    var seeds = [
-      ['arcade', playerSeed1],
-      ['arcade', playerSeed2]
-    ];
-
-    newPlayer = initialiseStateForPlayer[1].OnNewPlayer(defer(seeds), defer(mutate));
+    initialiseStateForPlayer = requirePlugin('state/server/initialise-state-for-player', {
+      'PlayerStateSeed': [
+        [save.mode, playerSeed1],
+        [save.mode, playerSeed2]
+      ],
+      'SyncMutator': mutateNow
+    })[0];
   });
 
   describe('when a player joins', function () {
     beforeEach(() => {
-      newPlayer(save, 1);
+      initialiseStateForPlayer(save, 1);
     });
 
     it('should merge all the player defined properties with the id', () => {
-      expect(rawState.for(10)).toEqual({
-        players: [
-          {id: 1, a: 'b', c: 'd', in: 1}
-        ]
+      expect(rawState.for(save.id)).toEqual({
+        players: [{id: 1, a: 'b', c: 'd', in: 1}]
       });
     });
   });

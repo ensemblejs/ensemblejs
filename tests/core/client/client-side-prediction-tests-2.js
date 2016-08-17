@@ -69,7 +69,7 @@ onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onClientStart.push(frameStorePluginDeps.OnClientStart());
 
-describe('curly scenarios', function () {
+describe.skip('curly scenarios', function () {
   var curlyChanges = sinon.spy();
   var curlyInputChanges = sinon.spy();
   var initialState = {

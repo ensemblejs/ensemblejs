@@ -392,8 +392,12 @@ describe('StateTracker on the client', function () {
 	});
 
 	describe('on packet', function () {
+		beforeEach(() => {
+			onClientStart({prop: 'a'});
+		});
+
 		it('should update the latest server state', function () {
-			onIncomingServerPacket({id: 1, saveState: {prop: 'c'}});
+			onIncomingServerPacket({id: 1, changeDeltas: [{prop: 'c'}]});
 			expect(deps.CurrentServerState().get(the('prop'))).toEqual('c');
 		});
 	});

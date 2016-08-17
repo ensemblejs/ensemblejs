@@ -43,9 +43,10 @@ var config = {
 var fakeTime = require('../../fake/time').at(0);
 var profiler = require('../../fake/profiler');
 
-describe('the engine', function() {
+const FixedDelta = 16.6666666666;
+
+describe('the server physics engine', function() {
 	var onServerStart;
-	var onServerStop;
 
 	beforeEach(function() {
 		update1.reset();
@@ -62,22 +63,23 @@ describe('the engine', function() {
 			Time: fakeTime,
 			StateAccess: state,
 			Profiler: profiler
+		}, {
+			'fixed-setinterval': f => f()
 		});
-		onServerStart = sut[0];
-		onServerStop = sut[1].OnServerStop();
-	});
 
-	afterEach(function() {
-		onServerStop();
+		onServerStart = sut[0];
 	});
 
 	describe('when unpaused', function() {
-		it('should call OnPhysicsFrameA with the delta in ms', function() {
+		describe('the behaviour of a fixed-timestep loop', () => {
+			it('should have behaviour');
+		});
+
+		it('should call BeforePhysicsFrame with the delta in ms', function() {
 			fakeTime.precise = function () { return 5000; };
 			onServerStart();
-			expect(update1.firstCall.args[0]).toEqual(5);
-			expect(update2.firstCall.args[0]).toEqual(5);
-			onServerStop();
+			expect(update1.firstCall.args[0]).toEqual(FixedDelta);
+			expect(update2.firstCall.args[0]).toEqual(FixedDelta);
 		});
 
 		describe('when waitingForPlayers', function () {
@@ -89,11 +91,7 @@ describe('the engine', function() {
 				onServerStart();
 			});
 
-			afterEach(function () {
-				onServerStop();
-			});
-
-			it('should not call OnPhysicsFrameB', function() {
+			it('should not call OnPhysicsFrame', function() {
 				expect(update3[1].called).toBe(false);
 				expect(update4[1].called).toBe(false);
 			});
@@ -108,52 +106,40 @@ describe('the engine', function() {
 				onServerStart();
 			});
 
-			afterEach(function () {
-				onServerStop();
-			});
-
-			it('should call OnPhysicsFrameB', function() {
+			it('should call OnPhysicsFrame', function() {
 				expect(update3[1].called).toBe(true);
 				expect(update4[1].called).toBe(true);
 
-				expect(update3[1].firstCall.args[0]).toEqual(5);
-				expect(update4[1].firstCall.args[0]).toEqual(5);
+				expect(update3[1].firstCall.args[0]).toEqual(FixedDelta);
+				expect(update4[1].firstCall.args[0]).toEqual(FixedDelta);
 			});
 		});
 
 		it('should not increase the delta whilst the save is paused', function () {
 			values.ensemble.paused = true;
 			onServerStart();
-			onServerStop();
 
 			fakeTime.precise = function () { return 5000; };
 			onServerStart();
-			onServerStop();
 
 			fakeTime.precise = function () { return 10000; };
 			onServerStart();
-			onServerStop();
 
 			update1.reset();
 			values.ensemble.paused = false;
 			fakeTime.precise = function () { return 10100; };
 			onServerStart();
-			expect(update1.firstCall.args[0]).toEqual(0.1);
-			onServerStop();
+			expect(update1.firstCall.args[0]).toEqual(FixedDelta);
 		});
 
 		describe('update functions for all saves', function() {
 			beforeEach(function() {
 				update1.reset();
 				update3[1].reset();
-				onServerStop();
+				fakeTime.precise = function () { return 10017; };
 			});
 
-			afterEach(function () {
-				onServerStop();
-			});
-
-			it('should only be for every save', function () {
+			it('should be for every save', function () {
 				onServerStart();
 
 				expect(update1.callCount).toEqual(3);
@@ -163,12 +149,8 @@ describe('the engine', function() {
 
 		describe('update functions for specific modes', function() {
 			beforeEach(function() {
+				fakeTime.precise = function () { return 10034; };
 				update4[1].reset();
-				onServerStop();
-			});
-
-			afterEach(function () {
-				onServerStop();
 			});
 
 			it('should only be called when the modes match', function() {
@@ -188,10 +170,6 @@ describe('the engine', function() {
 
 			values.ensemble.paused = true;
 			onServerStart(1);
-		});
-
-		afterEach(function () {
-			onServerStop();
 		});
 
 		it('it should not call any update functions', function() {

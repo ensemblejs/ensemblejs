@@ -105,7 +105,7 @@ function gameLogic (delta, state) {
   };
 }
 
-describe('CSP: after on AfterPhysicsFrame', function () {
+describe.skip('CSP: after on AfterPhysicsFrame', function () {
   let next;
 
   beforeEach(function () {

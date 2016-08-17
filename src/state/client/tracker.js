@@ -194,7 +194,7 @@ module.exports = {
       currentState = newState;
     }
 
-    function saveLatestServerState (serverState) {
+    function saveInitialServerState (serverState) {
       nextServerState = Immutable.fromJS(serverState);
     }
 
@@ -202,7 +202,7 @@ module.exports = {
       return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
     }
 
-    function saveInitialServerState (changeDeltas) {
+    function saveLatestServerState (changeDeltas) {
       changeDeltas.forEach(delta => {
         nextServerState = nextServerState.mergeWith(recurseMapsOnly, delta);
       });
@@ -210,7 +210,7 @@ module.exports = {
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
-        saveLatestServerState(state);
+        saveInitialServerState(state);
         rawState().resetTo(Immutable.fromJS(state));
         updateState(rawState().get());
 
@@ -227,7 +227,7 @@ module.exports = {
 
     define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
       return function storeLatestServerState (packet) {
-        saveInitialServerState(packet.changeDeltas);
+        saveLatestServerState(packet.changeDeltas);
       };
     });
 

@@ -25,7 +25,15 @@ module.exports = function(config) {
 
     browserify: {
       debug: true,
-      transform: [ 'envify', ['babelify', {'presets': 'es2015'}], 'require-globify', 'browserify-shim' ],
+      transform: [
+        'envify',
+        ['babelify', {
+            'presets': 'es2015',
+            'plugins': 'transform-object-rest-spread'
+        }],
+        'require-globify',
+        'browserify-shim'
+      ],
       extensions: ['.js']
     },
 
@@ -74,5 +82,5 @@ module.exports = function(config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity
-  })
-}
+  });
+};

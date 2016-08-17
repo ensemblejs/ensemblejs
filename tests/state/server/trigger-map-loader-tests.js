@@ -45,7 +45,7 @@ describe('trigger maps on the server', function () {
           { when: 'some-state', data: ['a', 1]}
         ]
       }]]);
-      v.OnSaveReady()(game);
+      v.OnStateTrackerReady()(game);
     });
 
     it('should do nothing', function () {
@@ -68,7 +68,7 @@ describe('trigger maps on the server', function () {
               { when: 'some-state', onChangeOf: callback, data: ['a', 1]}
             ]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -85,7 +85,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', eq: {some: 'state'}, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should not setup a tracker on the object', function () {
@@ -102,7 +102,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', onChangeOf: callback, data: 'a'}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -119,7 +119,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', eq: 4, call: callback, data: 1}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -142,7 +142,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', lt: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -164,7 +164,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', lte: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -186,7 +186,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', gt: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -208,7 +208,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', gte: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -232,7 +232,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', onElementAdded: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -248,7 +248,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', onElementRemoved: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
@@ -264,7 +264,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: 'some-state', onElementChanged: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -288,7 +288,7 @@ describe('trigger maps on the server', function () {
               {when: myFunc, onChangeOf: callback, data: ['a', 1]}
             ]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -305,7 +305,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, eq: {some: 'state'}, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should not setup a tracker on the object', function () {
@@ -322,7 +322,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, onChangeOf: callback, data: 'a'}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -339,7 +339,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, eq: 4, call: callback, data: 1}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -362,7 +362,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, lt: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -384,7 +384,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, lte: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -406,7 +406,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, gt: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -428,7 +428,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, gte: 4, call: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object', function () {
@@ -452,7 +452,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, onElementAdded: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -468,7 +468,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, onElementRemoved: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
@@ -484,7 +484,7 @@ describe('trigger maps on the server', function () {
           var v = makeValidator([['*', {
             'key': [{ when: myFunc, onElementChanged: callback}]
           }]]);
-          v.OnSaveReady()(game);
+          v.OnStateTrackerReady()(game);
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -508,7 +508,7 @@ describe('trigger maps on the server', function () {
       }];
 
       var v = makeValidator([arcade, endless]);
-      v.OnSaveReady()(game);
+      v.OnStateTrackerReady()(game);
     });
 
     it('should setup bindings for "arcade" mode', function () {

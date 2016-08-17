@@ -98,11 +98,11 @@ describe('collision detection system', function () {
         expect(callbackDelegate.firstCall.args[2]).toEqual({
           key1: {
             target: {x: 0, y: 0},
-            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+            shapes: [{x: 0, y: 0}]
           },
           key3: {
             target: {x: 0, y: 0},
-            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+            shapes: [{x: 0, y: 0}]
           }
         });
       });
@@ -137,11 +137,11 @@ describe('collision detection system', function () {
         expect(callbackDelegate.firstCall.args[2]).toEqual({
           key1: {
             target: {x: 0, y: 0},
-            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+            shapes: [{x: 0, y: 0}]
           },
           key3: {
             target: {x: 0, y: 0},
-            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+            shapes: [{x: 0, y: 0}]
           }
         });
       });
@@ -176,11 +176,11 @@ describe('collision detection system', function () {
         expect(callbackDelegate.firstCall.args[2]).toEqual({
           key1: {
             target: {x: 0, y: 0},
-            shapes: [{x: 0, y: 0}, {x: 0, y: 0}, {x: 0, y: 0}]
+            shapes: [{x: 0, y: 0}]
           },
           key3: {
             target: {x: 2, y: 2},
-            shapes: [{x: 2, y: 2}, {x: 2, y: 2}, {x: 2, y: 2}]
+            shapes: [{x: 2, y: 2}]
           }
         });
       });

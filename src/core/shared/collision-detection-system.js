@@ -92,8 +92,6 @@ module.exports = {
       });
     }
 
-    return {
-      detectCollisions: detectCollisions
-    };
+    return { detectCollisions };
   }
 };

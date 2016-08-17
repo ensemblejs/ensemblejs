@@ -1,5 +1,7 @@
 'use strict';
 
+import requireInject from 'require-inject';
+
 var each = require('lodash').each;
 var sinon = require('sinon');
 
@@ -42,10 +44,10 @@ export function plugin () {
   };
 }
 
-export function makeTestible(pathToModule, explicitDeps = {}) {
+export const makeTestible = (pathToModule, explicitDeps = {}, nodeDeps = {}) => {
   var deps = [];
   var support = plugin();
-  var requiredPlugin = require(pathToSrc + pathToModule);
+  var requiredPlugin = requireInject(pathToSrc + pathToModule, nodeDeps);
 
   var defaultStubs = {
     'DefinePlugin': support.define,
@@ -69,7 +71,9 @@ export function makeTestible(pathToModule, explicitDeps = {}) {
   });
 
   return [requiredPlugin.func.apply(undefined, deps), support.deps()];
-}
+};
+
+export const requirePlugin = makeTestible;
 
 export function gameScopedState (stateCallback) {
   return {

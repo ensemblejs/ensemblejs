@@ -10,7 +10,7 @@ const PoolGrowSize = 10;
 
 module.exports = {
   type: 'FrameStore',
-  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time', 'DeviceMode', 'ApplyPendingMerges'],
+  deps: ['RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time', 'SaveMode', 'ApplyPendingMerges'],
   func: function FrameStore (rawState, queue, define, time, mode, applyPendingMerges) {
     let fromServer;
     let frames = [];

@@ -1,6 +1,7 @@
 'use strict';
 
-import {isArray, isString, isEqual, isFunction, filter, find, clone} from 'lodash';
+import {isArray, isString, isEqual, isFunction, filter, find} from 'lodash';
+import { clone } from '../../util/fast-clone';
 import {read} from '../../util/dot-string-support';
 
 var logger = require('../../logging/server/logger').logger;
@@ -158,8 +159,11 @@ module.exports = {
 
     function syncWithRawState () {
       priorState = clone(currentState);
-      currentState = null;
-      currentState = clone(rawState().all());
+      currentState = {};
+
+      Object.keys(rawState().all()).forEach(saveId => {
+        currentState[saveId] = clone(rawState().all()[saveId].all());
+      });
     }
 
     define()('OnSaveReady', () => {

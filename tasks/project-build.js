@@ -88,7 +88,10 @@ function addTasks (gulp) {
     var browserified = through2.obj(function(file, enc, next) {
       return browserify({entries: file, debug: isDevelopment()})
         .transform(require('envify'))
-        .transform(require('babelify'), {'presets': ['es2015']})
+        .transform(require('babelify'), {
+          presets: ['es2015'],
+          plugins: ['transform-object-rest-spread']
+        })
         .transform(require('require-globify'))
         .transform(require('pugify'), {
           compileDebug: isDevelopment(),

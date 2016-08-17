@@ -1,20 +1,16 @@
 'use strict';
 
-import {each, last} from 'lodash';
-var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
-
-function OnNewSave (stateSeeds, mutateNow) {
-  return function initialiseStateForSave (save) {
-    each(filterPluginsByMode(stateSeeds(), save.mode), state => {
-      mutateNow()(save.id, last(state));
-    });
-  };
-}
+const last = require('lodash/last');
+const { filterPluginsByMode } = require('../../util/modes');
 
 module.exports = {
-  type: 'StateInitialiser',
-  deps: ['DefinePlugin'],
-  func: function StateInitialiser (define) {
-    define()('OnNewSave', ['StateSeed', 'SyncMutator'], OnNewSave);
+  type: 'OnNewSave',
+  deps: ['StateSeed', 'SyncMutator'],
+  func: (stateSeeds, mutateNow) => {
+    return function initialiseStateForSave (save) {
+      const seeds = filterPluginsByMode(stateSeeds(), save.mode);
+
+      seeds.forEach(state => mutateNow()(save.id, last(state)));
+    };
   }
 };
