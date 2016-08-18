@@ -11,7 +11,7 @@ module.exports = {
   type: 'StateTracker',
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
-    let nextServerState;
+    // let nextServerState;
     let priorState;
     let currentState;
     let priorStateAsJS;
@@ -60,13 +60,13 @@ module.exports = {
       return f(currentStateAsJS);
     }
 
-    function currentServerValue (f) {
-      if (nextServerState === undefined) {
-        return undefined;
-      }
+    // function currentServerValue (f) {
+    //   if (nextServerState === undefined) {
+    //     return undefined;
+    //   }
 
-      return f(nextServerState.toJS());
-    }
+    //   return f(nextServerState.toJS());
+    // }
 
     function priorValue (f) {
       if (priorState === undefined) {
@@ -194,23 +194,20 @@ module.exports = {
       currentState = newState;
     }
 
-    function saveInitialServerState (serverState) {
-      nextServerState = Immutable.fromJS(serverState);
-    }
+    // function saveInitialServerState (serverState) {
+    //   nextServerState = Immutable.fromJS(serverState);
+    // }
 
-    function recurseMapsOnly (prev, next) {
-      return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
-    }
+    // function saveLatestServerState (changeDeltas) {
+    //   changeDeltas.forEach(console.log);
 
-    function saveLatestServerState (changeDeltas) {
-      changeDeltas.forEach(delta => {
-        nextServerState = nextServerState.mergeWith(recurseMapsOnly, delta);
-      });
-    }
+    //   changeDeltas.forEach(delta => mutate()(delta));
+    //   applyPendingMerges()();
+    // }
 
     define()('OnClientStart', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
-        saveInitialServerState(state);
+        // saveInitialServerState(state);
         rawState().resetTo(Immutable.fromJS(state));
         updateState(rawState().get());
 
@@ -225,11 +222,11 @@ module.exports = {
       };
     });
 
-    define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
-      return function storeLatestServerState (packet) {
-        saveLatestServerState(packet.changeDeltas);
-      };
-    });
+    // define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
+    //   return function storeLatestServerState (packet) {
+    //     saveLatestServerState(packet.changeDeltas);
+    //   };
+    // });
 
     define()('CurrentState', () => {
       return {
@@ -239,7 +236,7 @@ module.exports = {
 
     define()('CurrentServerState', () => {
       return {
-        get: currentServerValue
+        get: currentValue
       };
     });
 

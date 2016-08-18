@@ -424,6 +424,26 @@ describe('the great mutator', function () {
       ]);
     });
 
+    it('should ignore null', () => {
+      mutator.mutate(null);
+      expect(mutator.flushChanges()).toEqual([]);
+    });
+
+    it('should ignore undefined', () => {
+      mutator.mutate(undefined);
+      expect(mutator.flushChanges()).toEqual([]);
+    });
+
+    it('should ignore empty arrays', () => {
+      mutator.mutate([]);
+      expect(mutator.flushChanges()).toEqual([]);
+    });
+
+    it('should ignore empty objects', () => {
+      mutator.mutate({});
+      expect(mutator.flushChanges()).toEqual([]);
+    });
+
     it('should throw out changes once flushed', () => {
       expect(mutator.flushChanges()).toEqual([]);
     });

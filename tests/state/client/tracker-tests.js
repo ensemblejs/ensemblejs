@@ -34,8 +34,8 @@ describe('StateTracker on the client', function () {
 	var callback = sinon.spy();
 	var callback2 = sinon.spy();
 	var afterPhysicsFrame;
-	var onClientStart;
-	var onIncomingServerPacket;
+	// var onClientStart;
+	// var onIncomingServerPacket;
 	var deps;
 
 	beforeEach(function () {
@@ -47,8 +47,8 @@ describe('StateTracker on the client', function () {
 		deps = plugin.deps();
 
 		afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
-		onClientStart = deps.OnClientStart(defer(rawStateAccess));
-		onIncomingServerPacket = deps.OnIncomingServerPacket();
+		// onClientStart = deps.OnClientStart(defer(rawStateAccess));
+		// onIncomingServerPacket = deps.OnIncomingServerPacket();
 	});
 
 	describe('working with property', function () {
@@ -384,23 +384,23 @@ describe('StateTracker on the client', function () {
 		});
 	});
 
-	describe('on setup', function () {
-		it('should update the latest server state', function () {
-			onClientStart({prop: 'a'});
-			expect(deps.CurrentServerState().get(the('prop'))).toEqual('a');
-		});
-	});
+	// describe('on setup', function () {
+	// 	it('should update the latest server state', function () {
+	// 		onClientStart({prop: 'a'});
+	// 		expect(deps.CurrentServerState().get(the('prop'))).toEqual('a');
+	// 	});
+	// });
 
-	describe('on packet', function () {
-		beforeEach(() => {
-			onClientStart({prop: 'a'});
-		});
+	// describe('on packet', function () {
+	// 	beforeEach(() => {
+	// 		onClientStart({prop: 'a'});
+	// 	});
 
-		it('should update the latest server state', function () {
-			onIncomingServerPacket({id: 1, changeDeltas: [{prop: 'c'}]});
-			expect(deps.CurrentServerState().get(the('prop'))).toEqual('c');
-		});
-	});
+	// 	it('should update the latest server state', function () {
+	// 		onIncomingServerPacket({id: 1, changeDeltas: [{prop: 'c'}]});
+	// 		expect(deps.CurrentServerState().get(the('prop'))).toEqual('c');
+	// 	});
+	// });
 
 	describe('getting the current value', function () {
 		it('should return the current value', function() {

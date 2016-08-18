@@ -53,30 +53,30 @@ function stripOutAttemptsToMutateTrulyImmutableThings (result) {
   return result;
 }
 
+function readAndWarnAboutMissingState (node, key) {
+  var prop = isFunction(key) ? key(node) : read(node, key);
+
+  if (prop === undefined) {
+    console.error({ key }, 'Attempted to get state for dot.string and the result was undefined. The Great Mutator is based on a no-undefineds premise. Ensure your initial state mutation sets this property');
+  }
+
+  return prop;
+}
+
+function accessAndCloneState (node, key) {
+  var prop = readAndWarnAboutMissingState(node, key);
+
+  if (isObject(prop)) {
+    return clone(prop);
+  }
+
+  return prop;
+}
+
 export default function mutator (initialState = {}) {
   let root = initialState;
   let pendingMerge = {};
   let changes = [];
-
-  function readAndWarnAboutMissingState (node, key) {
-    var prop = isFunction(key) ? key(node) : read(node, key);
-
-    if (prop === undefined) {
-      console.error({ key }, 'Attempted to get state for dot.string and the result was undefined. The Great Mutator is based on a no-undefineds premise. Ensure your initial state mutation sets this property');
-    }
-
-    return prop;
-  }
-
-  function accessAndCloneState (node, key) {
-    var prop = readAndWarnAboutMissingState(node, key);
-
-    if (isObject(prop)) {
-      return clone(prop);
-    }
-
-    return prop;
-  }
 
   const unwrap = (path) => accessAndCloneState(root, path);
 
@@ -179,10 +179,6 @@ export default function mutator (initialState = {}) {
   }
 
   mutate = (result) => {
-    if (ignoreResult(result)) {
-      return false;
-    }
-
     if (isArrayOfArrays(result)) {
       return mutateArrayOfArrays(result);
     } else if (isPromise(result)) {
@@ -203,6 +199,10 @@ export default function mutator (initialState = {}) {
   }
 
   const addToChangesThenMutate = result => {
+    if (ignoreResult(result)) {
+      return undefined;
+    }
+
     changes.push(result);
     return mutate(result);
   };

@@ -4,6 +4,7 @@ const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const Immutable = require('immutable');
 const MemoryPool = require('memory-pool');
+import theGreatMutator from '../../util/the-great-mutator-immutablejs';
 
 const PoolStartSize = 20;
 const PoolGrowSize = 10;
@@ -54,18 +55,15 @@ module.exports = {
     }
 
     function setLatestFromServer (state) {
-      fromServer = Immutable.fromJS(state);
-    }
-
-    //this is the third time now
-    function recurseMapsOnly (prev, next) {
-      return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
+      console.log(state);
+      // fromServer = Immutable.fromJS(state);
+      fromServer = theGreatMutator(state);
     }
 
     function applyLatestChangeDeltas (changeDeltas) {
-      changeDeltas.forEach(delta => {
-        fromServer = fromServer.mergeWith(recurseMapsOnly, delta);
-      });
+      // changeDeltas.forEach(console.log);
+      changeDeltas.forEach(delta => fromServer.mutate(delta));
+      fromServer.applyPendingMerges();
     }
 
     function OnClientStart () {
@@ -76,10 +74,6 @@ module.exports = {
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        // console.log(`Time packet took ${time().precise() - packet.measure}`);
-        // console.log(packet.changeDeltas);
-        // console.log(fromServer.toJS());
-
         applyLatestChangeDeltas(packet.changeDeltas);
         dropFrames(packet.highestProcessedMessage);
         resetCache();

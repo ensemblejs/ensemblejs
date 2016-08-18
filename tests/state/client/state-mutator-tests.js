@@ -3,10 +3,9 @@
 const expect = require('expect');
 
 import {plugin} from '../../../src/plugins/plug-n-play';
-const defer = require('../../support').defer;
-const logger = require('../../fake/logger');
+import sinon from 'sinon';
 
-const mutate = require('../../../src/state/client/mutator').func(defer(logger));
+const mutate = require('../../../src/state/client/mutator').func();
 const state = plugin('StateAccess');
 const afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
@@ -37,7 +36,13 @@ describe('state mutation on the client', function () {
       }
     });
 
+    sinon.spy(console, 'error');
+
     afterPhysicsFrame();
+  });
+
+  afterEach(() => {
+    console.error.restore();
   });
 
   describe('simple behaviour', function () {
@@ -123,15 +128,15 @@ describe('state mutation on the client', function () {
 
     describe('using shorthand notation', function () {
       beforeEach(() => {
-        logger.error.reset();
+        console.error.reset();
       });
 
       it('should not support adding+ to arrays', function () {
         mutate(1, ['controller.list+', addItem]);
         afterPhysicsFrame();
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to achieve desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to achieve desired effect.');
       });
 
       it('should not support removing- from arrays', function () {
@@ -139,8 +144,8 @@ describe('state mutation on the client', function () {
         afterPhysicsFrame();
 
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to achieve desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to achieve desired effect.');
       });
 
       it('should not support replacing! arrays', function () {
@@ -148,8 +153,8 @@ describe('state mutation on the client', function () {
         afterPhysicsFrame();
 
 
-        expect(logger.error.callCount).toBe(1);
-        expect(logger.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to achieve desired effect.');
+        expect(console.error.callCount).toBe(1);
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to achieve desired effect.');
       });
 
       it('should support modifying: arrays', function () {

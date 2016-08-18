@@ -8,7 +8,7 @@ var fakeLogger = require('../../fake/logger');
 
 var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeLogger));
 var state = plugin('StateAccess');
-var afterPhysicsFrame = plugin('AfterPhysicsFrame')
+var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
 describe('state access on client', function () {
   beforeEach(function () {
@@ -39,21 +39,11 @@ describe('state access on client', function () {
     expect(state.for().for('controller').get('start')).toEqual(0);
     expect(state.for().get('controller.start')).toEqual(0);
     expect(state.for().get('arrayOfThings').toJS()).toEqual([1,2,3]);
-    expect(state.for().get('idArray:2')('id')).toEqual(2);
-    expect(state.for().get('idArray:2')('c')).toEqual('d');
+    expect(state.for().get('idArray:2.id')).toEqual(2);
+    expect(state.for().get('idArray:2.c')).toEqual('d');
     expect(state.for().get('idArray:2.c')).toEqual('d');
     expect(state.for().get('idArray').toJS()).toEqual([{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}]);
     expect(state.for().get('idArray*.c').toJS()).toEqual(['b', 'd', 'f']);
-  });
-
-  it('should return a function if the requested key is an object', function () {
-    expect(state.for().for('controller').get instanceof Function).toEqual(true);
-    expect(state.for().get('controller.child') instanceof Function).toEqual(true);
-  });
-
-  it('should allow you to use the returned function to get nested objects', function () {
-    expect(state.for().for('controller').get('child')('age')).toEqual(5);
-    expect(state.for().get('controller')('child.age')).toEqual(5);
   });
 
   it('should not allow mutable state on nested objects', function () {
@@ -64,14 +54,14 @@ describe('state access on client', function () {
       state.for().get('controller.child').age = 21;
     } catch (e) { console.log('ignored'); }
     try {
-      state.for().for('controller').get('child')('siblings').name = 'Roger';
+      state.for().for('controller').get('child.siblings').name = 'Roger';
     } catch (e) { console.log('ignored'); }
     try {
       state.for().get('controller.child.siblings').name = 'Roger';
     } catch (e) { console.log('ignored'); }
 
     expect(state.for().for('controller').get('age')).toNotEqual(21);
-    expect(state.for().for('controller').get('child')('siblings')('name')).toNotEqual('Roger');
+    expect(state.for().for('controller').get('child.siblings.name')).toNotEqual('Roger');
   });
 
   describe('player data access', function () {
@@ -103,6 +93,7 @@ describe('state access on client', function () {
 
     it('should get lenses', function () {
       function lens (s) {
+        console.log(s);
         return s.controller.child.siblings;
       }
 

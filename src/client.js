@@ -13,7 +13,7 @@ var plugins = require('./plugins/plug-n-play').configure(logging.logger, require
 
 plugins.set('Window', window);
 plugins.set('Modernizr', Modernizr);
-plugins.set('DeviceMode', deviceMode || 'observer');//eslint ignore:line
+plugins.set('DeviceMode', deviceMode || 'observer');
 plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
 function getConfig(response) {

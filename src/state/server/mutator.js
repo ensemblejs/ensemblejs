@@ -14,7 +14,10 @@ module.exports = {
         all: () => root,
         flush: saveId => root[saveId].flushChanges(),
         for: saveId => root[saveId].all(),
-        snapshot: saveId => root[saveId]
+        snapshot: saveId => {
+          root[saveId].flushChanges();
+          return root[saveId];
+        }
       };
     });
 
