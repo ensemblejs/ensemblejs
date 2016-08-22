@@ -53,7 +53,7 @@ module.exports = {
 
     define()('StateAccess', () => ({
       for: saveId => ({
-        all: () => root[saveId].all(),
+        all: root[saveId].all,
         get: key => root[saveId].get(key),
         for: namespace => ({
           get: key => root[saveId].get(`${namespace}.${key}`)

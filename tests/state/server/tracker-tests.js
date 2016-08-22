@@ -4,7 +4,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const defer = require('../../support').defer;
 const plugin = require('../../support').plugin();
-const modulePath = '../../../src/state/server/tracker';
+const module = '../../../src/state/server/tracker';
 
 let tracker;
 const rawStateAccess = {
@@ -35,12 +35,10 @@ describe('Server StateTracker', function () {
     callback.reset();
     callback2.reset();
     plugin.reset();
-    tracker = require(modulePath).func(defer(plugin.define), defer(rawStateAccess));
+    tracker = require(module).func(defer(plugin.define), defer(rawStateAccess)).for(1);
 
     deps = plugin.deps();
     afterPhysicsFrame = deps.AfterPhysicsFrame();
-
-    tracker = tracker.for(1);
   });
 
   describe('working with properties', function () {
@@ -297,7 +295,7 @@ describe('Server StateTracker', function () {
       it('should invoked the callback with each existing elements in the array', function() {
         callback.reset();
         plugin.reset();
-        tracker = require(modulePath).func(defer(plugin.define), defer(rawStateAccess));
+        tracker = require(module).func(defer(plugin.define), defer(rawStateAccess));
         tracker = tracker.for(1);
 
         deps = plugin.deps();
@@ -392,7 +390,7 @@ describe('Server StateTracker', function () {
     let t2;
 
     beforeEach(function () {
-      tracker = require(modulePath).func(defer(plugin.define), defer(rawStateAccess));
+      tracker = require(module).func(defer(plugin.define), defer(rawStateAccess));
       deps = plugin.deps();
       afterPhysicsFrame = deps.AfterPhysicsFrame();
       t1 = tracker.for(1);
