@@ -15,8 +15,8 @@ const SkipFirst = 1000;
 // const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
 const dataSizes = ['minimal-'];
-const effort = ['15ms'];
-const fxCounts = [1, 10, 100];
+const effort = ['10ms'];
+const fxCounts = [250];
 const serverStateInterval = [45];
 
 const Toggles = {
@@ -133,7 +133,7 @@ const processPendingInputPlugins = require('../../support').plugin();
 const inputQueuePlugins = require('../../support').plugin();
 const frameStorePlugins = require('../../support').plugin();
 
-let onClientStart = [];
+let onSeedInitialState = [];
 let onOutgoingClientPacket = [];
 let onIncomingServerPacket = [];
 let beforePhysicsFrame = [];
@@ -179,8 +179,8 @@ require('../../../src/input/client/process_pending_input').func(defer(actionMap)
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
 
 var trackerPluginsDeps = trackerPlugins.deps();
-onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
-onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
+onSeedInitialState.push(trackerPluginsDeps.OnSeedInitialState(defer(rawStateAccess)));
+// onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
 
@@ -192,7 +192,7 @@ var frameStore = require('../../../src/core/client/frame-store').func(defer(rawS
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
-onClientStart.push(frameStorePluginDeps.OnClientStart());
+onSeedInitialState.push(frameStorePluginDeps.OnSeedInitialState());
 
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(time), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
 var stopPhysicsEngine = plugin('OnDisconnect');
@@ -308,15 +308,19 @@ function barChart (name, samples) {
   console.log(chart(used, { width: 500, height: 20, tight: true }));
 }
 
-function data (size) {
+function data () {
   return {
     ensemble: { waitingForPlayers: false },
     namespace: { count: 0 },
-    stuff: !size ? {} : Array(size).fill(1).map(() => Math.floor(Math.random() * 10)).join('')
+    stuff: []
   };
 }
 
-describe('Physics Frames Performance', function () {
+function changes (size) {
+  return [['stuff', !size ? {} : Array(size).fill(1).map(() => Math.floor(Math.random() * 10)).join('')]];
+}
+
+describe.only('Physics Frames Performance', function () {
   this.timeout(MochaTimeout); // eslint-disable-line
 
   let profile;
@@ -389,7 +393,8 @@ describe('Physics Frames Performance', function () {
           permutations.push({
             name: name,
             code: Array(fx).fill(logic(fEffort)),
-            data: data(b === 'minimal-' ? 0 : b),
+            initial: data(0),
+            changeDeltas: changes(b === 'minimal-' ? 0 : b),
             fxCount: fx,
             serverRate: interval
           });
@@ -410,7 +415,7 @@ describe('Physics Frames Performance', function () {
       before(done => {
         console.log(`Running ${permutation.name}`);
 
-        each(onClientStart, cb => cb(permutation.data));
+        each(onSeedInitialState, cb => cb(permutation.initial));
 
         frameCount = 0;
 
@@ -444,7 +449,7 @@ describe('Physics Frames Performance', function () {
 
           stopPushServerState = setFixedInterval(() => {
             onIncomingServerPacket.forEach(cb => cb({
-              saveState: permutation.data
+              changeDeltas: permutation.changeDeltas
             }));
           }, permutation.serverRate);
 

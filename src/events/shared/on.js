@@ -9,8 +9,8 @@ var callForModeWithMutationWithPromises = require('../../util/modes').callForMod
 
 module.exports = {
   type: 'On',
-  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device', 'OnNewPlayer', 'ApplyPendingMerges', 'OnStateTrackerReady'],
-  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket, onClientDeviceNumber, device, onNewPlayer, applyPendingMerges, onStateTrackerReady) {
+  deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device', 'OnNewPlayer', 'ApplyPendingMerges', 'OnStateTrackerReady', 'OnSeedInitialState'],
+  func: function On (mutator, state, onInput, onConnect, onDisconnect, onIncomingServerPacket, onClientStart, onError, onOutgoingClientPacket, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewSave, dimensions, onMute, onUnmute, onClientPlayerId, onIncomingClientInputPacket, player, onPlayerGroupChange, onSaveReady, onDatabaseReady, onLoadSave, onIncomingPeerPacket, onClientDeviceNumber, device, onNewPlayer, applyPendingMerges, onStateTrackerReady, onSeedInitialState) {
 
     function createOnServerPacketCallback () {
       var lastReceivedId = 0;
@@ -102,6 +102,11 @@ module.exports = {
       callForMode(onClientReady(), mode, [dimensions().get(), player().id(), device().number()]);
     }
 
+    function seedInitialState (st, mode) {
+      callEachPlugin(onSeedInitialState(), [st]);
+      clientStart(st, mode);
+    }
+
     function serverStart (path, save) {
       callEachPlugin(onServerStart(), [path, save]);
       callEachPlugin(onServerReady(), [path, save]);
@@ -169,6 +174,7 @@ module.exports = {
       playerGroupChange,
       resume,
       saveReady,
+      seedInitialState,
       serverStart,
       serverStop,
       stateTrackerReady,

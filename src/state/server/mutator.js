@@ -16,7 +16,7 @@ module.exports = {
         for: saveId => root[saveId].all(),
         snapshot: saveId => {
           root[saveId].flushChanges();
-          return root[saveId];
+          return root[saveId].all();
         }
       };
     });

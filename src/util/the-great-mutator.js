@@ -212,6 +212,7 @@ export default function mutator (initialState = {}) {
     applyPendingMerges,
     mutate: addToChangesThenMutate,
     all: () => root,
+    raw: () => root,
     flushChanges: () => changes.splice(0)
   };
 }

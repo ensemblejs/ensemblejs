@@ -1,55 +1,56 @@
 'use strict';
 
-import {each, isString, isFunction, find} from 'lodash';
+import isString from 'lodash/isString';
+import isFunction from 'lodash/isFunction';
 import {read} from '../../util/dot-string-support';
-import {getById, join} from '../../util/array';
+import {join} from '../../util/array';
 import deepEqual from 'deep-equal';
 import {isArray} from '../../util/is';
 const Immutable = require('immutable');
+
+function invoke (callback, currentModel, priorModel, data) {
+  const args = isArray(data) ? join([], data) : [data];
+
+  args.unshift(priorModel);
+  args.unshift(currentModel);
+
+  callback(...args);
+}
+
+function addElementId (priorModel, currentModel) {
+  return priorModel ? priorModel.get('id') : currentModel.get('id');
+}
+
+function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
+  const args = isArray(data) ? join([], data) : [data];
+
+  if (priorModel !== undefined || alwaysPassPrior) {
+    args.unshift(priorModel);
+  }
+  if (currentModel !== undefined) {
+    args.unshift(currentModel);
+  }
+
+  args.unshift(addElementId(priorModel, currentModel));
+
+  callback(...args);
+}
+
+const getById = (arr, id) => arr.find(e => e.get('id') === id);
+const isInArray = (arr, id) => getById(arr, id) === undefined;
 
 module.exports = {
   type: 'StateTracker',
   deps: ['DefinePlugin', 'Logger'],
   func: function StateTracker (define, logger) {
-    // let nextServerState;
     let priorState;
     let currentState;
-    let priorStateAsJS;
-    let currentStateAsJS;
     let changes = [];
-
-    function invoke (callback, currentModel, priorModel, data) {
-      const args = isArray(data) ? join([], data) : [data];
-
-      args.unshift(priorModel);
-      args.unshift(currentModel);
-
-      callback(...args);
-    }
-
-    function addElementId (priorModel, currentModel) {
-      return priorModel ? priorModel.id : currentModel.id;
-    }
-
-    function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
-      const args = isArray(data) ? join([], data) : [data];
-
-      if (priorModel || alwaysPassPrior) {
-        args.unshift(priorModel);
-      }
-      if (currentModel) {
-        args.unshift(currentModel);
-      }
-
-      args.unshift(addElementId(priorModel, currentModel));
-
-      callback(...args);
-    }
 
     function hasChanged (f) {
       if (priorState === undefined) { return true; }
 
-      return !deepEqual(f(priorStateAsJS), f(currentStateAsJS));
+      return !deepEqual(f(priorState), f(currentState));
     }
 
     function currentValue (f) {
@@ -57,23 +58,15 @@ module.exports = {
         return undefined;
       }
 
-      return f(currentStateAsJS);
+      return f(currentState);
     }
-
-    // function currentServerValue (f) {
-    //   if (nextServerState === undefined) {
-    //     return undefined;
-    //   }
-
-    //   return f(nextServerState.toJS());
-    // }
 
     function priorValue (f) {
       if (priorState === undefined) {
         return undefined;
       }
 
-      return f(priorStateAsJS);
+      return f(priorState);
     }
 
     function currentElement (f, model) {
@@ -81,7 +74,7 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(currentStateAsJS), {id: model.id});
+      return getById(f(currentState), model.get('id'));
     }
 
     function priorElement (f, model) {
@@ -89,34 +82,24 @@ module.exports = {
         return undefined;
       }
 
-      return find(f(priorStateAsJS), {id: model.id});
-    }
-
-    function isInArray (array, id) {
-      for (let i = 0; i < array.length; i += 1) {
-        if (array[i].id === id) {
-          return false;
-        }
-      }
-
-      return true;
+      return getById(f(priorState), model.get('id'));
     }
 
     function elementAdded (f, model) {
-      return isInArray(f(priorStateAsJS), model.id);
+      return isInArray(f(priorState), model.get('id'));
     }
 
     function elementRemoved (f, model) {
-      return isInArray(f(currentStateAsJS), model.id);
+      return isInArray(f(currentState), model.get('id'));
     }
 
     function elementChanged (f, model) {
       if (priorState === undefined) { return true; }
 
-      const current = getById(f(currentStateAsJS), model.id);
-      const prior = getById(f(priorStateAsJS), model.id);
+      const current = getById(f(currentState), model.get('id'));
+      const prior = getById(f(priorState), model.get('id'));
 
-      return !deepEqual(current, prior);
+      return !Immutable.is(current, prior);
     }
 
     function handleObjects (change) {
@@ -144,18 +127,22 @@ module.exports = {
     }
 
     function handleArrays (change) {
-      each(change.operatesOn(change.focus), function changeModel (model) {
+      change.operatesOn(change.focus).forEach(function changeModel (model) {
         if (change.detectionFunc(change.focus, model)) {
 
-          if (!currentElement(change.focus, model) && !priorElement(change.focus, model)) {
-            logger().error({change: change}, 'Attempting to track changes in array where not all elements have an "id" property.');
+          const current = currentElement(change.focus, model);
+          const prior = priorElement(change.focus, model);
+
+
+          if (current === undefined && prior === undefined) {
+            logger().error({ change }, 'Attempting to track changes in array where not all elements have an "id" property.');
             return;
           }
 
           invokeWithId(
             change.callback,
-            currentElement(change.focus, model),
-            priorElement(change.focus, model),
+            current,
+            prior,
             change.data,
             change.alwaysPassPrior
           );
@@ -164,28 +151,18 @@ module.exports = {
     }
 
     function sendCurrentContentsNow (change) {
-      each(currentValue(change.focus), function(element) {
+      currentValue(change.focus).forEach(function(element) {
         invokeWithId(change.callback, element, undefined, change.data);
       });
     }
 
-    let handle = {
+    const handle = {
       'array': handleArrays,
       'object': handleObjects
     };
 
-    function updateMutableView () {
-      if (priorState) {
-        priorStateAsJS = priorState.toJS();
-      }
-      if (currentState) {
-        currentStateAsJS = currentState.toJS();
-      }
-    }
-
     function detectChangesAndNotifyObservers () {
-      updateMutableView();
-      each(changes, change => handle[change.type](change));
+      changes.forEach(change => handle[change.type](change));
     }
 
     function updateState (newState) {
@@ -194,51 +171,28 @@ module.exports = {
       currentState = newState;
     }
 
-    // function saveInitialServerState (serverState) {
-    //   nextServerState = Immutable.fromJS(serverState);
-    // }
-
-    // function saveLatestServerState (changeDeltas) {
-    //   changeDeltas.forEach(console.log);
-
-    //   changeDeltas.forEach(delta => mutate()(delta));
-    //   applyPendingMerges()();
-    // }
-
-    define()('OnClientStart', ['RawStateAccess'], rawState => {
+    define()('OnSeedInitialState', ['RawStateAccess'], rawState => {
       return function storeInitialServerState (state) {
-        // saveInitialServerState(state);
         rawState().resetTo(Immutable.fromJS(state));
         updateState(rawState().get());
-
-        updateMutableView();
       };
     });
 
     define()('AfterPhysicsFrame', ['RawStateAccess'], rawState => {
       return function takeLatestCopyOfRawState () {
         updateState(rawState().get());
+
         detectChangesAndNotifyObservers();
       };
     });
 
-    // define()('OnIncomingServerPacket', ['RawStateAccess'], () => {
-    //   return function storeLatestServerState (packet) {
-    //     saveLatestServerState(packet.changeDeltas);
-    //   };
-    // });
+    define()('CurrentState', () => ({
+      get: currentValue
+    }));
 
-    define()('CurrentState', () => {
-      return {
-        get: currentValue
-      };
-    });
-
-    define()('CurrentServerState', () => {
-      return {
-        get: currentValue
-      };
-    });
+    define()('CurrentServerState', () => ({
+      get: currentValue
+    }));
 
     function functionifyDotStrings (model) {
       if (!isString(model)) {
@@ -270,9 +224,7 @@ module.exports = {
 
     function functionifyIfRequired (condition) {
       if (!isFunction(condition)) {
-        return function equals (current) {
-          return deepEqual(current, condition);
-        };
+        return (current) => deepEqual(current, condition);
       }
 
       return condition;
@@ -355,6 +307,13 @@ module.exports = {
       onElementRemoved(focusArray, removed, data);
     }
 
-    return { onChangeOf, onChangeTo, onElement, onElementChanged, onElementAdded, onElementRemoved };
+    return {
+      onChangeOf,
+      onChangeTo,
+      onElement,
+      onElementChanged,
+      onElementAdded,
+      onElementRemoved
+    };
   }
 };

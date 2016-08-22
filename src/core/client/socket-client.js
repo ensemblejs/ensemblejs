@@ -57,7 +57,7 @@ module.exports = {
       });
 
       socket.on('initialState', function initialState (packet) {
-        on().clientStart(packet, mode());
+        on().seedInitialState(packet, mode());
       });
       socket.on('updateState', on().incomingServerPacket);
       socket.on('error', on().error);

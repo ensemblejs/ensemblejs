@@ -6,15 +6,20 @@ var isEqual = require('lodash').isEqual;
 var defer = require('../../support').defer;
 var plugin = require('../../support').plugin();
 var modulePath = '../../../src/state/client/tracker';
+import {read} from '../../../src/util/dot-string-support';
 const Immutable = require('immutable');
 
-var the = function (name) { return function (state) { return state[name]; }; };
-var to = function (name) { return function (state) { return state[name]; }; };
-var from = function (name) { return function (state) { return state[name]; }; };
-var within = function (name) { return function (state) { return state[name]; }; };
+var the = name => state => read(state, name);
+var to = name => state => read(state, name);
+var from = name => state => read(state, name);
+var within = name => state => read(state, name);
 var equals = function (expectedValue) {
   return function (currentValue) {
-      return isEqual(currentValue, expectedValue);
+		if (!currentValue || currentValue.toJS === undefined) {
+			return isEqual(currentValue, expectedValue);
+		}
+
+    return isEqual(currentValue.toJS(), expectedValue);
   };
 };
 
@@ -34,8 +39,6 @@ describe('StateTracker on the client', function () {
 	var callback = sinon.spy();
 	var callback2 = sinon.spy();
 	var afterPhysicsFrame;
-	// var onClientStart;
-	// var onIncomingServerPacket;
 	var deps;
 
 	beforeEach(function () {
@@ -47,8 +50,6 @@ describe('StateTracker on the client', function () {
 		deps = plugin.deps();
 
 		afterPhysicsFrame = deps.AfterPhysicsFrame(defer(rawStateAccess));
-		// onClientStart = deps.OnClientStart(defer(rawStateAccess));
-		// onIncomingServerPacket = deps.OnIncomingServerPacket();
 	});
 
 	describe('working with property', function () {
@@ -76,6 +77,7 @@ describe('StateTracker on the client', function () {
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({property: 'changed'});
 				afterPhysicsFrame();
+
 				expect(callback.firstCall.args).toEqual(['changed', 'unchanged', 'data']);
 			});
 
@@ -118,7 +120,7 @@ describe('StateTracker on the client', function () {
 				expect(callback.calledOnce).toBe(true);
 			});
 
-			it('should pass only the new values of the thing and the data to the callback', function() {
+			it('should pass the new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({property: 'changed'});
 				afterPhysicsFrame();
 				expect(callback.firstCall.args).toEqual(['changed', undefined, 'data']);
@@ -227,7 +229,14 @@ describe('StateTracker on the client', function () {
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				afterPhysicsFrame();
-				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
+
+				const current = callback.firstCall.args[0];
+				const prior = callback.firstCall.args[1];
+				const data = callback.firstCall.args[2];
+
+				expect(current.toJS()).toEqual({ child: 'newValue'});
+				expect(prior.toJS()).toEqual({ child: 'value'});
+				expect(data).toEqual(data);
 			});
 		});
 
@@ -246,7 +255,14 @@ describe('StateTracker on the client', function () {
 			it('should pass the new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				afterPhysicsFrame();
-				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, undefined, 'data']);
+
+				const current = callback.firstCall.args[0];
+				const prior = callback.firstCall.args[1];
+				const data = callback.firstCall.args[2];
+
+				expect(current.toJS()).toEqual({ child: 'newValue'});
+				expect(prior).toBe(undefined);
+				expect(data).toEqual('data');
 			});
 		});
 
@@ -272,7 +288,14 @@ describe('StateTracker on the client', function () {
 			it('should pass the old and new values of the thing and the data to the callback', function() {
 				forceCurrentRawState({obj: {child: 'newValue'}});
 				afterPhysicsFrame();
-				expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
+
+				const current = callback.firstCall.args[0];
+				const prior = callback.firstCall.args[1];
+				const data = callback.firstCall.args[2];
+
+				expect(current.toJS()).toEqual({ child: 'newValue'});
+				expect(prior.toJS()).toEqual({ child: 'value'});
+				expect(data).toEqual('data');
 			});
 
 			it('should call the callback immediately if the state is already true', function() {
@@ -294,8 +317,15 @@ describe('StateTracker on the client', function () {
 			});
 
 			it('should invoke the callback with the new element and the data', function() {
-				expect(callback.calledOnce).toBe(true);
-				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+				expect(callback.callCount).toBe(1);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+				const data = callback.firstCall.args[2];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
+				expect(data).toEqual('data');
 			});
 
 			it('should invoked the callback with each existing elements in the array', function() {
@@ -307,16 +337,37 @@ describe('StateTracker on the client', function () {
 				forceCurrentRawState({ numbers: [{id: 1, value: '7'}, {id: 2, value: '17'}] });
 				afterPhysicsFrame();
 				tracker.onElementAdded(to('numbers'), callback, 'data');
+
+				const id1 = callback.firstCall.args[0];
+				const current1 = callback.firstCall.args[1];
+				const data1 = callback.firstCall.args[2];
+
+				const id2 = callback.secondCall.args[0];
+				const current2 = callback.secondCall.args[1];
+				const data2 = callback.secondCall.args[2];
+
 				expect(callback.callCount).toBe(2);
-				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
-				expect(callback.secondCall.args).toEqual([2, {id: 2, value: '17'}, 'data']);
+
+				expect(id1).toEqual(1);
+				expect(current1.toJS()).toEqual({id: 1, value: '7'});
+				expect(data1).toEqual('data');
+
+				expect(id2).toEqual(2);
+				expect(current2.toJS()).toEqual({id: 2, value: '17'});
+				expect(data2).toEqual('data');
 			});
 
 			it('should work with dot strings', function () {
 				callback.reset();
 				tracker.onElementAdded('numbers', callback);
+
 				expect(callback.callCount).toBe(1);
-				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
 			});
 		});
 
@@ -331,7 +382,14 @@ describe('StateTracker on the client', function () {
 
 			it('should invoke the callback with the removed element and the data', function() {
 				expect(callback.calledOnce).toBe(true);
-				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+				const data = callback.firstCall.args[2];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
+				expect(data).toEqual('data');
 			});
 
 			it('should work with dot strings', function () {
@@ -344,7 +402,12 @@ describe('StateTracker on the client', function () {
 				afterPhysicsFrame();
 
 				expect(callback2.callCount).toBe(1);
-				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
 			});
 		});
 
@@ -359,7 +422,16 @@ describe('StateTracker on the client', function () {
 
 			it('should invoke the callback with the removed element and the data', function() {
 				expect(callback.calledOnce).toBe(true);
-				expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, 'data']);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+				const prior = callback.firstCall.args[2];
+				const data = callback.firstCall.args[3];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
+				expect(prior.toJS()).toEqual({id: 1, value: '6'});
+				expect(data).toEqual('data');
 			});
 
 			it('should not invoke the callback when nothing has changed', function() {
@@ -379,28 +451,17 @@ describe('StateTracker on the client', function () {
 				afterPhysicsFrame();
 
 				expect(callback2.callCount).toBe(1);
-				expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, undefined]);
+
+				const id = callback.firstCall.args[0];
+				const current = callback.firstCall.args[1];
+				const prior = callback.firstCall.args[2];
+
+				expect(id).toEqual(1);
+				expect(current.toJS()).toEqual({id: 1, value: '7'});
+				expect(prior.toJS()).toEqual({id: 1, value: '6'});
 			});
 		});
 	});
-
-	// describe('on setup', function () {
-	// 	it('should update the latest server state', function () {
-	// 		onClientStart({prop: 'a'});
-	// 		expect(deps.CurrentServerState().get(the('prop'))).toEqual('a');
-	// 	});
-	// });
-
-	// describe('on packet', function () {
-	// 	beforeEach(() => {
-	// 		onClientStart({prop: 'a'});
-	// 	});
-
-	// 	it('should update the latest server state', function () {
-	// 		onIncomingServerPacket({id: 1, changeDeltas: [{prop: 'c'}]});
-	// 		expect(deps.CurrentServerState().get(the('prop'))).toEqual('c');
-	// 	});
-	// });
 
 	describe('getting the current value', function () {
 		it('should return the current value', function() {

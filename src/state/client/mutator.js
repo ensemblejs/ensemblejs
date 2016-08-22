@@ -18,39 +18,33 @@ function genKey (playerId, namespace, key) {
   return cache[playerId][namespace][key];
 }
 
-const unwrap = (node) => node.toJS === undefined ? node : node.toJS();
-
 module.exports = {
   type: 'StateMutator',
   func: function ClientStateMutator () {
-    let root = theGreatMutator({});
+    let state = theGreatMutator({});
 
     define('StateAccess', () => ({
       for: () => ({
-        all: root.all,
-        get: key => root.get(key),
-        unwrap: key => unwrap(root.get(key)),
+        all: state.all,
+        get: key => state.get(key),
         for: namespace => ({
-          get: key => root.get(`${namespace}.${key}`),
-          unwrap: key => unwrap(root.get(`${namespace}.${key}`))
+          get: key => state.get(`${namespace}.${key}`)
         }),
         player: playerId => ({
           for: namespace => ({
-            get: key => root.get(genKey(playerId, namespace, key)),
-            unwrap: key => unwrap(root.get(genKey(playerId, namespace, key)))
+            get: key => state.get(genKey(playerId, namespace, key))
           }),
-          get: key => root.get(genKey(playerId, key)),
-          unwrap: key => unwrap(root.get(genKey(playerId, key)))
+          get: key => state.get(genKey(playerId, key))
         })
       })
     }));
-    define('AfterPhysicsFrame', () => root.applyPendingMerges);
-    define('ApplyPendingMerges', () => root.applyPendingMerges);
+    define('AfterPhysicsFrame', () => state.applyPendingMerges);
+    define('ApplyPendingMerges', () => state.applyPendingMerges);
     define('RawStateAccess', () => ({
-      get: root.all,
-      resetTo: root.set
+      get: () => state.all(),
+      resetTo: newState => state.set(newState)
     }));
 
-    return (saveId, result) => root.mutate(result);
+    return (saveId, result) => state.mutate(result);
   }
 };

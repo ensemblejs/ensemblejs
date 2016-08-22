@@ -51,7 +51,7 @@ function ignoreResult (result) {
 }
 
 function readAndWarnAboutMissingState (node, key) {
-  const val = isFunction(key) ? key(node.toJS()) : read(node, key);
+  const val = isFunction(key) ? key(node) : read(node, key);
   if (val === undefined) {
     console.error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
   }
@@ -66,6 +66,10 @@ export default function theGreatMutator (initialState = {}) {
   const unwrap = (path) => readAndWarnAboutMissingState(root, path);
 
   const applyPendingMerges = () => {
+    if (isEqual(pendingMerge, {})) {
+      return;
+    }
+
     root = root.mergeWith(recurseMapsOnly, pendingMerge);
     pendingMerge = {};
   };
@@ -98,7 +102,7 @@ export default function theGreatMutator (initialState = {}) {
       }
 
       let nv = isFunction(value) ?
-        value(isEmpty(restOfPath) ? entry.toJS() : read(entry, restOfPath)) :
+        value(isEmpty(restOfPath) ? entry : read(entry, restOfPath)) :
         value;
 
       return isEmpty(restOfPath) ?
@@ -169,28 +173,28 @@ export default function theGreatMutator (initialState = {}) {
     return mutateNonArray(result);
   };
 
-//   function readAndWarnAboutMissingState (node, key) {
-//   const val = isFunction(key) ? key(node.toJS()) : read(node, key);
-//   if (val === undefined) {
-//     console.error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-//   }
+  const mutateSync = result => {
+    mutate(result);
+    applyPendingMerges();
+  };
 
-//   return val;
-// }
-//   function get (key) {
-//     const prop = isFunction(key) ? key(root.toJS()) : read(root, key);
-//     if (prop === undefined) {
-//       console.error({ key }, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-//     }
+  const mutateBatch = results => {
+    results.forEach(mutate);
+  };
 
-//     return prop;
-//   }
+  const mutateBatchSync = results => {
+    mutateBatch(results);
+    applyPendingMerges();
+  };
 
   return {
     all: () => root,
     applyPendingMerges,
     get: (key) => readAndWarnAboutMissingState(root, key),
     mutate,
-    set: (newState) => (root = newState)
+    mutateSync,
+    mutateBatch,
+    mutateBatchSync,
+    set: (newRoot) => (root = newRoot)
   };
 }

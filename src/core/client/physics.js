@@ -15,7 +15,7 @@ module.exports = {
     let t0 = time().precise();
 
     const save = { id: 'client', mode: mode() };
-    const paused = state => state.ensemble.paused;
+    const paused = state => state.get('ensemble').get('paused');
 
     function doPaused(t1) {
       t0 = t1;
@@ -29,7 +29,7 @@ module.exports = {
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-      if (!state.ensemble.waitingForPlayers) {
+      if (!state.get('ensemble').get('waitingForPlayers')) {
         callForModeWithMutation(onFrame(), mutator, save, opts);
       }
     }

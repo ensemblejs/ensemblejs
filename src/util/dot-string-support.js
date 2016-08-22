@@ -1,6 +1,11 @@
 'use strict';
 
-import { filter, map, first, replace, tail } from 'lodash';
+import filter from 'lodash/filter';
+import map from 'lodash/map';
+import first from 'lodash/first';
+import replace from 'lodash/replace';
+import tail from 'lodash/tail';
+
 import { isInString } from './is';
 import { Map, List } from 'immutable';
 

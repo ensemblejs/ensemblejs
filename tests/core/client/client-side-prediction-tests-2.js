@@ -30,7 +30,7 @@ var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var frameStorePlugins = require('../../support').plugin();
 
-var onClientStart = [];
+var onSeedInitialState = [];
 var onOutgoingClientPacket = [];
 var onIncomingServerPacket = [];
 var beforePhysicsFrame = [];
@@ -53,12 +53,12 @@ var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueu
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
 
-var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
+var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onSeedInitialState), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
 var currentServerState = trackerPluginsDeps.CurrentServerState();
-onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
+onSeedInitialState.push(trackerPluginsDeps.OnSeedInitialState(defer(rawStateAccess)));
 // onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
@@ -67,7 +67,7 @@ var frameStore = require('../../../src/core/client/frame-store').func(defer(rawS
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
-onClientStart.push(frameStorePluginDeps.OnClientStart());
+onSeedInitialState.push(frameStorePluginDeps.OnSeedInitialState());
 
 describe.skip('curly scenarios', function () {
   var curlyChanges = sinon.spy();
@@ -94,8 +94,8 @@ describe.skip('curly scenarios', function () {
       next.onCall(i).returns(i + 1);
     }
 
-    each(onClientStart, callback => callback(initialState));
-    each(onClientStart, callback => callback(initialState));
+    each(onSeedInitialState, callback => callback(initialState));
+    each(onSeedInitialState, callback => callback(initialState));
 
     actionMap.push(['*', { curly: [{call: curlyInputCallback} ] }]);
     onPhysicsFrame.push(curlyLogic);

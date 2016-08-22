@@ -10,6 +10,8 @@ var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeL
 var state = plugin('StateAccess');
 var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
+import {read} from '../../../src/util/dot-string-support';
+
 describe('state access on client', function () {
   beforeEach(function () {
     stateMutator(1, {
@@ -78,50 +80,43 @@ describe('state access on client', function () {
     });
   });
 
-  describe('wrapping', function () {
-    it('should get literals', function () {
-      expect(state.for().unwrap('controller.start')).toEqual(0);
-    });
-
-    it ('should work off namespaces', function () {
-      expect(state.for().for('controller').unwrap('start')).toEqual(0);
-    });
-
+  describe('objects can be converted to native JS objects', function () {
     it('should get objects', function () {
-      expect(state.for().unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+      expect(state.for().get('controller.child.siblings').toJS()).toEqual({ name: 'Geoff' });
     });
 
     it('should get lenses', function () {
-      function lens (s) {
-        console.log(s);
-        return s.controller.child.siblings;
-      }
+      const lensA = (s) => s.toJS().controller.child.siblings;
+      const lensB = (s) => s.get('controller').get('child').get('siblings');
+      const lensC = (s) => read(s, 'controller.child.siblings');
 
-      expect(state.for().unwrap(lens)).toEqual({ name: 'Geoff' });
+      expect(state.for().get(lensA)).toEqual({ name: 'Geoff' });
+      expect(state.for().get(lensB).toJS()).toEqual({ name: 'Geoff' });
+      expect(state.for().get(lensC).toJS()).toEqual({ name: 'Geoff' });
     });
 
     it('should get by id', function () {
-      expect(state.for().unwrap('idArray:2')).toEqual({id: 2, c: 'd'});
+      expect(state.for().get('idArray:2').toJS()).toEqual({id: 2, c: 'd'});
     });
 
     it('should get by id with children', function () {
-      expect(state.for().unwrap('idArray:2.c')).toEqual('d');
+      expect(state.for().get('idArray:2.c')).toEqual('d');
     });
 
     it('should get array children', function () {
-      expect(state.for().unwrap('idArray*.c')).toEqual(['b', 'd', 'f']);
+      expect(state.for().get('idArray*.c').toJS()).toEqual(['b', 'd', 'f']);
     });
 
     it('should get by id with sub id', function () {
-      expect(state.for().unwrap('sub:1.subsub:2.f')).toEqual('h');
+      expect(state.for().get('sub:1.subsub:2.f')).toEqual('h');
     });
 
     it('should get arrays', function () {
-      expect(state.for().unwrap('arrayOfThings')).toEqual([1, 2, 3]);
+      expect(state.for().get('arrayOfThings').toJS()).toEqual([1, 2, 3]);
     });
 
     it('should get nested objects', function () {
-      expect(state.for().unwrap('controller.child')).toEqual({
+      expect(state.for().get('controller.child').toJS()).toEqual({
         age: 5,
         siblings: {
           name: 'Geoff'
@@ -130,39 +125,39 @@ describe('state access on client', function () {
     });
 
     it('should work for player data access', function () {
-      expect(state.for().player(1).for('controller').unwrap('score')).toEqual(10);
-      expect(state.for().player(1).unwrap('controller.score')).toEqual(10);
+      expect(state.for().player(1).for('controller').get('score')).toEqual(10);
+      expect(state.for().player(1).get('controller.score')).toEqual(10);
     });
 
-    describe('immutable unwraps' , function () {
+    describe('immutable gets' , function () {
       it('should ignore literal changes', function () {
-        let value = state.for().unwrap('controller.start');
+        let value = state.for().get('controller.start');
         value = 3;
 
-        expect(state.for().unwrap('controller.start')).toEqual(0);
+        expect(state.for().get('controller.start')).toEqual(0);
       });
 
       it('should ignore object changes', function () {
-        var value = state.for().unwrap('controller.child.siblings');
+        var value = state.for().get('controller.child.siblings').toJS();
         value.name = 'Roger';
 
-        expect(state.for().unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+        expect(state.for().get('controller.child.siblings').toJS()).toEqual({ name: 'Geoff' });
       });
 
       it('should ignore array changes', function () {
-        var value = state.for().unwrap('arrayOfThings');
+        var value = state.for().get('arrayOfThings');
         value.push(4);
 
-        expect(state.for().unwrap('arrayOfThings')).toEqual([1, 2, 3]);
+        expect(state.for().get('arrayOfThings').toJS()).toEqual([1, 2, 3]);
       });
 
       it('should ignore nested object changes', function () {
-        var value = state.for().unwrap('controller.child');
+        var value = state.for().get('controller.child').toJS();
         value.age = 6;
         value.siblings.banana = true;
         value.siblings.name = 'Roger';
 
-        expect(state.for().unwrap('controller.child')).toEqual({
+        expect(state.for().get('controller.child').toJS()).toEqual({
           age: 5,
           siblings: {
             name: 'Geoff'
@@ -171,10 +166,10 @@ describe('state access on client', function () {
       });
 
       it('should work for player data access', function () {
-        let value = state.for().player(1).for('controller').unwrap('score');
+        let value = state.for().player(1).for('controller').get('score');
         value = 30;
 
-        expect(state.for().player(1).unwrap('controller.score')).toEqual(10);
+        expect(state.for().player(1).get('controller.score')).toEqual(10);
       });
     });
   });

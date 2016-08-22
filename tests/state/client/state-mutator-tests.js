@@ -159,10 +159,11 @@ describe('state mutation on the client', function () {
 
       it('should support modifying: arrays', function () {
         function addN (item) {
-          expect(item).toEqual({id: 4});
+          const native = item.toJS();
+          expect(native).toEqual({id: 4});
 
-          item.n = 'h';
-          return item;
+          native.n = 'h';
+          return native;
         }
         mutate(1, ['controller.idList:4', addN]);
         afterPhysicsFrame();

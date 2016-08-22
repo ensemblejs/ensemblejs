@@ -19,7 +19,7 @@ const frameStore = module.func(
 );
 
 const frameStorePlugins = plugins.deps();
-const seed = frameStorePlugins.OnClientStart();
+const seed = frameStorePlugins.OnSeedInitialState();
 const incomingServerPacket = frameStorePlugins.OnIncomingServerPacket();
 
 describe.skip('frame store', () => {

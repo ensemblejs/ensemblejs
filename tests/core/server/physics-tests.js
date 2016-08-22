@@ -43,7 +43,7 @@ var config = {
 var fakeTime = require('../../fake/time').at(0);
 var profiler = require('../../fake/profiler');
 
-const FixedDelta = 16.6666666666;
+const FixedDelta = 0.0166666666666;
 
 describe('the server physics engine', function() {
 	var onServerStart;

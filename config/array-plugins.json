@@ -33,6 +33,7 @@
     "OnResize",
     "OnResume",
     "OnSaveReady",
+    "OnSeedInitialState",
     "OnServerReady",
     "OnServerStart",
     "OnServerStop",

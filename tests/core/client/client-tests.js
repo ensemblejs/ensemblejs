@@ -30,8 +30,8 @@ describe('the socket client', function () {
 
 	beforeEach(function (done) {
 		var html = '<html><body><div id="element">With content.</div></body></html>';
-	  createFakeDom(html, function (window) {
-	  	sut = makeTestible('core/client/socket-client', {
+		createFakeDom(html, function (window) {
+			sut = makeTestible('core/client/socket-client', {
 				Window: window,
 				SaveMode: 'arcade',
 				ServerUrl: 'http://ensemblejs.com',
@@ -46,7 +46,7 @@ describe('the socket client', function () {
 				}
 			});
 			client = sut[0];
-	  }, done);
+		}, done);
 
 		socket.emit.reset();
 		socket.reset();
@@ -143,17 +143,17 @@ describe('the socket client', function () {
 			});
 
 			it('should call all OnSetup plugins', function () {
-				expect(fakeOn.clientStart.callCount).toEqual(1);
+				expect(fakeOn.seedInitialState.callCount).toEqual(1);
 			});
 
 			it('should pass the packet on', function () {
-				expect(fakeOn.clientStart.firstCall.args[0]).toEqual({
+				expect(fakeOn.seedInitialState.firstCall.args[0]).toEqual({
 					packet: true
 				});
 			});
 
 			it('should pass the mode to the router', function () {
-				expect(fakeOn.clientStart.firstCall.args[1]).toEqual('arcade');
+				expect(fakeOn.seedInitialState.firstCall.args[1]).toEqual('arcade');
 			});
 		});
 

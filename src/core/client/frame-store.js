@@ -2,7 +2,6 @@
 
 const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
-const Immutable = require('immutable');
 const MemoryPool = require('memory-pool');
 import theGreatMutator from '../../util/the-great-mutator-immutablejs';
 
@@ -55,18 +54,14 @@ module.exports = {
     }
 
     function setLatestFromServer (state) {
-      console.log(state);
-      // fromServer = Immutable.fromJS(state);
       fromServer = theGreatMutator(state);
     }
 
     function applyLatestChangeDeltas (changeDeltas) {
-      // changeDeltas.forEach(console.log);
-      changeDeltas.forEach(delta => fromServer.mutate(delta));
-      fromServer.applyPendingMerges();
+      fromServer.mutateBatchSync(changeDeltas);
     }
 
-    function OnClientStart () {
+    function OnSeedInitialState () {
       return function storeInitialServerState (state) {
         setLatestFromServer(state);
       };
@@ -74,6 +69,8 @@ module.exports = {
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
+        console.log('packet latency:', time().precise() - packet.measure);
+
         applyLatestChangeDeltas(packet.changeDeltas);
         dropFrames(packet.highestProcessedMessage);
         resetCache();
@@ -100,14 +97,14 @@ module.exports = {
 
       function processEachFrame (state, frame) {
         if (!frame.cached) {
-          rawState().resetTo(state);
+          rawState().resetTo(state.all());
 
           queue().set(frame.input);
-          runLogicOnFrame(frame.Δ, state);
+          runLogicOnFrame(frame.Δ, state.all());
           queue().clear();
 
           applyPendingMerges()();
-          frame.cached = rawState().get();
+          frame.cached = rawState().base();
         }
 
         return frame.cached;
@@ -123,7 +120,7 @@ module.exports = {
       inputForNextFrame = [];
     }
 
-    define()('OnClientStart', OnClientStart);
+    define()('OnSeedInitialState', OnSeedInitialState);
     define()('OnIncomingServerPacket', OnIncomingServerPacket);
     define()('OnOutgoingClientPacket', HandlePacketLocally);
 

@@ -32,7 +32,7 @@ var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
 var frameStorePlugins = require('../../support').plugin();
 
-var onClientStart = [];
+var onSeedInitialState = [];
 var onOutgoingClientPacket = [];
 var onIncomingServerPacket = [];
 var beforePhysicsFrame = [];
@@ -55,12 +55,12 @@ var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueu
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
 var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
 
-var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onClientStart), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
+var on = require('../../../src/events/shared/on').func(defer(mutator), defer(stateAccess), defer(onInput), defer(onConnect), defer(onDisconnect), defer(onIncomingServerPacket), defer(onSeedInitialState), defer(onError), defer(onOutgoingClientPacket), defer(onPause), defer(onResume), defer(onServerStart), defer(onServerReady), defer(onClientReady), defer(onServerStop), defer(onOutgoingServerPacket), defer(onClientConnect), defer(onClientDisconnect), defer(onNewGame), defer(dimensions));
 
 var resetTo = sinon.spy(rawStateAccess, 'resetTo');
 var trackerPluginsDeps = trackerPlugins.deps();
 var currentState = trackerPluginsDeps.CurrentState();
-onClientStart.push(trackerPluginsDeps.OnClientStart(defer(rawStateAccess)));
+onSeedInitialState.push(trackerPluginsDeps.OnSeedInitialState(defer(rawStateAccess)));
 // onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
 afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
@@ -78,7 +78,7 @@ var frameStore = require('../../../src/core/client/frame-store').func(defer(rawS
 var frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
-onClientStart.push(frameStorePluginDeps.OnClientStart());
+onSeedInitialState.push(frameStorePluginDeps.OnSeedInitialState());
 
 var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
 var stopPhysicsEngine = plugin('OnDisconnect');
@@ -122,7 +122,7 @@ describe.skip('CSP: after on AfterPhysicsFrame', function () {
       }
     };
 
-    each(onClientStart, function (callback) {
+    each(onSeedInitialState, function (callback) {
       callback(initialState);
     });
   });
@@ -181,7 +181,7 @@ describe.skip('CSP: after on AfterPhysicsFrame', function () {
           }
         };
 
-        each(onClientStart, function (callback) {
+        each(onSeedInitialState, function (callback) {
           callback(initialState);
         });
       });

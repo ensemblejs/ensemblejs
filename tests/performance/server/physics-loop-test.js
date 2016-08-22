@@ -14,7 +14,7 @@ const SkipFirst = 1000;
 // const fxCounts = [1, 10, 100, 250, 500, 1000];
 
 const dataSizes = ['minimal-'];
-const effort = ['11ms', '12ms', '13ms'];
+const effort = ['13ms'];
 const fxCounts = [250];
 
 const Toggles = {
@@ -286,7 +286,7 @@ function data (size) {
   };
 }
 
-describe.only('Server Physics Frames Performance', function () {
+describe.skip('Server Physics Frames Performance', function () {
   this.timeout(MochaTimeout); // eslint-disable-line
 
   let profile;

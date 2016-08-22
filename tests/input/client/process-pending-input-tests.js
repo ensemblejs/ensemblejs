@@ -21,10 +21,11 @@ var model = {
 	waiting: sinon.spy()
 };
 
-var currentState = {
-	ensemble: {
-		waitingForPlayers: true
-	}
+let waitingForPlayers = true;
+const currentState = {
+	get: () => ({
+		get: () => waitingForPlayers
+	})
 };
 
 var actions = [];
@@ -42,7 +43,7 @@ var inputQueue = {
 	get: function(i) { return queue[i]; }
 };
 function newUserInput (rawData, timestamp, save, playerId) {
-	queue.push({ rawData, timestamp, save, playerId});
+	queue.push({rawData, timestamp, save, playerId});
 }
 
 var fakeLogger = require('../../fake/logger');
