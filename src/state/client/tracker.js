@@ -31,13 +31,6 @@ module.exports = {
       get: tracker.currentValue
     }));
 
-    return {
-      onChangeOf: tracker.onChangeOf,
-      onChangeTo: tracker.onChangeTo,
-      onElement: tracker.onElement,
-      onElementChanged: tracker.onElementChanged,
-      onElementAdded: tracker.onElementAdded,
-      onElementRemoved: tracker.onElementRemoved
-    };
+    return tracker;
   }
 };

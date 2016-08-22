@@ -37,6 +37,29 @@ function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior
 const getById = (arr, id) => arr.find(e => e.get('id') === id);
 const isInArray = (arr, id) => getById(arr, id) === undefined;
 
+function functionifyDotStrings (model) {
+  if (!isString(model)) {
+    return model;
+  }
+
+  return function stateFromDotString (state) {
+    let prop = read(state, model);
+    if (prop === undefined) {
+      console.warn({model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
+    }
+
+    return prop;
+  };
+}
+
+function functionifyIfRequired (condition) {
+  if (!isFunction(condition)) {
+    return (current) => deepEqual(current, condition);
+  }
+
+  return condition;
+}
+
 export default function stateChangeEvents () {
   let priorState;
   let currentState;
@@ -128,7 +151,6 @@ export default function stateChangeEvents () {
         const current = currentElement(change.focus, model);
         const prior = priorElement(change.focus, model);
 
-
         if (current === undefined && prior === undefined) {
           console.error({ change }, 'Attempting to track changes in array where not all elements have an "id" property.');
           return;
@@ -166,21 +188,6 @@ export default function stateChangeEvents () {
     currentState = newState;
   }
 
-  function functionifyDotStrings (model) {
-    if (!isString(model)) {
-      return model;
-    }
-
-    return function stateFromDotString (state) {
-      let prop = read(state, model);
-      if (prop === undefined) {
-        console.warn({model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
-      }
-
-      return prop;
-    };
-  }
-
   function onChangeOf (model, callback, data) {
     let change = {
       type: 'object',
@@ -192,14 +199,6 @@ export default function stateChangeEvents () {
 
     invoke(callback, currentValue(change.focus), priorValue(change.focus), data);
     changes.push(change);
-  }
-
-  function functionifyIfRequired (condition) {
-    if (!isFunction(condition)) {
-      return (current) => deepEqual(current, condition);
-    }
-
-    return condition;
   }
 
   function onChangeTo (model, condition, callback, data) {
