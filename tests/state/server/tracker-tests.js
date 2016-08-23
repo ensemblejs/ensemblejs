@@ -2,11 +2,8 @@
 
 const expect = require('expect');
 const sinon = require('sinon');
-const defer = require('../../support').defer;
-const plugin = require('../../support').plugin();
-const module = '../../../src/state/server/tracker';
+const requirePlugin = require('../../support').requirePlugin;
 
-let tracker;
 const rawStateAccess = {
   get: sinon.spy(),
   all: sinon.spy(),
@@ -26,76 +23,55 @@ function forceCurrentRawState (saveStates) {
 }
 
 describe('Server StateTracker', function () {
+  let updateState = sinon.spy();
+  let detectChangesAndNotifyObservers = sinon.spy();
   let callback = sinon.spy();
   let callback2 = sinon.spy();
   let afterPhysicsFrame;
-  let deps;
+  let onSaveReady;
 
   beforeEach(function () {
     callback.reset();
     callback2.reset();
-    plugin.reset();
-    tracker = require(module).func(defer(plugin.define), defer(rawStateAccess)).for(1);
 
-    deps = plugin.deps();
-    afterPhysicsFrame = deps.AfterPhysicsFrame();
+    let loader = requirePlugin('state/server/tracker', {
+      RawStateAccess: rawStateAccess
+    }, {
+      '../src/util/state-change-events': () => ({
+        updateState, detectChangesAndNotifyObservers
+      })
+    });
+
+    onSaveReady = loader[1].OnSaveReady();
+    afterPhysicsFrame = loader[1].AfterPhysicsFrame();
+
+    forceCurrentRawState([
+      [1, { property: 'aaaa' }],
+      [2, { property: 'bbbb' }]
+    ]);
+
+    updateState.reset();
   });
 
   describe('on save ready', () => {
-    it('should do things');
+    it('should sync each save with the raw state', () => {
+      onSaveReady();
+
+      expect(updateState.firstCall.args).toEqual([{property: 'aaaa'}]);
+      expect(updateState.secondCall.args).toEqual([{property: 'bbbb'}]);
+    });
   });
 
   describe('after each physics frame', () => {
-    it('should do things');
-  });
-
-  describe('handling multiple games', function () {
-    let game1Callback = sinon.spy();
-    let game2Callback = sinon.spy();
-    let t1;
-    let t2;
-
-    beforeEach(function () {
-      tracker = require(module).func(defer(plugin.define), defer(rawStateAccess));
-      deps = plugin.deps();
-      afterPhysicsFrame = deps.AfterPhysicsFrame();
-      t1 = tracker.for(1);
-      t2 = tracker.for(2);
-
-      forceCurrentRawState([
-        [1, { property: 'unchanged' }],
-        [2, { property: 'unchanged' }]
-      ]);
+    it('should sync each save with the raw state', () => {
       afterPhysicsFrame();
 
-      t1.onChangeOf('property', game1Callback);
-      t2.onChangeOf('property', game2Callback);
-
-      game1Callback.reset();
-      game2Callback.reset();
+      expect(updateState.firstCall.args).toEqual([{property: 'aaaa'}]);
+      expect(updateState.secondCall.args).toEqual([{property: 'bbbb'}]);
     });
 
-    it('should ignore state changes in other games', function () {
-      forceCurrentRawState([
-        [1, { property: 'unchanged' }],
-        [2, { property: 'changed' }]
-      ]);
-      afterPhysicsFrame();
-
-      expect(game1Callback.calledOnce).toBe(false);
-      expect(game2Callback.calledOnce).toBe(true);
-
-      game1Callback.reset();
-      game2Callback.reset();
-
-      forceCurrentRawState([
-        [1, { property: 'changed' }],
-        [2, { property: 'changed' }]
-      ]);
-      afterPhysicsFrame();
-
-      expect(game1Callback.calledOnce).toBe(true);
-      expect(game2Callback.calledOnce).toBe(false);
+    it('should detect changes and notify observers', () => {
+      expect(detectChangesAndNotifyObservers.callCount).toEqual(2);
     });
   });
 });
