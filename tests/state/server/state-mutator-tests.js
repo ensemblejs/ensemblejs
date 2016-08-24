@@ -23,7 +23,7 @@ var saves = require('../../../src/util/models/saves');
 describe('state mutation on the server', function () {
   beforeEach(function () {
     stateMutator(1, {
-      controller: {
+    controller: {
         start: 0,
         score: 0,
         state: 'ready',
@@ -94,7 +94,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 3]);
     });
   });
 
@@ -125,7 +125,7 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(state.for(1).for('controller').get('list')).toEqual([4, 3]);
+        expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 3]);
       });
 
       it('should work with removing elements from arrays', function () {
@@ -133,7 +133,7 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(state.for(1).for('controller').get('list')).toEqual([]);
+        expect(state.for(1).for('controller').get('list').toJS()).toEqual([]);
       });
     });
 
@@ -152,7 +152,7 @@ describe('state mutation on the server', function () {
         afterPhysicsFrame();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to achieve desired effect.');
       });
 
       it('should support removing- from arrays', function () {
@@ -161,7 +161,7 @@ describe('state mutation on the server', function () {
         afterPhysicsFrame();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to achieve desired effect.');
       });
 
       it('should support replacing! arrays', function () {
@@ -170,21 +170,20 @@ describe('state mutation on the server', function () {
         afterPhysicsFrame();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to achieve desired effect.');
       });
 
       it('should support modifying: arrays', function () {
         function addN (item) {
-          expect(item).toEqual({id: 4});
+          expect(item.toJS()).toEqual({id: 4});
 
-          item.n = 'h';
-          return item;
+          return item.set('n', 'h');
         }
         stateMutator(1, ['controller.idList:4', addN]);
 
         afterPhysicsFrame();
 
-        expect(state.for(1).for('controller').get('idList')).toEqual([
+        expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
           {id: 4, n: 'h'},
           {id: 3}
         ]);
@@ -201,7 +200,7 @@ describe('state mutation on the server', function () {
 
         afterPhysicsFrame();
 
-        expect(state.for(1).for('controller').get('idList')).toEqual([
+        expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
           {id: 4, n: 'z'},
           {id: 3}
         ]);
@@ -215,7 +214,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('list')).toEqual([4, 5]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([4, 5]);
     });
 
     it('should support adding+ to arrays of arrays', function () {
@@ -223,7 +222,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).get('controller.subPush:5.arr')).toEqual([5]);
+      expect(state.for(1).get('controller.subPush:5.arr').toJS()).toEqual([5]);
     });
 
      it('should work with emptying arrays', function () {
@@ -235,7 +234,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('list')).toEqual([]);
+      expect(state.for(1).for('controller').get('list').toJS()).toEqual([]);
     });
 
     it('should support removing- from arrays', function () {
@@ -243,7 +242,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([{id: 4}]);
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([{id: 4}]);
     });
 
     it('should support modifying! arrays', function () {
@@ -251,7 +250,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'a'},
         {id: 3}
       ]);
@@ -262,7 +261,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'h'},
         {id: 3}
       ]);
@@ -273,7 +272,7 @@ describe('state mutation on the server', function () {
 
       afterPhysicsFrame();
 
-      expect(state.for(1).for('controller').get('idList')).toEqual([
+      expect(state.for(1).for('controller').get('idList').toJS()).toEqual([
         {id: 4, n: 'z'},
         {id: 3}
       ]);
@@ -421,7 +420,7 @@ describe('state mutation on the server', function () {
       it('should work where the second argument is an array', function () {
         stateMutator(1, ['controller.list', [1, 2, 3]]);
         afterPhysicsFrame();
-        expect(state.for(1).get('controller.list')).toEqual([1, 2, 3]);
+        expect(state.for(1).get('controller.list').toJS()).toEqual([1, 2, 3]);
       });
     });
   });
@@ -443,7 +442,7 @@ describe('state mutation on the server', function () {
 
     it('should store the save state and keep it in memory', function () {
       expect(saves.getById.firstCall.args).toEqual([3]);
-      expect(rawState.for(3)).toEqual({ensemble: { waitingForPlayers: true, paused: true }});
+      expect(rawState.for(3).toJS()).toEqual({ensemble: { waitingForPlayers: true, paused: true }});
     });
 
     it('should set waitingForPlayers to true', function () {

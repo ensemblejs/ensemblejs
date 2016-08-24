@@ -1,6 +1,6 @@
 'use strict';
 
-import stateChangeEvents from '../../util/state-change-events';
+import stateChangeEvents from '../../util/state-change-events-immutable';
 
 module.exports = {
   type: 'StateTracker',

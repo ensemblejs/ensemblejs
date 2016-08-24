@@ -54,7 +54,7 @@ function functionifyDotStrings (model) {
 
 function functionifyIfRequired (condition) {
   if (!isFunction(condition)) {
-    return (current) => deepEqual(current, condition);
+    return (current) => Immutable.is(current, Immutable.fromJS(condition));
   }
 
   return condition;

@@ -37,7 +37,7 @@ describe('Server StateTracker', function () {
     let loader = requirePlugin('state/server/tracker', {
       RawStateAccess: rawStateAccess
     }, {
-      '../src/util/state-change-events': () => ({
+      '../src/util/state-change-events-immutable': () => ({
         updateState, detectChangesAndNotifyObservers
       })
     });

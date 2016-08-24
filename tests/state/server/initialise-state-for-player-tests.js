@@ -34,7 +34,7 @@ describe('initialising state for a player', function () {
     });
 
     it('should merge all the player defined properties with the id', () => {
-      expect(rawState.for(save.id)).toEqual({
+      expect(rawState.for(save.id).toJS()).toEqual({
         players: [{id: 1, a: 'b', c: 'd', in: 1}]
       });
     });

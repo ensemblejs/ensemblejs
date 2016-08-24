@@ -2,7 +2,7 @@ import {isObject, isArray, isString, isEqual, mergeWith as merge, each, filter, 
 
 const { read } = require('./dot-string-support');
 const { clone } = require('./fast-clone');
-const Bluebird = require('bluebird');
+const isPromise = require('is-promise');
 
 const replaceArrayDontMerge = (a, b) => isArray(a) ? b : undefined;
 
@@ -170,8 +170,6 @@ export default function mutator (initialState = {}) {
   }
 
   const isArrayOfArrays = (result) => filter(result, isArray).length === result.length;
-
-  const isPromise = (result) => (result instanceof Bluebird);
 
   let mutate;
   function mutateArrayOfArrays (result) {

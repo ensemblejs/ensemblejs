@@ -41,11 +41,11 @@ describe('server state access', function () {
 
   it('should return the value you asked for', function () {
     expect(state.for(1).get('controller.start')).toEqual(0);
-    expect(state.for(1).get('arrayOfThings')).toEqual([1,2,3]);
+    expect(state.for(1).get('arrayOfThings').toJS()).toEqual([1,2,3]);
     expect(state.for(1).get('idArray:2.id')).toEqual(2);
     expect(state.for(1).get('idArray:2.c')).toEqual('d');
-    expect(state.for(1).get('idArray')).toEqual([{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}]);
-    expect(state.for(1).get('idArray*.c')).toEqual(['b', 'd', 'f']);
+    expect(state.for(1).get('idArray').toJS()).toEqual([{id: 1, c: 'b'}, {id: 2, c: 'd'}, {id: 3, c: 'f'}]);
+    expect(state.for(1).get('idArray*.c').toJS()).toEqual(['b', 'd', 'f']);
   });
 
   describe('player data access', function () {
@@ -72,7 +72,7 @@ describe('server state access', function () {
     });
 
     it('should unwrap objects', function () {
-      expect(state.for(1).unwrap('controller.child.siblings')).toEqual({ name: 'Geoff' });
+      expect(state.for(1).unwrap('controller.child.siblings').toJS()).toEqual({ name: 'Geoff' });
     });
 
     it('should unwrap lenses', function () {

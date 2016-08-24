@@ -221,7 +221,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
       it('should pass the old and new values of the thing and the data to the callback', function() {
         applyMutation([[1, {obj: {child: 'newValue'}}]]);
         afterPhysicsFrame();
-        expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
+
+        const current = callback.firstCall.args[0].toJS();
+        const prior = callback.firstCall.args[1].toJS();
+        const data = callback.firstCall.args[2];
+
+        expect(current).toEqual({ child: 'newValue'});
+        expect(prior).toEqual({ child: 'value'});
+        expect(data).toEqual('data');
       });
     });
 
@@ -240,7 +247,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
       it('should pass the new values of the thing and the data to the callback', function() {
         applyMutation([[1, {obj: {child: 'newValue'}}]]);
         afterPhysicsFrame();
-        expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, undefined, 'data']);
+
+        const current = callback.firstCall.args[0].toJS();
+        const prior = callback.firstCall.args[1];
+        const data = callback.firstCall.args[2];
+
+        expect(current).toEqual({ child: 'newValue'});
+        expect(prior).toEqual(undefined);
+        expect(data).toEqual('data');
       });
     });
 
@@ -266,7 +280,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
       it('should pass the old and new values of the thing and the data to the callback', function() {
         applyMutation([[1, {obj: {child: 'newValue'}}]]);
         afterPhysicsFrame();
-        expect(callback.firstCall.args).toEqual([{ child: 'newValue'}, { child: 'value'}, 'data']);
+
+        const current = callback.firstCall.args[0].toJS();
+        const prior = callback.firstCall.args[1].toJS();
+        const data = callback.firstCall.args[2];
+
+        expect(current).toEqual({ child: 'newValue'});
+        expect(prior).toEqual({ child: 'value'});
+        expect(data).toEqual('data');
       });
 
       it('should call the callback immediately if the state is already true', function() {
@@ -289,7 +310,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
 
       it('should invoke the callback with the new element and the data', function() {
         expect(callback.calledOnce).toBe(true);
-        expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+
+        const id = callback.firstCall.args[0];
+        const current = callback.firstCall.args[1].toJS();
+        const data = callback.firstCall.args[2];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(data).toEqual('data');
       });
 
       it('should invoked the callback with each existing elements in the array', function() {
@@ -307,15 +335,36 @@ describe('ServerPhysics-StateTracker Integration', function () {
         afterPhysicsFrame();
         tracker.onElementAdded('numbers', callback, 'data');
         expect(callback.callCount).toBe(2);
-        expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
-        expect(callback.secondCall.args).toEqual([2, {id: 2, value: '17'}, 'data']);
+
+        const id1 = callback.firstCall.args[0];
+        const current1 = callback.firstCall.args[1].toJS();
+        const data1 = callback.firstCall.args[2];
+
+        const id2 = callback.secondCall.args[0];
+        const current2 = callback.secondCall.args[1].toJS();
+        const data2 = callback.secondCall.args[2];
+
+        expect(id1).toEqual(1);
+        expect(current1).toEqual({ id: 1, value: '7'});
+        expect(data1).toEqual('data');
+
+        expect(id2).toEqual(2);
+        expect(current2).toEqual({ id: 2, value: '17'});
+        expect(data2).toEqual('data');
       });
 
       it('should work with dot strings', function () {
         callback.reset();
         tracker.onElementAdded('numbers', callback);
         expect(callback.callCount).toBe(1);
-        expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
+
+        const id = callback.firstCall.args[0];
+        const current = callback.firstCall.args[1].toJS();
+        const data = callback.firstCall.args[2];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(data).toEqual(undefined);
       });
     });
 
@@ -330,7 +379,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
 
       it('should invoke the callback with the removed element and the data', function() {
         expect(callback.calledOnce).toBe(true);
-        expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, 'data']);
+
+        const id = callback.firstCall.args[0];
+        const current = callback.firstCall.args[1].toJS();
+        const data = callback.firstCall.args[2];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(data).toEqual('data');
       });
 
       it('should work with dot strings', function () {
@@ -343,7 +399,14 @@ describe('ServerPhysics-StateTracker Integration', function () {
         afterPhysicsFrame();
 
         expect(callback2.callCount).toBe(1);
-        expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, undefined]);
+
+        const id = callback2.firstCall.args[0];
+        const current = callback2.firstCall.args[1].toJS();
+        const data = callback2.firstCall.args[2];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(data).toEqual(undefined);
       });
     });
 
@@ -358,7 +421,16 @@ describe('ServerPhysics-StateTracker Integration', function () {
 
       it('should invoke the callback with the removed element and the data', function() {
         expect(callback.calledOnce).toBe(true);
-        expect(callback.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, 'data']);
+
+        const id = callback.firstCall.args[0];
+        const current = callback.firstCall.args[1].toJS();
+        const prior = callback.firstCall.args[2].toJS();
+        const data = callback.firstCall.args[3];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(prior).toEqual({ id: 1, value: '6'});
+        expect(data).toEqual('data');
       });
 
       it('should not invoke the callback when nothing has changed', function() {
@@ -378,7 +450,16 @@ describe('ServerPhysics-StateTracker Integration', function () {
         afterPhysicsFrame();
 
         expect(callback2.callCount).toBe(1);
-        expect(callback2.firstCall.args).toEqual([1, {id: 1, value: '7'}, {id: 1, value: '6'}, undefined]);
+
+        const id = callback2.firstCall.args[0];
+        const current = callback2.firstCall.args[1].toJS();
+        const prior = callback2.firstCall.args[2].toJS();
+        const data = callback2.firstCall.args[3];
+
+        expect(id).toEqual(1);
+        expect(current).toEqual({ id: 1, value: '7'});
+        expect(prior).toEqual({ id: 1, value: '6'});
+        expect(data).toEqual(undefined);
       });
     });
   });

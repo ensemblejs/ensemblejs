@@ -22,7 +22,6 @@
     "perf": "NODE_ENV=test gulp framework:test:perf",
     "karma-perf": "karma start perf.conf.js",
     "int": "NODE_ENV=test gulp framework:test:integration",
-    "perf": "NODE_ENV=test gulp framework:test:perf",
     "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
     "prepublish": "npm run build && npm run convert",
     "coverage": "codecov"
@@ -140,6 +139,7 @@
     "immutable": "^3.8.1",
     "ip": "^1.1.3",
     "ip-address": "^5.8.0",
+    "is-promise": "^2.1.0",
     "jquery-browserify": "^1.8.1",
     "jsdom": "^9.4.5",
     "jshint-stylish": "^2.2.0",
