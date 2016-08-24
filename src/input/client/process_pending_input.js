@@ -28,7 +28,7 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.get('ensemble').get('waitingForPlayers');
+				var waitingForPlayers = state.getIn('ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);

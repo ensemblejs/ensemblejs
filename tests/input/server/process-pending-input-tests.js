@@ -22,8 +22,9 @@ var model = {
 };
 
 var state = {
-	a: 'b',
-	ensemble: { waitingForPlayers: true }
+	getIn: () => ({
+		waitingForPlayers: true
+	})
 };
 
 var actions = [];
@@ -39,7 +40,7 @@ var playerId = 2;
 
 var logger = require('../../../src/logging/server/logger').logger;
 
-describe('Input Bindings', function() {
+describe('Input Bindings, ServerSide', function() {
 	var clock;
 
 	beforeEach(function() {

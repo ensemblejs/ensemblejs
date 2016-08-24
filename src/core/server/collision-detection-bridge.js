@@ -13,13 +13,11 @@ module.exports = {
       return function callSystemWithRelevantMapsAndSaveId (Δ, state) {
         let changes = [];
 
-        const saveId = state.ensemble.saveId;
-        const mode = state.ensemble.mode;
+        const saveId = state.getIn('ensemble.saveId');
+        const mode = state.getIn('ensemble.mode');
 
         function onCollision (callback, map, metadata) {
           let args = [Δ, state, metadata].concat(clone(map.data) || []);
-
-          // console.log('collision', state);
 
           changes.push(callback(...args));
         }

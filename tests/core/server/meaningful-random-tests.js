@@ -32,7 +32,7 @@ describe('meaningful random numbers', function () {
   });
 
   describe('getting a number', function () {
-    var state = { ensemble: { randomSeed: 4 }};
+    var state = { getIn: () => 4 };
     var res;
 
     beforeEach(function () {

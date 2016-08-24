@@ -48,8 +48,8 @@ module.exports = {
 
     define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (Δ, state) {
-        var jobs = state.ensemble.jobs;
-        var saveId = state.ensemble.saveId;
+        var jobs = state.getIn('ensemble.jobs');
+        var saveId = state.getIn('ensemble.saveId');
 
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
@@ -69,7 +69,7 @@ module.exports = {
         toCancel = [];
 
         let jobsToSave = reject(jobs, ready);
-        if (isEmpty(state.ensemble.jobs) && isEmpty(jobsToSave)) {
+        if (isEmpty(state.getIn('ensemble.jobs')) && isEmpty(jobsToSave)) {
           return undefined;
         }
 

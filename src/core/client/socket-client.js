@@ -88,7 +88,7 @@ module.exports = {
         }
 
         function toggle (state) {
-          return state.ensemble.paused ? unpause() : pause();
+          return state.getIn('ensemble.paused') ? unpause() : pause();
         }
 
         return {

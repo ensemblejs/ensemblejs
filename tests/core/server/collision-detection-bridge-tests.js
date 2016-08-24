@@ -25,11 +25,13 @@ physicsSystem.create(2, 'key1', 'dot1', {x: 0, y: 0});
 physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
 physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
 
+const values = {
+  'ensemble.saveId': 3,
+  'ensemble.mode': 'arcade'
+};
+
 var state = {
-  ensemble: {
-    saveId: 3,
-    mode: 'arcade'
-  }
+  getIn: (key) => values[key]
 };
 
 describe('the collision detection bridge', function () {

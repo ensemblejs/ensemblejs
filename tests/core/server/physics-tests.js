@@ -17,7 +17,9 @@ var values = {
 var state = {
 	for: function () {
 		return {
-			all: () => values,
+			all: () => ({
+				getIn: () => values.ensemble.waitingForPlayers
+			}),
 			get: key => {
 				let prop = values;
 				key.split('.').forEach(part => (prop = prop[part]));

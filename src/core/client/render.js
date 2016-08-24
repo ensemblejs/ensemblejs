@@ -7,7 +7,7 @@ module.exports = {
     let disconnected = false;
     let priorStep = time().present();
 
-    function paused (state) { return state.ensemble.paused; }
+    function paused (state) { return state.getIn('ensemble.paused'); }
 
     define()('OnDisconnect', function () {
       return function stopRenderLoop () {

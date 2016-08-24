@@ -15,15 +15,12 @@ module.exports = {
     }
 
     function number(state) {
-      var seed = state.ensemble.randomSeed;
+      var seed = state.getIn('ensemble.randomSeed');
       var n = generators[seed]();
 
       return n;
     }
 
-    return {
-      setup: setup,
-      number: number
-    };
+    return { setup, number };
   }
 };

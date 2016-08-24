@@ -9,7 +9,7 @@ module.exports = {
         return undefined;
       }
       if (config().ensemble.pause === 'all-offline') {
-        if (connections().onlineCount(state.ensemble.saveId) !== 0) {
+        if (connections().onlineCount(state.getIn('ensemble.saveId')) !== 0) {
           return undefined;
         }
       }

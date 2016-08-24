@@ -23,9 +23,7 @@ var model = {
 
 let waitingForPlayers = true;
 const currentState = {
-	get: () => ({
-		get: () => waitingForPlayers
-	})
+	getIn: () => waitingForPlayers
 };
 
 var actions = [];

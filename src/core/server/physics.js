@@ -27,7 +27,7 @@ module.exports = {
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (!state.ensemble.waitingForPlayers) {
+        if (!state.getIn('ensemble.waitingForPlayers')) {
           callForModeWithMutation(onFrame(), mutator, save, opts);
         }
 

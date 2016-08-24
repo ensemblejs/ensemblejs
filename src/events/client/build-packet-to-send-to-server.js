@@ -18,7 +18,7 @@ module.exports = {
       return isArray(a) ? join(a, b) : undefined;
     }
 
-    function paused (state) { return state.ensemble.paused; }
+    function paused (state) { return state.getIn('ensemble.paused'); }
 
     function buildPacket () {
       if (currentState().get(paused)) {
