@@ -6,6 +6,7 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var config = require('../../util/config');
 const setFixedInterval = require('fixed-setinterval');
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
   type: 'OnServerStart',
@@ -27,7 +28,7 @@ module.exports = {
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-        if (!state.getIn('ensemble.waitingForPlayers')) {
+        if (!read(state, 'ensemble.waitingForPlayers')) {
           callForModeWithMutation(onFrame(), mutator, save, opts);
         }
 
@@ -51,7 +52,7 @@ module.exports = {
 
     define()('OnServerStop', () => {
       return function stopEngine () {
-        each(ids, cancel => cancel());
+        each(ids, (cancel) => cancel());
         ids = [];
       };
     });
@@ -59,7 +60,7 @@ module.exports = {
     define()('InternalState', () => {
       return {
         ServerSideEngine: {
-          now: function () { return time().present(); }
+          now: () =>time().present()
         }
       };
     });

@@ -2,7 +2,7 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-
+import Immutable from 'immutable';
 var makeTestible = require('../../support').makeTestible;
 
 var start12 = function () { return undefined; };
@@ -17,20 +17,20 @@ var start14 = function () { return undefined; };
 
 var physicsSystem = makeTestible('core/shared/physics-system')[0];
 
-physicsSystem.register(1, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.register(1, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.register(1, 'key3', 'dot3', {x: 2, y: 2});
-physicsSystem.register(2, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.register(2, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.register(2, 'key3', 'dot3', {x: 0, y: 0});
+physicsSystem.register(1, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.register(1, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.register(1, 'key3', 'dot3', Immutable.fromJS({x: 2, y: 2}));
+physicsSystem.register(2, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.register(2, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.register(2, 'key3', 'dot3', Immutable.fromJS({x: 0, y: 0}));
 
 var callbackDelegate = sinon.spy();
 
 describe('collision detection system', function () {
   beforeEach(function () {
-    physicsSystem.updated(1, 'dot1')({x: 0, y: 0});
-    physicsSystem.updated(1, 'dot2')({x: 1, y: 1});
-    physicsSystem.updated(1, 'dot3')({x: 2, y: 2});
+    physicsSystem.updated(1, 'dot1')(Immutable.fromJS({x: 0, y: 0}));
+    physicsSystem.updated(1, 'dot2')(Immutable.fromJS({x: 1, y: 1}));
+    physicsSystem.updated(1, 'dot3')(Immutable.fromJS({x: 2, y: 2}));
   });
 
   describe('detecting collisions', function () {
@@ -73,7 +73,7 @@ describe('collision detection system', function () {
 
     describe('things that start colliding', function () {
       beforeEach(function () {
-        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
+        physicsSystem.updated(1, 'dot3')(Immutable.fromJS({x: 0, y: 0}));
 
         callbackDelegate.reset();
 
@@ -110,7 +110,7 @@ describe('collision detection system', function () {
 
     describe('things that collide for two frames in a row', function () {
       beforeEach(function () {
-        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
+        physicsSystem.updated(1, 'dot3')(Immutable.fromJS({x: 0, y: 0}));
 
         cd.detectCollisions(map, 1, callbackDelegate);
 
@@ -149,12 +149,12 @@ describe('collision detection system', function () {
 
     describe('things that stop colliding', function () {
       beforeEach(function () {
-        physicsSystem.updated(1, 'dot3')({x: 0, y: 0});
+        physicsSystem.updated(1, 'dot3')(Immutable.fromJS({x: 0, y: 0}));
         cd.detectCollisions(map, 1, callbackDelegate);
 
         callbackDelegate.reset();
 
-        physicsSystem.updated(1, 'dot3')({x: 2, y: 2});
+        physicsSystem.updated(1, 'dot3')(Immutable.fromJS({x: 2, y: 2}));
         cd.detectCollisions(map, 1, callbackDelegate);
       });
 
@@ -191,10 +191,10 @@ describe('collision detection system', function () {
     var map;
 
     beforeEach(function () {
-      physicsSystem.register(1, 'multiple1', 'source.a', {x: 0, y: 0});
-      physicsSystem.register(1, 'multiple1', 'source.b', {x: 1, y: 1});
-      physicsSystem.register(1, 'multiple2', 'source.c', {x: 0, y: 0});
-      physicsSystem.register(1, 'multiple2', 'source.d', {x: 1, y: 1});
+      physicsSystem.register(1, 'multiple1', 'source.a', Immutable.fromJS({x: 0, y: 0}));
+      physicsSystem.register(1, 'multiple1', 'source.b', Immutable.fromJS({x: 1, y: 1}));
+      physicsSystem.register(1, 'multiple2', 'source.c', Immutable.fromJS({x: 0, y: 0}));
+      physicsSystem.register(1, 'multiple2', 'source.d', Immutable.fromJS({x: 1, y: 1}));
 
       map = {
         'multiple1': [{
@@ -226,13 +226,13 @@ describe('collision detection system', function () {
     var map2;
 
     beforeEach(function () {
-      physicsSystem.register(1, 'common1', 'dot1', {x: 4, y: 4});
-      physicsSystem.register(1, 'common2', 'dot2', {x: 4, y: 4});
-      physicsSystem.register(1, 'common3', 'dot3', {x: 4, y: 4});
+      physicsSystem.register(1, 'common1', 'dot1', Immutable.fromJS({x: 4, y: 4}));
+      physicsSystem.register(1, 'common2', 'dot2', Immutable.fromJS({x: 4, y: 4}));
+      physicsSystem.register(1, 'common3', 'dot3', Immutable.fromJS({x: 4, y: 4}));
 
-      physicsSystem.register(2, 'common1', 'dot1', {x: 10, y: 10});
-      physicsSystem.register(2, 'common2', 'dot2', {x: 5, y: 5});
-      physicsSystem.register(2, 'common3', 'dot3', {x: 10, y: 10});
+      physicsSystem.register(2, 'common1', 'dot1', Immutable.fromJS({x: 10, y: 10}));
+      physicsSystem.register(2, 'common2', 'dot2', Immutable.fromJS({x: 5, y: 5}));
+      physicsSystem.register(2, 'common3', 'dot3', Immutable.fromJS({x: 10, y: 10}));
 
       map1 = {
         'key1': [{

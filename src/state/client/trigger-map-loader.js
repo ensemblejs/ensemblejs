@@ -1,16 +1,18 @@
 'use strict';
 
-import {each, isObject} from 'lodash';
-var forEachMode = require('../../util/modes').forEachMode;
-var _ = require('lodash');
+import isObject from 'lodash/isObject';
+import each from 'lodash/each';
+const forEachMode = require('../../util/modes').forEachMode;
+const _ = require('lodash');
 
-var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
-var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+const DirectTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
+const SupportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+import { define, logger } from '../../';
 
 module.exports = {
   type: 'TriggerMapLoader',
-  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger', 'StateMutator', 'StateAccess'],
-  func: function TriggerMapLoader (define, tracker, allMaps, logger, mutator, state) {
+  deps: ['StateTracker', 'TriggerMap', 'StateMutator', 'StateAccess'],
+  func: function TriggerMapLoader (tracker, allMaps, mutator, state) {
 
     function comparison (triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
@@ -34,13 +36,13 @@ module.exports = {
       tracker().onChangeTo(when, isTrue, callbackWithMutation, data);
     }
 
-    define()('OnClientReady', ['SaveMode'], function OnClientReady (mode) {
+    define('OnClientReady', ['SaveMode'], function OnClientReady (mode) {
       return function loadTriggerMaps () {
 
         function loadMapsForMode (map) {
           each(map, function loadKey (value) {
-            each(value, function loadTrigger (triggerInfo) {
-              each(directTrackerMappings, function (f) {
+            value.forEach(function loadTrigger (triggerInfo) {
+              DirectTrackerMappings.forEach(function (f) {
 
                 function callbackWithMutation (...args) {
                   mutator()('client', triggerInfo[f](state().for('client'), ...args));
@@ -52,7 +54,7 @@ module.exports = {
                 }
               });
 
-              each(supportedComparisons, function (comparisonKey) {
+              SupportedComparisons.forEach(function (comparisonKey) {
                 if (triggerInfo[comparisonKey] !== undefined) {
                   comparison(triggerInfo, comparisonKey);
                 }

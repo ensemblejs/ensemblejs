@@ -2,15 +2,22 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var makeTestible = require('../support').makeTestible;
+var requirePlugin = require('../support').requirePlugin;
+var capture = require('../support').capture();
 var logger = require('../../src/logging/server/logger').logger;
 
 describe('physics map validator', function () {
   function makeValidator(map) {
-    return makeTestible('validators/shared/physics-map', {
+    capture.reset();
+
+    requirePlugin('validators/shared/physics-map', {
       PhysicsMap: [map],
-      Logger: logger
-    })[1];
+      DefinePlugin: capture.define
+    }, {
+      '../src/': { logger: () => logger }
+    });
+
+    return capture.deps();
   }
 
   beforeEach(function () {

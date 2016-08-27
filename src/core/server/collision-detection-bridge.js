@@ -1,8 +1,9 @@
 'use strict';
 
-let forEachMode = require('../../util/modes').forEachMode;
+const forEachMode = require('../../util/modes').forEachMode;
 import {reject, isUndefined} from 'lodash';
 const { clone } = require('../../util/fast-clone');
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
   type: 'CollisionDetectionBridge',
@@ -11,18 +12,18 @@ module.exports = {
 
     function OnPhysicsFrame () {
       return function callSystemWithRelevantMapsAndSaveId (Δ, state) {
-        let changes = [];
+        const changes = [];
 
-        const saveId = state.getIn('ensemble.saveId');
-        const mode = state.getIn('ensemble.mode');
+        const saveId = read(state, 'ensemble.saveId');
+        const mode = read(state, 'ensemble.mode');
 
         function onCollision (callback, map, metadata) {
-          let args = [Δ, state, metadata].concat(clone(map.data) || []);
+          const args = [Δ, state, metadata].concat(clone(map.data) || []);
 
           changes.push(callback(...args));
         }
 
-        forEachMode(maps(), mode, map => {
+        forEachMode(maps(), mode, (map) => {
           system().detectCollisions(map, saveId, onCollision);
         });
 

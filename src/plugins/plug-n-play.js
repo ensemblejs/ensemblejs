@@ -26,13 +26,13 @@ export function unload (name) {
 }
 
 export function get (p, f) {
-  return function () {
+  return function (...params) {
     if (!plugin(p)[f]) {
-      log.error({plugin: Object.keys(p), f: f}, 'Attempted to execute function not found on plugin.');
+      log.error({plugin: Object.keys(p), f}, 'Attempted to execute function not found on plugin.');
       return undefined;
     }
 
-    return plugin(p)[f](...arguments);
+    return plugin(p)[f](...params);
   };
 }
 

@@ -1,4 +1,4 @@
-import {isEqual, isString, filter, set, includes, replace, isEmpty, isFunction, merge} from 'lodash';
+import {isEqual, isString, set, includes, replace, isEmpty, isFunction} from 'lodash';
 import {read} from './dot-string-support';
 import {isArray} from './is';
 const Immutable = require('immutable');
@@ -8,9 +8,7 @@ function recurseMapsOnly (prev, next) {
   return Immutable.Map.isMap(prev) ? prev.mergeWith(recurseMapsOnly, next) : next;
 }
 
-function isArrayOfArrays (result) {
-  return filter(result, isArray).length === result.length;
-}
+const isArrayOfArrays = (result) => !isPromise(result) && result.filter && result.filter(isArray).length === result.length;
 
 function isValidDotStringResult(result) {
   if (result.length !== 2) {
@@ -51,10 +49,14 @@ function ignoreResult (result) {
   return false;
 }
 
+function readNoWarning (node, key) {
+  return isFunction(key) ? key(node) : read(node, key);
+}
+
 function readAndWarnAboutMissingState (node, key) {
-  const val = isFunction(key) ? key(node) : read(node, key);
+  const val = readNoWarning(node, key);
   if (val === undefined) {
-    console.error({ key }, 'We tried to get state for dot.string and the result was undefined. Ensemble works best when state is initialised.');
+    console.error({ key, node }, 'We tried to get state for dot.string and the result was undefined. Ensemble works best when state is initialised.');
   }
 
   return val;
@@ -71,15 +73,19 @@ function stripOutAttemptsToMutateTrulyImmutableThings (result) {
   return result;
 }
 
-export default function theGreatMutator (initialState = {}) {
+const defaults = {
+  trackChanges: true
+}
+
+export default function theGreatMutator (initialState = {}, options = defaults) {
   let root = Immutable.fromJS(initialState);
   let pendingMerge = Immutable.fromJS({});
-  let changes = [];
+  const changes = [];
 
   const unwrap = (path) => readAndWarnAboutMissingState(root, path);
 
   const applyPendingMerges = () => {
-    if (isEqual(pendingMerge, {})) {
+    if (Immutable.is(pendingMerge, Immutable.fromJS({}))) {
       return;
     }
 
@@ -93,13 +99,11 @@ export default function theGreatMutator (initialState = {}) {
   }
 
   function applyPopAction (dotString, entries, value) {
-    return applyResult(dotString, entries.filterNot(x => x.get('id') === value.get('id')));
+    return applyResult(dotString, entries.filterNot((x) => x.get('id') === value.get('id')));
   }
 
   function applyReplaceAction (dotString, entries, value) {
-    const mod = entries.map(orig => orig.get('id') === value.get('id') ? value : orig);
-
-    return applyResult(dotString, mod);
+    return applyResult(dotString, entries.map((entry) => entry.get('id') === value.get('id') ? value : entry));
   }
 
   function applyOnArrayElement (dotString, value) {
@@ -107,9 +111,7 @@ export default function theGreatMutator (initialState = {}) {
     const id = parseInt(dotString.split(':')[1], 10);
     const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
-    const entries = readAndWarnAboutMissingState(root, pathToArray);
-
-    const mod = entries.map(entry => {
+    const applyChangeToElement = (entry) => {
       if (entry.get('id') !== id) {
         return entry;
       }
@@ -121,9 +123,15 @@ export default function theGreatMutator (initialState = {}) {
       return isEmpty(restOfPath) ?
         entry.mergeDeep(nv) :
         entry.setIn(restOfPath.split('.'), nv);
-    });
+    }
 
-    return set({}, pathToArray, mod);
+    const fromPending = readNoWarning(pendingMerge, pathToArray);
+    if (fromPending) {
+      return set({}, pathToArray, fromPending.map(applyChangeToElement));
+    }
+
+    const fromRoot = readAndWarnAboutMissingState(root, pathToArray);
+    return set({}, pathToArray, fromRoot.map(applyChangeToElement));
   }
 
   const trailingHandlers = {
@@ -136,6 +144,7 @@ export default function theGreatMutator (initialState = {}) {
     const modifierSymbol = dotString[dotString.length - 1];
     const dotStringSansModifier = dotString.split(modifierSymbol)[0];
 
+
     const handler = trailingHandlers[modifierSymbol];
     if (handler) {
       const entries = unwrap(dotStringSansModifier);
@@ -146,14 +155,13 @@ export default function theGreatMutator (initialState = {}) {
         return {};
       }
 
-      console.log('about to apply handler');
-
       return handler(dotStringSansModifier, entries, value);
     } else if (includes(dotString, ':')) {
       return applyOnArrayElement(dotString, value);
     }
 
     const c = unwrap(dotString);
+
     return set({}, dotString, isFunction(value) ? value(c) : value);
   };
 
@@ -171,43 +179,46 @@ export default function theGreatMutator (initialState = {}) {
     resultToMerge = stripOutAttemptsToMutateTrulyImmutableThings(resultToMerge);
 
     pendingMerge = pendingMerge.mergeWith(recurseMapsOnly, resultToMerge);
-    // pendingMerge = merge(pendingMerge, resultToMerge);
   }
 
   let mutate;
   function mutateArrayOfArrays (results) {
-    results.forEach(result => mutate(result));
+    results.forEach((result) => mutate(result));
   }
 
   mutate = (result) => {
-    if (isArrayOfArrays(result)) {
-      return mutateArrayOfArrays(result);
-    } else if (isPromise(result)) {
-      return result.then(value => mutate(value));
+    const res = Immutable.List.isList(result) ? result.toJS() : result;
+    if (isArrayOfArrays(res)) {
+      return mutateArrayOfArrays(res);
+    } else if (isPromise(res)) {
+      return res.then((value) => mutate(value));
     }
 
-    return mutateNonArray(result);
+    return mutateNonArray(res);
   };
 
-  const addToChangesThenMutate = result => {
+  const addToChangesThenMutate = (result) => {
     if (ignoreResult(result)) {
       return undefined;
     }
 
-    changes.push(result);
+    if (options.trackChanges) {
+      changes.push(result);
+    }
+
     return mutate(result);
   };
 
-  const mutateSync = result => {
+  const mutateSync = (result) => {
     addToChangesThenMutate(result);
     applyPendingMerges();
   };
 
-  const mutateBatch = results => {
+  const mutateBatch = (results) => {
     results.forEach(addToChangesThenMutate);
   };
 
-  const mutateBatchSync = results => {
+  const mutateBatchSync = (results) => {
     mutateBatch(results);
     applyPendingMerges();
   };

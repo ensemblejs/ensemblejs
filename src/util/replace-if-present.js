@@ -1,11 +1,11 @@
 'use strict';
 
-var each = require('lodash').each;
 const { clone } = require('./fast-clone');
-var isObject = require('lodash').isObject;
+const isObject = require('lodash/isObject');
+const each = require('lodash/each');
 
 function replaceIfPresent (a, b) {
-  var c = clone(a);
+  const c = clone(a);
 
   each(a, function (value, property) {
     if (isObject(a[property])) {

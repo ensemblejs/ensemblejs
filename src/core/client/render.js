@@ -1,5 +1,7 @@
 'use strict';
 
+import { read } from '../../util/dot-string-support';
+
 module.exports = {
   type: 'OnClientReady',
   deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
@@ -7,7 +9,7 @@ module.exports = {
     let disconnected = false;
     let priorStep = time().present();
 
-    function paused (state) { return state.getIn('ensemble.paused'); }
+    const paused = (state) => read(state, 'ensemble.paused');
 
     define()('OnDisconnect', function () {
       return function stopRenderLoop () {

@@ -1,20 +1,20 @@
 'use strict';
 
 import {each, isObject} from 'lodash';
-var forEachMode = require('../../util/modes').forEachMode;
-var _ = require('lodash');
-
-var directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
-var supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+const forEachMode = require('../../util/modes').forEachMode;
+const _ = require('lodash');
+const directTrackerMappings = ['onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
+const supportedComparisons = ['eq', 'lt', 'lte', 'gt', 'gte'];
+import { logger } from '../../logging/server/logger';
 
 module.exports = {
   type: 'TriggerMapLoader',
-  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'Logger', 'StateMutator', 'StateAccess'],
-  func: function TriggerMapLoader (define, tracker, allMaps, logger, mutator, state) {
+  deps: ['DefinePlugin', 'StateTracker', 'TriggerMap', 'StateMutator', 'StateAccess'],
+  func: function TriggerMapLoader (define, tracker, allMaps, mutator, state) {
 
     function comparison (save, triggerInfo, comparator) {
       if (isObject(triggerInfo[comparator])) {
-        logger().warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
+        logger.warn(triggerInfo, 'Comparison of objects is not supported in trigger maps. Compare against literals.');
         return;
       }
 

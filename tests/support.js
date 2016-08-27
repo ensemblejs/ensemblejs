@@ -44,6 +44,22 @@ export function plugin () {
   };
 }
 
+export function capture () {
+  let deps = {};
+
+  function define (type, ...rest) {
+    const dep = rest[rest.length - 1];
+
+    deps[type] = deps[type] ? [deps[type]].concat(dep) : dep;
+  }
+
+  return {
+    deps: () => deps,
+    reset: () => (deps = {}),
+    define
+  };
+}
+
 export const makeTestible = (pathToModule, explicitDeps = {}, nodeDeps = {}) => {
   var deps = [];
   var support = plugin();
@@ -73,7 +89,7 @@ export const makeTestible = (pathToModule, explicitDeps = {}, nodeDeps = {}) => 
   return [requiredPlugin.func.apply(undefined, deps), support.deps()];
 };
 
-export const requirePlugin = makeTestible;
+export const requirePlugin = (...params) => makeTestible(...params)[0];
 
 export function gameScopedState (stateCallback) {
   return {

@@ -22,9 +22,9 @@ var model = {
 };
 
 var state = {
-	getIn: () => ({
+	ensemble: {
 		waitingForPlayers: true
-	})
+	}
 };
 
 var actions = [];
@@ -520,10 +520,9 @@ describe('Input Bindings, ServerSide', function() {
 	});
 
 	describe('when stick input is received while waiting for players', function () {
-
 		beforeEach(function() {
 			rawData = {
-				playerId: playerId,
+				playerId,
 				leftStick: {x: 0.1, y: 1.0, force: 0.5},
 				rightStick: {x: 0.9, y: 0.3, force: 1.0}
 			};

@@ -4,6 +4,7 @@ var sinon = require('sinon');
 var expect = require('expect');
 
 var defer = require('../../support').defer;
+var requirePlugin = require('../../support').requirePlugin;
 var plugin = require('../../support').plugin();
 
 var model = {
@@ -23,7 +24,9 @@ var model = {
 
 let waitingForPlayers = true;
 const currentState = {
-	getIn: () => waitingForPlayers
+	ensemble: {
+		waitingForPlayers
+	}
 };
 
 var actions = [];
@@ -46,7 +49,7 @@ function newUserInput (rawData, timestamp, save, playerId) {
 
 var fakeLogger = require('../../fake/logger');
 
-describe('Input Bindings', function() {
+describe('Input Bindings, ClientSide', function() {
 	var clock;
 
 	beforeEach(function() {
@@ -89,7 +92,15 @@ describe('Input Bindings', function() {
 		}];
 
 
-		require('../../../src/input/client/process_pending_input').func(defer([actions]), defer(plugin.define), defer(mutator), defer(fakeLogger));
+		requirePlugin('input/client/process_pending_input',
+			{
+				ActionMap: [actions],
+				DefinePlugin: plugin.define,
+				StateMutator: mutator
+			},
+			{
+				'../src/': { logger: fakeLogger }
+			});
 		beforePhysicsFrame = plugin.deps().BeforePhysicsFrame(defer(inputQueue));
 	});
 

@@ -2,7 +2,7 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-
+import Immutable from 'immutable';
 var defer = require('../../support').defer;
 var makeTestible = require('../../support').makeTestible;
 
@@ -19,16 +19,16 @@ var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
 
-physicsSystem.create(1, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.create(1, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.create(1, 'key3', 'dot3', {x: 2, y: 2});
-physicsSystem.create(2, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
+physicsSystem.create(1, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.create(1, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.create(1, 'key3', 'dot3', Immutable.fromJS({x: 2, y: 2}));
+physicsSystem.create(2, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.create(2, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.create(2, 'key3', 'dot3', Immutable.fromJS({x: 0, y: 0}));
 
-var state = {};
+var state = Immutable.fromJS({});
 
-describe('the collision detection bridge', function () {
+describe('the collision detection bridge (client)', function () {
   var cd = { detectCollisions: sinon.spy() };
 
   describe('on each frame', function () {
@@ -85,7 +85,7 @@ describe('the collision detection bridge', function () {
           callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]}, metadata);
         };
 
-        onEachFrame(0.15, state);
+        onEachFrame(0.15, Immutable.fromJS(state));
       });
 
       afterEach(function () {

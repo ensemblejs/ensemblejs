@@ -1,17 +1,20 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../../support').makeTestible;
-var defer = require('../../support').defer;
+const expect = require('expect');
+const sinon = require('sinon');
+const requirePlugin = require('../../support').requirePlugin;
+const defer = require('../../support').defer;
+const capture = require('../../support').capture();
 import {read} from '../../../src/util/dot-string-support';
 const Immutable = require('immutable');
 
-var the = name => state => read(state, name);
+const the = (name) => (state) => read(state, name);
 
 let stateToReturn;
-var rawStateAccess = {
-	get: () => stateToReturn,
+const rawStateAccess = {
+	get: () => ({
+		all: () => stateToReturn
+	}),
 	resetTo: (newState) => (stateToReturn = Immutable.fromJS(newState))
 };
 
@@ -22,27 +25,22 @@ function forceCurrentRawState (newState) {
 sinon.spy(rawStateAccess, 'get');
 sinon.spy(rawStateAccess, 'resetTo');
 
+const updateState = sinon.spy();
+const detectChangesAndNotifyObservers = sinon.spy();
+const currentValue = sinon.spy();
+
+requirePlugin('state/client/tracker', {}, {
+	'../src/util/state-change-events-immutable': () => ({
+		updateState, detectChangesAndNotifyObservers, currentValue
+	}),
+	'../src/': capture.define
+});
+
+const onSeedInitialState = capture.deps().OnSeedInitialState(defer(rawStateAccess));
+const afterPhysicsFrame = capture.deps().AfterPhysicsFrame(defer(rawStateAccess));
+const currentState = capture.deps().CurrentState();
+
 describe('StateTracker on the client', function () {
-	let updateState = sinon.spy();
-	let detectChangesAndNotifyObservers = sinon.spy();
-	let currentValue = sinon.spy();
-	let afterPhysicsFrame;
-	let onSeedInitialState;
-	let currentState;
-
-	beforeEach(function () {
-
-		let module = makeTestible('state/client/tracker', {}, {
-			'../src/util/state-change-events-immutable': () => ({
-				updateState, detectChangesAndNotifyObservers, currentValue
-			})
-		});
-
-		onSeedInitialState = module[1].OnSeedInitialState(defer(rawStateAccess));
-		afterPhysicsFrame = module[1].AfterPhysicsFrame(defer(rawStateAccess));
-		currentState = module[1].CurrentState();
-	});
-
 	describe('on seed initial state', () => {
 		beforeEach(() => {
 			rawStateAccess.resetTo.reset();
@@ -75,8 +73,6 @@ describe('StateTracker on the client', function () {
 		});
 
 		it('updates the tracker state', () => {
-
-
 			expect(updateState.firstCall.args).toEqual([Immutable.fromJS({
 				latest: 'and-greatest'
 			})]);

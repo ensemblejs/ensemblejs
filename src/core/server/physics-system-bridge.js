@@ -1,9 +1,9 @@
 'use strict';
 
-import {each, filter, reject, isString, isArray, set, has, isFunction} from 'lodash';
-var forEachMode = require('../../util/modes').forEachMode;
-var replaceIfPresent = require('../../util/replace-if-present');
-var sequence = require('distributedlife-sequence');
+import {each, reject, isString, isArray, set, has, isFunction} from 'lodash';
+const forEachMode = require('../../util/modes').forEachMode;
+const replaceIfPresent = require('../../util/replace-if-present');
+const sequence = require('distributedlife-sequence');
 const { read } = require('../../util/dot-string-support');
 
 module.exports = {
@@ -19,13 +19,12 @@ module.exports = {
       } else {
         physicsSystem().register(saveId, physicsKey, sourceKey, adapter ? adapter(sourceState) : sourceState);
 
-        // console.log(saveId, sourceKey);
         tracker().for(saveId).onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey, adapter));
       }
     }
 
     function wireupStatic (saveId, physicsKey, source) {
-      physicsSystem().register(saveId, physicsKey, 'static' + sequence.next('static-physics'), source);
+      physicsSystem().register(saveId, physicsKey, `static${sequence.next('static-physics')}`, source);
     }
 
     function OnStateTrackerReady () {
@@ -33,9 +32,9 @@ module.exports = {
 
         function loadPhysicsMap (physicsMap) {
           each(physicsMap, function(sources, physicsKey) {
-            let stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
-            each(stringDynamic, function(sourceKey) {
-              let sourceState = stateAccess().for(save.id).get(sourceKey);
+            const stringDynamic = sources.filter(isString).concat(sources.filter(isFunction));
+            stringDynamic.forEach(function(sourceKey) {
+              const sourceState = stateAccess().for(save.id).get(sourceKey);
 
               wireupDynamic(save.id, physicsKey, sourceKey, sourceState);
             });
@@ -43,11 +42,11 @@ module.exports = {
 
             let configDyanmic = reject(sources, isString);
             configDyanmic = reject(configDyanmic, isFunction);
-            configDyanmic = filter(configDyanmic, s => has(s, 'sourceKey'));
-            each(configDyanmic, function(config) {
-              let sourceKey = config.sourceKey;
-              let adapter = config.via;
-              let sourceState = stateAccess().for(save.id).get(config.sourceKey);
+            configDyanmic = configDyanmic.filter((s) => has(s, 'sourceKey'));
+            configDyanmic.forEach(function(config) {
+              const sourceKey = config.sourceKey;
+              const adapter = config.via;
+              const sourceState = stateAccess().for(save.id).get(config.sourceKey);
 
               wireupDynamic(save.id, physicsKey, sourceKey, sourceState, adapter);
             });
@@ -55,9 +54,9 @@ module.exports = {
 
             let statics = reject(sources, isString);
             statics = reject(statics, isFunction);
-            statics = reject(statics, s => has(s, 'sourceKey'));
-            each(statics, function(source) {
-              let adapter = source.via;
+            statics = reject(statics, (s) => has(s, 'sourceKey'));
+            statics.forEach(function(source) {
+              const adapter = source.via;
               wireupStatic(save.id, physicsKey, adapter ? adapter(source) : source);
             });
           });
@@ -69,7 +68,7 @@ module.exports = {
 
     function OnPhysicsFrame () {
       return function tickPhysicsSimulation (Δ, state) {
-        var changes = physicsSystem().tick(Δ);
+        const changes = physicsSystem().tick(Δ);
 
         if (!changes) {
           return undefined;
@@ -78,10 +77,10 @@ module.exports = {
           return undefined;
         }
 
-        var newState = {};
-        each(changes, function (stateKey) {
-          var saveState = read(state, stateKey);
-          var physicsState = physicsSystem().get(stateKey);
+        const newState = {};
+        changes.forEach(function (stateKey) {
+          const saveState = read(state, stateKey);
+          const physicsState = physicsSystem().get(stateKey);
 
           set(newState, stateKey, replaceIfPresent(saveState, physicsState));
         });

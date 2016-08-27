@@ -3,6 +3,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const requirePlugin = require('../../support').requirePlugin;
+const capture = require('../../support').capture();
 
 const rawStateAccess = {
   get: sinon.spy(),
@@ -12,9 +13,9 @@ const rawStateAccess = {
 
 function forceCurrentRawState (saveStates) {
   rawStateAccess.all = function () {
-    let allState = {};
+    const allState = {};
 
-    saveStates.forEach(saveState => {
+    saveStates.forEach((saveState) => {
       allState[saveState[0]] = { all: () => saveState[1] };
     });
 
@@ -22,28 +23,28 @@ function forceCurrentRawState (saveStates) {
   };
 }
 
+const updateState = sinon.spy();
+const detectChangesAndNotifyObservers = sinon.spy();
+
+requirePlugin('state/server/tracker', {
+  RawStateAccess: rawStateAccess
+}, {
+  '../src/util/state-change-events-immutable': () => ({
+    updateState, detectChangesAndNotifyObservers
+  }),
+  '../src/': capture.define
+});
+
+const onSaveReady = capture.deps().OnSaveReady();
+const afterPhysicsFrame = capture.deps().AfterPhysicsFrame();
+
 describe('Server StateTracker', function () {
-  let updateState = sinon.spy();
-  let detectChangesAndNotifyObservers = sinon.spy();
-  let callback = sinon.spy();
-  let callback2 = sinon.spy();
-  let afterPhysicsFrame;
-  let onSaveReady;
+  const callback = sinon.spy();
+  const callback2 = sinon.spy();
 
   beforeEach(function () {
     callback.reset();
     callback2.reset();
-
-    let loader = requirePlugin('state/server/tracker', {
-      RawStateAccess: rawStateAccess
-    }, {
-      '../src/util/state-change-events-immutable': () => ({
-        updateState, detectChangesAndNotifyObservers
-      })
-    });
-
-    onSaveReady = loader[1].OnSaveReady();
-    afterPhysicsFrame = loader[1].AfterPhysicsFrame();
 
     forceCurrentRawState([
       [1, { property: 'aaaa' }],

@@ -183,6 +183,9 @@ export default function stateChangeEvents () {
   }
 
   function updateState (newState) {
+    if (newState.toJS === undefined) {
+      throw new Error('We need an Immutable object here', newState);
+    }
     priorState = currentState;
     currentState = null;
     currentState = newState;

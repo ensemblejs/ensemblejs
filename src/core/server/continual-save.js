@@ -19,7 +19,7 @@ module.exports = {
       logger.info('Enabled: "continual" save.');
 
       function saveEveryFrame (Δ, state) {
-        saves.save(state, time().present());
+        saves.save(state.toJS(), time().present());
       }
 
       return execute(saveEveryFrame).every(config.get().ensemble.autoSaveThrottle).calls();
@@ -27,7 +27,7 @@ module.exports = {
 
     function OnSaveReady () {
       return function insertInitialCopyIntoDatabase (save) {
-        return saves.save(rawState().for(save.id), time().present());
+        return saves.save(rawState().for(save.id).toJS(), time().present());
       };
     }
 

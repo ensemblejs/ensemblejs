@@ -29,7 +29,7 @@ module.exports = {
     const pool = new MemoryPool(PoolStartSize, makeFrame, PoolGrowSize);
 
     function add (Δ) {
-      let frame = pool.allocate();
+      const frame = pool.allocate();
 
       frame.id = sequence.next('frame');
       frame.Δ = Δ;
@@ -43,14 +43,14 @@ module.exports = {
     const current = () => last(frames);
 
     function dropFrames (highestProcessedMessage) {
-      const free = frames.filter(frame => frame.id <= highestProcessedMessage);
-      free.forEach(frame => pool.free(frame));
+      const free = frames.filter((frame) => frame.id <= highestProcessedMessage);
+      free.forEach((frame) => pool.free(frame));
 
-      frames = frames.filter(frame => frame.id > highestProcessedMessage);
+      frames = frames.filter((frame) => frame.id > highestProcessedMessage);
     }
 
     function resetCache () {
-      frames.forEach(frame => (frame.cached = null));
+      frames.forEach((frame) => (frame.cached = null));
     }
 
     function setLatestFromServer (state) {
@@ -69,8 +69,6 @@ module.exports = {
 
     function OnIncomingServerPacket () {
       return function handle (packet) {
-        console.log('packet latency:', time().precise() - packet.measure);
-
         applyLatestChangeDeltas(packet.changeDeltas);
         dropFrames(packet.highestProcessedMessage);
         resetCache();
@@ -104,7 +102,7 @@ module.exports = {
           queue().clear();
 
           applyPendingMerges()();
-          frame.cached = rawState().base();
+          frame.cached = rawState().get();
         }
 
         return frame.cached;
@@ -114,7 +112,7 @@ module.exports = {
     }
 
     function reset () {
-      frames.forEach(frame => pool.free(frame));
+      frames.forEach((frame) => pool.free(frame));
       frames = [];
       fromServer = null;
       inputForNextFrame = [];

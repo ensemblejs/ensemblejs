@@ -10,7 +10,7 @@ module.exports = {
     return function initialiseStateForSave (save) {
       const seeds = filterPluginsByMode(stateSeeds(), save.mode);
 
-      seeds.forEach(state => mutateNow()(save.id, last(state)));
+      seeds.forEach((state) => mutateNow()(save.id, last(state)));
     };
   }
 };

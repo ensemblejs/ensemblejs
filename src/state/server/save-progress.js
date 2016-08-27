@@ -1,6 +1,7 @@
 'use strict';
 
 var saves = require('../../util/models/saves');
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
   type: 'SaveProgress',
@@ -8,7 +9,7 @@ module.exports = {
   func: function SaveProgress (raw, time) {
 
     function now (state) {
-      saves.save(raw.for(state.getIn('ensemble.saveId')), time().present());
+      saves.save(raw.for(read(state, 'ensemble.saveId').toJS()), time().present());
     }
 
     return { now };

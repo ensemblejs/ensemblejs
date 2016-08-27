@@ -2,11 +2,15 @@
 
 const expect = require('expect');
 
-const { requirePlugin } = require('../../support');
+const { requirePlugin, capture } = require('../../support');
+const mutatorDeps = capture();
 
-const sut = requirePlugin('state/server/mutator');
-const rawState = sut[1].RawStateAccess();
-const mutateNow = sut[1].SyncMutator();
+requirePlugin('state/server/mutator', {}, {
+  '../src/': mutatorDeps.define
+});
+
+const rawState = mutatorDeps.deps().RawStateAccess();
+const mutateNow = mutatorDeps.deps().SyncMutator();
 
 describe('initialising state for a player', function () {
   const save = {id: 10, mode: 'arcade'};
@@ -25,7 +29,7 @@ describe('initialising state for a player', function () {
         [save.mode, playerSeed2]
       ],
       'SyncMutator': mutateNow
-    })[0];
+    });
   });
 
   describe('when a player joins', function () {

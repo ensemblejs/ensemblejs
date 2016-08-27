@@ -20,8 +20,8 @@ function getConfig(response) {
   plugins.load({
     type: 'Config',
     func: function Config() {
-      var config = JSON.parse(response.body);
-      config.nothing = function nothing() { return; };
+      const config = JSON.parse(response.body);
+      config.nothing = () => undefined;
 
       return config;
     }

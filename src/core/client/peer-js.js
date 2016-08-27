@@ -1,6 +1,6 @@
 'use strict';
 
-import {on} from '../../events';
+import {on} from '../../';
 import {each} from 'lodash';
 
 let Peer = require('peerjs');

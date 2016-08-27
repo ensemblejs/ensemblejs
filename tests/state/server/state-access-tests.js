@@ -1,16 +1,17 @@
 'use strict';
 
-var expect = require('expect');
+const expect = require('expect');
 
-var defer = require('../../support').defer;
-var plugin = require('../../support').plugin();
-var fakeLogger = require('../../fake/logger');
+const { requirePlugin, capture } = require('../../support');
+const mutatorDeps = capture();
 
-var stateMutator = require('../../../src/state/server/mutator').func(defer(plugin.define), defer(fakeLogger));
-const deps = plugin.deps();
-var state = deps.StateAccess();
-var rawStateAccess = deps.RawStateAccess();
-var applyPendingMerges = deps.ApplyPendingMerges();
+const stateMutator = requirePlugin('state/server/mutator', {}, {
+  '../src/': mutatorDeps.define
+});
+
+const state = mutatorDeps.deps().StateAccess();
+const rawStateAccess = mutatorDeps.deps().RawStateAccess();
+const applyPendingMerges = mutatorDeps.deps().ApplyPendingMerges();
 
 describe('server state access', function () {
   beforeEach(function () {

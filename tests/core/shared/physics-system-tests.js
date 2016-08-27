@@ -1,18 +1,13 @@
 'use strict';
 
-var expect = require('expect');
-var merge = require('lodash').merge;
-var makeTestible = require('../../support').makeTestible;
+const expect = require('expect');
+const makeTestible = require('../../support').makeTestible;
+import Immutable from 'immutable';
 
-function double (thing) {
-  return merge(thing, {
-    x: thing.x * 2,
-    y: thing.y * 2
-  });
-}
+const double = (thing) => ({ x: thing.get('x') * 2, y: thing.get('y') * 2 });
 
 describe('the physics system', function () {
-  var physicsSystem;
+  let physicsSystem;
 
   describe('registering objects', function () {
     beforeEach(function () {
@@ -20,28 +15,28 @@ describe('the physics system', function () {
     });
 
     it('should partition objects by game', function () {
-      physicsSystem.register(1, 'pKey', 'source', { x: 1, y: 2});
-      physicsSystem.register(2, 'pKey', 'source', { x: 3, y: 4});
+      physicsSystem.register(1, 'pKey', 'source', Immutable.fromJS({ x: 1, y: 2}));
+      physicsSystem.register(2, 'pKey', 'source', Immutable.fromJS({ x: 3, y: 4}));
 
       expect(physicsSystem.getByPhysicsKey(1, 'pKey')).toEqual([{x: 1, y: 2}]);
       expect(physicsSystem.getByPhysicsKey(2, 'pKey')).toEqual([{x: 3, y: 4}]);
     });
 
     it('should store the object using the physics key', function () {
-      physicsSystem.register(1, 'pKeyA', 'sourceA', {x: 1, y: 2});
+      physicsSystem.register(1, 'pKeyA', 'sourceA', Immutable.fromJS({x: 1, y: 2}));
 
       expect(physicsSystem.getByPhysicsKey(1, 'pKeyA')).toEqual([{x:1, y:2}]);
     });
 
     it('should store the object using the source key', function () {
-      physicsSystem.register(1, 'pKeyA', 'sourceA', {x: 1, y: 2});
+      physicsSystem.register(1, 'pKeyA', 'sourceA', Immutable.fromJS({x: 1, y: 2}));
 
       expect(physicsSystem.getBySourceKey(1, 'sourceA')).toEqual({x:1, y:2});
     });
 
     it('should handle multiple objects registered against a single physics key', function () {
-      physicsSystem.register(1, 'pKeyC', 'sourceA', {x: 1, y: 2});
-      physicsSystem.register(1, 'pKeyC', 'sourceB', {x: 3, y: 4});
+      physicsSystem.register(1, 'pKeyC', 'sourceA', Immutable.fromJS({x: 1, y: 2}));
+      physicsSystem.register(1, 'pKeyC', 'sourceB', Immutable.fromJS({x: 3, y: 4}));
 
       expect(physicsSystem.getByPhysicsKey(1, 'pKeyC')).toEqual([
         {x:1, y:2}, {x:3, y:4}
@@ -54,7 +49,7 @@ describe('the physics system', function () {
   describe('updating objects', function () {
     beforeEach(function () {
       physicsSystem = makeTestible('core/shared/physics-system')[0];
-      physicsSystem.register(1, 'pKeyD', 'sourceD', {x: 1, y: 2});
+      physicsSystem.register(1, 'pKeyD', 'sourceD', Immutable.fromJS({x: 1, y: 2}));
     });
 
     it('should return an update function given a game and source key', function () {
@@ -62,23 +57,23 @@ describe('the physics system', function () {
     });
 
     describe('the update function', function () {
-      var f1, f2;
+      let f1, f2;
       beforeEach(function () {
-        physicsSystem.register(1, 'pKeyE', 'sourceE', {x: 1, y: 2});
-        physicsSystem.register(2, 'pKeyE', 'sourceE', {x: 1, y: 2});
+        physicsSystem.register(1, 'pKeyE', 'sourceE', Immutable.fromJS({x: 1, y: 2}));
+        physicsSystem.register(2, 'pKeyE', 'sourceE', Immutable.fromJS({x: 1, y: 2}));
         f1 = physicsSystem.updated(1, 'sourceE');
         f2 = physicsSystem.updated(2, 'sourceE', double);
       });
 
       it('should update the current state', function () {
-        f1({x: 6, y: 7});
+        f1(Immutable.fromJS({x: 6, y: 7}));
 
         expect(physicsSystem.getByPhysicsKey(1, 'pKeyE')).toEqual([{x:6, y:7}]);
         expect(physicsSystem.getBySourceKey(1, 'sourceE')).toEqual({x:6, y:7});
       });
 
       it('should adapt the new state when there is an adapter', function () {
-        f2({x: 6, y: 7});
+        f2(Immutable.fromJS({x: 6, y: 7}));
 
         expect(physicsSystem.getByPhysicsKey(2, 'pKeyE')).toEqual([{x:12, y:14}]);
         expect(physicsSystem.getBySourceKey(2, 'sourceE')).toEqual({x:12, y:14});
@@ -87,7 +82,7 @@ describe('the physics system', function () {
   });
 
   describe('array functions', function () {
-    var add, change, remove, addD, changeD;
+    let add, change, remove, addD, changeD;
 
     beforeEach(function () {
       physicsSystem = makeTestible('core/shared/physics-system')[0];
@@ -100,8 +95,8 @@ describe('the physics system', function () {
 
     describe('adding elements', function () {
       beforeEach(function () {
-        add(10, {id: 10, x: 3, y: 5});
-        addD(11, {id: 11, x: 3, y: 5});
+        add(10, Immutable.fromJS({id: 10, x: 3, y: 5}));
+        addD(11, Immutable.fromJS({id: 11, x: 3, y: 5}));
       });
 
       afterEach(function () {
@@ -124,7 +119,7 @@ describe('the physics system', function () {
 
     describe('modifying elements', function () {
       beforeEach(function () {
-        add(40, {id: 40, x: 3, y: 5});
+        add(40, Immutable.fromJS({id: 40, x: 3, y: 5}));
       });
 
       afterEach(function () {
@@ -136,14 +131,14 @@ describe('the physics system', function () {
       });
 
       it('should modify the element the element', function () {
-        change(40, {id: 40, x: 6, y: 1});
+        change(40, Immutable.fromJS({id: 40, x: 6, y: 1}));
 
         expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 40, x: 6, y: 1}]);
         expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 40, x: 6, y: 1}]);
       });
 
       it('should adapt the new state when there is an adapter', function () {
-        changeD(40, {id: 40, x: 6, y: 1});
+        changeD(40, Immutable.fromJS({id: 40, x: 6, y: 1}));
 
         expect(physicsSystem.getByPhysicsKey(1, 'pArray')).toEqual([{id: 40, x: 12, y: 2}]);
         expect(physicsSystem.getBySourceKey(1, 'srcArray')).toEqual([{id: 40, x: 12, y: 2}]);
@@ -157,8 +152,8 @@ describe('the physics system', function () {
 
       describe('the remove function', function () {
         beforeEach(function () {
-          add(15, {id: 15, x: 1, y: 2});
-          add(25, {id: 25, x: 3, y: 4});
+          add(15, Immutable.fromJS({id: 15, x: 1, y: 2}));
+          add(25, Immutable.fromJS({id: 25, x: 3, y: 4}));
         });
 
         it('should remove the current state', function () {

@@ -1,15 +1,17 @@
 'use strict';
 
-let config = require('../../util/config').get();
+const config = require('../../util/config');
 
 module.exports = {
   type: 'OnNewSave',
   deps: ['UUID'],
   func: function OnNewSave (uuid) {
     return function seedSaveSecret () {
-      let secret = config.debug.develop ? 'public-ask' : uuid().gen();
-
-      return ['ensemble', { secret: secret }];
+      return {
+        ensemble: {
+          secret: config.get().debug.develop ? 'public-ask' : uuid().gen()
+        }
+      };
     };
   }
 };

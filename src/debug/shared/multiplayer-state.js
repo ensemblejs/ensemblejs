@@ -2,6 +2,7 @@
 
 import {execute} from 'royal-sampler';
 import {map} from 'lodash';
+import {read} from '../../util/dot-string-support';
 
 let playerNumber;
 let lastKnownPlayerGroup = [];
@@ -15,11 +16,11 @@ function OnClientReady (tracker, $) {
   function addPlayer (id, player, cell) {
     $()('#debug').append(cell({
       id: `player-${id}`,
-      title: `Player ${player.number}`,
-      value: player.status,
-      devices: player.devices.length,
-      differentSubnet: player.onSameSubnet ? '' : '*',
-      toPlayer: id === playerNumber ? undefined : player.playerId
+      title: `Player ${player.get('number')}`,
+      value: player.get('status'),
+      devices: player.get('devices').get('length'),
+      differentSubnet: player.get('onSameSubnet') ? '' : '*',
+      toPlayer: id === playerNumber ? undefined : player.get('playerId')
     }));
 
     if (playerNumber && id === playerNumber) {
@@ -37,8 +38,8 @@ function OnClientReady (tracker, $) {
   }
 
   return function setup () {
-    let rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
-    let player = require('../../../public/partials/debug/player-switcher.pug');
+    const rectSmall = require('../../../public/partials/dashboard/rect-small.pug');
+    const player = require('../../../public/partials/debug/player-switcher.pug');
 
     $()('#debug').append(rectSmall({
       id: 'player-count',
@@ -71,7 +72,7 @@ function StateSeed () {
 
 function OnPlayerGroupChange () {
   return function updatePlayerList (players) {
-    lastKnownPlayerGroup = map(players, player => {
+    lastKnownPlayerGroup = map(players, (player) => {
       player.id = player.number;
       return player;
     });
@@ -97,7 +98,7 @@ function BeforePhysicsFrame () {
 function OnClientConnect () {
   return function incrementPlayerCount (state) {
     return [
-      'ensembleDebug.playerCount', state.get('ensembleDebug.playerCount') + 1
+      'ensembleDebug.playerCount', read(state, 'ensembleDebug.playerCount') + 1
     ];
   };
 }
@@ -105,7 +106,7 @@ function OnClientConnect () {
 function OnClientDisconnect () {
   return function decrementPlayerCount (state) {
     return [
-      'ensembleDebug.playerCount', state.get('ensembleDebug.playerCount') - 1
+      'ensembleDebug.playerCount', read(state, 'ensembleDebug.playerCount') - 1
     ];
   };
 }

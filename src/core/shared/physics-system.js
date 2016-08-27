@@ -1,11 +1,11 @@
 'use strict';
 
-var autoResolve = require('distributedlife-sat').shapes.autoResolve;
+const autoResolve = require('distributedlife-sat').shapes.autoResolve;
 import {map, reject, uniq} from 'lodash';
 import {join} from '../../util/array';
 
-var physicsThings = {};
-var keyMappings = {};
+const physicsThings = {};
+const keyMappings = {};
 
 function create (saveId, physicsKey, sourceKey, initialState) {
   keyMappings[saveId] = keyMappings[saveId] || {};
@@ -13,13 +13,12 @@ function create (saveId, physicsKey, sourceKey, initialState) {
   keyMappings[saveId][physicsKey].push(sourceKey);
 
   physicsThings[saveId] = physicsThings[saveId] || {};
-  physicsThings[saveId][sourceKey] = autoResolve(initialState);
+  physicsThings[saveId][sourceKey] = autoResolve(initialState.toJS());
 }
 
 function updated (saveId, sourceKey, adapter) {
   return function calledWhenUpdated (current) {
-    // console.log('updated', current);
-    physicsThings[saveId][sourceKey] = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    physicsThings[saveId][sourceKey] = adapter ? autoResolve(adapter(current)) : autoResolve(current.toJS());
   };
 }
 
@@ -33,7 +32,7 @@ function added (saveId, physicsKey, sourceKey, adapter) {
   physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey] || [];
 
   return function calledWhenElementAdded (id, current) {
-    let physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    const physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current.toJS());
     physicsModel.id = id;
 
     physicsThings[saveId][sourceKey].push(physicsModel);
@@ -42,17 +41,17 @@ function added (saveId, physicsKey, sourceKey, adapter) {
 
 function changed (saveId, physicsKey, sourceKey, adapter) {
   return function calledWhenElementChanged (id, current) {
-    let physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current);
+    const physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current.toJS());
     physicsModel.id = id;
 
-    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
+    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id});
     physicsThings[saveId][sourceKey].push(physicsModel);
   };
 }
 
 function removed (saveId, physicsKey, sourceKey) {
   return function calledWhenElementRemoved (id) {
-    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id: id});
+    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id});
   };
 }
 
@@ -67,7 +66,7 @@ function getByPhysicsKey (saveId, physicsKey) {
     return getBySourceKey(saveId, sourceKey);
   });
 
-  let result = [];
+  const result = [];
   for (let i = 0; i < entries.length; i += 1) {
     join(result, entries[i]);
   }

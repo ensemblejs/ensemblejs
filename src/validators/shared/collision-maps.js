@@ -3,18 +3,19 @@
 var each = require('lodash').each;
 var isArray = require('lodash').isArray;
 var last = require('lodash').last;
+import { logger } from '../../';
 
 module.exports = {
   type: 'CollisionMapValidator',
-  deps: ['CollisionMap', 'DefinePlugin', 'Logger'],
-  func: function CollisionMapValidator(maps, define, logger) {
+  deps: ['CollisionMap', 'DefinePlugin'],
+  func: function CollisionMapValidator(maps, define) {
 
     function validateRequiredKeys (key, collisionMap) {
       if (!collisionMap.and) {
-        logger().error({key: key, property: 'and'}, 'CollisionMap is missing property.');
+        logger().error({key, property: 'and'}, 'CollisionMap is missing property.');
       }
       if (!collisionMap.start && !collisionMap.during && !collisionMap.finish) {
-        logger().error({key: key}, 'CollisionMap requires at least one callback out of "start", "during" and "finish".');
+        logger().error({key}, 'CollisionMap requires at least one callback out of "start", "during" and "finish".');
       }
     }
 

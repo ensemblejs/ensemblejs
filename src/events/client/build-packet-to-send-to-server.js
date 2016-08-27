@@ -4,6 +4,8 @@ import {merge} from 'lodash';
 import {execute} from 'royal-sampler';
 import {isArray} from '../../util/is';
 import {join} from '../../util/array';
+import { read } from '../../util/dot-string-support';
+
 var sequence = require('distributedlife-sequence');
 
 module.exports = {
@@ -18,7 +20,7 @@ module.exports = {
       return isArray(a) ? join(a, b) : undefined;
     }
 
-    function paused (state) { return state.getIn('ensemble.paused'); }
+    function paused (state) { return read(state, 'ensemble.paused'); }
 
     function buildPacket () {
       if (currentState().get(paused)) {

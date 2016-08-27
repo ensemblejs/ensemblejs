@@ -27,6 +27,7 @@ define('Time', function Time () {
 });
 
 var defer = require('../../support').defer;
+var requirePlugin = require('../../support').requirePlugin;
 var trackerPlugins = require('../../support').plugin();
 var processPendingInputPlugins = require('../../support').plugin();
 var inputQueuePlugins = require('../../support').plugin();
@@ -42,7 +43,9 @@ var actionMap = [];
 var onInput, onConnect, onDisconnect, onError, onPause, onResume, onServerStart, onServerReady, onClientReady, onServerStop, onOutgoingServerPacket, onClientConnect, onClientDisconnect, onNewGame = [];
 var dimensions = {};
 
-require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
+var tracker = requirePlugin('state/client/tracker', {}, {
+  '../src/': trackerPlugins.define
+});
 var mutator = require('../../../src/state/client/mutator').func(defer(logger));
 var rawStateAccess = plugin('RawStateAccess');
 var stateAccess = plugin('StateAccess');

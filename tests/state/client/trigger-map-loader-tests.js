@@ -1,11 +1,12 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../../support').makeTestible;
-var defer = require('../../support').defer;
+const expect = require('expect');
+const sinon = require('sinon');
+const makeTestible = require('../../support').makeTestible;
+const defer = require('../../support').defer;
+const capture = require('../../support').capture();
 
-var tracker = {
+const tracker = {
   onChangeOf: sinon.spy(),
   onChangeTo: sinon.spy(),
   onElementChanged: sinon.spy(),
@@ -14,10 +15,14 @@ var tracker = {
 };
 
 function makeValidator(maps) {
+  capture.reset();
+
   return makeTestible('state/client/trigger-map-loader', {
     TriggerMap: maps,
     StateTracker: tracker
-  })[1];
+  }, {
+    '../src/': {define: capture.define, logger: () => console}
+  });
 }
 
 describe('trigger maps on the client', function () {
@@ -32,10 +37,10 @@ describe('trigger maps on the client', function () {
 
   describe('when they have no keys', function () {
     beforeEach(function () {
-      var v = makeValidator([['*', {
+      makeValidator([['*', {
         'key': [{ when: 'some-state', data: [1, 'a']}]
       }]]);
-      v.OnClientReady(defer('arcade'))();
+      capture.deps().OnClientReady(defer('arcade'))();
     });
 
     it('should do nothing', function () {
@@ -50,13 +55,13 @@ describe('trigger maps on the client', function () {
   describe('with each key', function () {
     describe('keys that point to objects or objects', function () {
       describe('onChangeOf', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', onChangeOf: callback, data: [1, 'a']}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -66,13 +71,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('eq', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', eq: {some: 'state'}, call: callback, data: 1}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should not setup a tracker on the object', function () {
@@ -83,13 +88,13 @@ describe('trigger maps on the client', function () {
 
     describe('keys that point to literals', function () {
       describe('onChangeOf', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', onChangeOf: callback, data: 'a'}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -99,13 +104,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('eq', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', eq: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -120,13 +125,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('lt', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', lt: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -141,13 +146,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('lte', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', lte: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -162,13 +167,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('gt', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', gt: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -183,13 +188,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('gte', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', gte: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -206,13 +211,13 @@ describe('trigger maps on the client', function () {
 
     describe('keys that point to arrays', function () {
       describe('onElementAdded', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', onElementAdded: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -221,13 +226,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('onElementRemoved', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', onElementRemoved: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
@@ -236,13 +241,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('onElementChanged', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: 'some-state', onElementChanged: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -257,15 +262,15 @@ describe('trigger maps on the client', function () {
 
     describe('that point to objects or objects', function () {
       describe('onChangeOf', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [
               {when: myFunc, onChangeOf: callback, data: ['a', 1]}
             ]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -275,13 +280,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('eq', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, eq: {some: 'state'}, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -292,13 +297,13 @@ describe('trigger maps on the client', function () {
 
     describe('keys that point to literals', function () {
       describe('onChangeOf', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, onChangeOf: callback, data: 'a'}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for all changes', function () {
@@ -308,13 +313,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('eq', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, eq: 4, call: callback, data: 1}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -330,13 +335,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('lt', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, lt: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -351,13 +356,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('lte', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, lte: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -372,13 +377,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('gt', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, gt: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -393,13 +398,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('gte', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, gte: 4, call: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object', function () {
@@ -416,13 +421,13 @@ describe('trigger maps on the client', function () {
 
     describe('keys that point to arrays', function () {
       describe('onElementAdded', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, onElementAdded: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -432,13 +437,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('onElementRemoved', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, onElementRemoved: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element removal', function () {
@@ -448,13 +453,13 @@ describe('trigger maps on the client', function () {
       });
 
       describe('onElementChanged', function () {
-        var callback = sinon.spy();
+        const callback = sinon.spy();
 
         beforeEach(function () {
-          var v = makeValidator([['*', {
+          makeValidator([['*', {
             'key': [{ when: myFunc, onElementChanged: callback}]
           }]]);
-          v.OnClientReady(defer('arcade'))();
+          capture.deps().OnClientReady(defer('arcade'))();
         });
 
         it('should setup a tracker on the object to listen for element insertion', function () {
@@ -466,19 +471,19 @@ describe('trigger maps on the client', function () {
   });
 
   describe('with different modes', function () {
-    var arcadeCallback = sinon.spy();
-    var endlessCallback = sinon.spy();
+    const arcadeCallback = sinon.spy();
+    const endlessCallback = sinon.spy();
 
     beforeEach(function () {
-      var arcade = ['arcade', {
+      const arcade = ['arcade', {
         'key': [{ when: 'some-state', onChangeOf: arcadeCallback}]
       }];
-      var endless = ['endless', {
+      const endless = ['endless', {
         'key': [{ when: 'some-state', onChangeOf: endlessCallback}]
       }];
 
-      var v = makeValidator([arcade, endless]);
-      v.OnClientReady(defer('arcade'))();
+      makeValidator([arcade, endless]);
+      capture.deps().OnClientReady(defer('arcade'))();
     });
 
     it('should setup bindings for "arcade" mode', function () {

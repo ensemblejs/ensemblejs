@@ -2,17 +2,24 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
-var makeTestible = require('../support').makeTestible;
+var requirePlugin = require('../support').requirePlugin;
+var capture = require('../support').capture();
 var logger = require('../../src/logging/server/logger').logger;
 
-function empty () {}
+const empty = () => undefined;
 
 describe('trigger map validator test', () => {
   function makeValidator(map) {
-    return makeTestible('validators/shared/trigger-map', {
+    capture.reset();
+
+    requirePlugin('validators/shared/trigger-map', {
       TriggerMap: [map],
-      Logger: logger
-    })[1];
+      DefinePlugin: capture.define
+    }, {
+      '../src/': { logger: () => logger }
+    });
+
+    return capture.deps();
   }
 
   beforeEach(() => {

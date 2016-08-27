@@ -1,41 +1,47 @@
 'use strict';
 
-var frameworkInfo = require('./util/get-framework-info');
+import { logger, setLogLevel } from './logging/server/logger';
 
-var logger = require('./logging/server/logger').logger;
-import {each} from 'lodash';
+const frameworkInfo = require('./util/get-framework-info');
+const config = require('./util/config').get();
 
-var config = require('./util/config').get();
-logger.logLevel = config.logging.logLevel;
+setLogLevel(config);
 
-var plugins = require('./plugins/plug-n-play').configure(logger, require('../config/array-plugins'), require('../config/default-mode-plugins'), config.logging.silencedPlugins);
+const plugins = require('./plugins/plug-n-play').configure(
+  logger,
+  require('../config/array-plugins'),
+  require('../config/default-mode-plugins'),
+  config.logging.silencedPlugins
+);
 
-plugins.load({ type: 'Config', func: function Config() { return config; }});
+plugins.load({type: 'Config', func: () => config});
 
-var foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'ui', 'debug'];
+const foldersToLoad = ['metrics', 'core', 'middleware', 'routes', 'input', 'events', 'state', 'validators', 'ui', 'debug'];
 
-each(foldersToLoad, function loadFolder(folder) {
-  plugins.loadFrameworkPath(__dirname + '/' + folder + '/shared');
-  plugins.loadFrameworkPath(__dirname + '/' + folder + '/server');
+foldersToLoad.forEach(function loadFolder(folder) {
+  plugins.loadFrameworkPath(`${__dirname}/${folder}/shared`);
+  plugins.loadFrameworkPath(`${__dirname}/${folder}/server`);
 });
 
 function getDeviceModes (path) {
-  let exists = require('fs').existsSync(path + '/js/device-modes.json');
+  const exists = require('fs').existsSync(`${path}/js/device-modes.json`);
 
-  return exists ? require(path + '/js/device-modes.json') : require('../config/default-device-modes');
+  return exists
+    ? require(`${path}/js/device-modes.json`)
+    : require('../config/default-device-modes');
 }
 
 function runGameAtPath(path) {
-  logger.info('ensemblejs@' + frameworkInfo().version + ' started.');
+  logger.info(`ensemblejs@${frameworkInfo().version} started.`);
 
-  plugins.loadPath(path + '/js/logic');
-  plugins.loadPath(path + '/js/state');
-  plugins.loadPath(path + '/js/events');
-  plugins.loadPath(path + '/js/maps');
+  plugins.loadPath(`${path}/js/logic`);
+  plugins.loadPath(`${path}/js/state`);
+  plugins.loadPath(`${path}/js/events`);
+  plugins.loadPath(`${path}/js/maps`);
 
   function publishStartServerEvent(exists) {
-    var game = {
-      modes: exists ? require(path + '/js/modes.json') : ['default'],
+    const game = {
+      modes: exists ? require(`${path}/js/modes.json`) : ['default'],
       deviceModes: getDeviceModes(path),
       id: config.game.id,
       name: config.game.name
@@ -47,7 +53,7 @@ function runGameAtPath(path) {
     plugins.get('On').serverStart(path, game);
   }
 
-  require('fs').exists(path + '/js/modes.json', publishStartServerEvent);
+  require('fs').exists(`${path}/js/modes.json`, publishStartServerEvent);
 }
 
 function shutdownHandler() {
@@ -64,6 +70,4 @@ process.on('SIGHUP', shutdownHandler);
 process.on('uncaughtException', plugins.get('On').error);
 process.on('unhandledRejection', plugins.get('On').error);
 
-module.exports = {
-  runGameAtPath: runGameAtPath
-};
+module.exports = { runGameAtPath };

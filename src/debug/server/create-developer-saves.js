@@ -1,7 +1,6 @@
 'use strict';
 
-import {each} from 'lodash';
-var config = require('../../util/config');
+const config = require('../../util/config');
 
 module.exports = {
   type: 'OnDatabaseReady',
@@ -12,7 +11,7 @@ module.exports = {
         return;
       }
 
-      each(config.get().game.modes, function (mode) {
+      config.get().game.modes.forEach(function (mode) {
         const save = {id: mode, mode};
         on().newSave(save);
         tracker().sync();

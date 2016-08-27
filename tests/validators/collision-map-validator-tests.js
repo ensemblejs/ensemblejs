@@ -2,17 +2,24 @@
 
 var sinon = require('sinon');
 var expect = require('expect');
-var makeTestible = require('../support').makeTestible;
+var requirePlugin = require('../support').requirePlugin;
+var capture = require('../support').capture();
 var logger = require('../../src/logging/server/logger').logger;
 
-function empty () {}
+const empty = () => undefined;
 
 describe('collision map validator', function () {
   function makeValidator(map) {
-    return makeTestible('validators/shared/collision-maps', {
+    capture.reset();
+
+    requirePlugin('validators/shared/collision-maps', {
       CollisionMap: [map],
-      Logger: logger
-    })[1];
+      DefinePlugin: capture.define
+    }, {
+      '../src/': { logger: () => logger }
+    });
+
+    return capture.deps();
   }
 
   beforeEach(function () {

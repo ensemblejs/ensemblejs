@@ -1,23 +1,27 @@
 'use strict';
 
-var sinon = require('sinon');
-var expect = require('expect');
-var makeTestible = require('../../support').makeTestible;
-var DynamicPluginLoader = require('../../support').DynamicPluginLoader;
-
-var effect1 = sinon.spy();
-var effect2 = sinon.spy();
-var sut = makeTestible('core/shared/delayed-jobs', {
+const sinon = require('sinon');
+const expect = require('expect');
+const makeTestible = require('../../support').makeTestible;
+const DynamicPluginLoader = require('../../support').DynamicPluginLoader;
+const Immutable = require('immutable');
+const effect1 = sinon.spy();
+const effect2 = sinon.spy();
+const sut = makeTestible('core/shared/delayed-jobs', {
 	DynamicPluginLoader: new DynamicPluginLoader({
 		'Plugin1': { method: effect1 },
 		'Plugin2': { callback: effect2}
 	})
+}, {
+	'../src/': { logger: () => console }
 });
-var manager = sut[0];
-var onPhysicsFrame = sut[1].OnPhysicsFrame();
-const currentState = {
-	getIn: () => []
-};
+const manager = sut[0];
+const onPhysicsFrame = sut[1].OnPhysicsFrame();
+const currentState = Immutable.fromJS({
+	ensemble: {
+		jobs: []
+	}
+});
 
 describe('the delayed job manager', function() {
 	beforeEach(function() {
@@ -35,7 +39,7 @@ describe('the delayed job manager', function() {
 	});
 
 	it('should remove finished effects from the jobs list', function() {
-		var newState = onPhysicsFrame(0.5, currentState);
+		const newState = onPhysicsFrame(0.5, currentState);
 
 		expect(newState).toEqual(['ensemble.jobs', [{
 			key: 'key2',

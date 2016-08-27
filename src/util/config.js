@@ -1,16 +1,15 @@
 'use strict';
 
-var appRoot = require('app-root-path');
-var defaultsDeep = require('lodash').defaultsDeep;
-var filter = require('lodash').filter;
-var once = require('lodash').once;
-var logger = require('../logging/server/logger').logger;
+const appRoot = require('app-root-path');
+const {defaultsDeep} = require('lodash');
+const once = require('lodash/once');
+const {logger} = require('../logging/server/logger');
 
 function getConfig () {
-  var config = {};
+  let config = {};
 
   try {
-    config = require(appRoot + '/config.json');
+    config = require(`${appRoot}/config.json`);
     logger.info('Using custom config.');
   } catch (error) {
     logger.info('Not using custom config.');
@@ -18,7 +17,7 @@ function getConfig () {
 
   config = defaultsDeep(require('../../config/immutable.json'), config);
   config = defaultsDeep(config, require('../../config/defaults.json'));
-  config.nothing = function nothing () {};
+  config.nothing = function nothing () { return undefined; };
 
   function minPlayers (mode) {
     if (config[mode] && config[mode].minPlayers) {
@@ -43,25 +42,20 @@ function getConfig () {
   function createCheckForValidPlayerCounts (originalFunction) {
     return function checkForValidPlayerCounts (mode) {
       if (minPlayers(mode) > maxPlayers(mode)) {
-        logger.error('minPlayers for "' + mode + '" (' + minPlayers(mode) + ') is greater than the maxPlayers (' + maxPlayers(mode) + ') property.');
+        logger.error({minPlayers: minPlayers(mode), maxPlayers: maxPlayers(mode), mode}, 'The minPlayers value is greater than the maxPlayers for mode.');
       }
 
       return originalFunction(mode);
     };
   }
 
-  function anyDebugTrue () {
-    return filter(config.debug, function (value) {
-      return value;
-    }).length > 0;
-  }
+  const anyDebugTrue = () =>  Object.keys(config.debug).filter((k) => config.debug[k]).length > 0
 
   config.minPlayers = createCheckForValidPlayerCounts(minPlayers);
   config.maxPlayers = createCheckForValidPlayerCounts(maxPlayers);
   config.debug.enabled = anyDebugTrue();
   config.database.host = process.env.DATABASE_HOST || config.database.host;
   config.database.port = process.env.DATABASE_PORT || config.database.port;
-
 
   logger.info(config, 'Initial Configuration');
 

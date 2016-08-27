@@ -1,34 +1,23 @@
 'use strict';
 
 import expect from 'expect';
-import sinon from 'sinon';
 
-let lodash = require('lodash');
-let original = lodash.each;
-lodash.once = function (a) { return a; };
-
-let logger = require('../../src/logging/server/logger').logger;
-let getter = require('../../src/util/config');
+import requireInject from 'require-inject';
+const logger = require('../fake/logger');
+const getter = requireInject.withEmptyCache('../../src/util/config', {
+  'lodash/once': (a) => a,
+  '../../src/logging/server/logger': { logger }
+});
 
 describe('config', function () {
-  after(function () {
-    lodash.once = original;
-  });
-
   describe('default behaviour', function () {
 
     let config;
     beforeEach(function () {
-      config = require('../../src/util/config').get();
-
-      sinon.spy(logger, 'error');
+      config = getter.get();
 
       config.ensemble.minPlayers = 1;
       config.ensemble.maxPlayers = 1;
-    });
-
-    afterEach(function () {
-      logger.error.restore();
     });
 
     it('should return the property as defined in the config', function () {
@@ -80,13 +69,14 @@ describe('config', function () {
       });
 
       it('should log an error if the minPlayers is more than the maxPlayers', function () {
+        console.log(config)
         logger.error.reset();
         expect(config.minPlayers('invalid')).toEqual(2);
-        expect(logger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
+        expect(logger.error.firstCall.args).toEqual([{minPlayers: 2, maxPlayers: 1, mode: 'invalid'}, 'The minPlayers value is greater than the maxPlayers for mode.']);
 
         logger.error.reset();
         expect(config.maxPlayers('invalid')).toEqual(1);
-        expect(logger.error.firstCall.args).toEqual(['minPlayers for "invalid" (2) is greater than the maxPlayers (1) property.']);
+        expect(logger.error.firstCall.args).toEqual([{minPlayers: 2, maxPlayers: 1, mode: 'invalid'}, 'The minPlayers value is greater than the maxPlayers for mode.']);
       });
     });
   });

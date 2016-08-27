@@ -6,7 +6,8 @@ import {last, includes, each} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
-let logger = require('../../logging/client/logger').logger;
+const {logger} = require('../../logging/client/logger');
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
   type: 'SocketClient',
@@ -88,7 +89,7 @@ module.exports = {
         }
 
         function toggle (state) {
-          return state.getIn('ensemble.paused') ? unpause() : pause();
+          return read(state, 'ensemble.paused') ? unpause() : pause();
         }
 
         return {

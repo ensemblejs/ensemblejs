@@ -5,7 +5,7 @@ import define from '../../plugins/plug-n-play';
 import {plugin} from '../../plugins/plug-n-play';
 import {make as makeTimer} from '../../metrics/shared/timer';
 import {execute} from 'royal-sampler';
-import {on, before} from '../../events';
+import {on, logger} from '../../';
 
 let timers = [];
 let exact = [];
@@ -60,7 +60,7 @@ on('ClientStart', function Profiler () {
 //   return execute(printTimingResults).every(5).seconds();
 // });
 
-on('Disconnect', ['Time', 'Logger'], function Profiler (time, logger) {
+on('Disconnect', ['Time'], function Profiler (time) {
   return function printTimingResults () {
     logger().info(`Timestamp of run: ${time().atStart()}`);
 
@@ -71,7 +71,7 @@ on('Disconnect', ['Time', 'Logger'], function Profiler (time, logger) {
   };
 });
 
-on('ServerStop', ['Time', 'Logger'], function Profiler (time, logger) {
+on('ServerStop', ['Time'], function Profiler (time) {
   return function printTimingResults () {
     logger().info(`Timestamp of run: ${time().atStart()}`);
 

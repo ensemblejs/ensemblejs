@@ -7,16 +7,30 @@ var Bluebird = require('bluebird');
 var defer = require('../../support').defer;
 var on = require('../../fake/on');
 var makeTestible = require('../../support').makeTestible;
-var sut = makeTestible('state/server/mutator');
-var stateMutator = sut[0];
+
 const tracker = {
   sync: sinon.spy()
 };
-var onLoadSave = sut[1].OnLoadSave(defer(on), defer(tracker));
-var state = sut[1].StateAccess();
-var rawState = sut[1].RawStateAccess();
-var applyPendingMerges = sut[1].ApplyPendingMerges();
-var afterPhysicsFrame = sut[1].AfterPhysicsFrame();
+
+const { requirePlugin, capture } = require('../../support');
+const mutatorDeps = capture();
+
+const stateMutator = requirePlugin('state/server/mutator', {}, {
+  '../src/': mutatorDeps.define
+});
+
+const state = mutatorDeps.deps().StateAccess();
+const rawState = mutatorDeps.deps().RawStateAccess();
+const applyPendingMerges = mutatorDeps.deps().ApplyPendingMerges();
+const afterPhysicsFrame = mutatorDeps.deps().AfterPhysicsFrame();
+const onLoadSave = mutatorDeps.deps().OnLoadSave(defer(on), defer(tracker));
+
+// var stateMutator = sut[0];
+// var onLoadSave = sut[1].OnLoadSave(defer(on), defer(tracker));
+// var state = sut[1].StateAccess();
+// var rawState = sut[1].RawStateAccess();
+// var applyPendingMerges = sut[1].ApplyPendingMerges();
+// var afterPhysicsFrame = sut[1].AfterPhysicsFrame();
 
 var saves = require('../../../src/util/models/saves');
 

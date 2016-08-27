@@ -54,7 +54,7 @@ var objState = {
 var stateAccess = {
   for: function () {
     return {
-      unwrap: (key) => isFunction(key) ? key(objState) : state[key]
+      get: (key) => isFunction(key) ? key(objState) : state[key]
     };
   }
 };
@@ -80,13 +80,13 @@ var scopedState = {
 var defer = require('../../support').defer;
 var makeTestible = require('../../support').makeTestible;
 
-describe('physics system bridge', function () {
+describe('physics system bridge (on the client)', function () {
   var sequenceStub;
 
   beforeEach(function () {
     var sequence = require('distributedlife-sequence');
     sequenceStub = sinon.stub(sequence, 'next').returns('1');
-  });
+});
 
   afterEach(function () {
     sequenceStub.restore();

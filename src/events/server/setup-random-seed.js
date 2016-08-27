@@ -5,11 +5,15 @@ module.exports = {
   deps: ['MeaningfulRandom'],
   func: function OnNewSave (random) {
     return function setupRandomSeed (save) {
-      var seed = save.id;
+      const seed = save.id;
 
       random().setup(seed);
 
-      return ['ensemble.randomSeed', seed];
+      return {
+        ensemble: {
+          randomSeed: seed
+        }
+      };
     };
   }
 };

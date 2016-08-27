@@ -2,6 +2,7 @@
 
 var expect = require('expect');
 var sinon = require('sinon');
+import Immutable from 'immutable';
 
 var makeTestible = require('../../support').makeTestible;
 
@@ -18,21 +19,19 @@ var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
 
-physicsSystem.create(1, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.create(1, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.create(1, 'key3', 'dot3', {x: 2, y: 2});
-physicsSystem.create(2, 'key1', 'dot1', {x: 0, y: 0});
-physicsSystem.create(2, 'key2', 'dot2', {x: 1, y: 1});
-physicsSystem.create(2, 'key3', 'dot3', {x: 0, y: 0});
+physicsSystem.create(1, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.create(1, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.create(1, 'key3', 'dot3', Immutable.fromJS({x: 2, y: 2}));
+physicsSystem.create(2, 'key1', 'dot1', Immutable.fromJS({x: 0, y: 0}));
+physicsSystem.create(2, 'key2', 'dot2', Immutable.fromJS({x: 1, y: 1}));
+physicsSystem.create(2, 'key3', 'dot3', Immutable.fromJS({x: 0, y: 0}));
 
-const values = {
-  'ensemble.saveId': 3,
-  'ensemble.mode': 'arcade'
-};
-
-var state = {
-  getIn: (key) => values[key]
-};
+var state = Immutable.fromJS({
+  ensemble: {
+    saveId: 3,
+    mode: 'arcade'
+  }
+});
 
 describe('the collision detection bridge', function () {
   var cd = { detectCollisions: sinon.spy() };

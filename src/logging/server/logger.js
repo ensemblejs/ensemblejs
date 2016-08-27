@@ -1,24 +1,14 @@
 'use strict';
 
-var appRoot = require('app-root-path');
-var packageInfo = require(appRoot + '/package.json');
-export let logger = require('bunyan').createLogger({
+const appRoot = require('app-root-path');
+const packageInfo = require(`${appRoot}/package.json`);
+
+export const logger = require('bunyan').createLogger({
   name: packageInfo.name,
   version: packageInfo.version,
-  streams: [
-    {
-      level: 'debug',
-      stream: process.stdout
-    }
-  ]
+  streams: [{ level: 'debug', stream: process.stdout }]
 });
 
-function socket (eventName) {
-  logger.info(` ensemblejs::socket:${eventName}`);
+export const setLogLevel = (config) => {
+  logger.logLevel = config.logging.logLevel;
 }
-
-logger.socket = socket;
-
-export default {
-  logger: logger
-};

@@ -13,7 +13,7 @@ export function getById (array, id) {
 }
 
 export function filter (array, predicate) {
-  var results = [];
+  const results = [];
 
   for (let i = 0; i < array.length; i += 1) {
     if (predicate(array[i])) {

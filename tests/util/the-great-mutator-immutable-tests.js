@@ -1,13 +1,13 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var Bluebird = require('bluebird');
+const expect = require('expect');
+const sinon = require('sinon');
+const Bluebird = require('bluebird');
 import Immutable from 'immutable';
 
-import theGreatMutator from '../../src/util/the-great-mutator';
+import theGreatMutator from '../../src/util/the-great-mutator-immutablejs';
 
-describe('the great mutator - native', function () {
+describe('the great mutator - immutable', function () {
   let mutator;
 
   beforeEach(function () {
@@ -77,7 +77,7 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.list')).toEqual([4, 3]);
+      expect(mutator.get('controller.list').toJS()).toEqual([4, 3]);
     });
   });
 
@@ -108,7 +108,7 @@ describe('the great mutator - native', function () {
 
         mutator.applyPendingMerges();
 
-        expect(mutator.get('controller.list')).toEqual([4, 3]);
+        expect(mutator.get('controller.list').toJS()).toEqual([4, 3]);
       });
 
       it('should work with removing elements from arrays', function () {
@@ -116,7 +116,7 @@ describe('the great mutator - native', function () {
 
         mutator.applyPendingMerges();
 
-        expect(mutator.get('controller.list')).toEqual([]);
+        expect(mutator.get('controller.list').toJS()).toEqual([]);
       });
     });
 
@@ -135,7 +135,7 @@ describe('the great mutator - native', function () {
         mutator.applyPendingMerges();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the + operator is not supported. Remove the + operator to achieve desired effect.');
       });
 
       it('should support removing- from arrays', function () {
@@ -144,7 +144,7 @@ describe('the great mutator - native', function () {
         mutator.applyPendingMerges();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the - operator is not supported. Remove the - operator to achieve desired effect.');
       });
 
       it('should support replacing! arrays', function () {
@@ -153,21 +153,20 @@ describe('the great mutator - native', function () {
         mutator.applyPendingMerges();
 
         expect(console.error.callCount).toBe(1);
-        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to acheive desired effect.');
+        expect(console.error.firstCall.args[1]).toEqual('Using a function on the ! operator is not supported. Remove the ! operator to achieve desired effect.');
       });
 
       it('should support modifying: arrays', function () {
         function addN (item) {
-          expect(item).toEqual({id: 4});
+          expect(item.toJS()).toEqual({id: 4});
 
-          item.n = 'h';
-          return item;
+          return item.set('n', 'h');
         }
         mutator.mutate(['controller.idList:4', addN]);
 
         mutator.applyPendingMerges();
 
-        expect(mutator.get('controller.idList')).toEqual([
+        expect(mutator.get('controller.idList').toJS()).toEqual([
           {id: 4, n: 'h'},
           {id: 3}
         ]);
@@ -184,7 +183,7 @@ describe('the great mutator - native', function () {
 
         mutator.applyPendingMerges();
 
-        expect(mutator.get('controller.idList')).toEqual([
+        expect(mutator.get('controller.idList').toJS()).toEqual([
           {id: 4, n: 'z'},
           {id: 3}
         ]);
@@ -193,12 +192,17 @@ describe('the great mutator - native', function () {
   });
 
   describe('using shorthand notation', function () {
+    beforeEach(() => {
+      mutator.mutate(['controller.idList:4.b', 'd']);
+      mutator.applyPendingMerges();
+    })
+
     it('should support adding+ to arrays', function () {
       mutator.mutate(['controller.list+', 5]);
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.list')).toEqual([4, 5]);
+      expect(mutator.get('controller.list').toJS()).toEqual([4, 5]);
     });
 
     it('should support adding+ to arrays of arrays', function () {
@@ -206,7 +210,7 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.subPush:5.arr')).toEqual([5]);
+      expect(mutator.get('controller.subPush:5.arr').toJS()).toEqual([5]);
     });
 
      it('should work with emptying arrays', function () {
@@ -218,7 +222,7 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.list')).toEqual([]);
+      expect(mutator.get('controller.list').toJS()).toEqual([]);
     });
 
     it('should support removing- from arrays', function () {
@@ -226,16 +230,16 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.idList')).toEqual([{id: 4}]);
+      expect(mutator.get('controller.idList').toJS()).toEqual([{id: 4, b: 'd'}]);
     });
 
     it('should support modifying! arrays', function () {
-      mutator.mutate(['controller.idList!', {id: 4, n: 'a'}]);
+      mutator.mutate(['controller.idList!', {id: 4, n: 'a', b: 'c'}]);
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.idList')).toEqual([
-        {id: 4, n: 'a'},
+      expect(mutator.get('controller.idList').toJS()).toEqual([
+        {id: 4, n: 'a', b: 'c'},
         {id: 3}
       ]);
     });
@@ -245,8 +249,8 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.idList')).toEqual([
-        {id: 4, n: 'h'},
+      expect(mutator.get('controller.idList').toJS()).toEqual([
+        {id: 4, n: 'h', b: 'd'},
         {id: 3}
       ]);
     });
@@ -256,11 +260,36 @@ describe('the great mutator - native', function () {
 
       mutator.applyPendingMerges();
 
-      expect(mutator.get('controller.idList')).toEqual([
-        {id: 4, n: 'z'},
+      expect(mutator.get('controller.idList').toJS()).toEqual([
+        {id: 4, n: 'z', b: 'd'},
         {id: 3}
       ]);
     });
+
+    it('should handle multiple changes over multiple frames', () => {
+      mutator.mutate(['controller.idList:4.n', 'z']);
+      mutator.applyPendingMerges();
+
+      mutator.mutate(['controller.idList:4.b', 'c']);
+      mutator.applyPendingMerges();
+
+      expect(mutator.get('controller.idList').toJS()).toEqual([
+        {id: 4, n: 'z', b: 'c'},
+        {id: 3}
+      ]);
+    })
+
+    it('should handle multiple changes in a single frame', () => {
+      mutator.mutate(['controller.idList:4.n', 'z']);
+      mutator.mutate(['controller.idList:4.b', 'c']);
+
+      mutator.applyPendingMerges();
+
+      expect(mutator.get('controller.idList').toJS()).toEqual([
+        {id: 4, n: 'z', b: 'c'},
+        {id: 3}
+      ]);
+    })
   });
 
   describe('working with promises', function () {
@@ -281,9 +310,7 @@ describe('the great mutator - native', function () {
 
         setTimeout(delayedReaction, 500);
       })
-      .then(value => {
-        return ['controller.score', value];
-      }))
+      .then((value) => ['controller.score', value]))
       .then(() => {
         mutator.applyPendingMerges();
 
@@ -357,6 +384,36 @@ describe('the great mutator - native', function () {
       });
     });
 
+    describe('Immutable Lists not of length 2', function () {
+      it('should ignore anything that is not an array of arrays', function () {
+        mutator.mutate(Immutable.fromJS([]));
+        mutator.mutate(Immutable.fromJS(['controller.child.age']));
+        mutator.mutate(Immutable.fromJS(['controller.child.age', 123, 'third']));
+
+        mutator.applyPendingMerges();
+
+        expect(mutator.get('controller.child.age')).toBe(5);
+      });
+
+      it('should process arrays of arrays if the subarray is length 2', function () {
+        mutator.mutate(Immutable.fromJS([['controller.child.age', 123]]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(123);
+
+        mutator.mutate(Immutable.fromJS([
+          ['controller.child.age', 2321],
+          ['controller.start', 2],
+          ['controller.score', 4]
+        ]));
+
+        mutator.applyPendingMerges();
+
+        expect(mutator.get('controller.child.age')).toBe(2321);
+        expect(mutator.get('controller.start')).toBe(2);
+        expect(mutator.get('controller.score')).toBe(4);
+      });
+    });
+
     describe('arrays of length 2', function () {
       it('should do nothing if first element of array is not string', function () {
         mutator.mutate([123, 'controller.child.age']);
@@ -391,7 +448,45 @@ describe('the great mutator - native', function () {
       it('should work where the second argument is an array', function () {
         mutator.mutate(['controller.list', [1, 2, 3]]);
         mutator.applyPendingMerges();
-        expect(mutator.get('controller.list')).toEqual([1, 2, 3]);
+        expect(mutator.get('controller.list').toJS()).toEqual([1, 2, 3]);
+      });
+    });
+
+    describe('Immutable.lists of length 2', function () {
+      it('should do nothing if first element of array is not string', function () {
+        mutator.mutate(Immutable.fromJS([123, 'controller.child.age']));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(5);
+      });
+
+      it('should do nothing if second element of array is undefined', function () {
+        mutator.mutate(Immutable.fromJS(['controller.child.age', undefined]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(5);
+      });
+
+      it('should do nothing if second element of array is null', function () {
+        mutator.mutate(Immutable.fromJS(['controller.child.age', null]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(5);
+      });
+
+      it('should do nothing if second element of array is empty hash', function () {
+        mutator.mutate(Immutable.fromJS(['controller.child.age', {}]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(5);
+      });
+
+      it('should unwrap dot strings into objects', function () {
+        mutator.mutate(Immutable.fromJS(['controller.child.age', 123]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.child.age')).toBe(123);
+      });
+
+      it('should work where the second argument is an array', function () {
+        mutator.mutate(Immutable.fromJS(['controller.list', [1, 2, 3]]));
+        mutator.applyPendingMerges();
+        expect(mutator.get('controller.list').toJS()).toEqual([1, 2, 3]);
       });
     });
   });
@@ -448,5 +543,33 @@ describe('the great mutator - native', function () {
     it('should throw out changes once flushed', () => {
       expect(mutator.flushChanges()).toEqual([]);
     });
+
+    it('should do nothing when instructed not to', () => {
+      const mutator2 = theGreatMutator({
+        controller: {
+          start: 0,
+          score: 0,
+          state: 'ready',
+          list: [4],
+          idList: [{id: 4}, {id: 3}],
+          subPush: [{id: 5, arr: []}],
+          child: {
+            age: 5,
+            siblings: {
+              name: 'Geoff'
+            }
+          }
+        },
+        players: []
+      }, { trackChanges: false });
+
+      mutator2.applyPendingMerges();
+
+      mutator2.mutate(['players:1.pacman.position', { x: 208, y: 368 }]);
+      mutator2.mutate(['controller.start', 50]);
+      mutator2.mutate({ something: 'darkside' });
+
+      expect(mutator2.flushChanges()).toEqual([]);
+    })
   });
 });

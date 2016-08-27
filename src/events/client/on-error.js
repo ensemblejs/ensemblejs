@@ -1,11 +1,12 @@
 'use strict';
 
+import { logger } from '../../';
+
 module.exports = {
   type: 'OnError',
-  deps: ['Logger'],
-  func: function OnError (logger) {
+  func: function OnError () {
     return function formaliseError (data) {
-      logger().error(data);
+      logger.error(data);
 
       throw new Error(data);
     };

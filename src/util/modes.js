@@ -51,7 +51,7 @@ function callForMode (plugins, mode, params) {
 
 function callForModeWithMutation (plugins, mutator, save, params) {
   const forMode = filterPluginsByMode(plugins, save.mode);
-  forMode.forEach(plugin => mutator()(save.id, plugin[1](...params)));
+  forMode.forEach((plugin) => mutator()(save.id, plugin[1](...params)));
 }
 
 function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {

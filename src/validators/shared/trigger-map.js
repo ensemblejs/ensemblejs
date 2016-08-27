@@ -1,30 +1,31 @@
 'use strict';
 
 import { each, isArray, isString, isObject, last, filter, includes } from 'lodash';
+import { logger } from '../../';
 
 const Empty = 0;
 
 module.exports = {
   type: 'TriggerMapValidator',
-  deps: ['TriggerMap', 'DefinePlugin', 'Logger'],
-  func: function TriggerMapValidator(maps, define, logger) {
+  deps: ['TriggerMap', 'DefinePlugin'],
+  func: function TriggerMapValidator(maps, define) {
 
     const defaultToEqual = ['eq', 'gte', 'gt', 'lte', 'lt', 'onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
     const requiresOneOf = ['call', 'onChangeOf', 'onElementAdded', 'onElementRemoved', 'onElementChanged'];
     const convertToArray = requiresOneOf;
 
     function shouldDefaultToEqualsTrue (source) {
-      const keys = filter(Object.keys(source), key => includes(defaultToEqual, key));
+      const keys = filter(Object.keys(source), (key) => includes(defaultToEqual, key));
       return keys.length === Empty;
     }
 
     function isMissingCallback (source) {
-      const keys = filter(Object.keys(source), key => includes(requiresOneOf, key));
+      const keys = filter(Object.keys(source), (key) => includes(requiresOneOf, key));
       return keys.length === Empty;
     }
 
     function validateMap (map) {
-      var ignoreMode = last(map);
+      const ignoreMode = last(map);
       each(ignoreMode, function validateKey (sources, key) {
         if (!isArray(sources)) {
           map[key] = [sources];
@@ -32,16 +33,16 @@ module.exports = {
         }
 
         if (sources.length === Empty) {
-          logger().error({key: key}, 'Trigger Map entry must have at least one entry.');
+          logger().error({key}, 'Trigger Map entry must have at least one entry.');
         }
 
         each(sources, function (source) {
           if (!isString(source) && (!isObject(source) || isArray(source))) {
-            logger().error({key: key}, 'Trigger Map entry must have either strings or object sources.');
+            logger().error({key}, 'Trigger Map entry must have either strings or object sources.');
           }
 
           if (!source.when) {
-            logger().error({key: key}, 'Trigger Map entry must have a "when" property.');
+            logger().error({key}, 'Trigger Map entry must have a "when" property.');
           }
 
           if (shouldDefaultToEqualsTrue(source)) {
@@ -49,10 +50,10 @@ module.exports = {
           }
 
           if (isMissingCallback(source)) {
-            logger().error({key: key}, 'Trigger Map requires at least one callback: ["call", "onChangeOf", "onElementAdded", "onElementChanged", "onElementRemoved"] property.');
+            logger().error({key}, 'Trigger Map requires at least one callback: ["call", "onChangeOf", "onElementAdded", "onElementChanged", "onElementRemoved"] property.');
           }
 
-          each(convertToArray, prop => {
+          each(convertToArray, (prop) => {
             if (source[prop] && !isArray(source[prop])) {
               source[prop] = [source[prop]];
             }

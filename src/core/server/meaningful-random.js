@@ -2,6 +2,7 @@
 
 var logger = require('../../logging/server/logger').logger;
 var seedrandom = require('seedrandom');
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
   type: 'MeaningfulRandom',
@@ -15,7 +16,7 @@ module.exports = {
     }
 
     function number(state) {
-      var seed = state.getIn('ensemble.randomSeed');
+      var seed = read(state, 'ensemble.randomSeed');
       var n = generators[seed]();
 
       return n;

@@ -1,10 +1,10 @@
 'use strict';
 
-var log;
-var lowerToTrace = [];
+let log;
+let lowerToTrace = [];
 
-var includes = require('lodash').includes;
-var isFunction = require('lodash').isFunction;
+const includes = require('lodash/includes');
+const isFunction = require('lodash/isFunction');
 
 function filename (fullPath, dirname) {
   return fullPath.replace(dirname, '').replace('/', '');
@@ -19,11 +19,11 @@ function extractFunctionNameFromCode (code) {
     return code.name;
   }
 
-  var name = code.toString();
-  var start = name.indexOf(' ') + 1;
-  var finish = name.indexOf('(');
+  const name = code.toString();
+  const start = name.indexOf(' ') + 1;
+  const finish = name.indexOf('(');
 
-  var extracedName = name.substring(start, finish);
+  const extracedName = name.substring(start, finish);
   if (extracedName.length === 0) {
     return 'anonymous';
   }
@@ -37,11 +37,11 @@ function extractFunctionNameWithParamsFromCode (code) {
     return 'anonymous';
   }
 
-  var name = code.toString();
-  var start = name.indexOf(' ') + 1;
-  var finish = name.indexOf(')') + 1;
+  const name = code.toString();
+  const start = name.indexOf(' ') + 1;
+  const finish = name.indexOf(')') + 1;
 
-  var extracedName = name.substring(start, finish);
+  const extracedName = name.substring(start, finish);
   if (extracedName.length === 0) {
     return 'anonymous';
   }
@@ -54,7 +54,7 @@ function loaded (namespace, type, func) {
 }
 
 function called (args, namespace, module, code) {
-  var n = `${namespace}:${module}:${extractFunctionNameFromCode(code)}`;
+  const n = `${namespace}:${module}:${extractFunctionNameFromCode(code)}`;
 
   if (includes(lowerToTrace, module)) {
     log.trace(args, n);
@@ -64,20 +64,20 @@ function called (args, namespace, module, code) {
   }
 }
 
-function trace (args, filename, code) {
-  log.trace(args, filename + ':' + extractFunctionNameWithParamsFromCode(code));
+function trace (args, file, code) {
+  log.trace(args, `${file}:${extractFunctionNameWithParamsFromCode(code)}`);
 }
 
-function discard () {}
+const discard = () => undefined;
 
 function deprecate (method, message) {
   return function deprecationNotice () {
-    log.warn(method + ' is deprecated. ' + message);
+    log.warn({method, message}, 'Method deprecated.');
   };
 }
 
 function unsupported (method, message) {
-  log.error(method + ' is no longer supported. ' + message);
+  log.error({method, message}, 'Method no longer supported.');
 }
 
 function ensureNotNull (param, message) {
@@ -86,25 +86,25 @@ function ensureNotNull (param, message) {
   }
 }
 
-function discardLower (log) {
-  switch(log.logLevel) {
+function discardLower (logger) {
+  switch(logger.logLevel) {
     case 'debug':
-      log.trace = discard;
+      logger.trace = discard;
       break;
     case 'info':
-      log.trace = discard;
-      log.debug = discard;
+      logger.trace = discard;
+      logger.debug = discard;
       break;
     case 'warn':
-      log.trace = discard;
-      log.debug = discard;
-      log.info = discard;
+      logger.trace = discard;
+      logger.debug = discard;
+      logger.info = discard;
       break;
     case 'error':
-      log.trace = discard;
-      log.debug = discard;
-      log.info = discard;
-      log.warn = discard;
+      logger.trace = discard;
+      logger.debug = discard;
+      logger.info = discard;
+      logger.warn = discard;
       break;
     default:
       break;
@@ -133,8 +133,4 @@ function setTraceOnly (traceOnly) {
   lowerToTrace = traceOnly;
 }
 
-module.exports = {
-  extractFunctionNameFromCode: extractFunctionNameFromCode,
-  setupLogger: setupLogger,
-  traceOnly: setTraceOnly
-};
+module.exports = { extractFunctionNameFromCode, setupLogger, traceOnly: setTraceOnly};

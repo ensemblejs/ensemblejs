@@ -1,18 +1,22 @@
 'use strict';
 
-import {reject, filter, each, map, includes, isEmpty} from 'lodash';
-import {join} from '../../util/array';
+import reject from 'lodash/reject';
+import includes from 'lodash/includes';
+import isEmpty from 'lodash/isEmpty';
+import { join } from '../../util/array';
+import { read } from '../../util/dot-string-support';
+import { logger } from '../../';
 
 module.exports = {
   type: 'DelayedJobs',
-  deps: ['DefinePlugin', 'StateMutator', 'Logger', 'DynamicPluginLoader'],
-  func: function (define, mutate, logger, dynamicPluginLoader) {
-    var newJobs = [];
-    var toCancel = [];
-    var jobNames = [];
+  deps: ['DefinePlugin', 'StateMutator', 'DynamicPluginLoader'],
+  func: function (define, mutate, dynamicPluginLoader) {
+    const newJobs = [];
+    const toCancel = [];
+    const jobNames = [];
 
     function tick(jobs, Δ) {
-      return map(jobs, function subtractDeltaFromDuration (job) {
+      return jobs.map(function subtractDeltaFromDuration (job) {
         if (job.duration === Infinity) {
           return job;
         }
@@ -22,13 +26,8 @@ module.exports = {
       });
     }
 
-    function ready (job) {
-      return job.duration <= 0 && job.duration !== Infinity;
-    }
-
-    function cancelled (job) {
-      return includes(toCancel, job.key);
-    }
+    const ready = (job) => job.duration <= 0 && job.duration !== Infinity;
+    const cancelled = (job) => includes(toCancel, job.key);
 
     function devuxAddKeyToList (key) {
       if (includes(jobNames, key)) {
@@ -48,28 +47,27 @@ module.exports = {
 
     define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (Δ, state) {
-        var jobs = state.getIn('ensemble.jobs');
-        var saveId = state.getIn('ensemble.saveId');
+        let jobs = read(state, 'ensemble.jobs');
+        const saveId = read(state, 'ensemble.saveId');
 
         function callOnCompleteHandlerForReadyJobs (job) {
           logger().info(job, 'Job Ready');
 
-          let callback = dynamicPluginLoader().get(job.plugin)[job.method];
+          const callback = dynamicPluginLoader().get(job.plugin)[job.method];
           mutate()(saveId, callback(state));
         }
 
-        join(jobs, newJobs);
-        each(filter(jobs, cancelled), devuxCheckJobName);
+        join(jobs, newJobs.splice(0));
+        jobs.filter(cancelled).forEach(devuxCheckJobName);
         jobs = reject(jobs, cancelled);
         jobs = tick(jobs, Δ);
 
-        each(filter(jobs, ready), callOnCompleteHandlerForReadyJobs);
+        jobs.filter(ready).forEach(callOnCompleteHandlerForReadyJobs);
 
-        newJobs = [];
-        toCancel = [];
+        toCancel.splice(0);
 
-        let jobsToSave = reject(jobs, ready);
-        if (isEmpty(state.getIn('ensemble.jobs')) && isEmpty(jobsToSave)) {
+        const jobsToSave = reject(jobs, ready);
+        if (isEmpty(read(state, 'ensemble.jobs')) && isEmpty(jobsToSave)) {
           return undefined;
         }
 
@@ -86,9 +84,6 @@ module.exports = {
       toCancel.push(key);
     }
 
-    return {
-      add: add,
-      cancelAll: cancelAll
-    };
+    return { add, cancelAll };
   }
 };

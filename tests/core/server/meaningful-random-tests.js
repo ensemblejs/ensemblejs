@@ -5,6 +5,7 @@ var expect = require('expect');
 var logger = require('../../../src/logging/server/logger').logger;
 logger = require('../../../src/logging/shared/logger').setupLogger(logger);
 var makeTestible = require('../../support').makeTestible;
+import Immutable from 'immutable';
 
 describe('meaningful random numbers', function () {
   var meaningfulRandon;
@@ -32,7 +33,7 @@ describe('meaningful random numbers', function () {
   });
 
   describe('getting a number', function () {
-    var state = { getIn: () => 4 };
+    var state = Immutable.fromJS({ ensemble: { randomSeed: 4 } });
     var res;
 
     beforeEach(function () {

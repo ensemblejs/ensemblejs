@@ -1,9 +1,7 @@
 'use strict';
 
-module.exports = function(mode) {
+module.exports = function (mode) {
   return {
-    get: function (id) {
-      return {id: id, mode: mode};
-    }
+    get: (id) => ({ id, mode })
   };
 };

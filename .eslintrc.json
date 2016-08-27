@@ -1,6 +1,6 @@
 {
   "root": true,
-  "extends": "eslint:recommended",
+  "extends": ["eslint:recommended"],
   "env": {
     "node": true,
     "shared-node-browser": true,
@@ -8,8 +8,12 @@
     "mocha": true
   },
   "parserOptions": {
-    "sourceType": "module"
-  },
+    "sourceType": "module",
+    "ecmaVersion": 6,
+    "ecmaFeatures": {
+        "experimentalObjectRestSpread": true
+    }
+    },
   "plugins": [],
   "ecmaFeatures": {
     "experimentalObjectRestSpread": true
@@ -92,6 +96,15 @@
     "no-underscore-dangle": ["error"],
     "no-unneeded-ternary": "error",
     "quotes": [2, "single", {"avoidEscape": true, "allowTemplateLiterals": true}],
-    "semi": ["error", "always"]
+    "semi": ["off", "always"],
+    "prefer-const": ["error", {"destructuring": "any", "ignoreReadBeforeAssign": false}],
+    "no-var": ["error"],
+    "prefer-template": ["error"],
+    "arrow-parens": ["error", "always"],
+    "object-shorthand": ["error"],
+    "prefer-rest-params": ["error"],
+    "prefer-spread": ["error"],
+    "rest-spread-spacing": ["error", "never"],
+    "template-curly-spacing": ["error", "never"]
   }
 }

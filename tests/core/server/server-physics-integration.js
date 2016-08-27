@@ -2,19 +2,21 @@
 
 const expect = require('expect');
 const sinon = require('sinon');
-const { defer } = require('../../support');
+const { requirePlugin, defer } = require('../../support');
 const mutatorPlugins = require('../../support').plugin();
-const trackerPlugins = require('../../support').plugin();
+const trackerPlugins = require('../../support').capture();
 const module = '../../../src/state/server/tracker';
 
-require('../../../src/state/server/mutator').func(defer(mutatorPlugins.define));
+requirePlugin('state/server/mutator', {}, {
+  '../src/': mutatorPlugins.define
+});
 const mutatorDeps = mutatorPlugins.deps();
 let mutateNow = mutatorDeps.SyncMutator();
 let applyPendingMerges = mutatorDeps.ApplyPendingMerges();
 let rawStateAccess = mutatorDeps.RawStateAccess();
 
 function applyMutation (saveStates) {
-  saveStates.forEach(saveState => {
+  saveStates.forEach((saveState) => {
     mutateNow(saveState[0], saveState[1]);
   });
 }
@@ -22,15 +24,20 @@ function applyMutation (saveStates) {
 let tracker;
 
 describe('ServerPhysics-StateTracker Integration', function () {
-  let callback = sinon.spy();
-  let callback2 = sinon.spy();
+  const callback = sinon.spy();
+  const callback2 = sinon.spy();
   let afterPhysicsFrame;
   let deps;
 
   beforeEach(function () {
     callback.reset();
     callback2.reset();
-    tracker = require(module).func(defer(trackerPlugins.define), defer(rawStateAccess));
+    trackerPlugins.reset();
+    tracker = requirePlugin('state/server/tracker', {
+      RawStateAccess: rawStateAccess
+    }, {
+      '../src/': trackerPlugins.define
+    });
 
     deps = trackerPlugins.deps();
     afterPhysicsFrame = deps.AfterPhysicsFrame();
@@ -323,7 +330,11 @@ describe('ServerPhysics-StateTracker Integration', function () {
       it('should invoked the callback with each existing elements in the array', function() {
         callback.reset();
         trackerPlugins.reset();
-        tracker = require(module).func(defer(trackerPlugins.define), defer(rawStateAccess));
+        tracker = requirePlugin('state/server/tracker', {
+          RawStateAccess: rawStateAccess
+        }, {
+          '../src/': trackerPlugins.define
+        });
         tracker = tracker.for(1);
 
         deps = trackerPlugins.deps();
@@ -471,7 +482,12 @@ describe('ServerPhysics-StateTracker Integration', function () {
     let t2;
 
     beforeEach(function () {
-      tracker = require(module).func(defer(trackerPlugins.define), defer(rawStateAccess));
+      trackerPlugins.reset();
+      tracker = requirePlugin('state/server/tracker', {
+        RawStateAccess: rawStateAccess
+      }, {
+        '../src/': trackerPlugins.define
+      });
       deps = trackerPlugins.deps();
       afterPhysicsFrame = deps.AfterPhysicsFrame();
       t1 = tracker.for(1);

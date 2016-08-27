@@ -8,11 +8,13 @@ var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeyp
 var parseMouse = require('../../util/input-common').parseMouse;
 var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
+import { read } from '../../util/dot-string-support';
+import { logger } from '../../';
 
 module.exports = {
 	type: 'ProcessPendingInput',
-	deps: ['ActionMap', 'DefinePlugin', 'StateMutator', 'Logger'],
-	func: function Client (actionMaps, define, mutate, logger) {
+	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
+	func: function Client (actionMaps, define, mutate) {
 
 		define()('InternalState', ['InputQueue'], function (inputQueue) {
 			return {
@@ -28,7 +30,7 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.getIn('ensemble.waitingForPlayers');
+				var waitingForPlayers = read(state, 'ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -65,7 +67,7 @@ module.exports = {
 							return;
 						}
 
-						logger().debug({key: 'nothing'}, 'ActionMap called');
+						logger.debug({key: 'nothing'}, 'ActionMap called');
 
 						mutate()(
 							currentInput.save.id,
@@ -81,7 +83,7 @@ module.exports = {
 							return;
 						}
 
-						logger().debug({key: key}, 'ActionMap called');
+						logger.debug({key}, 'ActionMap called');
 
 						mutate()(
 							input.save.id,

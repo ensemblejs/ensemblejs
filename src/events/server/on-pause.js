@@ -1,5 +1,7 @@
 'use strict';
 
+import { read } from '../../util/dot-string-support';
+
 module.exports = {
   type: 'OnPause',
   deps: ['Config', 'PlayerConnections'],
@@ -9,7 +11,7 @@ module.exports = {
         return undefined;
       }
       if (config().ensemble.pause === 'all-offline') {
-        if (connections().onlineCount(state.getIn('ensemble.saveId')) !== 0) {
+        if (connections().onlineCount(read(state, 'ensemble.saveId')) !== 0) {
           return undefined;
         }
       }

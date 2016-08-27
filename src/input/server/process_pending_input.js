@@ -12,6 +12,7 @@ var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
 var logger = require('../../logging/server/logger').logger;
+import { read } from '../../util/dot-string-support';
 
 module.exports = {
 	type: 'ProcessPendingInput',
@@ -26,7 +27,7 @@ module.exports = {
 				var currentInput;
 				var somethingHasReceivedInput;
 				var data;
-				var waitingForPlayers = state.getIn('ensemble.waitingForPlayers');
+				var waitingForPlayers = read(state, 'ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
