@@ -12,8 +12,10 @@ function create (saveId, physicsKey, sourceKey, initialState) {
   keyMappings[saveId][physicsKey] = keyMappings[saveId][physicsKey] || [];
   keyMappings[saveId][physicsKey].push(sourceKey);
 
+  const stateAsNative = initialState.toJS && initialState.toJS() || initialState;
+
   physicsThings[saveId] = physicsThings[saveId] || {};
-  physicsThings[saveId][sourceKey] = autoResolve(initialState.toJS());
+  physicsThings[saveId][sourceKey] = autoResolve(stateAsNative);
 }
 
 function updated (saveId, sourceKey, adapter) {

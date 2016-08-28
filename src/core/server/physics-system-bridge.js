@@ -5,6 +5,9 @@ const forEachMode = require('../../util/modes').forEachMode;
 const replaceIfPresent = require('../../util/replace-if-present');
 const sequence = require('distributedlife-sequence');
 const { read } = require('../../util/dot-string-support');
+import Immutable from 'immutable';
+
+const isListLike = (thing) => isArray(thing) || Immutable.List.isList(thing);
 
 module.exports = {
   type: 'PhysicsSystemBridge',
@@ -12,7 +15,7 @@ module.exports = {
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, stateAccess) {
 
     function wireupDynamic (saveId, physicsKey, sourceKey, sourceState, adapter) {
-      if (isArray(sourceState)) {
+      if (isListLike(sourceState)) {
         tracker().for(saveId).onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey, adapter));
         tracker().for(saveId).onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey, adapter));
         tracker().for(saveId).onElementRemoved(sourceKey, physicsSystem().removed(saveId, physicsKey, sourceKey));
