@@ -74,13 +74,19 @@ function accessAndCloneState (node, key) {
 }
 
 export default function mutator (initialState = {}) {
-  let root = initialState;
+  const root = initialState;
   let pendingMerge = {};
-  let changes = [];
+  const changes = [];
 
   const unwrap = (path) => accessAndCloneState(root, path);
 
   function applyPendingMerges () {
+    if (isEqual(pendingMerge, {})) {
+      return;
+    }
+
+    changes.push(pendingMerge);
+
     merge(root, pendingMerge, replaceArrayDontMerge);
     pendingMerge = {};
   }
@@ -105,6 +111,9 @@ export default function mutator (initialState = {}) {
     const restOfPath = replace(dotString.split(':')[1], /^[0-9]+\.?/, '');
 
     let entries = unwrap(pathToArray);
+
+    console.log(entries);
+    console.log(value);
 
     let mod = map(entries, entry => {
       if (entry.id !== id) {
@@ -177,6 +186,10 @@ export default function mutator (initialState = {}) {
   }
 
   mutate = (result) => {
+    if (ignoreResult(result)) {
+      return undefined;
+    }
+
     if (isArrayOfArrays(result)) {
       return mutateArrayOfArrays(result);
     } else if (isPromise(result)) {
@@ -196,19 +209,10 @@ export default function mutator (initialState = {}) {
     return prop;
   }
 
-  const addToChangesThenMutate = result => {
-    if (ignoreResult(result)) {
-      return undefined;
-    }
-
-    changes.push(result);
-    return mutate(result);
-  };
-
   return {
     get: getAt,
     applyPendingMerges,
-    mutate: addToChangesThenMutate,
+    mutate,
     all: () => root,
     raw: () => root,
     flushChanges: () => changes.splice(0)

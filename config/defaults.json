@@ -31,7 +31,7 @@
     "dashboard": false,
     "maxSavesPerPlayer": 1,
     "autoSaveBehaviour": "persistent",
-    "autoSaveThrottle": 5,
+    "autoSaveThrottle": 20,
     "locales": ["en"],
     "pause": "allowed"
   },

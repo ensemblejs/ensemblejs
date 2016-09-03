@@ -44,6 +44,10 @@ describe('the physics system', function () {
       expect(physicsSystem.getBySourceKey(1, 'sourceA')).toEqual({x:1, y:2});
       expect(physicsSystem.getBySourceKey(1, 'sourceB')).toEqual({x:3, y:4});
     });
+
+    it('should handle lenses', () => {
+      
+    })
   });
 
   describe('updating objects', function () {

@@ -67,7 +67,7 @@ module.exports = {
 							return;
 						}
 
-						logger.debug({key: 'nothing'}, 'ActionMap called');
+						logger().debug({key: 'nothing'}, 'ActionMap called');
 
 						mutate()(
 							currentInput.save.id,
@@ -83,7 +83,7 @@ module.exports = {
 							return;
 						}
 
-						logger.debug({key}, 'ActionMap called');
+						logger().debug({key}, 'ActionMap called');
 
 						mutate()(
 							input.save.id,

@@ -47,7 +47,7 @@ function findObject (node, path, id) {
 }
 
 function findImmutable (node, path, id) {
-  return getFromImmutable(node, path).filter(x => x.get('id') === id).first();
+  return getFromImmutable(node, path).filter((x) => x.get('id') === id).first();
 }
 
 function getArrayById (node, key, findNode, read) {
@@ -69,11 +69,11 @@ function getArrayById (node, key, findNode, read) {
 let readFromImmutable;
 let readFromJSON;
 function mapObjectChildren (node, path, suffix) {
-  return map(getFromJSON(node, path), child => readFromJSON(child, suffix));
+  return map(getFromJSON(node, path), (child) => readFromJSON(child, suffix));
 }
 
 function mapImmutableChildren (node, path, suffix) {
-  return getFromImmutable(node, path).map(child => readFromImmutable(child, suffix));
+  return getFromImmutable(node, path).map((child) => readFromImmutable(child, suffix));
 }
 
 function getChildren (node, key, mapChildren) {

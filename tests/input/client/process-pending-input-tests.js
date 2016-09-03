@@ -99,7 +99,7 @@ describe('Input Bindings, ClientSide', function() {
 				StateMutator: mutator
 			},
 			{
-				'../src/': { logger: fakeLogger }
+				'../src/': { logger: () => fakeLogger }
 			});
 		beforePhysicsFrame = plugin.deps().BeforePhysicsFrame(defer(inputQueue));
 	});

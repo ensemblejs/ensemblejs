@@ -89,6 +89,10 @@ export default function theGreatMutator (initialState = {}, options = defaults) 
       return;
     }
 
+    if (options.trackChanges) {
+      changes.push(pendingMerge);
+    }
+
     root = root.mergeWith(recurseMapsOnly, pendingMerge);
     pendingMerge = Immutable.fromJS({});
   };
@@ -200,10 +204,6 @@ export default function theGreatMutator (initialState = {}, options = defaults) 
   const addToChangesThenMutate = (result) => {
     if (ignoreResult(result)) {
       return undefined;
-    }
-
-    if (options.trackChanges) {
-      changes.push(result);
     }
 
     return mutate(result);

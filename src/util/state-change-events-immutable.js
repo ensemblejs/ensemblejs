@@ -34,7 +34,7 @@ function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior
   callback(...args);
 }
 
-const getById = (arr, id) => arr.find(e => e.get('id') === id);
+const getById = (arr, id) => arr.find((el) => el.get('id') === id);
 const isInArray = (arr, id) => getById(arr, id) === undefined;
 
 function functionifyDotStrings (model) {
@@ -43,7 +43,7 @@ function functionifyDotStrings (model) {
   }
 
   return function stateFromDotString (state) {
-    let prop = read(state, model);
+    const prop = read(state, model);
     if (prop === undefined) {
       console.warn({model, state}, 'Attempted to get state for dot.string but the result was undefined. Ensemble works best when state is always initialised to some value.');
     }
@@ -179,7 +179,7 @@ export default function stateChangeEvents () {
   };
 
   function detectChangesAndNotifyObservers () {
-    changes.forEach(change => handle[change.type](change));
+    changes.forEach((change) => handle[change.type](change));
   }
 
   function updateState (newState) {

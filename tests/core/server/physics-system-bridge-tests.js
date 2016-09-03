@@ -213,11 +213,11 @@ describe('physics system bridge (on the server)', function () {
 
         expect(physicsSystem.updated.firstCall.args).toEqual([2, 'source.state', pluckPosition]);
 
-        expect(physicsSystem.added.secondCall.args).toEqual([2, 'keyC', lens, undefined]);
+        expect(physicsSystem.added.secondCall.args).toEqual([2, 'keyC', 'keyC-2', undefined]);
 
-        expect(physicsSystem.changed.secondCall.args).toEqual([2, 'keyC', lens, undefined]);
+        expect(physicsSystem.changed.secondCall.args).toEqual([2, 'keyC', 'keyC-2', undefined]);
 
-        expect(physicsSystem.removed.secondCall.args).toEqual([2, 'keyC', lens]);
+        expect(physicsSystem.removed.secondCall.args).toEqual([2, 'keyC', 'keyC-2']);
       });
     });
 

@@ -100,7 +100,7 @@ export function store (database, data) {
     })
     .catch(conflict, err => {
       return get(database, data.id).then(record => {
-        logger.error({err: err, database: database, data: data, latest: record}, 'Could not store document. Trying again with latest rev');
+        logger.error({err: err, database: database}, 'Could not store document. Trying again with latest rev');
         data._rev = record._rev;
         store(database, data);
       });

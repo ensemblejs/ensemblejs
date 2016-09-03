@@ -14,15 +14,15 @@ module.exports = {
   deps: ['DefinePlugin', 'PhysicsMap', 'StateTracker', 'PhysicsSystem', 'StateAccess'],
   func: function PhysicsSystemBridge (define, allMaps, tracker, physicsSystem, stateAccess) {
 
-    function wireupDynamic (saveId, physicsKey, sourceKey, sourceState, adapter) {
+    function wireupDynamic (saveId, physicsKey, sourceKey, lens, sourceState, adapter) {
       if (isListLike(sourceState)) {
-        tracker().onElementAdded(sourceKey, physicsSystem().added(saveId, physicsKey, sourceKey, adapter));
-        tracker().onElementChanged(sourceKey, physicsSystem().changed(saveId, physicsKey, sourceKey, adapter));
-        tracker().onElementRemoved(sourceKey, physicsSystem().removed(saveId, physicsKey, sourceKey));
+        tracker().onElementAdded(lens, physicsSystem().added(saveId, physicsKey, sourceKey, adapter));
+        tracker().onElementChanged(lens, physicsSystem().changed(saveId, physicsKey, sourceKey, adapter));
+        tracker().onElementRemoved(lens, physicsSystem().removed(saveId, physicsKey, sourceKey));
       } else {
         physicsSystem().register(saveId, physicsKey, sourceKey, adapter ? adapter(sourceState) : sourceState);
 
-        tracker().onChangeOf(sourceKey, physicsSystem().updated(saveId, sourceKey, adapter));
+        tracker().onChangeOf(lens, physicsSystem().updated(saveId, sourceKey, adapter));
       }
     }
 
@@ -37,7 +37,10 @@ module.exports = {
             const stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
             each(stringDynamic, function(sourceKey) {
               const sourceState = stateAccess().for('client').get(sourceKey);
-              wireupDynamic('client', physicsKey, sourceKey, sourceState);
+              const key = isFunction(sourceKey) ? `${physicsKey}-${sequence.next('source-key')}` : sourceKey;
+              const lens = sourceKey
+
+              wireupDynamic('client', physicsKey, key, lens, sourceState);
             });
 
 
@@ -48,7 +51,7 @@ module.exports = {
               const sourceKey = config.sourceKey;
               const adapter = config.via;
               const sourceState = stateAccess().for('client').get(config.sourceKey);
-              wireupDynamic('client', physicsKey, sourceKey, sourceState, adapter);
+              wireupDynamic('client', physicsKey, sourceKey, sourceKey, sourceState, adapter);
             });
 
 

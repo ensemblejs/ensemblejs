@@ -509,34 +509,61 @@ describe('the great mutator - immutable', function () {
 
   describe('changes', () => {
     it('should track each mutation', () => {
-      mutator.mutate(['players:1.pacman.position', { x: 208, y: 368 }]);
+      mutator.mutate(['players+', {
+        id: 1,
+        pacman: {
+          position: { x: 208, y: 368 }
+        }
+      }]);
       mutator.mutate(['controller.start', 50]);
       mutator.mutate({ something: 'darkside' });
+      mutator.applyPendingMerges();
 
-      expect(mutator.flushChanges()).toEqual([
-        ['players:1.pacman.position', { x: 208, y: 368 }],
-        ['controller.start', 50],
-        { something: 'darkside' }
-      ]);
+      const changes = mutator.flushChanges();
+      expect(changes.length).toEqual(1);
+      expect(changes[0].toJS()).toEqual(
+        {
+          players: [
+            {
+              id: 1,
+              pacman: {
+                position: {x : 208, y: 368}
+              },
+            }
+          ],
+          controller: {
+            start: 50
+          },
+          something: 'darkside'
+        }
+      );
     });
 
     it('should ignore null', () => {
       mutator.mutate(null);
+      mutator.applyPendingMerges();
+
       expect(mutator.flushChanges()).toEqual([]);
     });
 
     it('should ignore undefined', () => {
       mutator.mutate(undefined);
+      mutator.applyPendingMerges();
+
       expect(mutator.flushChanges()).toEqual([]);
     });
 
     it('should ignore empty arrays', () => {
       mutator.mutate([]);
+      mutator.applyPendingMerges();
+
       expect(mutator.flushChanges()).toEqual([]);
     });
 
     it('should ignore empty objects', () => {
       mutator.mutate({});
+      mutator.applyPendingMerges();
+
       expect(mutator.flushChanges()).toEqual([]);
     });
 
