@@ -157,7 +157,7 @@
     "screenfull": "^3.0.0",
     "seedrandom": "^2.4.2",
     "serve-favicon": "^2.3.0",
-    "sinon": "^1.17.4",
+    "sinon": "^1.17.5",
     "socket.io": "^1.4.6",
     "socket.io-client": "^1.4.6",
     "socketio-wildcard": "^0.3.0",
