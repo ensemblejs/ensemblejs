@@ -96,7 +96,7 @@
     "cors": "^2.7.1",
     "cradle": "^0.7.1",
     "deep-equal": "git+https://github.com/distributedlife/node-deep-equal.git",
-    "del": "^2.2.0",
+    "del": "^2.2.1",
     "distributedlife-sat": "^1.4.0",
     "distributedlife-sequence": "^1.0.1",
     "dont-sniff-mimetype": "^1.0.0",
