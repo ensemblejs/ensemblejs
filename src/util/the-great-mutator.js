@@ -1,6 +1,6 @@
 import {isObject, isArray, isString, isEqual, mergeWith as merge, each, filter, get, set, includes, replace, map, reject, isEmpty, isFunction} from 'lodash';
 
-const { read } = require('./dot-string-support');
+import read from 'ok-selector';
 const { clone } = require('./fast-clone');
 const isPromise = require('is-promise');
 

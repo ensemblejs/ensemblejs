@@ -1,6 +1,6 @@
 'use strict';
 
-import { read } from './dot-string-support';
+import read from 'ok-selector';
 
 export const wrap = (state) => ({
   get: (key) => wrap(read(state, key)),

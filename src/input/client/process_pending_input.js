@@ -8,7 +8,7 @@ var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeyp
 var parseMouse = require('../../util/input-common').parseMouse;
 var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 import { logger } from '../../';
 
 module.exports = {

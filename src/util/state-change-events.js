@@ -5,7 +5,7 @@ import isFunction from 'lodash/isFunction';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import { clone } from './fast-clone';
-import {read} from './dot-string-support';
+import read from 'ok-selector';
 
 function invokeCallback (callback, currentModel, priorModel, data) {
   const args = isArray(data) ? [].concat(data) : [data];

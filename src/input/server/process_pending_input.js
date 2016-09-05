@@ -12,7 +12,7 @@ var parseTouches = require('../../util/input-common').parseTouches;
 var parseSticks = require('../../util/input-common').parseSticks;
 
 var logger = require('../../logging/server/logger').logger;
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
 	type: 'ProcessPendingInput',

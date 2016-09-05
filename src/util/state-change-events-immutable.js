@@ -2,7 +2,7 @@ import isString from 'lodash/isString';
 import isFunction from 'lodash/isFunction';
 import deepEqual from 'deep-equal';
 import Immutable from 'immutable';
-import {read} from './dot-string-support';
+import read from 'ok-selector';
 import {join} from './array';
 import {isArray} from './is';
 

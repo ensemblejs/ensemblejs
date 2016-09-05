@@ -2,7 +2,7 @@
 
 import {execute} from 'royal-sampler';
 import {map} from 'lodash';
-import {read} from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 let playerNumber;
 let lastKnownPlayerGroup = [];

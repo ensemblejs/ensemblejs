@@ -3,7 +3,7 @@
 const forEachMode = require('../../util/modes').forEachMode;
 import {reject, isUndefined} from 'lodash';
 const { clone } = require('../../util/fast-clone');
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'CollisionDetectionBridge',

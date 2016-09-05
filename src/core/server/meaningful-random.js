@@ -2,7 +2,7 @@
 
 var logger = require('../../logging/server/logger').logger;
 var seedrandom = require('seedrandom');
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'MeaningfulRandom',

@@ -4,7 +4,7 @@ import reject from 'lodash/reject';
 import includes from 'lodash/includes';
 import isEmpty from 'lodash/isEmpty';
 import { join } from '../../util/array';
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 import { logger } from '../../';
 
 module.exports = {

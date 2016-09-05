@@ -151,6 +151,7 @@
     "morgan": "^1.7.0",
     "node-uuid": "^1.4.3",
     "numeral": "^1.5.3",
+    "ok-selector": "^1.0.0",
     "peerjs": "^0.3.14",
     "present": "1.0.0",
     "pug": "^2.0.0-alpha7",

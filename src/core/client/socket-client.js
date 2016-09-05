@@ -7,7 +7,7 @@ import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
 const {logger} = require('../../logging/client/logger');
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'SocketClient',

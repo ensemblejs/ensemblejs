@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const requirePlugin = require('../../support').requirePlugin;
 const defer = require('../../support').defer;
 const capture = require('../../support').capture();
-import {read} from '../../../src/util/dot-string-support';
+import read from 'ok-selector';
 const Immutable = require('immutable');
 
 const the = (name) => (state) => read(state, name);

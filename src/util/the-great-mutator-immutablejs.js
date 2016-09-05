@@ -1,5 +1,5 @@
 import {isEqual, isString, set, includes, replace, isEmpty, isFunction} from 'lodash';
-import {read} from './dot-string-support';
+import read from 'ok-selector';
 import {isArray} from './is';
 const Immutable = require('immutable');
 const isPromise = require('is-promise');

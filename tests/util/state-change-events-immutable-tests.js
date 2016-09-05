@@ -3,7 +3,7 @@
 var expect = require('expect');
 var sinon = require('sinon');
 var isEqual = require('lodash').isEqual;
-import {read} from '../../src/util/dot-string-support';
+import read from 'ok-selector';
 
 var the = name => state => read(state, name);
 var to = name => state => read(state, name);

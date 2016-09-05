@@ -1,7 +1,7 @@
 'use strict';
 
 var saves = require('../../util/models/saves');
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'SaveProgress',

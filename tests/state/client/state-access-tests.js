@@ -10,7 +10,7 @@ var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeL
 var state = plugin('StateAccess');
 var afterPhysicsFrame = plugin('AfterPhysicsFrame');
 
-import {read} from '../../../src/util/dot-string-support';
+import read from 'ok-selector';
 
 describe('state access on client', function () {
   beforeEach(function () {

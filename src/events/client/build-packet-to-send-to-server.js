@@ -4,7 +4,7 @@ import {merge} from 'lodash';
 import {execute} from 'royal-sampler';
 import {isArray} from '../../util/is';
 import {join} from '../../util/array';
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 var sequence = require('distributedlife-sequence');
 

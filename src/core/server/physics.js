@@ -6,7 +6,7 @@ var callForModeWithMutation = require('../../util/modes').callForModeWithMutatio
 var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var config = require('../../util/config');
 const setFixedInterval = require('fixed-setinterval');
-import { read } from '../../util/dot-string-support';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'OnServerStart',

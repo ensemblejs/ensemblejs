@@ -4,7 +4,7 @@ import {each, filter, reject, isString, isArray, set, has, isFunction} from 'lod
 const forEachMode = require('../../util/modes').forEachMode;
 const replaceIfPresent = require('../../util/replace-if-present');
 const sequence = require('distributedlife-sequence');
-const { read } = require('../../util/dot-string-support');
+import read from 'ok-selector';
 import Immutable from 'immutable';
 
 const isListLike = (thing) => isArray(thing) || Immutable.List.isList(thing);
