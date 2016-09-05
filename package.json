@@ -190,7 +190,7 @@
     "jshint-stylish": "^2.0.1",
     "mocha": "2.4.5",
     "modernizr": "^3.3.1",
-    "node-notifier": "^4.5.0",
+    "node-notifier": "^4.6.1",
     "sinon": "^1.15.4"
   }
 }
