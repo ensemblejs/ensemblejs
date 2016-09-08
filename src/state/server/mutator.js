@@ -1,7 +1,7 @@
 'use strict';
 
 const saves = require('../../util/models/saves');
-import theGreatMutator from '../../util/the-great-mutator-immutablejs';
+import theGreatMutator from 'the-great-mutator/immutable';
 import define from '../../'
 
 function StateMutator () {

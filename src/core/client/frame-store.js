@@ -3,7 +3,7 @@
 const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const MemoryPool = require('memory-pool');
-import theGreatMutator from '../../util/the-great-mutator-immutablejs';
+import theGreatMutator from 'the-great-mutator/immutable';
 
 const PoolStartSize = 20;
 const PoolGrowSize = 10;

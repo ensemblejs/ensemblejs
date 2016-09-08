@@ -1,7 +1,7 @@
 'use strict';
 
 import define from '../../plugins/plug-n-play';
-import theGreatMutator from '../../util/the-great-mutator-immutablejs';
+import theGreatMutator from 'the-great-mutator/immutable';
 
 const cache = {};
 function genKey (playerId, namespace, key) {
