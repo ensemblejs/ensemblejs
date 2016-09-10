@@ -8,6 +8,7 @@ import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
 const {logger} = require('../../logging/client/logger');
 import read from 'ok-selector';
+import determineSaveIdFromPath from '../../util/determine-save-id-from-path';
 
 module.exports = {
   type: 'SocketClient',
@@ -30,7 +31,7 @@ module.exports = {
 
       patch(socket);
 
-      var saveId = last(window().location.pathname.split('/'));
+      var saveId = determineSaveIdFromPath(window().location.pathname);
       set('SaveId', saveId);
       socket.emit('saveId', saveId);
 
