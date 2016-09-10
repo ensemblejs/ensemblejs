@@ -66,7 +66,7 @@ function StateMutator () {
   }));
 
   function mutate (saveId, result) {
-    root[saveId] = root[saveId] || theGreatMutator();
+    root[saveId] = root[saveId] || theGreatMutator({}, { trackChanges: true });
     return root[saveId].mutate(result);
   }
 

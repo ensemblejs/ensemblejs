@@ -19,7 +19,7 @@ function genKey (playerId, namespace, key) {
 }
 
 function ClientStateMutator () {
-  const state = theGreatMutator({}, { trackChanges: true });
+  const state = theGreatMutator({}, { trackChanges: false });
 
   define('StateAccess', () => ({
     for: () => ({
