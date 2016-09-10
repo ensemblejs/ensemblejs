@@ -12,7 +12,7 @@ const scenarios = [
   { path: '/saves/something/saves/lol', expected: 'something' },
 ]
 
-describe.only('determine save id from path', () => {
+describe('determine save id from path', () => {
   scenarios.forEach(({path, expected}) => {
     it(`when the path is "${path}" the expected is "${expected}"`, () => {
       expect(determineSaveIdFromPath(path)).toEqual(expected);
