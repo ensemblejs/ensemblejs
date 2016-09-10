@@ -11,7 +11,10 @@ module.exports = {
   modes: ['./build/*.js'],
   less: ['game/**/*.less'],
   seeds: ['game/seeds/**'],
-  src: ['game/js/**'],
+  src: {
+    js: ['game/js/**/*.js'],
+    json: ['game/js/**/*.json']
+  },
   tests: ['tests/**/*.js'],
 
   targets: {

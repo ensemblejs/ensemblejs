@@ -11,6 +11,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var through2 = require('through2');
 var path = require('path');
 var less = require('gulp-less');
+var gulpBabel = require('gulp-babel');
 
 var paths = require('./paths');
 var generateEntrypointFile = require('./util/generate-entrypoint-file');
@@ -84,30 +85,32 @@ function addTasks (gulp) {
     'copy-multi-entry-points', 'copy-single-entry-point', 'copy-device-modes'
   ]);
 
+  var babelConfig = {
+    presets: ['es2015'],
+    plugins: ['transform-object-rest-spread']
+  };
+
+  var browserified = through2.obj(function(file, enc, next) {
+    return browserify({entries: file, debug: isDevelopment()})
+      .transform(require('envify'))
+      .transform(require('babelify'), babelConfig)
+      .transform(require('require-globify'))
+      .transform(require('pugify'), {
+        compileDebug: isDevelopment(),
+        pretty: isDevelopment(),
+        runtimePath: require('pug-runtime')
+      })
+      .bundle(function (err, res) {
+        if (err) {
+          console.error(err.message);
+        }
+
+        file.contents = res;
+        next(null, file);
+      });
+  });
+
   gulp.task('project:build:code', ['project:prep', 'generate-entrypoints'], function() {
-    var browserified = through2.obj(function(file, enc, next) {
-      return browserify({entries: file, debug: isDevelopment()})
-        .transform(require('envify'))
-        .transform(require('babelify'), {
-          presets: ['es2015'],
-          plugins: ['transform-object-rest-spread']
-        })
-        .transform(require('require-globify'))
-        .transform(require('pugify'), {
-          compileDebug: isDevelopment(),
-          pretty: isDevelopment(),
-          runtimePath: require('pug-runtime')
-        })
-        .bundle(function (err, res) {
-          if (err) {
-            console.error(err.message);
-          }
-
-          file.contents = res;
-          next(null, file);
-        });
-    });
-
     var emptyCommonJs = path.join(process.cwd(), 'dist/js/client/common.min.js');
     fs.writeFileSync(emptyCommonJs, '');
 
@@ -138,9 +141,18 @@ function addTasks (gulp) {
       .pipe(gulp.dest(paths.genLocales));
   });
 
-  gulp.task('project:copy-source', ['project:prep'], function () {
-    return gulp.src(paths.src).pipe(gulp.dest('dist/js'));
+  gulp.task('project:copy-json', ['project:prep'], function () {
+    return gulp.src(paths.src.json).pipe(gulp.dest('dist/js'));
+  })
+
+  gulp.task('project:copy-js', ['project:prep'], function () {
+    return gulp.src(paths.src.js)
+      .pipe(plumber({errorHandler: onError}))
+      .pipe(gulpBabel())
+      .pipe(gulp.dest('dist/js'));
   });
+
+  gulp.task('project:copy-source', ['project:copy-js', 'project:copy-json']);
 
   gulp.task('project:copy-seeds', ['project:prep'], function () {
     return gulp.src(paths.seeds).pipe(gulp.dest('dist/seeds'));
