@@ -2,9 +2,7 @@
 
 var ip = require('ip');
 
-export function port () {
-  return process.env.PORT || 3000;
-}
+export const port = () => process.env.PORT || 3000;
 
 export function hostname () {
   if (process.env.NODE_ENV === 'production') {

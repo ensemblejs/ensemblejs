@@ -137,10 +137,10 @@ module.exports = {
       });
 
       each(modes, function eachMode (mode) {
-        io.of('/' + mode + '/primary').on('connection', setupPlayableClient);
-        io.of('/' + mode + '/observer').on('connection', setupNonPlayableClient);
-        io.of('/' + mode + '/gamepad').on('connection', setupVirtualGamepad);
-        io.of('/' + mode + '/mobile').on('connection', setupVirtualGamepad);
+        io.of(`/${mode}/primary`).on('connection', setupPlayableClient);
+        io.of(`/${mode}/observer`).on('connection', setupNonPlayableClient);
+        io.of(`/${mode}/gamepad`).on('connection', setupVirtualGamepad);
+        io.of(`/${mode}/mobile`).on('connection', setupVirtualGamepad);
       });
     }
 

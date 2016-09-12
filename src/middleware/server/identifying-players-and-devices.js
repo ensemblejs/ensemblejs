@@ -9,7 +9,6 @@ import Bluebird from 'bluebird';
 function IdentifyingPlayersAndDevices (define, time) {
   define()('WebServerMiddleware', () => {
     return function determineDeviceId (req, res, next) {
-
       if(!req.sessionID) {
         logger.error({reqId: req.id}, 'Session not found on request.');
         res.status(500).send('Unable to determine device id');
