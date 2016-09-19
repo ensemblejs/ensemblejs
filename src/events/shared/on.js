@@ -7,6 +7,8 @@ var callEachWithMutation = require('../../util/modes').callEachWithMutation;
 var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
 var callForModeWithMutationWithPromises = require('../../util/modes').callForModeWithMutationWithPromises;
 
+import read from 'ok-selector';
+
 module.exports = {
   type: 'On',
   deps: ['StateMutator', 'StateAccess', 'OnInput', 'OnConnect', 'OnDisconnect', 'OnIncomingServerPacket', 'OnClientStart', 'OnError', 'OnOutgoingClientPacket', 'OnPause', 'OnResume', 'OnServerStart', 'OnServerReady', 'OnClientReady', 'OnServerStop', 'OnOutgoingServerPacket', 'OnClientConnect', 'OnClientDisconnect', 'OnNewSave', 'Dimensions', 'OnMute', 'OnUnmute', 'OnClientPlayerId', 'OnIncomingClientInputPacket', 'Player', 'OnPlayerGroupChange', 'OnSaveReady', 'OnDatabaseReady', 'OnLoadSave', 'OnIncomingPeerPacket', 'OnClientDeviceNumber', 'Device', 'OnNewPlayer', 'ApplyPendingMerges', 'OnStateTrackerReady', 'OnSeedInitialState'],
@@ -136,12 +138,12 @@ module.exports = {
       callEachPlugin(onClientDeviceNumber(), [number]);
     }
 
-    function incomingClientInputPacket (packet, save) {
-      if (state().for(save.id).get('ensemble.paused')) {
+    function incomingClientInputPacket (packet, save, socket) {
+      if (read(state().for(save.id), 'ensemble.paused')) {
         return;
       }
 
-      callEachPlugin(onIncomingClientInputPacket(), [packet, save]);
+      callEachPlugin(onIncomingClientInputPacket(), [packet, save, socket]);
     }
 
     function playerGroupChange (players, saveId) {

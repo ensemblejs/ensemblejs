@@ -25,16 +25,17 @@ module.exports = {
   },
 
   framework: {
-    clean: ['public/css/*.css', 'data/db', 'data/logs'],
+    clean: ['public/css/*.css', 'data/db', 'data/logs', 'lib'],
     js: ['ensemble.js', 'src/**/*.js'],
     less: ['src/less/**/*.less'],
-    unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js', '!tests/performance/**/*.js'],
+    unitTests: ['tests/*.js', 'tests/**/*.js', '!tests/integration/**/*.js', '!tests/performance/**/*.js', 'src/**/*-spec.js'],
     integrationTests: ['tests/integration/*.js', 'tests/integration/**/*.js'],
     performanceTests: ['tests/performance/*.js', 'tests/performance/**/*.js'],
-    allTests: ['tests/*.js', 'tests/**/*.js', '!tests/performance/**/*.js'],
+    allTests: ['tests/*.js', 'tests/**/*.js', 'src/**/*-spec.js', '!tests/performance/**/*.js'],
     coveragejs: [
       'ensemble.js',
       'src/**/*.js',
+      '!src/**/*-spec.js',
       '!src/debug/**/*.js',
       '!src/metrics/**/*.js',
       '!src/logging/**/*.js'

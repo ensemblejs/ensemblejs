@@ -1,30 +1,29 @@
 'use strict';
 
-var sinon = require('sinon');
-var expect = require('expect');
-var makeTestible = require('../../support').makeTestible;
-var fakeOn = require('../../fake/on');
-var each = require('lodash');
-var logger = require('../../fake/logger');
-var fakeTime = require('../../fake/time').at(1000);
+const sinon = require('sinon');
+const expect = require('expect');
+const makeTestible = require('../../support').makeTestible;
+const fakeOn = require('../../fake/on');
+const each = require('lodash');
+const logger = require('../../fake/logger');
+const fakeTime = require('../../fake/time').at(1000);
 
-let saveState = {hi: 'there'};
+const saveState = {hi: 'there'};
 
 describe('the state pusher', function () {
-  var start;
+  let start;
   let setFixedInterval;
 
   beforeEach(() => {
     setFixedInterval = sinon.spy();
 
-    var module = makeTestible('state/server/state-pusher', {
+    const module = makeTestible('state/server/state-pusher', {
       RawStateAccess: {
         for: () => saveState,
         snapshot: () => saveState,
         flush: () => [1, 3, 2]
       },
       Logger: logger,
-      LowestInputProcessed: sinon.spy(),
       On: fakeOn,
       Time: fakeTime
     }, {
@@ -43,11 +42,11 @@ describe('the state pusher', function () {
   });
 
   describe('on start', () => {
-    var socket = {
+    const socket = {
       id: 1,
       emit: sinon.spy()
     };
-    var save = {};
+    const save = {};
 
     beforeEach(() => {
       socket.emit.reset();
@@ -64,7 +63,7 @@ describe('the state pusher', function () {
     });
 
     describe('on state push', function () {
-      var push;
+      let push;
 
       beforeEach(() => {
         push = setFixedInterval.firstCall.args[0];
@@ -80,7 +79,7 @@ describe('the state pusher', function () {
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
           id: 2,
-          highestProcessedMessage: undefined,
+          highestProcessedMessage: { packetId: 0, frameId: 0 },
           timestamp: 1000,
           measure: 1000,
           changeDeltas: [1, 3, 2]

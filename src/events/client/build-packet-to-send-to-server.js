@@ -6,7 +6,7 @@ import {isArray} from '../../util/is';
 import {join} from '../../util/array';
 import read from 'ok-selector';
 
-var sequence = require('distributedlife-sequence');
+const sequence = require('distributedlife-sequence');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
@@ -16,21 +16,18 @@ module.exports = {
     let playerId;
     let deviceNumber;
 
-    function mergeArrays (a, b) {
-      return isArray(a) ? join(a, b) : undefined;
-    }
-
-    function paused (state) { return read(state, 'ensemble.paused'); }
+    const mergeArrays = (a, b) => isArray(a) ? join(a, b) : undefined;
+    const paused = (state) => read(state, 'ensemble.paused');
 
     function buildPacket () {
       if (currentState().get(paused)) {
         return null;
       }
 
-      let packet = {
+      const packet = {
         id: sequence.next('client-input'),
-        deviceNumber: deviceNumber,
-        playerId: playerId,
+        deviceNumber,
+        playerId,
         timestamp: time().present(),
         clientFrame: frameStore().current().id,
         pendingAcks: clientAcknowledgements().flush()
@@ -38,7 +35,7 @@ module.exports = {
 
       const getCurrentState = inputCaptureMethods();
       for(let i = 0; i < getCurrentState.length; i += 1) {
-        let state = getCurrentState[i]();
+        const state = getCurrentState[i]();
         if (state.receivedInput) {
           merge(packet, state, mergeArrays);
         }
@@ -48,7 +45,7 @@ module.exports = {
     }
 
     function buildPacketToSendToServer () {
-      var packet = buildPacket();
+      const packet = buildPacket();
       if (packet) {
         on().outgoingClientPacket(packet);
       }

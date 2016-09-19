@@ -1,33 +1,33 @@
 'use strict';
 
-var each = require('lodash').each;
-var filter = require('lodash').filter;
-var reject = require('lodash').reject;
-var last = require('lodash').last;
-var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
+import each from 'lodash/each';
+import filter from 'lodash/filter';
+import reject from 'lodash/reject';
+import last from 'lodash/last';
 
-var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
-var parseMouse = require('../../util/input-common').parseMouse;
-var parseTouches = require('../../util/input-common').parseTouches;
-var parseSticks = require('../../util/input-common').parseSticks;
+const filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
+const parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
+const parseMouse = require('../../util/input-common').parseMouse;
+const parseTouches = require('../../util/input-common').parseTouches;
+const parseSticks = require('../../util/input-common').parseSticks;
+const logger = require('../../logging/server/logger').logger;
 
-var logger = require('../../logging/server/logger').logger;
 import read from 'ok-selector';
+import { update as updateTrackingDeviceInputReceived } from '../../util/tracking-device-input-received';
 
 module.exports = {
 	type: 'ProcessPendingInput',
 	deps: ['ActionMap', 'DefinePlugin', 'StateMutator'],
 	func: function Server (actionMaps, define, mutate) {
-		var userInput = [];
-		var lowestInputProcessed = {};
+		const userInput = [];
 
 		define()('BeforePhysicsFrame', function ProcessPendingInputServer () {
 
 			return function processPendingInput (Δ, state) {
-				var currentInput;
-				var somethingHasReceivedInput;
-				var data;
-				var waitingForPlayers = read(state, 'ensemble.waitingForPlayers');
+				let currentInput;
+				let somethingHasReceivedInput;
+				let data;
+				const waitingForPlayers = read(state, 'ensemble.waitingForPlayers');
 
 				function keyAndKeypressCallback(target, noEventKey, inputData) {
 					somethingHasReceivedInput.push(noEventKey);
@@ -49,9 +49,9 @@ module.exports = {
 				}
 
 				function runNoInputHandlers(actionMapDefinition) {
-					var actionMap = last(actionMapDefinition);
+					const actionMap = last(actionMapDefinition);
 
-					var suitableActions = reject(actionMap.nothing, 'ack');
+					let suitableActions = reject(actionMap.nothing, 'ack');
 					if (waitingForPlayers) {
 						suitableActions = filter(suitableActions, 'whenWaiting');
 					}
@@ -76,7 +76,7 @@ module.exports = {
 							return;
 						}
 
-						logger.debug({key: key}, 'ActionMap called');
+						logger.debug({ key }, 'ActionMap called');
 
 						mutate()(
 							input.save.id,
@@ -85,8 +85,8 @@ module.exports = {
 					};
 				}
 
-				var lengthOfInputStackAtStart = userInput.length;
-				for (var i = 0; i < lengthOfInputStackAtStart; i += 1) {
+				const lengthOfInputStackAtStart = userInput.length;
+				for (let i = 0; i < lengthOfInputStackAtStart; i += 1) {
 					currentInput = userInput.shift();
 					if (currentInput === undefined) {
 						return;
@@ -104,35 +104,22 @@ module.exports = {
 					parseSticks(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(stickCallback));
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
 
-					var forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
+					const forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 
-					lowestInputProcessed[currentInput.save.id] = currentInput.rawData.clientFrame;
-				}
-			};
-		});
-
-		define()('LowestInputProcessed', function LowestInputProcessed () {
-			return function getFor (saveId) {
-				return lowestInputProcessed[saveId] || 0;
-			};
-		});
-
-		define()('InternalState', function () {
-			return {
-				OnInput: {
-					queueLength: function () { return userInput.length; }
+					updateTrackingDeviceInputReceived(currentInput.save.id, currentInput.deviceId, currentInput.rawData.id, currentInput.rawData.clientFrame);
 				}
 			};
 		});
 
 		define()('OnInput', function ProcessPendingInput () {
-			return function handle(packet, timestamp, save) {
+			return function handle(packet, save) {
 				userInput.push({
 					rawData: packet,
 					playerId: packet.playerId,
-					timestamp: timestamp,
-					save: save
+					deviceId: packet.deviceId,
+					timestamp: packet.timestamp,
+					save
 				});
 			};
 		});

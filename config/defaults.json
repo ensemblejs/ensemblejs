@@ -46,7 +46,6 @@
       "Config",
       "CurrentState",
       "SavesList",
-      "LowestInputProcessed",
       "On",
       "OnIncomingClientInputPacket",
       "OnInput",

@@ -42,11 +42,16 @@ module.exports = {
 
     const current = () => last(frames);
 
-    function dropFrames (highestProcessedMessage) {
-      const free = frames.filter((frame) => frame.id <= highestProcessedMessage);
+    function dropFrames (highest) {
+      const free = frames.filter((frame) => frame.id <= highest.frameId);
       free.forEach((frame) => pool.free(frame));
 
-      frames = frames.filter((frame) => frame.id > highestProcessedMessage);
+      frames = frames
+        .filter((frame) => frame.id > highest.frameId)
+        .map((frame) => ({
+          ...frame,
+          input: frame.input.filter(((packet) => packet.id > highest.packetId))
+        }))
     }
 
     function resetCache () {
@@ -121,6 +126,7 @@ module.exports = {
     define()('OnSeedInitialState', OnSeedInitialState);
     define()('OnIncomingServerPacket', OnIncomingServerPacket);
     define()('OnOutgoingClientPacket', HandlePacketLocally);
+    define()('OnIncomingPeerPacket', HandlePacketLocally);
 
     return { process, current, reset };
   }

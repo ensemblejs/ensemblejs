@@ -50,7 +50,6 @@ var sut = makeTestible('core/server/socket-server', {
 		}
 	},
 	Logger: logger,
-	LowestInputProcessed: sinon.spy(),
 	On: fakeOn,
 	Time: fakeTime,
 	SavesList: {

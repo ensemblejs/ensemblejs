@@ -17,7 +17,7 @@ function addTasks (gulp) {
 
   gulp.task('framework:clean', ['framework:delete-paths']);
 
-  gulp.task('tidydeps', function (done) {
+  gulp.task('tidydeps', function () {
     del([
       'node_modules/**/doc',
       'node_modules/**/docs',
