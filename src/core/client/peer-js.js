@@ -26,7 +26,7 @@ function reconnectToBroker () {
 
 function OnClientReady (eventRouter, SaveId, config) {
   function handleIncomingPacketFromPeer (packet) {
-    debug({packet: packet}, 'received data from peer');
+    debug({packet}, 'received data from peer');
 
     eventRouter().incomingPeerPacket(packet);
   }
@@ -48,7 +48,7 @@ function OnClientReady (eventRouter, SaveId, config) {
       deviceNumber: deviceNumber
     };
 
-    info({peerId: peerId}, 'Attempting to connect to peer');
+    info({peerId}, 'Attempting to connect to peer');
 
     var connection = peer.connect(peerId, {metadata: metadata});
     connections.push(connection);
@@ -65,14 +65,14 @@ function OnClientReady (eventRouter, SaveId, config) {
 
     let myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
 
-    info({myPeerId: myPeerId}, 'Opening connection to PeerJS Broker');
+    info({myPeerId}, 'Opening connection to PeerJS Broker');
 
     peer = new Peer(myPeerId, {
       key: process.env.PEERJS_KEY,
       debug: config().peerjs.debugLevel
     });
     peer.on('open', function confirmMyId(id) {
-      info({id: id}, 'Connected to PeerJS Broker.');
+      info({id}, 'Connected to PeerJS Broker.');
     });
 
     peer.on('connection', handleIncomingConnections);
@@ -83,9 +83,9 @@ function OnClientReady (eventRouter, SaveId, config) {
 
     peer.on('error', err => {
       if (err.type === 'peer-unavailable') {
-        info({err: err}, 'Could not connect to peer. Probably because we do not reuse peer-ids and have a really simple strategy for connecting to a bunch of peers. Error information supplied.');
+        info({err}, 'Could not connect to peer. Probably because we do not reuse peer-ids and have a really simple strategy for connecting to a bunch of peers. Error information supplied.');
       } else {
-        error({err: err}, 'PeerJS error.');
+        error({err}, 'PeerJS error.');
       }
     });
 

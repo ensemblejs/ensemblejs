@@ -47,13 +47,13 @@ module.exports = {
           window().location.replace('/saves/' + saveId + '/full');
         }
 
-        logger.info({playerNumber: playerNumber}, 'Assigned player number');
+        logger.info({playerNumber}, 'Assigned player number');
 
         on().clientPlayerId(playerNumber);
       });
 
       socket.on('deviceNumber', function savePlayerId (deviceNumber) {
-        logger.info({deviceNumber: deviceNumber}, 'Assigned device number');
+        logger.info({deviceNumber}, 'Assigned device number');
 
         on().clientDeviceNumber(deviceNumber);
       });

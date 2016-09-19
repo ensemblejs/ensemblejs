@@ -12,12 +12,8 @@ module.exports = {
       };
     });
 
-    function number () {
-      return deviceNumber;
-    }
-
     return {
-      number: number
+      number: () => deviceNumber
     };
   }
 };

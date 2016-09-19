@@ -1,6 +1,7 @@
 'use strict';
 
-import {byPlayer as p} from '../../util/scope';
+import read from 'ok-selector';
+import bel from 'bel';
 
 function PlayerStateSeed (config) {
   return function seedHudState () {
@@ -41,8 +42,7 @@ function OnClientReady ($, anchorAction, tracker) {
   return function setup (dims, playerId) {
     let icon = require('../../../public/partials/debug/debug-icon.pug');
     $()('.icons').append(icon({action: 'open-hud'}));
-
-    $()('#debug').append(icon({action: 'close-hud'}));
+    $()('#debug').append(icon({action: 'close-hud'}));;
     $()('#debug #debug-spanner').addClass('inverted');
     $()('#debug #debug-cog').addClass('inverted');
 
@@ -50,14 +50,15 @@ function OnClientReady ($, anchorAction, tracker) {
 
     anchorAction().add($()('.debug-icon'));
 
-    tracker().onChangeTo(p(playerId, 'ensembleDebug.hudVisible'), true, show);
-    tracker().onChangeTo(p(playerId, 'ensembleDebug.hudVisible'), false, hide);
+    tracker().onChangeTo(`players:${playerId}.ensembleDebug.hudVisible`, true, show);
+    tracker().onChangeTo(`players:${playerId}.ensembleDebug.hudVisible`, false, hide);
   };
 }
 
+const toggle = (current) => !current;
+
 function toggleHud (state, input, data) {
-  const current = state.get(p(data.playerId, 'ensembleDebug.hudVisible'));
-  return [p(data.playerId, 'ensembleDebug.hudVisible'), !current];
+  return [`players:${data.playerId}.ensembleDebug.hudVisible`, toggle];
 }
 
 function ActionMap () {

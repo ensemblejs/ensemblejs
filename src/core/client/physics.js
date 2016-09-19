@@ -1,11 +1,12 @@
 'use strict';
 
-var callEachPlugin = require('../../util/modes').callEachPlugin;
-var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
-var callEachWithMutation = require('../../util/modes').callEachWithMutation;
+const callEachPlugin = require('../../util/modes').callEachPlugin;
+const callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
+const callEachWithMutation = require('../../util/modes').callEachWithMutation;
 const setFixedInterval = require('fixed-setinterval');
 
 import define from '../../define';
+import read from 'ok-selector';
 
 module.exports = {
   type: 'OnClientReady',
@@ -15,7 +16,7 @@ module.exports = {
     let t0 = time().precise();
 
     const save = { id: 'client', mode: mode() };
-    const paused = state => state.get('ensemble').get('paused');
+    const paused = (state) => read(state, 'ensemble.paused');
 
     function doPaused(t1) {
       t0 = t1;
@@ -29,7 +30,7 @@ module.exports = {
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
-      if (!state.get('ensemble').get('waitingForPlayers')) {
+      if (!read(state, 'ensemble.waitingForPlayers')) {
         callForModeWithMutation(onFrame(), mutator, save, opts);
       }
     }
@@ -42,7 +43,7 @@ module.exports = {
       t0 = t1;
 
       while(accumulator >= frameLength) {
-        frameStore().process(frameLength / 1000, onEachFrame);
+        frameStore().process(frameLength, onEachFrame);
         accumulator -= frameLength;
       }
     }
@@ -70,19 +71,11 @@ module.exports = {
     let ids = [];
     define('OnDisconnect', function OnDisconnect () {
       return function stopPhysicsLoop () {
-        ids.forEach(cancel => cancel());
+        ids.forEach((cancel) => cancel());
 
         frameStore().reset();
 
         ids = [];
-      };
-    });
-
-    define('InternalState', function InternalState () {
-      return {
-        PhysicsLoop: {
-          now: () => time().present()
-        }
       };
     });
 

@@ -22,7 +22,7 @@
     "perf": "NODE_ENV=test gulp framework:test:perf",
     "karma-perf": "karma start perf.conf.js",
     "int": "NODE_ENV=test gulp framework:test:integration",
-    "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files",
+    "convert": "babel src --out-dir lib --sourceMaps inline --comments --copy-files --ignore spec.js",
     "prepublish": "npm run build && npm run convert",
     "coverage": "codecov"
   },
@@ -88,6 +88,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "babel-register": "^6.8.0",
     "babelify": "^7.2.0",
+    "bel": "^4.4.3",
     "bitly": "^4.1.1",
     "bluebird": "^3.4.4",
     "body-parser": "^1.15.1",

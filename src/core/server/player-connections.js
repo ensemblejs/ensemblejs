@@ -3,10 +3,10 @@
 import {map, filter, first, each, reject, isNull} from 'lodash';
 import Bluebird from 'bluebird';
 
-var playersStore = require('../../util/models/players');
-var logger = require('../../logging/server/logger').logger;
-var config = require('../../util/config');
-var Address6 = require('ip-address').Address6;
+const playersStore = require('../../util/models/players');
+const logger = require('../../logging/server/logger').logger;
+const config = require('../../util/config');
+const Address6 = require('ip-address').Address6;
 
 const dead = 'dead';
 
@@ -14,18 +14,18 @@ module.exports = {
   type: 'PlayerConnections',
   deps: ['DefinePlugin', 'On', 'StatePusher'],
   func: function PlayerConnections (define, on, statePusher) {
-    var connections = [];
+    const connections = [];
 
     function filterBySaveAnPlayer (saveId, playerId) {
-      return filter(connections, {saveId: saveId, playerId: playerId});
+      return filter(connections, { saveId, playerId});
     }
 
     function connectedPlayers (saveId) {
-      return filter(connections, { saveId: saveId, status: 'online' });
+      return filter(connections, { saveId, status: 'online' });
     }
 
     function savePlayers (saveId) {
-      return filter(connections, { saveId: saveId });
+      return filter(connections, { saveId });
     }
 
     function exists (saveId, playerId) {
@@ -37,14 +37,14 @@ module.exports = {
     }
 
     function add (maxPlayers, save, playerId) {
-      var inSave = filter(connections, {saveId: save.id});
+      const inSave = filter(connections, {saveId: save.id});
       if (inSave.length === maxPlayers) {
         return;
       }
 
-      let connection = {
+      const connection = {
         saveId: save.id,
-        playerId: playerId,
+        playerId,
         devices: [],
         status: 'online',
         number: inSave.length + 1,
@@ -61,13 +61,13 @@ module.exports = {
     }
 
     function markPlayerAsOnline (saveId, playerId) {
-      var connection = get(saveId, playerId);
+      const connection = get(saveId, playerId);
       connection.status = 'online';
     }
 
     //Move to utility function
     function onSameSubnet (ipAddresses) {
-      var anyFailures = false;
+      let anyFailures = false;
 
       each(ipAddresses, function (a) {
         if (anyFailures) {
@@ -95,7 +95,7 @@ module.exports = {
         markPlayerAsOnline(save.id, playerId);
       }
 
-      var connection = get(save.id, playerId);
+      const connection = get(save.id, playerId);
       if (!connection) {
         return undefined;
       }
@@ -108,7 +108,7 @@ module.exports = {
     }
 
     function getPlayers (save) {
-      var players = map(savePlayers(save.id), function (connection) {
+      const players = map(savePlayers(save.id), function (connection) {
         return {
           number: connection.number,
           status: connection.status,
@@ -118,8 +118,8 @@ module.exports = {
         };
       });
 
-      var maxPlayers = config.get().maxPlayers(save.mode);
-      for (var i = players.length + 1; i <= maxPlayers; i += 1) {
+      const maxPlayers = config.get().maxPlayers(save.mode);
+      for (let i = players.length + 1; i <= maxPlayers; i++) {
         players.push(
           {number: i, status: 'not-joined', devices: [], onSameSubnet: true}
         );
@@ -173,10 +173,10 @@ module.exports = {
       return reject(map(devices, 'ip'), isNull);
     }
 
-    define()('OnClientConnect', function PlayerConnections () {
+    define()('OnClientConnect', function OnClientConnect () {
       return function determinePlayerNumber (state, socket, save) {
-        var deviceId = socket.request.sessionID;
-        var ipAddress = new Address6(socket.client.conn.remoteAddress);
+        const deviceId = socket.request.sessionID;
+        const ipAddress = new Address6(socket.client.conn.remoteAddress);
 
         function updateWaitingForPlayers () {
           return [
@@ -188,19 +188,19 @@ module.exports = {
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
-          .then(player => addPlayer(save, player.id))
-          .then(player => {
+          .then((player) => addPlayer(save, player.id))
+          .then((player) => {
             player.devices.push({id: deviceId, ip: ipAddress});
             player.onSameSubnet = onSameSubnet(validIpAddresses(player.devices));
 
             socket.emit('playerNumber', player.number);
             socket.emit('deviceNumber', player.devices.length);
           })
-          .then(() => statePusher().start(save, socket))
+          .then(() => statePusher().start(save, socket, deviceId))
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
-          .catch(err => {
-            logger.error({deviceId: deviceId, save: save}, err);
+          .catch((err) => {
+            logger.error({deviceId, save}, err);
             socket.emit('error', err);
             return updateWaitingForPlayers();
           });
@@ -208,18 +208,18 @@ module.exports = {
     });
 
     function markDeviceSlotAsDead (devices, deviceId) {
-      return map(devices, device => {
+      return map(devices, (device) => {
         if (device.id === deviceId) {
           return { id: dead, ip: null};
-        } else {
-          return device;
         }
+
+        return device;
       });
     }
 
-    define()('OnClientDisconnect', function PlayerConnections () {
+    define()('OnClientDisconnect', function OnClientDisconnect () {
       return function indicatePlayerAsDisconnected (state, socket, save) {
-        var deviceId = socket.request.sessionID;
+        const deviceId = socket.request.sessionID;
 
         function updateWaitingForPlayers () {
           return [
@@ -230,9 +230,9 @@ module.exports = {
         return playersStore.getByDevice(deviceId)
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
-          .then(player => get(save.id, player.id))
+          .then((player) => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
-          .then(connection => {
+          .then((connection) => {
             connection.devices = markDeviceSlotAsDead(connection.devices, deviceId);
 
             connection.onSameSubnet = onSameSubnet(validIpAddresses(connection.devices));
@@ -242,16 +242,13 @@ module.exports = {
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
-          .catch(err => {
-            logger.error({deviceId: deviceId, save: save}, err);
+          .catch((err) => {
+            logger.error({deviceId, save}, err);
             return updateWaitingForPlayers();
           });
       };
     });
 
-    return {
-      connectedCount: connectedCount,
-      onlineCount: onlineCount
-    };
+    return { connectedCount, onlineCount };
   }
 };

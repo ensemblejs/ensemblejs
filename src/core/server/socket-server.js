@@ -78,7 +78,7 @@ module.exports = {
         function publishPause () { on().pause(save); }
         function publishUnpause () { on().resume(save); }
         function error (data) { on().error(data); }
-        function publishInput (packet) { on().incomingClientInputPacket(packet, save); }
+        function publishInput (packet) { on().incomingClientInputPacket(packet, save, socket); }
 
         socket.on('disconnect', publishDisconnect);
         socket.on('disconnect', publishPause);
@@ -99,7 +99,8 @@ module.exports = {
       var socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
-        address: socket.handshake.address
+        address: socket.handshake.address,
+        deviceId: socket.request.sessionID
       };
       logger.info(socketInfo, 'Socket Connected');
 
@@ -115,7 +116,7 @@ module.exports = {
         function publishPause () { on().pause(save); }
         function publishUnpause () { on().resume(save); }
         function error (data) { on().error(data);}
-        function publishInput (packet) { on().incomingClientInputPacket(packet, save); }
+        function publishInput (packet) { on().incomingClientInputPacket(packet, save, socketInfo.deviceId); }
 
         socket.on('disconnect', publishDisconnect);
         socket.on('disconnect', publishPause);

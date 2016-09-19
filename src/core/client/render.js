@@ -26,7 +26,7 @@ module.exports = {
       const Δ = (now - priorStep) / 1000;
       priorStep = time().present();
 
-      onRenderFrame().forEach(frame => frame(Δ));
+      onRenderFrame().forEach((frame) => frame(Δ));
     }
 
     function step () {

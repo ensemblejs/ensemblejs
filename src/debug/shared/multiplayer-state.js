@@ -1,7 +1,6 @@
 'use strict';
 
 import {execute} from 'royal-sampler';
-import {map} from 'lodash';
 import read from 'ok-selector';
 
 let playerNumber;
@@ -16,11 +15,11 @@ function OnClientReady (tracker, $) {
   function addPlayer (id, player, cell) {
     $()('#debug').append(cell({
       id: `player-${id}`,
-      title: `Player ${player.get('number')}`,
-      value: player.get('status'),
-      devices: player.get('devices').get('length'),
-      differentSubnet: player.get('onSameSubnet') ? '' : '*',
-      toPlayer: id === playerNumber ? undefined : player.get('playerId')
+      title: `Player ${read(player, 'number')}`,
+      value: read(player, 'status'),
+      devices: read(player, 'devices.length'),
+      differentSubnet: read(player, 'onSameSubnet') ? '' : '*',
+      toPlayer: id === playerNumber ? undefined : read(player, 'playerId')
     }));
 
     if (playerNumber && id === playerNumber) {
@@ -72,7 +71,7 @@ function StateSeed () {
 
 function OnPlayerGroupChange () {
   return function updatePlayerList (players) {
-    lastKnownPlayerGroup = map(players, (player) => {
+    lastKnownPlayerGroup = players.map((player) => {
       player.id = player.number;
       return player;
     });
@@ -95,19 +94,18 @@ function BeforePhysicsFrame () {
   return execute(refreshPlayerList).every(1).second();
 }
 
+const increment = (current) => current + 1;
+const decrement = (current) => current - 1;
+
 function OnClientConnect () {
-  return function incrementPlayerCount (state) {
-    return [
-      'ensembleDebug.playerCount', read(state, 'ensembleDebug.playerCount') + 1
-    ];
+  return function incrementPlayerCount () {
+    return ['ensembleDebug.playerCount', increment];
   };
 }
 
 function OnClientDisconnect () {
-  return function decrementPlayerCount (state) {
-    return [
-      'ensembleDebug.playerCount', read(state, 'ensembleDebug.playerCount') - 1
-    ];
+  return function decrementPlayerCount () {
+    return ['ensembleDebug.playerCount', decrement];
   };
 }
 
