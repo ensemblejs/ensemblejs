@@ -83,7 +83,8 @@
     "network": false,
     "startOpen": false,
     "time": false,
-    "gamepad": false
+    "gamepad": false,
+    "everybodyIsPlayerOne": false
   },
   "peerjs": {
     "debugLevel": 0

@@ -9,37 +9,39 @@ import * as fakeTime from '../../../fake/time';
 import {getById, getByDevice} from '../../../../src/util/models/players';
 import {bootstrap, strapboot} from 'ensemblejs-couch-bootstrap';
 
-let time = fakeTime.at(323);
-var uuid = {
+const time = fakeTime.at(323);
+const uuid = {
   gen: () => { return 'p1234'; }
+};
+
+const config = {
+  debug: {
+    everybodyIsPlayerOne: false
+  }
 };
 
 describe('identifying the player', function () {
   let determinePlayerId;
 
-  beforeEach(done => {
-    let middleware = makeTestible('middleware/server/identifying-players-and-devices', {
-        Time: time
+  beforeEach((done) => {
+    const middleware = makeTestible('middleware/server/identifying-players-and-devices', {
+      Time: time
     });
 
-    determinePlayerId = middleware[1].WebServerMiddleware[1](defer(uuid));
+    determinePlayerId = middleware[1].WebServerMiddleware[1](defer(uuid), defer(config));
 
     bootstrap(database).finally(() => done());
   });
 
-  afterEach(done => {
+  afterEach((done) => {
     strapboot(database).finally(() => done());
   });
 
   describe('when there is no device id', function () {
-    let req = { device: {}};
-    let send = sinon.spy();
-    let res = {
-      status: function() {
-        return {
-          send: send
-        };
-      }
+    const req = { device: {}};
+    const send = sinon.spy();
+    const res = {
+      status: () => ({ send })
     };
 
     beforeEach( () => {
@@ -70,28 +72,28 @@ describe('identifying the player', function () {
     let req = { device: {id: 'd1234'} };
 
     describe('when the device is not associated with any player', function () {
-      let res = {};
+      const res = {};
 
-      it('should create a new player', done => {
+      it('should create a new player', (done) => {
         determinePlayerId(req, res, () => {
           getById('p1234')
-            .then(player => { expect(player.id).toEqual('p1234'); })
-            .then(done).catch(done);
+            .then((player) => { expect(player.id).toEqual('p1234'); })
+            .then(() => done()).catch(done);
         });
       });
 
-      it('should associate the player and the device', done => {
+      it('should associate the player and the device', (done) => {
         determinePlayerId(req, res, () => {
           getByDevice('d1234')
-            .then(players => {
+            .then((players) => {
               expect(players.length).toEqual(1);
               expect(players[0].id).toEqual('p1234');
             })
-            .then(done).catch(done);
+            .then(() => done()).catch(done);
         });
       });
 
-      it('should set the player on the request', done => {
+      it('should set the player on the request', (done) => {
         determinePlayerId(req, res, () => {
           expect(req.player.id).toEqual('p1234');
           expect(req.player.deviceIds).toEqual(['d1234']);
@@ -102,10 +104,10 @@ describe('identifying the player', function () {
     });
 
     describe('when the device is associated with a player', function () {
-      let req = { device: {id: 'd1234'} };
-      let res = {};
+      req = { device: {id: 'd1234'} };
+      const res = {};
 
-      beforeEach(done => {
+      beforeEach((done) => {
         database.store('devices', { id: 'd1234' })
         .then(() => { database.store('players', {
           id: 'p1234', deviceIds: ['d1234']
@@ -113,7 +115,7 @@ describe('identifying the player', function () {
         .then(() => { done(); });
       });
 
-      it('should set the player on the request', done => {
+      it('should set the player on the request', (done) => {
         determinePlayerId(req, res, () => {
           expect(req.player.id).toEqual('p1234');
           expect(req.player.deviceIds).toEqual(['d1234']);
@@ -123,17 +125,13 @@ describe('identifying the player', function () {
     });
 
     describe('when the device is associated with more than one player', function () {
-      let req = { device: {id: 'd1234'} };
-      let send = sinon.spy();
-      let res = {
-        status: function() {
-          return {
-            send: send
-          };
-        }
+      req = { device: {id: 'd1234'} };
+      const send = sinon.spy();
+      const res = {
+        status: () => ({ send })
       };
 
-      beforeEach(done => {
+      beforeEach((done) => {
         sinon.spy(res, 'status');
         sinon.spy(logger, 'error');
 
@@ -166,4 +164,68 @@ describe('identifying the player', function () {
       });
     });
   });
+
+  describe('when everybodyIsPlayerOne is true', () => {
+    const send = sinon.spy();
+    const res = {
+      status: () => ({ send })
+    };
+
+    beforeEach(() => {
+      config.debug.everybodyIsPlayerOne = true;
+    });
+
+    afterEach(() => {
+      config.debug.everybodyIsPlayerOne = false;
+    });
+
+    describe('when there is already another player', () => {
+      const req = { device: {id: 'd1234'} };
+
+      beforeEach((done) => {
+        sinon.spy(res, 'status');
+        sinon.spy(logger, 'error');
+
+        database.store('devices', { id: 'd5678' })
+        .then(() => database.store('players', { id: 'p5678', deviceIds: ['d5678'] }))
+        .then(() => done()).catch(done);
+      });
+
+      afterEach(() => {
+        res.status.restore();
+        logger.error.restore();
+      });
+
+      it('forces this player to player 1', (done) => {
+        determinePlayerId(req, res, () => {
+          getByDevice('d1234')
+            .then((players) => {
+              expect(players.length).toEqual(1);
+              expect(players[0].id).toEqual('p5678');
+            })
+            .then(() => done()).catch(done);
+        });
+      });
+
+      it('should associate the player and the device', (done) => {
+        determinePlayerId(req, res, () => {
+          getByDevice('d1234')
+            .then((players) => {
+              expect(players.length).toEqual(1);
+              expect(players[0].id).toEqual('p5678');
+            })
+            .then(() => done()).catch(done);
+        });
+      });
+
+      it('should set the player on the request', (done) => {
+        determinePlayerId(req, res, () => {
+          expect(req.player.id).toEqual('p5678');
+          expect(req.player.deviceIds).toEqual(['d1234']);
+          expect(req.player.updated).toEqual(323);
+          done();
+        }).catch(done);
+      });
+    })
+  })
 });

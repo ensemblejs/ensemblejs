@@ -7,6 +7,10 @@ import {map, remove} from 'lodash';
 
 const collection = 'players';
 
+export function getAll () {
+  return view(collection, 'all').then((set) => map(set, 'value'));
+}
+
 export function getById (playerId) {
   return get(collection, playerId);
 }
