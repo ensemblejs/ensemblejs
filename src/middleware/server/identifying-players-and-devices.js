@@ -18,7 +18,7 @@ function IdentifyingPlayersAndDevices (define, time) {
       function createDeviceIfNoneFound(device) {
         if (!device) {
           return saveDevice({ id: req.sessionID }, time().present())
-            .then(res => getDeviceById(res.id));
+            .then((res2) => getDeviceById(res2.id));
         }
 
         return device;
@@ -26,7 +26,7 @@ function IdentifyingPlayersAndDevices (define, time) {
 
       return getDeviceById(req.sessionID)
         .then(createDeviceIfNoneFound)
-        .then(device => {
+        .then((device) => {
           logger.info(`Connection identified with device: ${device.id}`);
           req.device = device;
         })
@@ -37,8 +37,8 @@ function IdentifyingPlayersAndDevices (define, time) {
   define()('WebServerMiddleware', ['UUID'], (uuid) => {
     function createPlayerAndLinkToDevice (deviceId) {
       return savePlayer({id: uuid().gen(), deviceIds: [deviceId]}, time().present())
-        .then(res => getPlayerById(res.id))
-        .then(player => [player]);
+        .then((res) => getPlayerById(res.id))
+        .then((player) => [player]);
     }
 
     return function determinePlayerId (req, res, next) {
@@ -83,12 +83,12 @@ function IdentifyingPlayersAndDevices (define, time) {
       return getPlayerByDevice(req.device.id)
         .then(createAndLinkToDeviceIfNoPlayers)
         .then(logErrorIfMoreThanOnePlayerAssociatedWithDevice)
-        .then(players => {
+        .then((players) => {
           logger.info(`Connection identified as player: ${first(players).id}`);
           req.player = first(players);
         })
         .then(() => next())
-        .catch(err => res.status(500).send(err));
+        .catch((err) => res.status(500).send(err));
     };
   });
 }

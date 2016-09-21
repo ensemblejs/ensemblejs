@@ -23,7 +23,7 @@
     "array-callback-return": "error",
     "block-scoped-var": "error",
     "complexity": ["error", 10],
-    "consistent-return": ["error"],
+    "consistent-return": ["off"],
     "curly": ["error", "all"],
     "default-case": ["error"],
     "dot-notation": ["error"],
