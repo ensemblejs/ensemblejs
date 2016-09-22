@@ -1,15 +1,14 @@
 'use strict';
 
 import {on} from '../../';
-import {each} from 'lodash';
 
-let Peer = require('peerjs');
-let debug = require('../../logging/client/logger').logger.debug;
-let info = require('../../logging/client/logger').logger.info;
-let error = require('../../logging/client/logger').logger.error;
+const Peer = require('peerjs');
+const debug = require('../../logging/client/logger').logger.debug;
+const info = require('../../logging/client/logger').logger.info;
+const error = require('../../logging/client/logger').logger.error;
 
 let peer;
-let connections = [];
+const connections = [];
 
 function getPeerId (saveId, playerNumber, deviceNumber) {
   return `${saveId}-${playerNumber}-${deviceNumber}`;
@@ -40,17 +39,13 @@ function OnClientReady (eventRouter, SaveId, config) {
   }
 
   function connectToPeer (saveId, playerNumber, deviceNumber) {
-    let peerId = getPeerId(saveId, playerNumber, deviceNumber);
+    const peerId = getPeerId(saveId, playerNumber, deviceNumber);
 
-    let metadata = {
-      saveId: saveId,
-      playerNumber: playerNumber,
-      deviceNumber: deviceNumber
-    };
+    const metadata = { saveId, playerNumber, deviceNumber };
 
-    info({peerId}, 'Attempting to connect to peer');
+    info({ peerId }, 'Attempting to connect to peer');
 
-    var connection = peer.connect(peerId, {metadata: metadata});
+    const connection = peer.connect(peerId, { metadata });
     connections.push(connection);
 
     connection.on('open', function() {
@@ -63,7 +58,7 @@ function OnClientReady (eventRouter, SaveId, config) {
       return;
     }
 
-    let myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
+    const myPeerId = getPeerId(SaveId(), playerNumber, deviceNumber);
 
     info({myPeerId}, 'Opening connection to PeerJS Broker');
 
@@ -81,7 +76,7 @@ function OnClientReady (eventRouter, SaveId, config) {
       reconnectToBroker();
     });
 
-    peer.on('error', err => {
+    peer.on('error', (err) => {
       if (err.type === 'peer-unavailable') {
         info({err}, 'Could not connect to peer. Probably because we do not reuse peer-ids and have a really simple strategy for connecting to a bunch of peers. Error information supplied.');
       } else {
@@ -96,12 +91,12 @@ function OnClientReady (eventRouter, SaveId, config) {
 }
 
 function OnOutgoingClientPacket (config) {
-  return function putPacketOntoInputQueue (packet) {
+  return function sendPacketToPeers (packet) {
     if (!config().client.peerLatencyReduction) {
       return;
     }
 
-    each(connections, connection => connection.send(packet));
+    connections.forEach((connection) => connection.send(packet));
   };
 }
 
