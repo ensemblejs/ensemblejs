@@ -6,7 +6,6 @@ import {last, includes, each} from 'lodash';
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
 import {supportsInput} from '../../util/device-mode';
-const {logger} = require('../../logging/client/logger');
 import read from 'ok-selector';
 import determineSaveIdFromPath from '../../util/determine-save-id-from-path';
 
@@ -47,13 +46,13 @@ module.exports = {
           window().location.replace('/saves/' + saveId + '/full');
         }
 
-        logger.info({playerNumber}, 'Assigned player number');
+        console.info({playerNumber}, 'Assigned player number');
 
         on().clientPlayerId(playerNumber);
       });
 
       socket.on('deviceNumber', function savePlayerId (deviceNumber) {
-        logger.info({deviceNumber}, 'Assigned device number');
+        console.info({deviceNumber}, 'Assigned device number');
 
         on().clientDeviceNumber(deviceNumber);
       });
@@ -67,7 +66,7 @@ module.exports = {
 
 
       socket.on('heartbeat', () => {
-        logger.info('Heartbeat received from server');
+        console.info('Heartbeat received from server');
       });
       function sendHeartbeat () {
         socket.emit('heartbeat');
