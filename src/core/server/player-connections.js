@@ -182,25 +182,42 @@ module.exports = {
           return ['ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)];
         }
 
+        const addDeviceToPlayer = (player) => {
+          const deviceInfo = {id: deviceId, ip: ipAddress, number: player.devices.length + 1 };
+          player.devices.push(deviceInfo);
+
+          return [player, deviceInfo];
+        }
+
+        const notifyClientofPlayerNumber = (player, deviceInfo) => {
+          socket.emit('playerNumber', player.number);
+
+          return [player, deviceInfo];
+        }
+
+        const notifyClientOfDeviceNumber = (player, deviceInfo) => {
+          socket.emit('deviceNumber', deviceInfo.number);
+
+          return [player, deviceInfo.number]
+        }
+
+        const determineIfOnSameSubnet = (player, deviceNumber) => {
+          player.onSameSubnet = onSameSubnet(validIpAddresses(player.devices));
+
+          return [player, deviceNumber]
+        }
+
         return playersStore.getByDevice(deviceId)
           .then(redirectIfNoPlayer)
           .then(redirectIfMoreThanOnePlayer)
           .then(redirectIfPlayerIsNotInSave)
           .then((player) => addPlayer(save, player.id))
-          .then((player) => {
-            player.devices.push({id: deviceId, ip: ipAddress});
-            player.onSameSubnet = onSameSubnet(validIpAddresses(player.devices));
-
-            const playerNumber = player.number;
-            const deviceNumber = player.devices.length;
-
-            socket.emit('playerNumber', playerNumber);
-            socket.emit('deviceNumber', deviceNumber);
-
-            return [playerNumber, deviceNumber];
-          })
-          .spread((playerNumber, deviceNumber) => {
-            statePusher().start(save, socket, playerNumber, deviceNumber)
+          .then(addDeviceToPlayer)
+          .spread(notifyClientofPlayerNumber)
+          .spread(notifyClientOfDeviceNumber)
+          .spread(determineIfOnSameSubnet)
+          .spread((player, deviceNumber) => {
+            statePusher().start(save, socket, player.number, deviceNumber)
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
@@ -236,6 +253,8 @@ module.exports = {
           .then((player) => get(save.id, player.id))
           .then(logErrorIfNoConnectionFound)
           .then((connection) => {
+            const device = connection.devices.find(({id}) => id === deviceId)
+
             connection.devices = markDeviceSlotAsDead(connection.devices, deviceId);
 
             connection.onSameSubnet = onSameSubnet(validIpAddresses(connection.devices));
@@ -243,10 +262,10 @@ module.exports = {
               connection.status = 'offline';
             }
 
-            return connection
+            return [connection, device]
           })
-          .then((connection) => {
-            statePusher().stop(save, connection.playerId, deviceId)
+          .spread((connection, device) => {
+            statePusher().stop(save, connection.number, device.number)
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())

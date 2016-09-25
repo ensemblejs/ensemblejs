@@ -8,7 +8,7 @@ const debug = require('../../logging/client/logger').logger.debug;
 const PEER_UNAVAILABLE = 'peer-unavailable';
 
 let peer;
-const connections = [];
+let connections = [];
 
 const getPeerId = (saveId, PlayerNo, deviceNo) => `${saveId}-${PlayerNo}-${deviceNo}`
 
@@ -35,6 +35,14 @@ function OnClientReady (eventRouter, SaveId, config) {
       connections.push(connection);
 
       connection.on('data', handleIncomingPacketFromPeer);
+      connection.on('error', (err) => {
+        console.error('Peer connection error', err)
+      });
+      connection.on('close', () => {
+        console.info('Peer disconnected', connection);
+
+        connections = connections.filter((c) => c.id !== connection.id);
+      });
     });
   }
 
@@ -50,6 +58,14 @@ function OnClientReady (eventRouter, SaveId, config) {
       connections.push(connection);
 
       connection.on('data', handleIncomingPacketFromPeer);
+      connection.on('error', (err) => {
+        console.error('Peer connection error', err)
+      });
+      connection.on('close', () => {
+        console.info('Peer disconnected', connection);
+
+        connections = connections.filter((c) => c.id !== connection.id);
+      });
     });
   }
 

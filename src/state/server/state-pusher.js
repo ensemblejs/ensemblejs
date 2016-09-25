@@ -1,7 +1,5 @@
 'use strict';
 
-import { each, reject } from 'lodash';
-
 const sequence = require('distributedlife-sequence');
 const config = require('../../util/config');
 const setFixedInterval = require('fixed-setinterval');
@@ -12,7 +10,7 @@ module.exports = {
   type: 'StatePusher',
   deps: ['RawStateAccess', 'On', 'DefinePlugin', 'Time'],
   func: function StatePusher (rawStateAccess, on, define, time) {
-    let intervals = [];
+    const intervals = {};
 
     const toPush = {};
 
@@ -46,25 +44,32 @@ module.exports = {
       socket.emit('initialState', rawStateAccess().snapshot(save.id));
 
       const cancel = setFixedInterval(updateClient, config.get().server.pushUpdateFrequency);
-      intervals.push(cancel);
-
-      define()('OnClientDisconnect', function OnClientDisconnect () {
-        return function resetLastPacketSentAndStopPushing () {
-          cancel();
-          intervals = reject(intervals, (interval) => interval === cancel);
-        };
-      });
+      intervals[`${save.id}-${playerId}-${deviceNumber}`] = cancel;
     }
 
     function stop (save, playerId, deviceNumber) {
       console.info({save, playerId, deviceNumber}, 'Stopping State Pusher');
+
+      if (
+        !toPush[save.id]
+        || !toPush[save.id][playerId]
+        || !toPush[save.id][playerId][deviceNumber]
+      ) {
+        return;
+      }
+
       delete toPush[save.id][playerId][deviceNumber];
+
+      const cancel = intervals[`${save.id}-${playerId}-${deviceNumber}`];
+      cancel();
+
+      delete intervals[`${save.id}-${playerId}-${deviceNumber}`];
     }
 
     define()('OnServerStop', function () {
       return function stopAllPushers () {
-        each(intervals, function eachInterval (cancel) {
-          cancel();
+        Object.keys(intervals).forEach((cancel) => {
+          intervals[cancel]()
         });
       };
     });

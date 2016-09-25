@@ -29,10 +29,11 @@ module.exports = {
     function setupNonPlayableClient (socket) {
       sockets[socket.id] = socket;
 
-      var socketInfo = {
+      const socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
-        address: socket.handshake.address
+        address: socket.handshake.address,
+        deviceId: socket.request.sessionID
       };
       logger.info(socketInfo, 'Socket Connected');
 
@@ -44,7 +45,7 @@ module.exports = {
 
         var save = saves().get(saveId);
 
-        function publishDisconnect() { on().clientDisconnect(save, socket); }
+        function publishDisconnect() { on().clientDisconnect(save, socket, socketInfo.deviceId); }
         function error (data) { on().error(data);}
 
         socket.on('disconnect', publishDisconnect);
@@ -59,7 +60,7 @@ module.exports = {
     function setupVirtualGamepad (socket) {
       sockets[socket.id] = socket;
 
-      var socketInfo = {
+      const socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
         address: socket.handshake.address
@@ -74,7 +75,7 @@ module.exports = {
 
         var save = saves().get(saveId);
 
-        function publishDisconnect() { on().clientDisconnect(save, socket); }
+        function publishDisconnect() { on().clientDisconnect(save, socket, socketInfo.deviceId); }
         function publishPause () { on().pause(save); }
         function publishUnpause () { on().resume(save); }
         function error (data) { on().error(data); }
@@ -96,7 +97,7 @@ module.exports = {
     function setupPlayableClient (socket) {
       sockets[socket.id] = socket;
 
-      var socketInfo = {
+      const socketInfo = {
         socketId: socket.id,
         sessionId: socket.request.sessionID,
         address: socket.handshake.address,
@@ -112,7 +113,7 @@ module.exports = {
 
         var save = saves().get(saveId);
 
-        function publishDisconnect() { on().clientDisconnect(save, socket); }
+        function publishDisconnect() { on().clientDisconnect(save, socket, socketInfo.deviceId); }
         function publishPause () { on().pause(save); }
         function publishUnpause () { on().resume(save); }
         function error (data) { on().error(data);}

@@ -80,22 +80,22 @@ module.exports = {
     }
 
     function clientConnect (save, socket) {
-      var params = [getState(save.id), socket, save];
+      const params = [getState(save.id), socket, save];
       return callForModeWithMutationWithPromises(onClientConnect(), mutator, save, params);
     }
 
-    function clientDisconnect (save, socket) {
-      var params = [getState(save.id), socket, save];
+    function clientDisconnect (save, socket, deviceId) {
+      const params = [getState(save.id), socket, save, deviceId];
       return callForModeWithMutationWithPromises(onClientDisconnect(), mutator, save, params);
     }
 
     function pause (save) {
-      var params = [getState(save.id)];
+      const params = [getState(save.id)];
       callForModeWithMutation(onPause(), mutator, save, params);
     }
 
     function resume (save) {
-      var params = [getState(save.id)];
+      const params = [getState(save.id)];
       callForModeWithMutation(onResume(), mutator, save, params);
     }
 
