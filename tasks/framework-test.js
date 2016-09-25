@@ -20,10 +20,10 @@ function runTestsInPath (gulp, path, scope, cb) {
     .pipe(istanbul.hookRequire())
     .on('finish', function () {
         gulp.src(path, {read: false})
-          .pipe(mocha({ reporter: 'spec', timeout: 10000 }))
+          .pipe(mocha({ reporter: 'progress', timeout: 10000 }))
           .pipe(istanbul.writeReports({
             dir: './coverage/' + scope,
-            reporters: ['json-summary', 'text', 'lcov', 'text-summary']
+            reporters: ['json-summary', 'lcov', 'text-summary']
           }))
           .on('end', cb);
     });

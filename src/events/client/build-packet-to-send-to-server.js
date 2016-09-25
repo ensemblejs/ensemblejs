@@ -10,11 +10,8 @@ const sequence = require('distributedlife-sequence');
 
 module.exports = {
   type: 'BeforePhysicsFrame',
-  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config', 'FrameStore'],
-  func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config, frameStore) {
-
-    let playerId;
-    let deviceNumber;
+  deps: ['InputCapture', 'On', 'ClientAcknowledgements', 'CurrentState', 'Time', 'DefinePlugin', 'Config', 'FrameStore', 'Player', 'Device'],
+  func: function BuildPacketToSendToServer (inputCaptureMethods, on, clientAcknowledgements, currentState, time, define, config, frameStore, player, device) {
 
     const mergeArrays = (a, b) => isArray(a) ? join(a, b) : undefined;
     const paused = (state) => read(state, 'ensemble.paused');
@@ -26,8 +23,8 @@ module.exports = {
 
       const packet = {
         id: sequence.next('client-input'),
-        deviceNumber,
-        playerId,
+        deviceNumber: device().number(),
+        playerId: player().id(),
         timestamp: time().present(),
         clientFrame: frameStore().current().id,
         pendingAcks: clientAcknowledgements().flush()
@@ -50,18 +47,6 @@ module.exports = {
         on().outgoingClientPacket(packet);
       }
     }
-
-    define()('OnClientPlayerId', function () {
-      return function setPlayerNumber (number) {
-        playerId = number;
-      };
-    });
-
-    define()('OnClientDeviceNumber', function () {
-      return function setDeviceNumber (number) {
-        deviceNumber = number;
-      };
-    });
 
     return execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).milliseconds();
   }

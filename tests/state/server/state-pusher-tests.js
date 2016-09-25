@@ -9,6 +9,7 @@ const logger = require('../../fake/logger');
 const fakeTime = require('../../fake/time').at(1000);
 
 const saveState = {hi: 'there'};
+const playerId = 1;
 
 describe('the state pusher', function () {
   let start;
@@ -51,7 +52,7 @@ describe('the state pusher', function () {
     beforeEach(() => {
       socket.emit.reset();
 
-      start(save, socket);
+      start(save, socket, playerId);
     });
 
     it('should send the initial state to the client', function () {
@@ -79,7 +80,9 @@ describe('the state pusher', function () {
         expect(fakeOn.outgoingServerPacket.callCount).toEqual(1);
         expect(fakeOn.outgoingServerPacket.firstCall.args).toEqual([1, {
           id: 2,
-          highestProcessedMessage: { packetId: 0, frameId: 0 },
+          highestProcessedMessage: [
+            { playerId, deviceNumber: 1, packetId: 0, frameId: 0 }
+          ],
           timestamp: 1000,
           measure: 1000,
           changeDeltas: [1, 3, 2]

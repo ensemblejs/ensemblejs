@@ -85,7 +85,7 @@
     "no-unused-vars": "error",
     "no-use-before-define": "error",
     "camelcase": "error",
-    "max-params": ["error", 5],
+    "max-params": ["off", 5],
     "max-depth": ["error", 4],
     "no-bitwise": ["error"],
     "no-lonely-if": "error",

@@ -165,7 +165,7 @@ module.exports = {
     }
 
     function redirectIfPlayerIsNotInSave (player) {
-      //implement this
+      console.error('TODO: Redirect player as they are not in the save');
       return player;
     }
 
@@ -179,9 +179,7 @@ module.exports = {
         const ipAddress = new Address6(socket.client.conn.remoteAddress);
 
         function updateWaitingForPlayers () {
-          return [
-            'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-          ];
+          return ['ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)];
         }
 
         return playersStore.getByDevice(deviceId)
@@ -193,10 +191,17 @@ module.exports = {
             player.devices.push({id: deviceId, ip: ipAddress});
             player.onSameSubnet = onSameSubnet(validIpAddresses(player.devices));
 
-            socket.emit('playerNumber', player.number);
-            socket.emit('deviceNumber', player.devices.length);
+            const playerNumber = player.number;
+            const deviceNumber = player.devices.length;
+
+            socket.emit('playerNumber', playerNumber);
+            socket.emit('deviceNumber', deviceNumber);
+
+            return [playerNumber, deviceNumber];
           })
-          .then(() => statePusher().start(save, socket, deviceId))
+          .spread((playerNumber, deviceNumber) => {
+            statePusher().start(save, socket, playerNumber, deviceNumber)
+          })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())
           .catch((err) => {
@@ -222,9 +227,7 @@ module.exports = {
         const deviceId = socket.request.sessionID;
 
         function updateWaitingForPlayers () {
-          return [
-            'ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)
-          ];
+          return ['ensemble.waitingForPlayers', determineIfWaitingForPlayers(save)];
         }
 
         return playersStore.getByDevice(deviceId)
@@ -239,6 +242,11 @@ module.exports = {
             if (activeDevices(connection.devices).length === 0) {
               connection.status = 'offline';
             }
+
+            return connection
+          })
+          .then((connection) => {
+            statePusher().stop(save, connection.playerId, deviceId)
           })
           .then(() => on().playerGroupChange(getPlayers(save), save.id))
           .then(() => updateWaitingForPlayers())

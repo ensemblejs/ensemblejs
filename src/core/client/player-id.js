@@ -4,7 +4,7 @@ module.exports = {
   type: 'Player',
   deps: ['DefinePlugin'],
   func: function (define) {
-    var playerId;
+    let playerId;
 
     define()('OnClientPlayerId', function () {
       return function setPlayerId (id) {
@@ -17,7 +17,7 @@ module.exports = {
     }
 
     return {
-      id: id
+      id
     };
   }
 };

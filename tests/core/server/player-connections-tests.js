@@ -19,14 +19,16 @@ describe('players connecting', function () {
   var connectedCount;
   var onClientConnect;
   var onClientDisconnect;
-  var statePusher = sinon.spy();
+  var startStatePusher = sinon.spy();
+  var stopStatePusher = sinon.spy();
 
   var getByDevice;
   beforeEach(function () {
     var module = makeTestible('core/server/player-connections', {
       On: fakeOn,
       StatePusher: {
-        start: statePusher
+        start: startStatePusher,
+        stop: stopStatePusher,
       }
     });
 
@@ -93,7 +95,7 @@ describe('players connecting', function () {
     });
 
     it('should start the update loop', function () {
-      expect(statePusher.called).toEqual(true);
+      expect(startStatePusher.called).toEqual(true);
     });
 
     describe('when the same player connects again on a different client', function () {
@@ -165,6 +167,10 @@ describe('players connecting', function () {
       it('should publish the players and their status in the game', function () {
         expect(fakeOn.playerGroupChange.firstCall.args).toEqual([[{ number: 1, status: 'offline', playerId: 1, devices: [], onSameSubnet: true}, {number: 2, status: 'not-joined', devices: [], onSameSubnet: true}, {number: 3, status: 'not-joined', devices: [], onSameSubnet: true}], 1]);
       });
+
+      it('should stop pushing state to that device', () => {
+        expect(stopStatePusher.firstCall.args).toEqual([save1, 1, 1]);
+      })
 
       it('should set the device to spare');
     });

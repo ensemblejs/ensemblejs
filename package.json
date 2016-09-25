@@ -12,7 +12,15 @@
     "framework",
     "game",
     "gamedev",
-    "multi-modal"
+    "multi-modal",
+    "multi-device",
+    "device",
+    "gamepad",
+    "controller",
+    "multiplayer",
+    "singleplayer",
+    "online",
+    "games"
   ],
   "scripts": {
     "start": "NODE_ENV=test gulp",

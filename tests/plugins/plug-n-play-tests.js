@@ -97,31 +97,6 @@ describe('the plugin manager', function() {
 			expect(logger.loaded.firstCall.args[1]).toEqual('RetFunction');
 		});
 
-		it.skip('should report when a plugin\'s functions are executed', function () {
-			pluginManager.load(myModuleReturnFunction);
-			pluginManager.get('RetFunction')();
-			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetFunction');
-
-			logger.plugin.reset();
-			pluginManager.load(myModuleReturnsObject);
-			pluginManager.get('RetObject').f();
-			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetObject');
-
-			logger.plugin.reset();
-			pluginManager.load(myModuleReturnAnonymousFunction);
-			pluginManager.get('RetAnonymousFunction')();
-			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetAnonymousFunction');
-
-			logger.plugin.reset();
-			pluginManager.load(myModuleReturnModedFunction);
-			pluginManager.get('RetModedFunction')[1]();
-			expect(logger.plugin.firstCall.args[1]).toEqual(' ensemblejs');
-			expect(logger.plugin.firstCall.args[2]).toEqual('RetModedFunction');
-		});
-
 		it('should have it\'s dependencies injected as parameters', function() {
 			pluginManager.load(myDep);
 			pluginManager.load(myModuleWithDep);

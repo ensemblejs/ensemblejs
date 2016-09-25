@@ -107,7 +107,13 @@ module.exports = {
 					const forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
 					each(forMode, runNoInputHandlers);
 
-					updateTrackingDeviceInputReceived(currentInput.save.id, currentInput.deviceId, currentInput.rawData.id, currentInput.rawData.clientFrame);
+					updateTrackingDeviceInputReceived(
+						currentInput.save.id,
+						currentInput.playerId,
+						currentInput.deviceNumber,
+						currentInput.rawData.id,
+						currentInput.rawData.clientFrame
+					);
 				}
 			};
 		});
@@ -117,7 +123,7 @@ module.exports = {
 				userInput.push({
 					rawData: packet,
 					playerId: packet.playerId,
-					deviceId: packet.deviceId,
+					deviceNumber: packet.deviceNumber,
 					timestamp: packet.timestamp,
 					save
 				});

@@ -31,9 +31,9 @@ function OnClientReady (eventRouter, SaveId, config) {
   function handleIncomingConnections (connection) {
     console.info({metadata: connection.metadata}, 'Incoming peer connection.');
 
-    connections.push(connection);
-
     connection.on('open', function () {
+      connections.push(connection);
+
       connection.on('data', handleIncomingPacketFromPeer);
     });
   }
@@ -41,14 +41,14 @@ function OnClientReady (eventRouter, SaveId, config) {
   function connectToPeer (saveId, playerNumber, deviceNumber) {
     const peerId = getPeerId(saveId, playerNumber, deviceNumber);
 
-    const metadata = { saveId, playerNumber, deviceNumber };
-
     console.info({ peerId }, 'Attempting to connect to peer');
 
+    const metadata = { saveId, playerNumber, deviceNumber };
     const connection = peer.connect(peerId, { metadata });
-    connections.push(connection);
 
     connection.on('open', function() {
+      connections.push(connection);
+
       connection.on('data', handleIncomingPacketFromPeer);
     });
   }
