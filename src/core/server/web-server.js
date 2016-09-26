@@ -3,7 +3,6 @@
 var compression = require('compression');
 var express = require('express');
 var http = require('http');
-var expressBunyanLogger = require('express-bunyan-logger');
 var each = require('lodash').each;
 var config = require('../../util/config').get();
 var logger = require('../../logging/server/logger').logger;
@@ -58,13 +57,6 @@ module.exports = {
     function configureApp (assetPath, project) {
       var app = express();
 
-      app.use(expressBunyanLogger({
-        logger: logger.logger,
-        excludes: config.logging.expressBunyanLogger.excludes
-      }));
-      app.use(expressBunyanLogger.errorLogger({
-        logger: logger.logger
-      }));
       app.use(compression());
       app.use('/game', express.static(assetPath));
       app.use('/ensemble', express.static(pathToPublic + '/'));
