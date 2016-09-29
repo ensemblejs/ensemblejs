@@ -7,26 +7,24 @@ const setFixedInterval = require('fixed-setinterval');
 
 import define from '../../define';
 import read from 'ok-selector';
+import { createFixedTimeStep as createLoop } from 'game-loops';
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['CurrentState', 'CurrentServerState', 'Time', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'],
-  func: function PhysicsLoop (clientState, serverState, time, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
-
-    let t0 = time().precise();
+  deps: [
+    'CurrentState', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame',
+    'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'
+  ],
+  func: function PhysicsLoop (clientState, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
 
     const save = { id: 'client', mode: mode() };
     const paused = (state) => read(state, 'ensemble.paused');
+    const isPaused = () => clientState().get(paused) || !config().client.clientSidePrediction;
+    const Δ = config().client.physicsUpdateLoop;
 
-    function doPaused(t1) {
-      t0 = t1;
-    }
-
-    let state;
-    let opts;
-    function onEachFrame (Δ) {
-      state = stateAccess().for(save.id).all();
-      opts = [Δ, state];
+    function onEachFrame (frameΔ) {
+      const state = stateAccess().for(save.id).all();
+      const opts = [frameΔ, state];
 
       callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
@@ -35,53 +33,26 @@ module.exports = {
       }
     }
 
-    let accumulator = 0;
-    function doRunning (t1) {
-      const frameLength = config().client.physicsUpdateLoop;
-
-      accumulator += (t1 - t0);
-      t0 = t1;
-
-      while(accumulator >= frameLength) {
-        frameStore().process(frameLength, onEachFrame);
-        accumulator -= frameLength;
-      }
-    }
-
-    function shouldRunPhysicsEngine () {
-      return (
-        !clientState().get(paused) &&
-        !serverState().get(paused) &&
-        config().client.clientSidePrediction
-      );
-    }
-
-    function step() {
-      const t1 = time().precise();
-
-      if (shouldRunPhysicsEngine()) {
-        doRunning(t1);
-      } else {
-        doPaused(t1);
-      }
-
+    const runLoop = createLoop(Δ, isPaused, (frameΔ) => frameStore().process(frameΔ, onEachFrame));
+    const onInterval = () => {
+      runLoop();
       callEachPlugin(afterFrame());
-    }
+    };
 
-    let ids = [];
+    const ids = [];
     define('OnDisconnect', function OnDisconnect () {
       return function stopPhysicsLoop () {
         ids.forEach((cancel) => cancel());
 
         frameStore().reset();
 
-        ids = [];
+        ids.splice(0);
       };
     });
 
     return function run () {
-      step();
-      ids.push(setFixedInterval(step, config().client.physicsUpdateLoop));
+      onInterval();
+      ids.push(setFixedInterval(onInterval, Δ));
     };
   }
 };

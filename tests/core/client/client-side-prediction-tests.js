@@ -83,7 +83,7 @@ onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onSeedInitialState.push(frameStorePluginDeps.OnSeedInitialState());
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(fakeTime), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
+var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
 var stopPhysicsEngine = plugin('OnDisconnect');
 
 function tracking (state) { return state.namespace.tracking; }

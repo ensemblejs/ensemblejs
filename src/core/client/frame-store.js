@@ -24,8 +24,7 @@ module.exports = {
 
     function makeFrame () {
       return {
-        id: null,
-        Δ: null,
+        id: 0,
         timestamp: null,
         input: null,
         cached: null
@@ -34,11 +33,10 @@ module.exports = {
 
     const pool = new MemoryPool(PoolStartSize, makeFrame, PoolGrowSize);
 
-    function add (Δ) {
+    function add () {
       const frame = pool.allocate();
 
       frame.id = sequence.next('frame');
-      frame.Δ = Δ;
       frame.timestamp = time().present();
       frame.input = inputForNextFrame.splice(0);
       frame.cached = null;
@@ -46,7 +44,7 @@ module.exports = {
       frames.push(frame);
     }
 
-    const current = () => last(frames);
+    const current = () => last(frames) || makeFrame() ;
 
     function dropFrames (processedRecordsInfo) {
       const potentialInputToKeep = [];
@@ -131,14 +129,14 @@ module.exports = {
     }
 
     function process (Δ, runLogicOnFrame) {
-      add(Δ);
+      add();
 
       function processEachFrame (state, frame) {
         if (!frame.cached) {
           rawState().resetTo(state.all());
 
           queue().set(frame.input);
-          runLogicOnFrame(frame.Δ, state.all());
+          runLogicOnFrame(Δ, state.all());
           queue().clear();
 
           applyPendingMerges()();

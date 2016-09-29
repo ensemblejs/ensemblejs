@@ -1,30 +1,29 @@
 'use strict';
 
-var each = require('lodash').each;
-var reject = require('lodash').reject;
-var callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
-var callEachWithMutation = require('../../util/modes').callEachWithMutation;
-var config = require('../../util/config');
+const callForModeWithMutation = require('../../util/modes').callForModeWithMutation;
+const callEachWithMutation = require('../../util/modes').callEachWithMutation;
+const config = require('../../util/config');
+const { on } = require('../../events');
 const setFixedInterval = require('fixed-setinterval');
 import read from 'ok-selector';
+import { createFixedTimeStep as createLoop } from 'game-loops';
+
+const ids = [];
 
 module.exports = {
   type: 'OnServerStart',
-  deps: ['BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame', 'StateAccess', 'StateMutator', 'SavesList', 'DefinePlugin', 'Time'],
-  func: function ServerPhysicsEngine (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, define, time) {
+  deps: [
+    'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame',
+    'StateAccess', 'StateMutator', 'SavesList'
+  ],
+  func: (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves) => {
+    const runningSaves = (save) => !stateAccess().for(save.id).get('ensemble.paused');
+    const Δ = config.get().server.physicsUpdateLoop;
 
-    let t0 = time().precise();
-    let ids = [];
-
-    function pausedSaves (save) {
-      return stateAccess().for(save.id).get('ensemble.paused');
-    }
-
-    function update (Δ) {
-      const running = reject(saves().loaded(), pausedSaves);
-      each(running, function callUpdateOnEach (save) {
+    function runEachSave (frameΔ) {
+      const run = (save) => {
         const state = stateAccess().for(save.id).all();
-        const opts = [Δ, state];
+        const opts = [frameΔ, state];
 
         callEachWithMutation(beforeFrame(), mutator, save.id, opts);
 
@@ -33,41 +32,24 @@ module.exports = {
         }
 
         callEachWithMutation(afterFrame(), mutator, save.id, opts);
-      });
-    }
-
-    let accumulator = 0;
-    function step () {
-      const t1 = time().precise();
-      const frameLength = config.get().server.physicsUpdateLoop;
-
-      accumulator += (t1 - t0);
-      t0 = t1;
-
-      while(accumulator >= frameLength) {
-        update(frameLength);
-        accumulator -= frameLength;
       }
+
+      saves().loaded().filter(runningSaves).forEach(run);
     }
 
-    define()('OnServerStop', () => {
-      return function stopEngine () {
-        each(ids, (cancel) => cancel());
-        ids = [];
-      };
-    });
+    const thisPartNeverPaused = () => false;
+    const runLoop = createLoop(Δ, thisPartNeverPaused, runEachSave);
 
-    define()('InternalState', () => {
-      return {
-        ServerSideEngine: {
-          now: () =>time().present()
-        }
+    on('ServerStop', () => {
+      return function stopEngine () {
+        ids.forEach((cancel) => cancel());
+        ids.splice(0);
       };
     });
 
     return function run () {
-      step();
-      ids.push(setFixedInterval(step, config.get().server.physicsUpdateLoop));
+      runLoop();
+      ids.push(setFixedInterval(runLoop, config.get().server.physicsUpdateLoop));
     };
   }
 };

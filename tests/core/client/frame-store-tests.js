@@ -45,7 +45,12 @@ describe('frame store', () => {
           { playerId: 1, deviceNumber: 1, frameId }
         ], changeDeltas: [] });
 
-        expect(frameStore.current()).toEqual(undefined);
+        expect(frameStore.current()).toEqual({
+          id: 0,
+          timestamp: null,
+          input: null,
+          cached: null
+        });
       });
 
       it('should not drop frames above the highestProcessedMessage.frameId', () => {
