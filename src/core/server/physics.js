@@ -14,9 +14,9 @@ module.exports = {
   type: 'OnServerStart',
   deps: [
     'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame',
-    'StateAccess', 'StateMutator', 'SavesList'
+    'StateAccess', 'StateMutator', 'SavesList', 'CollisionDetectionBridge'
   ],
-  func: (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves) => {
+  func: (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, collisionDetection) => {
     const runningSaves = (save) => !stateAccess().for(save.id).get('ensemble.paused');
     const Δ = config.get().server.physicsUpdateLoop;
 
@@ -29,6 +29,7 @@ module.exports = {
 
         if (!read(state, 'ensemble.waitingForPlayers')) {
           callForModeWithMutation(onFrame(), mutator, save, opts);
+          mutator()(save.id, collisionDetection().detectCollisions(...opts));
         }
 
         callEachWithMutation(afterFrame(), mutator, save.id, opts);

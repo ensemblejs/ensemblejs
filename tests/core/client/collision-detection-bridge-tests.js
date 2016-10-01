@@ -14,7 +14,7 @@ var start13 = sinon.spy();
 var during13 = sinon.spy();
 var finish13 = sinon.spy();
 
-var onEachFrame;
+var detectCollisions;
 var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
@@ -54,11 +54,12 @@ describe('the collision detection bridge (client)', function () {
 
       var bridge = makeTestible('core/client/collision-detection-bridge', {
         CollisionDetectionSystem: cd,
-        CollisionMap: [map1, map2]
+        CollisionMap: [map1, map2],
+        SaveMode: 'arcade'
       });
 
-      onEachFrame = bridge[1].OnPhysicsFrame(defer('arcade'));
-      onEachFrame(0.15, state);
+      detectCollisions = bridge[0].detectCollisions;
+      detectCollisions(0.15, state);
     });
 
     it('should pass in a fake gameId as only one game runs on the client', function () {
@@ -85,7 +86,7 @@ describe('the collision detection bridge (client)', function () {
           callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]}, metadata);
         };
 
-        onEachFrame(0.15, Immutable.fromJS(state));
+        detectCollisions(0.15, Immutable.fromJS(state));
       });
 
       afterEach(function () {

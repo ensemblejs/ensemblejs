@@ -52,7 +52,8 @@ describe('the server physics engine', function() {
 			OnPhysicsFrame: [update3, update4],
 			AfterPhysicsFrame: [],
 			SavesList: savesList,
-			StateAccess: state
+			StateAccess: state,
+			CollisionDetectionBridge: { detectCollisions: sinon.spy() }
 		}, {
 			'fixed-setinterval': (f) => f(),
 			'../src/util/config': {

@@ -13,9 +13,9 @@ module.exports = {
   type: 'OnClientReady',
   deps: [
     'CurrentState', 'BeforePhysicsFrame', 'OnPhysicsFrame', 'AfterPhysicsFrame',
-    'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore'
+    'StateMutator', 'StateAccess', 'SaveMode', 'Config', 'FrameStore', 'CollisionDetectionBridge'
   ],
-  func: function PhysicsLoop (clientState, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore) {
+  func: function PhysicsLoop (clientState, beforeFrame, onFrame, afterFrame, mutator, stateAccess, mode, config, frameStore, collisionDetection) {
 
     const save = { id: 'client', mode: mode() };
     const paused = (state) => read(state, 'ensemble.paused');
@@ -30,6 +30,7 @@ module.exports = {
 
       if (!read(state, 'ensemble.waitingForPlayers')) {
         callForModeWithMutation(onFrame(), mutator, save, opts);
+        mutator()(save.id, collisionDetection().detectCollisions(...opts));
       }
     }
 

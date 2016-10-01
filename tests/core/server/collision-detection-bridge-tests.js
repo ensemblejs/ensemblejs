@@ -14,7 +14,7 @@ var start13 = sinon.spy();
 var during13 = sinon.spy();
 var finish13 = sinon.spy();
 
-var onEachFrame;
+var detectCollisions;
 var physicsSystem;
 
 physicsSystem = makeTestible('core/shared/physics-system')[0];
@@ -63,8 +63,8 @@ describe('the collision detection bridge', function () {
         CollisionMap: [map1, map2]
       });
 
-      onEachFrame = bridge[1].OnPhysicsFrame();
-      onEachFrame(0.15, state);
+      detectCollisions = bridge[0].detectCollisions;
+      detectCollisions(0.15, state);
     });
 
     it('should call the collision detection system for the game', function () {
@@ -92,7 +92,7 @@ describe('the collision detection bridge', function () {
           callbackDelegate(onCollisionCallback, {data:['a', 1, {that: true}]}, metadata);
         };
 
-        onEachFrame(0.15, state);
+        detectCollisions(0.15, state);
       });
 
       afterEach(function () {

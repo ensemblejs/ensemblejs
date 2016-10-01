@@ -1,34 +1,31 @@
 'use strict';
 
-let forEachMode = require('../../util/modes').forEachMode;
+const forEachMode = require('../../util/modes').forEachMode;
 const { clone } = require('../../util/fast-clone');
-import {reject, isUndefined} from 'lodash';
 import {join} from '../../util/array';
 
 module.exports = {
   type: 'CollisionDetectionBridge',
-  deps: ['DefinePlugin', 'CollisionMap', 'CollisionDetectionSystem'],
-  func: function CollisionDetectionBridge (define, maps, system) {
+  deps: ['DefinePlugin', 'CollisionMap', 'CollisionDetectionSystem', 'SaveMode'],
+  func: function CollisionDetectionBridge (define, maps, system, mode) {
 
-    function OnPhysicsFrame (mode) {
-      return function callSystemWithRelevantMapsAndSaveId (Δ, state) {
-        let changes = [];
+    const detectCollisions = (Δ, state) => {
+      const changes = [];
 
-        function onCollision (callback, map, metadata) {
-          let args = [Δ, state, metadata];
-          join(args, clone(map.data));
+      function onCollision (callback, map, metadata) {
+        const args = [Δ, state, metadata];
+        join(args, clone(map.data));
 
-          changes.push(callback(...args));
-        }
+        changes.push(callback(...args));
+      }
 
-        forEachMode(maps(), mode(), map => {
-          system().detectCollisions(map, 'client', onCollision);
-        });
+      forEachMode(maps(), mode(), (map) => {
+        system().detectCollisions(map, 'client', onCollision);
+      });
 
-        return reject(changes, isUndefined);
-      };
-    }
+      return changes;
+    };
 
-    define()('OnPhysicsFrame', ['SaveMode'], OnPhysicsFrame);
+    return { detectCollisions }
   }
 };
