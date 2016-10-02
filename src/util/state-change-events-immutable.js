@@ -16,7 +16,7 @@ function invoke (callback, currentModel, priorModel, data) {
 }
 
 function addElementId (priorModel, currentModel) {
-  return priorModel ? priorModel.get('id') : currentModel.get('id');
+  return priorModel ? read(priorModel, 'id') : read(currentModel, 'id');
 }
 
 function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior = false) {
@@ -34,7 +34,7 @@ function invokeWithId (callback, currentModel, priorModel, data, alwaysPassPrior
   callback(...args);
 }
 
-const getById = (arr, id) => arr.find((el) => el.get('id') === id);
+const getById = (arr, id) => arr.find((el) => read(el,'id') === id);
 const isInArray = (arr, id) => getById(arr, id) === undefined;
 
 function functionifyDotStrings (model) {
@@ -92,7 +92,7 @@ export default function stateChangeEvents () {
       return undefined;
     }
 
-    return getById(f(currentState), model.get('id'));
+    return getById(f(currentState), read(model,'id'));
   }
 
   function priorElement (f, model) {
@@ -100,22 +100,22 @@ export default function stateChangeEvents () {
       return undefined;
     }
 
-    return getById(f(priorState), model.get('id'));
+    return getById(f(priorState), read(model,'id'));
   }
 
   function elementAdded (f, model) {
-    return isInArray(f(priorState), model.get('id'));
+    return isInArray(f(priorState), read(model,'id'));
   }
 
   function elementRemoved (f, model) {
-    return isInArray(f(currentState), model.get('id'));
+    return isInArray(f(currentState), read(model,'id'));
   }
 
   function elementChanged (f, model) {
     if (priorState === undefined) { return true; }
 
-    const current = getById(f(currentState), model.get('id'));
-    const prior = getById(f(priorState), model.get('id'));
+    const current = getById(f(currentState), read(model,'id'));
+    const prior = getById(f(priorState), read(model,'id'));
 
     return !Immutable.is(current, prior);
   }
