@@ -47,6 +47,9 @@ module.exports = {
 
 				function runNoInputHandlers(actionMapDefinition) {
 					const actionMap = last(actionMapDefinition);
+					if (!actionMap.nothing) {
+						return;
+					}
 
 					let suitableActions = actionMap.nothing.filter((action) => !action.ack);
 					if (waitingForPlayers) {
@@ -54,16 +57,16 @@ module.exports = {
 					}
 
 					suitableActions.forEach((action) => {
-						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
-							logger.debug({key: 'nothing'}, 'ActionMap called');
-
-							return mutate()(
-								currentInput.save.id,
-								action.call(state, {}, data)
-							);
+						if (somethingHasReceivedInput.indexOf(action.noEventKey) !== -1) {
+							return;
 						}
 
-						return undefined;
+						logger.debug({key: 'nothing'}, 'ActionMap called');
+
+						return mutate()(
+							currentInput.save.id,
+							action.call(state, {}, data)
+						);
 					});
 				}
 
