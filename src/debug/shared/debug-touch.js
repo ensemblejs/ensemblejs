@@ -1,18 +1,15 @@
 'use strict';
 
-var reject = require('lodash').reject;
-var filter = require('lodash').filter;
-
 function createAddTouch (i) {
   return function addTouch (state, x, y) {
-    var touches = state.get('ensembleDebug.touches');
+    const touches = state.get('ensembleDebug.touches');
 
-    var existingTouch = filter(touches, {id : i});
+    const existingTouch = touches.filter((touch) => touch.id === i);
     if (existingTouch.length > 0) {
       existingTouch[0].x = x;
       existingTouch[0].y = y;
     } else {
-      touches.push({id: i, x: x, y: y});
+      touches.push({id: i, x, y});
     }
 
     return ['ensembleDebug.touches', touches];
@@ -21,9 +18,9 @@ function createAddTouch (i) {
 
 function createRemoveTouch (i) {
   return function removeTouch (state) {
-    var touches = state.get('ensembleDebug.touches');
+    const touches = state.get('ensembleDebug.touches');
 
-    return ['ensembleDebug.touches', reject(touches, {id: i})];
+    return ['ensembleDebug.touches', touches.filter((touch) => touch.id !== i)];
   };
 }
 
@@ -36,11 +33,11 @@ function StateSeed () {
 }
 
 function ActionMap () {
-  var actionMap = { nothing: [] };
+  const actionMap = { nothing: [] };
 
-  var touchCount = 16;
-  for(var i = 0; i < touchCount; i += 1) {
-    var id = 'touch' + i;
+  const touchCount = 16;
+  for(let i = 0; i < touchCount; i += 1) {
+    const id = `touch${i}`;
     actionMap[id] = [{call: createAddTouch (i), noEventKey: id}];
     actionMap.nothing.push({call: createRemoveTouch(i), noEventKey: id});
   }
@@ -50,9 +47,9 @@ function ActionMap () {
 
 function OnClientReady (tracker, dimensions, $) {
   function addTouch (id, current) {
-    var dims = dimensions().get();
+    const dims = dimensions().get();
 
-    var touch = require('../../../public/partials/debug/touch.pug');
+    const touch = require('../../../public/partials/debug/touch.pug');
 
     $()('#touches').append(touch({
       id: ['touch', id].join('_'),
@@ -62,21 +59,21 @@ function OnClientReady (tracker, dimensions, $) {
   }
 
   function moveTouch (id, current) {
-    var dims = dimensions().get();
-    var eid = '#' + ['touch', id].join('_');
+    const dims = dimensions().get();
+    const eid = `#${['touch', id].join('_')}`;
 
-    $()(eid).css('left', (current.x + dims.marginSides - 10) + 'px');
-    $()(eid).css('top', (current.y + dims.marginTopBottom - 10) + 'px');
+    $()(eid).css('left', `${(current.x + dims.marginSides - 10)}px`);
+    $()(eid).css('top', `${(current.y + dims.marginTopBottom - 10)}px`);
   }
 
   function removeTouch (id) {
-    var eid = '#' + ['touch', id].join('_');
+    const eid = `#${['touch', id].join('_')}`;
 
     $()(eid).remove();
   }
 
   return function setupTouchStateDebugView () {
-    var touchesBlock = require('../../../public/partials/debug/touches.pug');
+    const touchesBlock = require('../../../public/partials/debug/touches.pug');
 
     $()('#overlay').append(touchesBlock());
 

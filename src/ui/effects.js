@@ -1,22 +1,20 @@
 'use strict';
 
-import { each, reject, filter } from 'lodash';
-
 module.exports = {
   type: 'OnClientStart',
   deps: ['DefinePlugin'],
   func: function OnClientStart (define) {
-    var effects = [];
+    let effects = [];
 
     return function initialiseEffects () {
       define()('OnPhysicsFrame', function OnRenderFrame () {
         return function tickEffects (Δ) {
-          each(effects, effect => effect.tick(Δ));
+          effects.forEach((effect) => effect.tick(Δ));
 
-          const finished = filter(effects, effect => !effect.isAlive());
-          each(finished, effect => effect.done && effect.done());
+          const finished = effects.filter((effect) => !effect.isAlive());
+          finished.forEach((effect) => effect.done && effect.done());
 
-          effects = reject(effects, effect => !effect.isAlive());
+          effects = effects.filter((effect) => effect.isAlive());
         };
       });
 

@@ -1,12 +1,12 @@
 'use strict';
 
-var sinon = require('sinon');
-var expect = require('expect');
+const sinon = require('sinon');
+const expect = require('expect');
 
-var defer = require('../../support').defer;
-var plugin = require('../../support').plugin();
+const defer = require('../../support').defer;
+const plugin = require('../../support').plugin();
 
-var model = {
+const model = {
 	noEvent: sinon.spy(),
 	keyEvent: sinon.spy(),
 	keyPressEvent: sinon.spy(),
@@ -21,27 +21,27 @@ var model = {
 	waiting: sinon.spy()
 };
 
-var state = {
+const state = {
 	ensemble: {
 		waitingForPlayers: true
 	}
 };
 
-var actions = [];
-var rawData = {};
-var newUserInput;
-var update;
-var mutator = sinon.spy();
-var save = {
+let actions = [];
+let rawData = {};
+let newUserInput;
+let update;
+const mutator = sinon.spy();
+const save = {
 	id: 1,
 	arcade: 'arcade'
 };
-var playerId = 2;
+const playerId = 2;
 
-var logger = require('../../../src/logging/server/logger').logger;
+const logger = require('../../../src/logging/server/logger').logger;
 
 describe('Input Bindings, ServerSide', function() {
-	var clock;
+	let clock;
 
 	beforeEach(function() {
 		clock = sinon.useFakeTimers();
@@ -104,7 +104,7 @@ describe('Input Bindings, ServerSide', function() {
 		}];
 
 		require('../../../src/input/server/process_pending_input.js').func(defer([actions]), defer(plugin.define), defer(mutator));
-		var deps = plugin.deps();
+		const deps = plugin.deps();
 		newUserInput = deps.OnInput();
 		update = deps.BeforePhysicsFrame();
 
@@ -119,7 +119,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when no input has been received', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [], touches: [] };
+			rawData = { playerId, keys: [], touches: [] };
 			newUserInput(rawData, save);
 		});
 
@@ -137,7 +137,7 @@ describe('Input Bindings, ServerSide', function() {
 
 		it('should pass in the standard event data', function () {
 			update(16, state);
-			var expected = {timestamp: undefined, playerId: 2, Δ: 16};
+			const expected = {timestamp: undefined, playerId: 2, Δ: 16};
 
 			expect(model.noEvent.firstCall.args[0]).toEqual(state);
 			expect(model.noEvent.firstCall.args[1]).toEqual({});
@@ -146,7 +146,7 @@ describe('Input Bindings, ServerSide', function() {
 
 		describe('when no input is received while waiting for players', function () {
 			beforeEach(function() {
-				rawData = { playerId: playerId, keys: [], touches: [] };
+				rawData = { playerId, keys: [], touches: [] };
 				newUserInput(rawData, save);
 
 				model.waiting.reset();
@@ -162,7 +162,7 @@ describe('Input Bindings, ServerSide', function() {
 			beforeEach(function() {
 				require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
-				var deps = plugin.deps();
+				const deps = plugin.deps();
 				newUserInput = deps.OnInput();
 				update = deps.BeforePhysicsFrame();
 
@@ -179,7 +179,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when key input is received', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [{key: 'key'}], touches: [] };
+			rawData = { playerId, keys: [{key: 'key'}], touches: [] };
 			newUserInput(rawData, save);
 
 			model.keyEvent.reset();
@@ -213,7 +213,7 @@ describe('Input Bindings, ServerSide', function() {
 			model.keyPressEvent.reset();
 			mutator.reset();
 
-			rawData = { playerId: playerId, keys: [{key: 'KEY'}], touches: [] };
+			rawData = { playerId, keys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, save);
 			update(16, state);
 
@@ -240,7 +240,7 @@ describe('Input Bindings, ServerSide', function() {
 			model.keyModCtrl.reset();
 			mutator.reset();
 
-			rawData = { playerId: playerId, keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
+			rawData = { playerId, keys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
 			newUserInput(rawData, save);
 			update(16, state);
 
@@ -254,7 +254,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when key input is received as onRelease', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, singlePressKeys: [{key: 'key'}], touches: [] };
+			rawData = { playerId, singlePressKeys: [{key: 'key'}], touches: [] };
 			newUserInput(rawData, save);
 		});
 
@@ -276,7 +276,7 @@ describe('Input Bindings, ServerSide', function() {
 			model.keyPressEvent.reset();
 			mutator.reset();
 
-			rawData = { playerId: playerId, singlePressKeys: [{key: 'KEY'}], touches: [] };
+			rawData = { playerId, singlePressKeys: [{key: 'KEY'}], touches: [] };
 			newUserInput(rawData, save);
 			update(16, state);
 
@@ -303,7 +303,7 @@ describe('Input Bindings, ServerSide', function() {
 			model.keyPressModCtrl.reset();
 			mutator.reset();
 
-			rawData = { playerId: playerId, singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
+			rawData = { playerId, singlePressKeys: [{key: 'key', modifiers: ['ctrl']}], touches: [] };
 			newUserInput(rawData, save);
 			update(16, state);
 
@@ -317,7 +317,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when key input is received but not bound', function () {
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
+			rawData = { playerId, keys: [{key: 'notBound'}], singlePressKeys: [{key: 'notBound'}], touches: [{id: 0, x: 4, y: 5}] };
 			newUserInput(rawData, save);
 		});
 
@@ -333,7 +333,7 @@ describe('Input Bindings, ServerSide', function() {
 	describe('when key input is received while waiting for players', function () {
 
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [{key: 'key'}, {key: 'not-waiting'}] };
+			rawData = { playerId, keys: [{key: 'key'}, {key: 'not-waiting'}] };
 			newUserInput(rawData, save);
 
 			model.waiting.reset();
@@ -353,7 +353,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when touch input is received', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, touches: [{id: 0, x: 4, y: 5}] };
+			rawData = { playerId, touches: [{id: 0, x: 4, y: 5}] };
 			newUserInput(rawData, save);
 		});
 
@@ -377,7 +377,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when touch is recieved but not bound', function () {
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
+			rawData = { playerId, keys: [{key: 'key'}], touches: [{id: 1, x: 4, y: 5}] };
 			newUserInput(rawData, save);
 		});
 
@@ -392,7 +392,7 @@ describe('Input Bindings, ServerSide', function() {
 	describe('when touch input is received while waiting for players', function () {
 
 		beforeEach(function() {
-			rawData = { playerId: playerId, touches: [{id: 0, x: 4, y: 5}] };
+			rawData = { playerId, touches: [{id: 0, x: 4, y: 5}] };
 			newUserInput(rawData, save);
 
 			model.waiting.reset();
@@ -406,7 +406,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when mouse cursor input is received', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [], mouse: {x: 6, y: 7 }};
+			rawData = { playerId, keys: [], mouse: {x: 6, y: 7 }};
 			newUserInput(rawData, save);
 		});
 
@@ -425,7 +425,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when mouse input is received but not bound', function() {
 		beforeEach(function() {
-			rawData = { x: 6, y: 7, playerId: playerId };
+			rawData = { x: 6, y: 7, playerId };
 			require('../../../src/input/server/process_pending_input.js').func(defer([['*'], {}]), defer(plugin.define), defer(sinon.spy()), defer(logger));
 
 			newUserInput = plugin.deps().OnInput();
@@ -441,7 +441,7 @@ describe('Input Bindings, ServerSide', function() {
 
 	describe('when mouse input is received as onRelease', function() {
 		beforeEach(function() {
-			rawData = { playerId: playerId, singlePressKeys: [{key: 'button1'}], touches: [] };
+			rawData = { playerId, singlePressKeys: [{key: 'button1'}], touches: [] };
 			newUserInput(rawData, save);
 		});
 
@@ -461,7 +461,7 @@ describe('Input Bindings, ServerSide', function() {
 	describe('when mouse cursor input is received while waiting for players', function () {
 
 		beforeEach(function() {
-			rawData = { playerId: playerId, keys: [], mouse: {x: 6, y: 7 } };
+			rawData = { playerId, keys: [], mouse: {x: 6, y: 7 } };
 			newUserInput(rawData, save);
 
 			model.waiting.reset();
@@ -476,7 +476,7 @@ describe('Input Bindings, ServerSide', function() {
 	describe('when stick input is received', function () {
 		beforeEach(function() {
 			rawData = {
-				playerId: playerId,
+				playerId,
 				timestamp: Date.now(),
 				'left-stick': {x: 0.1, y: 1.0},
 				'right-stick': {x: 0.9, y: 0.3}

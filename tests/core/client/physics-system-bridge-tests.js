@@ -1,39 +1,39 @@
 'use strict';
 
-var sinon = require('sinon');
-var expect = require('expect');
-var isFunction = require('lodash').isFunction;
+const sinon = require('sinon');
+const expect = require('expect');
+const isFunction = require('lodash').isFunction;
 
-var onChangeOf = sinon.spy();
-var onElementAdded = sinon.spy();
-var onElementChanged = sinon.spy();
-var onElementRemoved = sinon.spy();
+const onChangeOf = sinon.spy();
+const onElementAdded = sinon.spy();
+const onElementChanged = sinon.spy();
+const onElementRemoved = sinon.spy();
 
-var tracker = {
-  onChangeOf: onChangeOf,
-  onElementAdded: onElementAdded,
-  onElementChanged: onElementChanged,
-  onElementRemoved: onElementRemoved
+const tracker = {
+  onChangeOf,
+  onElementAdded,
+  onElementChanged,
+  onElementRemoved
 };
 
-var updatedCallback = sinon.spy();
-var addedCallback = sinon.spy();
-var changedCallback = sinon.spy();
-var removedCallback = sinon.spy();
-var physicsSystem = {
+const updatedCallback = sinon.spy();
+const addedCallback = sinon.spy();
+const changedCallback = sinon.spy();
+const removedCallback = sinon.spy();
+const physicsSystem = {
   tick: sinon.spy(),
   register: sinon.spy(),
-  updated: function () { return updatedCallback; },
-  added: function () { return addedCallback; },
-  changed: function () { return changedCallback; },
-  removed: function () { return removedCallback; }
+  updated: () => updatedCallback,
+  added: () => addedCallback,
+  changed: () => changedCallback,
+  removed: () => removedCallback
 };
 sinon.spy(physicsSystem, 'updated');
 sinon.spy(physicsSystem, 'added');
 sinon.spy(physicsSystem, 'changed');
 sinon.spy(physicsSystem, 'removed');
 
-var state = {
+const state = {
   'source.state': {position: { x: 4, y: 5}},
   'different.state': {position: { x: 4, y: 5}},
   'second.state': {position: { x: 24, y: 35}},
@@ -43,7 +43,7 @@ var state = {
   ],
   'array.empty': []
 };
-var objState = {
+const objState = {
   array: {
     state: [
       {id: 1, position: { x: 24, y: 35}},
@@ -51,14 +51,12 @@ var objState = {
     ]
   }
 };
-var stateAccess = {
-  for: function () {
-    return {
-      get: (key) => isFunction(key) ? key(objState) : state[key]
-    };
-  }
+const stateAccess = {
+  for: () => ({
+    get: (key) => isFunction(key) ? key(objState) : state[key]
+  })
 };
-var scopedState = {
+const scopedState = {
   source: {
     state: {position: { x: 4, y: 5}}
   },
@@ -77,14 +75,14 @@ var scopedState = {
   }
 };
 
-var defer = require('../../support').defer;
-var makeTestible = require('../../support').makeTestible;
+const defer = require('../../support').defer;
+const makeTestible = require('../../support').makeTestible;
 
 describe('physics system bridge (on the client)', function () {
-  var sequenceStub;
+  let sequenceStub;
 
   beforeEach(function () {
-    var sequence = require('distributedlife-sequence');
+    const sequence = require('distributedlife-sequence');
     sequenceStub = sinon.stub(sequence, 'next').returns('1');
 });
 
@@ -95,11 +93,11 @@ describe('physics system bridge (on the client)', function () {
   describe('on game ready', function () {
     describe('a physics map with one source key', function () {
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'key': ['source.state']
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -135,13 +133,13 @@ describe('physics system bridge (on the client)', function () {
       }
 
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'keyA': [{sourceKey: 'array.state', via: pluckPosition}],
           'keyB': [{sourceKey: 'source.state', via: pluckPosition}],
           'keyC': [lens]
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -184,11 +182,11 @@ describe('physics system bridge (on the client)', function () {
 
     describe('a physics map with a source key that points to an array', function () {
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'key': ['array.state', 'array.empty']
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -228,11 +226,11 @@ describe('physics system bridge (on the client)', function () {
 
     describe('a physics map with multiple source key', function () {
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'key': ['source.state', 'different.state']
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -263,12 +261,12 @@ describe('physics system bridge (on the client)', function () {
 
     describe('a physics map with multiple keys', function () {
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'keyA': ['source.state'],
           'keyB': ['different.state']
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -305,12 +303,12 @@ describe('physics system bridge (on the client)', function () {
       }
 
       beforeEach(function () {
-        var physicsMap = ['*', {
+        const physicsMap = ['*', {
           'keyA': [{ position: { x: -100, y: -100}, width: 700, height: 100}],
           'keyB': [{ position: { x: -100, y: -100}, width: 700, height: 100, via: positionOnly}]
         }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [physicsMap],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -339,11 +337,11 @@ describe('physics system bridge (on the client)', function () {
 
     describe('dealing with modes', function () {
       beforeEach(function () {
-        var map1 = ['*', {'key1': ['source.state'] }];
-        var map2 = ['arcade', {'key2': ['source.state'] }];
-        var map3 = ['endless', {'key3': ['source.state'] }];
+        const map1 = ['*', {'key1': ['source.state'] }];
+        const map2 = ['arcade', {'key2': ['source.state'] }];
+        const map3 = ['endless', {'key3': ['source.state'] }];
 
-        var bridge = makeTestible('core/client/physics-system-bridge', {
+        const bridge = makeTestible('core/client/physics-system-bridge', {
           PhysicsMap: [map1, map2, map3],
           StateTracker: tracker,
           PhysicsSystem: physicsSystem,
@@ -375,10 +373,10 @@ describe('physics system bridge (on the client)', function () {
   });
 
   describe('on physics frame', function () {
-    var bridge;
+    let bridge;
 
     beforeEach(function () {
-      var physicsMap = ['*', {
+      const physicsMap = ['*', {
         'key': ['source.state'],
         'composite': ['source.state', 'second.state'],
         'static': [{ position: { x: -100, y: -100}, width: 700, height: 100}]

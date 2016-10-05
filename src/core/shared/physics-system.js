@@ -1,7 +1,7 @@
 'use strict';
 
 const autoResolve = require('distributedlife-sat').shapes.autoResolve;
-import {map, reject, uniq} from 'lodash';
+import uniq from 'lodash/uniq';
 import {join} from '../../util/array';
 
 const physicsThings = {};
@@ -46,14 +46,14 @@ function changed (saveId, physicsKey, sourceKey, adapter) {
     const physicsModel = adapter ? autoResolve(adapter(current)) : autoResolve(current.toJS());
     physicsModel.id = id;
 
-    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id});
+    physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey].filter((t) => t.id !== id);
     physicsThings[saveId][sourceKey].push(physicsModel);
   };
 }
 
 function removed (saveId, physicsKey, sourceKey) {
   return function calledWhenElementRemoved (id) {
-    physicsThings[saveId][sourceKey] = reject(physicsThings[saveId][sourceKey], {id});
+    physicsThings[saveId][sourceKey] = physicsThings[saveId][sourceKey].filter((t) => t.id !== id);
   };
 }
 
@@ -64,9 +64,11 @@ function getBySourceKey (saveId, sourceKey) {
 function getByPhysicsKey (saveId, physicsKey) {
   const sourceKeys = keyMappings[saveId][physicsKey];
 
-  const entries = map(sourceKeys, function(sourceKey) {
-    return getBySourceKey(saveId, sourceKey);
-  });
+  if (!sourceKeys) {
+    return [];
+  }
+
+  const entries = sourceKeys.map((sourceKey) => getBySourceKey(saveId, sourceKey));
 
   const result = [];
   for (let i = 0; i < entries.length; i += 1) {

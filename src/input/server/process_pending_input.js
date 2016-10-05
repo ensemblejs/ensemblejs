@@ -1,8 +1,5 @@
 'use strict';
 
-import each from 'lodash/each';
-import filter from 'lodash/filter';
-import reject from 'lodash/reject';
 import last from 'lodash/last';
 
 const filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
@@ -51,12 +48,12 @@ module.exports = {
 				function runNoInputHandlers(actionMapDefinition) {
 					const actionMap = last(actionMapDefinition);
 
-					let suitableActions = reject(actionMap.nothing, 'ack');
+					let suitableActions = actionMap.nothing.filter((action) => !action.ack);
 					if (waitingForPlayers) {
-						suitableActions = filter(suitableActions, 'whenWaiting');
+						suitableActions = suitableActions.filter((action) => action.whenWaiting);
 					}
 
-					each(suitableActions, function (action) {
+					suitableActions.forEach((action) => {
 						if (somethingHasReceivedInput.indexOf(action.noEventKey) === -1) {
 							logger.debug({key: 'nothing'}, 'ActionMap called');
 
@@ -105,7 +102,7 @@ module.exports = {
 					parseMouse(actionMaps(), currentInput, waitingForPlayers, createOnMatchingCallback(mouseCallback));
 
 					const forMode = filterPluginsByMode(actionMaps(), currentInput.save.mode);
-					each(forMode, runNoInputHandlers);
+					forMode.forEach(runNoInputHandlers);
 
 					updateTrackingDeviceInputReceived(
 						currentInput.save.id,

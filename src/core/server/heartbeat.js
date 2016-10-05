@@ -1,16 +1,15 @@
 'use strict';
 
 import define from '../../plugins/plug-n-play';
-import { each , reject } from 'lodash';
-var logger = require('../../logging/server/logger').logger;
-var config = require('../../util/config');
+const logger = require('../../logging/server/logger').logger;
+const config = require('../../util/config');
 
 module.exports = {
   type: 'HeartBeat',
   func: function HeartBeat () {
     let intervals = [];
 
-    define('OnClientConnect', function HeartBeat () {
+    define('OnClientConnect', () => {
       return function startHeartbeart (state, socket) {
         socket.on('heartbeat', () => {
           logger.info('Heartbeat received from client');
@@ -20,13 +19,13 @@ module.exports = {
           socket.emit('heartbeat');
         }
 
-        var id = setInterval(sendHeartbeat, config.get().logging.heartbeatInterval);
+        const id = setInterval(sendHeartbeat, config.get().logging.heartbeatInterval);
         intervals.push(id);
 
         define('OnClientDisconnect', function OnClientDisconnect () {
           return function stopHeartbeat () {
             clearInterval(id);
-            intervals = reject(intervals, (interval) => interval === id);
+            intervals = intervals.filter((interval) => interval !== id);
           };
         });
       };
@@ -34,7 +33,7 @@ module.exports = {
 
     define('OnServerStop', function heartbeat () {
       return function stopAllHeartbeats () {
-        each(intervals, function eachInterval (interval) {
+        intervals.forEach(function eachInterval (interval) {
           clearInterval(interval);
         });
       };

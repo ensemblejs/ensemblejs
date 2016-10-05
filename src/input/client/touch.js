@@ -1,6 +1,5 @@
 'use strict';
 
-import {map, reject, each, includes, filter} from 'lodash';
 import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
@@ -16,8 +15,8 @@ module.exports = {
       const elementId = `#${config().client.inputElement}`;
 
       $()(elementId).on('touchstart', function (e) {
-        each(e.touches, function (touch) {
-          if (filter(touches, {id: touch.identifier}).length > 0) {
+        e.touches.forEach(function (touch) {
+          if (touches.filter((t) => t.id === touch.identifier).length > 0) {
             return;
           }
 
@@ -33,8 +32,8 @@ module.exports = {
       });
 
       $()(elementId).on('touchmove', function (e) {
-        each(e.touches, function (touch) {
-          let t = filter(touches, {id: touch.identifier})[0];
+        e.touches.forEach(function (touch) {
+          const t = touches.filter((t2) => t2.id === touch.identifier)[0];
 
           if (t) {
             t.x = touch.clientX - touch.target.offsetLeft;
@@ -47,7 +46,7 @@ module.exports = {
       });
 
       function endTouch (e) {
-        toRemove = toRemove.concat(map(e.changedTouches, 'identifier'));
+        toRemove = toRemove.concat(e.changedTouches.map((t) => t.identifier));
         receivedInput = true;
       }
 
@@ -58,7 +57,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function TouchInputCapture () {
-        if (!includes(supportsInput, deviceMode())) {
+        if (!supportsInput.includes(deviceMode())) {
           return;
         }
         if (deviceMode() === 'virtual-gamepad') {
@@ -70,16 +69,14 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      let inputData = {
-        touches: touches,
-        receivedInput: receivedInput
+      const inputData = {
+        touches,
+        receivedInput
       };
 
       receivedInput = false;
 
-      touches = reject(touches, function (touch) {
-        return includes(toRemove, touch.id);
-      });
+      touches = touches.filter((touch) => !toRemove.includes(touch.id));
 
       toRemove = [];
 

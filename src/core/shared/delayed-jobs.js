@@ -1,16 +1,14 @@
 'use strict';
 
-import reject from 'lodash/reject';
-import includes from 'lodash/includes';
 import isEmpty from 'lodash/isEmpty';
 import { join } from '../../util/array';
-import read from 'ok-selector';
+import read, { unwrap } from 'ok-selector';
 import { logger } from '../../';
 
 module.exports = {
   type: 'DelayedJobs',
   deps: ['DefinePlugin', 'StateMutator', 'DynamicPluginLoader'],
-  func: function (define, mutate, dynamicPluginLoader) {
+  func: (define, mutate, dynamicPluginLoader) => {
     const newJobs = [];
     const toCancel = [];
     const jobNames = [];
@@ -27,10 +25,12 @@ module.exports = {
     }
 
     const ready = (job) => job.duration <= 0 && job.duration !== Infinity;
-    const cancelled = (job) => includes(toCancel, job.key);
+    const notReady = (job) => !ready(job);
+    const cancelled = (job) => toCancel.includes(job.key);
+    const notCancelled = (job) => !cancelled(job);
 
     function devuxAddKeyToList (key) {
-      if (includes(jobNames, key)) {
+      if (jobNames.includes(key)) {
         return;
       }
 
@@ -38,7 +38,7 @@ module.exports = {
     }
 
     function devuxCheckJobName (job) {
-      if (includes(jobNames, job.key)) {
+      if (jobNames.includes(job.key)) {
         return;
       }
 
@@ -47,7 +47,7 @@ module.exports = {
 
     define()('OnPhysicsFrame', function DelayedJobs () {
       return function tickActiveJobs (Δ, state) {
-        let jobs = read(state, 'ensemble.jobs');
+        let jobs = unwrap(state, 'ensemble.jobs');
         const saveId = read(state, 'ensemble.saveId');
 
         function callOnCompleteHandlerForReadyJobs (job) {
@@ -59,14 +59,15 @@ module.exports = {
 
         join(jobs, newJobs.splice(0));
         jobs.filter(cancelled).forEach(devuxCheckJobName);
-        jobs = reject(jobs, cancelled);
+
+        jobs = jobs.filter(notCancelled);
         jobs = tick(jobs, Δ);
 
         jobs.filter(ready).forEach(callOnCompleteHandlerForReadyJobs);
 
         toCancel.splice(0);
 
-        const jobsToSave = reject(jobs, ready);
+        const jobsToSave = jobs.filter(notReady);
         if (isEmpty(read(state, 'ensemble.jobs')) && isEmpty(jobsToSave)) {
           return undefined;
         }

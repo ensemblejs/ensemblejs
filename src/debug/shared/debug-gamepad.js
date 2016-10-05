@@ -1,10 +1,7 @@
 'use strict';
 
-let each = require('lodash').each;
-let reject = require('lodash').reject;
-let filter = require('lodash').filter;
-let merge = require('lodash').merge;
-let round = require('round-precision');
+const merge = require('lodash/merge');
+const round = require('round-precision');
 
 function StateSeed () {
   return {
@@ -20,9 +17,9 @@ function StateSeed () {
 
 function createKeyDownFunc (key) {
   return function (state) {
-    let keys = state.get('ensembleDebug.buttons');
+    const keys = state.get('ensembleDebug.buttons');
 
-    if (filter(keys, {id: key}).length > 0) {
+    if (keys.filter((k) => k.id === key).length > 0) {
       return {};
     }
 
@@ -35,50 +32,31 @@ function createKeyDownFunc (key) {
 function createKeyUpFunc (key) {
   return function (state) {
     let keys = state.get('ensembleDebug.buttons');
-    keys = reject(keys, {id : key});
+    keys = keys.filter((k) => k.id !== key);
 
     return ['ensembleDebug.buttons', keys];
   };
 }
 
-function setForceLeft (state, force = 0) {
-  return ['ensembleDebug.left-trigger', force];
-}
+const setForceLeft = (state, force = 0) => ['ensembleDebug.left-trigger', force];
+const zeroForceLeft = () => ['ensembleDebug.left-trigger', 0];
+const setForceRight = (state, force = 0) => ['ensembleDebug.right-trigger', force];
+const zeroForceRight = () => ['ensembleDebug.right-trigger', 0];
+const setLeftStick = (state, x, y) => ['ensembleDebug.left-stick', {x, y}];
+const setRightStick = (state, x, y) => ['ensembleDebug.right-stick', {x, y}];
+const zeroLeftStick = () => ['ensembleDebug.left-stick', {x: 0, y: 0}];
+const zeroRightStick = () => ['ensembleDebug.right-stick', {x: 0, y: 0}];
 
-function zeroForceLeft () {
-  return ['ensembleDebug.left-trigger', 0];
-}
-
-function setForceRight (state, force = 0) {
-  return ['ensembleDebug.right-trigger', force];
-}
-
-function zeroForceRight () {
-  return ['ensembleDebug.right-trigger', 0];
-}
-
-function setLeftStick (state, x, y) {
-  return ['ensembleDebug.left-stick', {x: x, y: y}];
-}
-
-function setRightStick (state, x, y) {
-  return ['ensembleDebug.right-stick', {x: x, y: y}];
-}
-
-function zeroLeftStick () {
-  return ['ensembleDebug.left-stick', {x: 0, y: 0}];
-}
-
-function zeroRightStick () {
-  return ['ensembleDebug.right-stick', {x: 0, y: 0}];
-}
-
-const keys = ['up', 'down', 'left', 'right', 'start-forward', 'select-back', 'left-stick-button', 'right-stick-button', 'home', 'left-shoulder', 'right-shoulder', 'face-top', 'face-bottom', 'face-left', 'face-right'];
+const keys = [
+  'up', 'down', 'left', 'right', 'start-forward', 'select-back', 'left-stick-button',
+  'right-stick-button', 'home', 'left-shoulder', 'right-shoulder', 'face-top', 'face-bottom',
+  'face-left', 'face-right'
+];
 
 function ActionMap () {
-  let actionMap = { nothing: [] };
+  const actionMap = { nothing: [] };
 
-  each(keys, function eachKey (key) {
+  keys.forEach(function eachKey (key) {
     actionMap[key] = [{call: createKeyDownFunc(key), noEventKey: key, whenWaiting: true}];
     actionMap.nothing.push({call: createKeyUpFunc(key), noEventKey: key, whenWaiting: true});
   });
@@ -140,7 +118,7 @@ function OnClientReady (tracker, $) {
   function addKey (id, value, makeCssId) {
     const partial = require('../../../public/partials/dashboard/rect-small.pug');
 
-    var json = { id: makeCssId(id) };
+    let json = { id: makeCssId(id) };
     json = merge(json, jsonForPartial(value), true);
 
     $()('#gamepad').append(partial(json));
@@ -180,22 +158,22 @@ function OnClientReady (tracker, $) {
 
     const partial = require('../../../public/partials/dashboard/rect-small.pug');
 
-    var leftTrigger = {
+    const leftTrigger = {
       id: 'left-trigger-force',
       title: 'Left Trigger',
       value: 0
     };
-    var rightTrigger = {
+    const rightTrigger = {
       id: 'right-trigger-force',
       title: 'Right Trigger',
       value: 0
     };
-    var leftStick = {
+    const leftStick = {
       id: 'left-stick',
       title: 'Left Stick',
       value: '0, 0'
     };
-    var rightStick = {
+    const rightStick = {
       id: 'right-stick',
       title: 'Right Stick',
       value: '0, 0'

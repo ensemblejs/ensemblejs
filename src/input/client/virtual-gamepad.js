@@ -1,10 +1,10 @@
 'use strict';
 
-import {each, isEqual, filter, remove, includes, reject} from 'lodash';
+import {isEqual, remove} from 'lodash';
 import {radial} from 'gamepad-api-mappings';
 import define from '../../plugins/plug-n-play';
 
-var gamepads = require('../../../config/gamepads.json');
+const gamepads = require('../../../config/gamepads.json');
 
 const stickIds = ['left-stick', 'right-stick'];
 
@@ -30,7 +30,7 @@ function touchData (touch) {
   const radius = touch.target.scrollWidth / 2;
 
   return {
-    radius: radius,
+    radius,
     x: (touch.clientX - touch.target.offsetLeft - radius) / radius,
     y: (touch.clientY - touch.target.offsetTop - radius) / radius
   };
@@ -42,15 +42,15 @@ module.exports = {
   func: function VirtualGamepad (window, config, $, deviceMode) {
     let keys = [];
     let singlePressKeys = [];
-    let sticks = {
+    const sticks = {
       'left-stick': {x: 0, y: 0},
       'right-stick': {x: 0, y: 0}
     };
-    var layout = gamepads[config().client.input.virtualGamepad];
+    const layout = gamepads[config().client.input.virtualGamepad];
     let receivedInput = false;
 
     function addVisual (stickId, x, y) {
-      $()(stickId).css('background-image', '-webkit-radial-gradient(' + x + 'px ' + y + 'px, circle cover, yellow, orange, red)');
+      $()(stickId).css('background-image', `-webkit-radial-gradient(${x}px ${y}px, circle cover, yellow, orange, red)`);
     }
 
     function removeVisual (stickId) {
@@ -58,19 +58,19 @@ module.exports = {
     }
 
     function setupStickBindings (stickId) {
-      var domStickId = `#${stickId}`;
+      const domStickId = `#${stickId}`;
 
       $()(domStickId).on('touchstart touchmove', function (e) {
-        let touches = filter(e.touches, touch => {
+        const touches = e.touches.filter((touch) => {
           return isEqual($()(touch.target).attr('id'), $()(e.target).attr('id'));
         });
 
-        each(touches, touch => {
+        touches.forEach((touch) => {
           e.stopPropagation();
           e.preventDefault();
 
-          let t = touchData(touch);
-          let coord = radial(t);
+          const t = touchData(touch);
+          const coord = radial(t);
 
           sticks[stickId] = coord;
 
@@ -91,24 +91,24 @@ module.exports = {
 
     function pressButton (receiver, button) {
       $()(receiver)
-        .addClass('inverse-' + button)
-        .removeClass('base-' + button);
+        .addClass(`inverse-${button}`)
+        .removeClass(`base-${button}`);
     }
 
     function releaseButton (receiver, button) {
       $()(receiver)
-        .addClass('base-' + button)
-        .removeClass('inverse-' + button);
+        .addClass(`base-${button}`)
+        .removeClass(`inverse-${button}`);
     }
 
     function setupButtonBindings (buttonId) {
-      var domButtonId = `#${buttonId}`;
+      const domButtonId = `#${buttonId}`;
 
       $()(domButtonId).on('touchstart', function (e) {
         keys.push(buttonId);
         singlePressKeys.push(buttonId);
 
-        each(e.touches, touch => pressButton(touch.target, buttonId));
+        e.touchesforEach((touch) => pressButton(touch.target, buttonId));
 
         receivedInput = true;
       });
@@ -116,7 +116,7 @@ module.exports = {
       $()(domButtonId).on('touchmove', function (e) {
         keys.push(buttonId);
 
-        each(e.touches, touch => pressButton(touch.target, buttonId));
+        e.touchesforEach((touch) => pressButton(touch.target, buttonId));
 
         receivedInput = true;
       });
@@ -125,7 +125,7 @@ module.exports = {
         keys = remove(keys, buttonId);
         singlePressKeys = remove(singlePressKeys, buttonId);
 
-        each(e.changedTouches, touch => releaseButton(touch.target, buttonId));
+        e.changedTouches.forEach((touch) => releaseButton(touch.target, buttonId));
 
         receivedInput = true;
       });
@@ -133,24 +133,24 @@ module.exports = {
 
     function bindToWindowEvents () {
       const all = layout.leftSide.concat(layout.rightSide);
-      const padSticks = filter(all, c => includes(stickIds, c));
-      const padButtons = reject(all, c => includes(stickIds, c ));
+      const padSticks = all.filter((c) => stickIds.includes(c));
+      const padButtons = all.filter((c) => !stickIds.includes(c));
 
-      each(padSticks, stick => setupStickBindings(stick));
-      each(padButtons, button => setupButtonBindings(button));
+      padSticks.forEach((stick) => setupStickBindings(stick));
+      padButtons.forEach((button) => setupButtonBindings(button));
     }
 
     function setupController () {
       $()('#virtual-gamepad').addClass(layout.class);
 
-      each(layout.leftSide, component => {
-        const cssClass = includes(stickIds, component) ? 'stick' : 'button';
+      layout.leftSide.forEach((component) => {
+        const cssClass = stickIds.includes(component) ? 'stick' : 'button';
 
         $()('#left-side').append(`<div id="${component}" class="${cssClass} base-${component}">${labels[component]}</div>`);
       });
 
-      each(layout.rightSide, component => {
-        const cssClass = includes(stickIds, component) ? 'stick' : 'button';
+      layout.rightSide.forEach((component) => {
+        const cssClass = stickIds.includes(component) ? 'stick' : 'button';
 
         $()('#right-side').append(`<div id="${component}" class="${cssClass} base-${component}">${labels[component]}</div>`);
       });
@@ -168,21 +168,21 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      let inputData = {
+      const inputData = {
         'left-stick': sticks['left-stick'],
         'right-stick': sticks['right-stick'],
-        receivedInput: receivedInput
+        receivedInput
       };
 
-      let keysToSend = [];
-      each(keys, (key) => {
-        keysToSend.push({key: key, force: 1, modifiers: []});
+      const keysToSend = [];
+      keys.forEach((key) => {
+        keysToSend.push({key, force: 1, modifiers: []});
       });
       inputData.keys = keysToSend;
 
-      let singlePressKeysToSend = [];
-      each(singlePressKeys, (key) => {
-        singlePressKeysToSend.push({key: key, force: 1, modifiers: []});
+      const singlePressKeysToSend = [];
+      singlePressKeys.forEach((key) => {
+        singlePressKeysToSend.push({key, force: 1, modifiers: []});
       });
       singlePressKeys = [];
       inputData.singlePressKeys = singlePressKeysToSend;

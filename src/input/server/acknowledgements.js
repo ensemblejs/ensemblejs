@@ -1,23 +1,19 @@
 'use strict';
 
-var each = require('lodash').each;
-var last = require('lodash').last;
-var filter = require('lodash').filter;
-var reject = require('lodash').reject;
-var unique = require('lodash').uniq;
-var map = require('lodash').map;
-var includes = require('lodash').includes;
-var filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
-var logger = require('../../logging/server/logger').logger;
-var config = require('../../util/config');
+const last = require('lodash').last;
+const unique = require('lodash').uniq;
+const includes = require('lodash').includes;
+const filterPluginsByMode = require('../../util/modes').filterPluginsByMode;
+const logger = require('../../logging/server/logger').logger;
+const config = require('../../util/config');
 
 function toggleAck (players, playerId) {
   if (includes(players, playerId)) {
-    return unique(reject(players, function(n) { return n === playerId;}));
-  } else {
-    players.push(playerId);
-    return unique(players);
+    return unique(players.filter((n) => n !== playerId));
   }
+
+  players.push(playerId);
+  return unique(players);
 }
 
 function ackEvery (action, ack, save, onProgress, onComplete) {
@@ -39,41 +35,43 @@ module.exports = {
   deps: ['StateMutator', 'StateAccess', 'AcknowledgementMap', 'DefinePlugin'],
   func: function AcknowledgementProcessing (mutate, state, acknowledgementMaps, define) {
 
-    var serverAcks = [];
+    let serverAcks = [];
 
     function ackOnceForAll (action, ack, save, onProgress, onComplete) {
       action.players = action.players || [];
       action.fired = action.fired || false;
 
       if (action.fired) {
-        logger.debug({action: action}, 'Action has already fired.');
-        return;
+        logger.debug({action}, 'Action has already fired.');
+        return false;
       }
 
       action.players = toggleAck(action.players, ack.playerId);
 
-      logger.debug({action: action, ack: ack}, 'Ack for player progressed.');
+      logger.debug({action, ack}, 'Ack for player progressed.');
       if (action.players.length === config.get().maxPlayers(save.mode)) {
         onProgress(action);
 
-        logger.debug({action: action}, 'All players have ack\'d.');
+        logger.debug({action}, 'All players have ack\'d.');
         onComplete(action);
 
         action.fired = true;
         return true;
-      } else {
-        onProgress(action);
       }
+
+      onProgress(action);
+
+      return false;
     }
 
     function ackOnceAlreadyFired (action, ack) {
       if (action.fired) {
-        logger.debug({action: action}, 'Action has already fired.');
+        logger.debug({action}, 'Action has already fired.');
         return true;
       }
 
       if (includes(action.players, ack.playerId)) {
-        logger.debug({action: action, ack: ack}, 'Player has already fired ack.');
+        logger.debug({action, ack}, 'Player has already fired ack.');
         return true;
       }
 
@@ -100,7 +98,7 @@ module.exports = {
       return true;
     }
 
-    var ackMapTypeCanFireHandler = {
+    const ackMapTypeCanFireHandler = {
       'once-for-all': ackOnceForAll,
       'every': ackEvery,
       'once-each': ackOnceEach,
@@ -109,23 +107,23 @@ module.exports = {
 
     define()('OnIncomingClientInputPacket', function () {
       return function handleAcknowledgements (packet, save) {
-        var serverAcksForSave = filter(serverAcks, {saveId: save.id});
-        serverAcks = reject(serverAcks, {saveId: save.id});
+        const serverAcksForSave = serverAcks.filter((ack) => ack.saveId === save.id);
+        serverAcks = serverAcks.filter((ack) => ack.saveId === save.id);
 
-        var acks = packet.pendingAcks.concat(serverAcksForSave);
-        acks = map(acks, function (ack) {
+        let acks = packet.pendingAcks.concat(serverAcksForSave);
+        acks = acks.map(function (ack) {
           ack.playerId = packet.playerId;
           return ack;
         });
 
-        each(acks, function (ack) {
-          var byMode = filterPluginsByMode(acknowledgementMaps(), save.mode);
-          var hasMatchingName = filter(byMode, function(ackMap) {
+        acks.forEach(function (ack) {
+          const byMode = filterPluginsByMode(acknowledgementMaps(), save.mode);
+          const hasMatchingName = byMode.filter(function(ackMap) {
             return last(ackMap)[ack.name];
           });
 
           function onProgress (action) {
-            logger.debug({ack: ack}, 'Acknowledgement progressed.');
+            logger.debug({ack}, 'Acknowledgement progressed.');
 
             mutate()(
               save.id,
@@ -139,7 +137,7 @@ module.exports = {
           }
 
           function onComplete (action) {
-            logger.debug({ack: ack}, 'Acknowledgement complete.');
+            logger.debug({ack}, 'Acknowledgement complete.');
 
             mutate()(
               save.id,
@@ -151,10 +149,10 @@ module.exports = {
             );
           }
 
-          each(hasMatchingName, function(ackMap) {
-            var actions = last(ackMap)[ack.name];
+          hasMatchingName.forEach(function(ackMap) {
+            const actions = last(ackMap)[ack.name];
 
-            each(actions, function (action) {
+            actions.forEach(function (action) {
               ackMapTypeCanFireHandler[action.type](action, ack, save, onProgress, onComplete);
             });
           });

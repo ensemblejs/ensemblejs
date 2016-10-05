@@ -1,6 +1,6 @@
 'use strict';
 
-import {each, filter, reject, isString, isArray, set, has, isFunction} from 'lodash';
+import {isString, isArray, set, has, isFunction} from 'lodash';
 const forEachMode = require('../../util/modes').forEachMode;
 const replaceIfPresent = require('../../util/replace-if-present');
 const sequence = require('distributedlife-sequence');
@@ -33,9 +33,11 @@ module.exports = {
     function OnClientReady (mode) {
       return function wireupPhysicsMap () {
         function loadPhysicsMap (map) {
-          each(map, function(sources, physicsKey) {
-            const stringDynamic = filter(sources, isString).concat(filter(sources, isFunction));
-            each(stringDynamic, function(sourceKey) {
+          Object.keys(map).forEach((physicsKey) => {
+            const sources = map[physicsKey];
+
+            const stringDynamic = sources.filter(isString).concat(sources.filter(isFunction));
+            stringDynamic.forEach(function(sourceKey) {
               const sourceState = stateAccess().for('client').get(sourceKey);
               const key = isFunction(sourceKey) ? `${physicsKey}-${sequence.next('source-key')}` : sourceKey;
               const lens = sourceKey
@@ -44,10 +46,10 @@ module.exports = {
             });
 
 
-            let configDynamic = reject(sources, isString);
-            configDynamic = reject(configDynamic, isFunction);
-            configDynamic = filter(configDynamic, (s) => has(s, 'sourceKey'));
-            each(configDynamic, function eachDynamicConfig (config) {
+            let configDynamic = sources.filter((s) => !isString(s));
+            configDynamic = configDynamic.filter((s) => !isFunction(s));
+            configDynamic = configDynamic.filter((s) => has(s, 'sourceKey'));
+            configDynamic.forEach(function eachDynamicConfig (config) {
               const sourceKey = config.sourceKey;
               const adapter = config.via;
               const sourceState = stateAccess().for('client').get(config.sourceKey);
@@ -55,10 +57,10 @@ module.exports = {
             });
 
 
-            let statics = reject(sources, isString);
-            statics = reject(statics, isFunction);
-            statics = reject(statics, (s) => has(s, 'sourceKey'));
-            each(statics, function(source) {
+            let statics = sources.filter((s) => !isString(s));
+            statics = statics.filter((s) => !isFunction(s));
+            statics = statics.filter((s) => !has(s, 'sourceKey'));
+            statics.forEach(function(source) {
               const adapter = source.via;
               wireupStatic('client', physicsKey, adapter ? adapter(source) : source);
             });
@@ -80,7 +82,7 @@ module.exports = {
         }
 
         const newState = {};
-        each(changes, (stateKey) => {
+        changes.forEach((stateKey) => {
           const saveState = read(state, stateKey);
           const physicsState = physicsSystem().get(stateKey);
 

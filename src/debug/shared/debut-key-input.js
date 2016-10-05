@@ -1,18 +1,14 @@
 'use strict';
 
-var each = require('lodash').each;
-var reject = require('lodash').reject;
-var filter = require('lodash').filter;
-
 function StateSeed () {
   return { ensembleDebug: { keys: [] } };
 }
 
 function createKeyDownFunc (key) {
   return function (state) {
-    var keys = state.get('ensembleDebug.keys');
+    const keys = state.get('ensembleDebug.keys');
 
-    if (filter(keys, {id: key}).length > 0) {
+    if (keys.filter((k) => k.id === key).length > 0) {
       return {};
     }
 
@@ -24,30 +20,30 @@ function createKeyDownFunc (key) {
 
 function createKeyUpFunc (key) {
   return function (state) {
-    var keys = state.get('ensembleDebug.keys');
-    keys = reject(keys, {id : key});
+    let keys = state.get('ensembleDebug.keys');
+    keys = keys.filter((k) => k.id !== key)
 
     return ['ensembleDebug.keys', keys];
   };
 }
 
-var keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'delete', 'tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', ',', 'enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'command', 'space', 'left', 'right', 'up', 'down', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12', 'escape', 'caps'];
+const keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'delete', 'tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', ',', 'enter', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 'command', 'space', 'left', 'right', 'up', 'down', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12', 'escape', 'caps'];
 
-var modifiers = [
+const modifiers = [
   ['ctrl'], ['alt'], ['shift'],
   ['ctrl', 'alt'], ['ctrl', 'shift'], ['alt', 'shift'],
   ['ctrl', 'alt', 'shift']
 ];
 
 function ActionMap () {
-  var actionMap = { nothing: [] };
+  const actionMap = { nothing: [] };
 
-  each(keys, function eachKey (key) {
+  keys.forEach(function eachKey (key) {
     actionMap[key] = [{call: createKeyDownFunc(key), noEventKey: key, whenWaiting: true}];
     actionMap.nothing.push({call: createKeyUpFunc(key), noEventKey: key, whenWaiting: true});
 
-    each(modifiers, function eachModifier (modifier) {
-      var modifiedKey = modifier.join('_') + '_' + key;
+    modifiers.forEach(function eachModifier (modifier) {
+      const modifiedKey = `${modifier.join('_')}_${key}`;
 
       if (modifiedKey === 'ctrl_tab' || modifiedKey === 'ctrl_shift_tab') {
         return;
@@ -71,7 +67,7 @@ function ActionMap () {
 }
 
 function OnClientReady (tracker, $) {
-  var unsupportedIds = {
+  const unsupportedIds = {
     '=': 'equals',
     ';': 'semicolon',
     '\'': 'single-quote',
@@ -89,22 +85,22 @@ function OnClientReady (tracker, $) {
   }
 
   function addKey (id) {
-    var keyState = require('../../../public/partials/debug/key-state.pug');
-    var domId = ['key', safeId(id)].join('_');
+    const keyState = require('../../../public/partials/debug/key-state.pug');
+    const domId = ['key', safeId(id)].join('_');
 
     $()('#keys').append(keyState({id: domId, value: id}));
   }
 
   function removeKey (id) {
-    var domId = ['key', safeId(id)].join('_');
+    const domId = ['key', safeId(id)].join('_');
 
-    $()('#' + domId).remove();
+    $()(`#${domId}`).remove();
   }
 
   return function setupKeyStateDebugView () {
-    var keys = require('../../../public/partials/debug/keys.pug');
+    const keysTemplate = require('../../../public/partials/debug/keys.pug');
 
-    $()('#debug').append(keys());
+    $()('#debug').append(keysTemplate());
 
     tracker().onElementAdded('ensembleDebug.keys', addKey);
     tracker().onElementRemoved('ensembleDebug.keys', removeKey);

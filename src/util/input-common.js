@@ -1,10 +1,10 @@
 'use strict';
 
-import {each, xor, chain} from 'lodash';
-import {filter} from './array';
+import xor from 'lodash/xor';
+import flatten from 'lodash/flatten';
 
-var filterPluginsByMode = require('./modes').filterPluginsByMode;
-var stripMode = require('./modes').stripMode;
+const filterPluginsByMode = require('./modes').filterPluginsByMode;
+const stripMode = require('./modes').stripMode;
 
 function ensureMapHasModifiers(action) {
   action.modifiers = action.modifiers || [];
@@ -29,9 +29,7 @@ function removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers) {
       return handlers;
     }
 
-    return filter(handlers, function whenWaiting (handler) {
-      return handler.whenWaiting;
-    });
+    return handlers.filter((handler) => handler.whenWaiting);
   };
 }
 
@@ -47,43 +45,39 @@ function whenWaiting (waitingForPlayers) {
 
 function parseKeysAndKeypresses (actionMaps, currentInput, waitingForPlayers, callback) {
 
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
+  const pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
-  function processKeys (keyData, rejectOrSelect) {
-    each(keyData, function processKey(keyInfo) {
+  function processKeys (keyData = [], rejectOrSelect) {
+    keyData.forEach(function processKey(keyInfo) {
 
-      var key = keyInfo.key.toLowerCase();
+      const key = keyInfo.key.toLowerCase();
 
       function whereModifiersDoNotMatch(action) {
-        return (xor(action.modifiers, keyInfo.modifiers).length > 0);
+        return !(xor(action.modifiers, keyInfo.modifiers).length > 0);
       }
 
       function callTarget(action) {
         callback(currentInput, key, action, {
-          key: key,
+          key,
           force: keyInfo.force || 1
         });
       }
 
       function rejectOrSelectOnRelease (handler) {
-        if (rejectOrSelect === 'reject') {
-          return handler.onRelease !== true;
-        } else {
-          return handler.onRelease === true;
-        }
+        return (rejectOrSelect === 'reject') ? !handler.onRelease : handler.onRelease;
       }
 
-      chain(pluginsForMode)
-        .map(stripMode)
-        .filter(withValidKey(key))
-        .map(pluckKeyHandler(key))
-        .flatten()
-        .filter(rejectOrSelectOnRelease)
-        .filter(whenWaiting(waitingForPlayers))
-        .map(ensureMapHasModifiers)
-        .reject(whereModifiersDoNotMatch)
-        .each(callTarget)
-        .value();
+      flatten(
+        pluginsForMode
+          .map(stripMode)
+          .filter(withValidKey(key))
+          .map(pluckKeyHandler(key))
+      )
+      .filter(rejectOrSelectOnRelease)
+      .filter(whenWaiting(waitingForPlayers))
+      .map(ensureMapHasModifiers)
+      .filter(whereModifiersDoNotMatch)
+      .forEach(callTarget);
     });
   }
 
@@ -100,23 +94,27 @@ function parseMouse (actionMaps, currentInput, waitingForPlayers, callback) {
     callback(currentInput, 'cursor', action, currentInput.rawData.mouse);
   }
 
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
+  const pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
-  chain(pluginsForMode)
-    .map(stripMode)
-    .filter(withValidKey('cursor'))
-    .map(pluckKeyHandler('cursor'))
-    .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
-    .flatten()
-    .each(callTarget)
-    .value();
+  flatten(
+    pluginsForMode
+      .map(stripMode)
+      .filter(withValidKey('cursor'))
+      .map(pluckKeyHandler('cursor'))
+      .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+    )
+    .forEach(callTarget);
 }
 
 function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
-  var pluginsForMode = filterPluginsByMode(plugins, currentInput.save.mode);
+  const pluginsForMode = filterPluginsByMode(plugins, currentInput.save.mode);
 
-  each(currentInput.rawData.touches, function(touch) {
-    var key = 'touch' + touch.id;
+  if (!currentInput.rawData.touches) {
+    return;
+  }
+
+  currentInput.rawData.touches.forEach((touch) => {
+    const key = `touch${touch.id}`;
 
     function callTarget(action) {
       callback(currentInput, key, action, {
@@ -125,26 +123,26 @@ function parseTouches (plugins, currentInput, waitingForPlayers, callback) {
       });
     }
 
-    chain(pluginsForMode)
-      .map(stripMode)
-      .filter(withValidKey(key))
-      .map(pluckKeyHandler(key))
-      .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
-      .flatten()
-      .each(callTarget)
-      .value();
+    flatten(
+      pluginsForMode
+        .map(stripMode)
+        .filter(withValidKey(key))
+        .map(pluckKeyHandler(key))
+        .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+    )
+    .forEach(callTarget);
   });
 }
 
 function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
-  var pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
+  const pluginsForMode = filterPluginsByMode(actionMaps, currentInput.save.mode);
 
-  each(['left-stick', 'right-stick'], function(key) {
+  ['left-stick', 'right-stick'].forEach(function(key) {
     if (currentInput.rawData[key] === undefined) {
       return;
     }
 
-    var data = currentInput.rawData[key];
+    const data = currentInput.rawData[key];
 
     function callTarget(action) {
       callback(currentInput, key, action, {
@@ -153,20 +151,20 @@ function parseSticks (actionMaps, currentInput, waitingForPlayers, callback) {
       });
     }
 
-    chain(pluginsForMode)
-      .map(stripMode)
-      .filter(withValidKey(key))
-      .map(pluckKeyHandler(key))
-      .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
-      .flatten()
-      .each(callTarget)
-      .value();
+    flatten(
+      pluginsForMode
+        .map(stripMode)
+        .filter(withValidKey(key))
+        .map(pluckKeyHandler(key))
+        .map(removeWithoutWhenWaitingWhenWeAreWaiting(waitingForPlayers))
+    )
+    .forEach(callTarget);
   });
 }
 
 module.exports = {
-  parseKeysAndKeypresses: parseKeysAndKeypresses,
-  parseMouse: parseMouse,
-  parseTouches: parseTouches,
-  parseSticks: parseSticks
+  parseKeysAndKeypresses,
+  parseMouse,
+  parseTouches,
+  parseSticks
 };

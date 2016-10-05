@@ -1,14 +1,14 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../support').makeTestible;
-var logger = require('../../src/logging/server/logger').logger;
+const expect = require('expect');
+const sinon = require('sinon');
+const makeTestible = require('../support').makeTestible;
+const logger = require('../../src/logging/server/logger').logger;
 
-function empty () {}
+const empty = () => undefined
 
 describe('ack map validator test', function () {
-  var validator;
+  let validator;
 
   beforeEach(function () {
     sinon.spy(logger, 'error');
@@ -38,7 +38,7 @@ describe('ack map validator test', function () {
   });
 
   describe('when there are ack maps', function () {
-    var maps = [{
+    const maps = [{
       'missingTarget': [{ type: 'every'}],
       'missingType': [{ onComplete: empty}],
       'invalidType': [{ onComplete: empty, type: 'derp'}]

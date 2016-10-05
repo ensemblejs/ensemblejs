@@ -1,6 +1,6 @@
 'use strict';
 
-import {map, filter, first, each, reject, isNull} from 'lodash';
+import {isNull} from 'lodash';
 import Bluebird from 'bluebird';
 
 const playersStore = require('../../util/models/players');
@@ -17,27 +17,21 @@ module.exports = {
     const connections = [];
 
     function filterBySaveAnPlayer (saveId, playerId) {
-      return filter(connections, { saveId, playerId});
+      return connections.filter((conn) => conn.saveId === saveId && conn.playerId === playerId);
     }
 
     function connectedPlayers (saveId) {
-      return filter(connections, { saveId, status: 'online' });
+      return connections.filter((conn) => conn.saveId === saveId && conn.status === 'online');
     }
 
-    function savePlayers (saveId) {
-      return filter(connections, { saveId });
-    }
-
-    function exists (saveId, playerId) {
-      return filterBySaveAnPlayer(saveId, playerId).length > 0;
-    }
-
-    function get (saveId, playerId) {
-      return first(filterBySaveAnPlayer(saveId, playerId));
-    }
+    const savePlayers = (saveId) => connections.filter((conn) => conn.saveId === saveId);
+    const exists = (saveId, playerId) => filterBySaveAnPlayer(saveId, playerId).length > 0;
+    const get = (saveId, playerId) => filterBySaveAnPlayer(saveId, playerId)[0];
+    const activeDevices = (devices) => devices.filter((d) => d.id !== dead);
+    const validIpAddresses = (devices) => devices.map((d) => d.ip).filter((d) => !isNull(d));
 
     function add (maxPlayers, save, playerId) {
-      const inSave = filter(connections, {saveId: save.id});
+      const inSave = connections.filter((conn) => conn.saveId === save.id);
       if (inSave.length === maxPlayers) {
         return;
       }
@@ -69,12 +63,12 @@ module.exports = {
     function onSameSubnet (ipAddresses) {
       let anyFailures = false;
 
-      each(ipAddresses, function (a) {
+      ipAddresses.forEach(function (a) {
         if (anyFailures) {
           return;
         }
 
-        each(ipAddresses, function (b) {
+        ipAddresses.forEach(function (b) {
           if (anyFailures) {
             return;
           }
@@ -103,16 +97,12 @@ module.exports = {
       return connection;
     }
 
-    function activeDevices (devices) {
-      return reject(devices, {id: dead});
-    }
-
     function getPlayers (save) {
-      const players = map(savePlayers(save.id), function (connection) {
+      const players = savePlayers(save.id).map(function (connection) {
         return {
           number: connection.number,
           status: connection.status,
-          devices: map(activeDevices(connection.devices), 'id'),
+          devices: activeDevices(connection.devices).map((d) => d.id),
           playerId: connection.playerId,
           onSameSubnet: connection.onSameSubnet
         };
@@ -128,12 +118,9 @@ module.exports = {
       return players;
     }
 
-    function connectedCount (saveId) {
-      return connectedPlayers(saveId).length;
-    }
-
+    const connectedCount = (saveId) => connectedPlayers(saveId).length;
     function onlineCount (saveId) {
-      return filter(connectedPlayers(saveId), {'status': 'online'}).length;
+      return connectedPlayers(saveId).filter((conn) => conn.status === 'online').length;
     }
 
     function determineIfWaitingForPlayers (save) {
@@ -167,10 +154,6 @@ module.exports = {
     function redirectIfPlayerIsNotInSave (player) {
       console.error('TODO: Redirect player as they are not in the save');
       return player;
-    }
-
-    function validIpAddresses (devices) {
-      return reject(map(devices, 'ip'), isNull);
     }
 
     define()('OnClientConnect', function OnClientConnect () {
@@ -230,7 +213,7 @@ module.exports = {
     });
 
     function markDeviceSlotAsDead (devices, deviceId) {
-      return map(devices, (device) => {
+      return devices.map((device) => {
         if (device.id === deviceId) {
           return { id: dead, ip: null};
         }
