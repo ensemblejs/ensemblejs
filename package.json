@@ -121,7 +121,7 @@
     "factor-bundle": "^2.5.0",
     "fixed-setinterval": "git+https://github.com/distributedlife/fixed-timeout.git",
     "frameguard": "^2.0.0",
-    "game-loops": "^1.0.1",
+    "game-loops": "^1.1.0",
     "git-repo-info": "^1.1.2",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.0",

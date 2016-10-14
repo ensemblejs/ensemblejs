@@ -60,7 +60,7 @@ describe('the state pusher', function () {
     });
 
     it('should send game state based on the configured frequency', function() {
-      expect(setFixedInterval.firstCall.args[1]).toEqual(48);
+      expect(setFixedInterval.firstCall.args[1]).toEqual(45);
     });
 
     describe('on state push', function () {

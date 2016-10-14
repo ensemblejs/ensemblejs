@@ -21,6 +21,7 @@ module.exports = {
     const paused = (state) => read(state, 'ensemble.paused');
     const isPaused = () => clientState().get(paused) || !config().client.clientSidePrediction;
     const Δ = config().client.physicsUpdateLoop;
+    const maxFrameStep = config().client.physicsMaxFrameDelta;
 
     function onEachFrame (frameΔ) {
       const state = stateAccess().for(save.id).all();
@@ -34,7 +35,10 @@ module.exports = {
       }
     }
 
-    const runLoop = createLoop(Δ, isPaused, (frameΔ) => frameStore().process(frameΔ, onEachFrame));
+    const frameStoreProcess = (frameΔ) => frameStore().process(frameΔ, onEachFrame);
+
+    const runLoop = createLoop(Δ, isPaused, frameStoreProcess, maxFrameStep);
+
     const onInterval = () => {
       runLoop();
       callEachPlugin(afterFrame());

@@ -19,6 +19,7 @@ module.exports = {
   func: (beforeFrame, onFrame, afterFrame, stateAccess, mutator, saves, collisionDetection) => {
     const runningSaves = (save) => !stateAccess().for(save.id).get('ensemble.paused');
     const Δ = config.get().server.physicsUpdateLoop;
+    const maxFrameStep = config.get().server.physicsMaxFrameDelta;
 
     function runEachSave (frameΔ) {
       const run = (save) => {
@@ -39,7 +40,7 @@ module.exports = {
     }
 
     const thisPartNeverPaused = () => false;
-    const runLoop = createLoop(Δ, thisPartNeverPaused, runEachSave);
+    const runLoop = createLoop(Δ, thisPartNeverPaused, runEachSave, maxFrameStep);
 
     on('ServerStop', () => {
       return function stopEngine () {
