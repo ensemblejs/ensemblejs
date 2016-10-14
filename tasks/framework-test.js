@@ -29,9 +29,9 @@ function runTestsInPath (gulp, path, scope, cb) {
     });
 }
 
-function runTestsWithoutInstrumentation (gulp, path) {
+function runTestsWithoutInstrumentation (gulp, path, opts) {
   return gulp.src(path, {read: false})
-    .pipe(mocha({ reporter: 'spec', timeout: 10000 }));
+    .pipe(mocha({ reporter: 'spec', timeout: 10000, ...opts }));
 }
 
 function addTasks (gulp) {
@@ -49,6 +49,12 @@ function addTasks (gulp) {
     return runTestsWithoutInstrumentation(gulp, paths.framework.performanceTests);
   });
 
+  gulp.task('framework:run-performance-tests-with-monitoring', function () {
+    return runTestsWithoutInstrumentation(gulp, paths.framework.performanceTests, {
+      require: ['nodejs-dashboard']
+    });
+  });
+
   gulp.task('framework:run-all-tests', function (cb) {
     return runTestsInPath(gulp, paths.framework.allTests, 'all', cb);
   });
@@ -60,6 +66,8 @@ function addTasks (gulp) {
   gulp.task('framework:test:unit', ['framework:run-unit-tests']);
 
   gulp.task('framework:test:perf', ['framework:run-perf-tests']);
+
+  gulp.task('framework:test:perf-mon', ['framework:run-performance-tests-with-monitoring']);
 
   gulp.task('framework:test:integration', gulpSequence(
     'db:start', 'framework:run-integration-tests', 'db:stop')
