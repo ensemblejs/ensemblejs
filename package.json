@@ -153,7 +153,7 @@
     "is-promise": "^2.1.0",
     "jade": "^1.11.0",
     "jquery-browserify": "^1.8.1",
-    "jsdom": "^9.4.5",
+    "jsdom": "^9.7.1",
     "jshint-stylish": "^2.2.0",
     "lodash": "^4.13.1",
     "memory-pool": "^1.2.0",
