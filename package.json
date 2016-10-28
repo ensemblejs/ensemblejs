@@ -144,7 +144,7 @@
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.7",
     "helmet-crossdomain": "^0.1.0",
-    "helmet-csp": "^1.2.0",
+    "helmet-csp": "^2.0.0",
     "i18n": "^0.8.1",
     "ienoopen": "^1.0.0",
     "immutable": "^3.8.1",
