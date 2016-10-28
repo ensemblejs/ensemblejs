@@ -47,10 +47,23 @@ var dimensions = {};
 var tracker = requirePlugin('state/client/tracker', {}, {
   '../src/': trackerPlugins.define
 });
-var mutator = require('../../../src/state/client/mutator').func(defer(logger));
-var rawStateAccess = plugin('RawStateAccess');
-var stateAccess = plugin('StateAccess');
-const applyPendingMerges = plugin('AfterPhysicsFrame');
+
+
+const mutatorDefinedDeps = require('../../support').capture();
+const mutator = requirePlugin('state/client/mutator', {
+  Logger: logger
+}, {
+  '../src/define': mutatorDefinedDeps.define
+});
+const rawStateAccess = mutatorDefinedDeps.deps().RawStateAccess;
+const stateAccess = mutatorDefinedDeps.deps().StateAccess;
+const applyPendingMerges = mutatorDefinedDeps.deps().ApplyPendingMerges;
+
+
+
+// var rawStateAccess = plugin('RawStateAccess');
+// var stateAccess = plugin('StateAccess');
+// var applyPendingMerges = plugin('AfterPhysicsFrame');
 afterPhysicsFrame.push(applyPendingMerges);
 
 var mode = 'default';

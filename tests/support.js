@@ -2,15 +2,15 @@
 
 import requireInject from 'require-inject';
 
-var each = require('lodash').each;
-var sinon = require('sinon');
+const each = require('lodash').each;
+const sinon = require('sinon');
 
-var fakeDetermineDeviceId = require('./fake/determine-device-id');
-var fakeDeterminePlayerId = require('./fake/determine-player-id');
-var fakeI18n = require('./fake/i18n');
-var fakeLogger = require('./fake/logger');
+const fakeDetermineDeviceId = require('./fake/determine-device-id');
+const fakeDeterminePlayerId = require('./fake/determine-player-id');
+const fakeI18n = require('./fake/i18n');
+const fakeLogger = require('./fake/logger');
 
-var pathToSrc = '../src/';
+const pathToSrc = '../src/';
 
 export function defer (dep) {
   return function wrapDep () {
@@ -19,10 +19,10 @@ export function defer (dep) {
 }
 
 export function plugin () {
-  var deps = {};
+  let deps = {};
 
   function define (type) {
-    let dep = arguments[arguments.length - 1];
+    const dep = arguments[arguments.length - 1];
 
     deps[type] = deps[type] ? [deps[type]].concat(dep) : dep;
   }
@@ -32,15 +32,15 @@ export function plugin () {
   }
 
   function get () {
-    let theDeps = deps;
+    const theDeps = deps;
     reset();
     return theDeps;
   }
 
   return {
-    reset: reset,
+    reset,
     deps: get,
-    define: define
+    define
   };
 }
 
@@ -61,11 +61,11 @@ export function capture () {
 }
 
 export const makeTestible = (pathToModule, explicitDeps = {}, nodeDeps = {}) => {
-  var deps = [];
-  var support = plugin();
-  var requiredPlugin = requireInject(pathToSrc + pathToModule, nodeDeps);
+  const deps = [];
+  const support = plugin();
+  const requiredPlugin = requireInject(pathToSrc + pathToModule, nodeDeps);
 
-  var defaultStubs = {
+  const defaultStubs = {
     'DefinePlugin': support.define,
     'SocketServer': { start: sinon.spy(), stop: sinon.spy() },
     'WebServerMiddleware': [fakeDetermineDeviceId, fakeDeterminePlayerId, fakeI18n],
@@ -73,7 +73,7 @@ export const makeTestible = (pathToModule, explicitDeps = {}, nodeDeps = {}) => 
     'Logger': fakeLogger
   };
 
-  each(requiredPlugin.deps, dep => {
+  each(requiredPlugin.deps, (dep) => {
     if (explicitDeps[dep]) {
       deps.push(defer(explicitDeps[dep]));
       return;
@@ -93,21 +93,15 @@ export const requirePlugin = (...params) => makeTestible(...params)[0];
 
 export function gameScopedState (stateCallback) {
   return {
-    for: function (namespace) {
-      return {
-        get: function (key) {
-          return stateCallback()[namespace][key];
-        }
-      };
-    },
-    get: function (key) {
-      return stateCallback()[key];
-    }
+    for: (namespace) => ({
+      get: (key) => stateCallback()[namespace][key]
+    }),
+    get: (key) => stateCallback()[key]
   };
 }
 
 export function DynamicPluginLoader (plugins) {
   return {
-    get: function (name) { return plugins[name]; }
+    get: (name) => plugins[name]
   };
 }

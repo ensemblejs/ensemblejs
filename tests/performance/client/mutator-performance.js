@@ -5,8 +5,17 @@ import {configure, plugin} from '../../../src/plugins/plug-n-play';
 const defer = require('../../support').defer;
 const logger = require('../../fake/logger');
 configure(logger);
-const mutate = require('../../../src/state/client/mutator').func(defer(logger));
-var afterPhysicsFrame = plugin('AfterPhysicsFrame');
+// const mutate = require('../../../src/state/client/mutator').func(defer(logger));
+// var afterPhysicsFrame = plugin('AfterPhysicsFrame');
+const requirePlugin = require('../../support').requirePlugin;
+const mutatorDefinedDeps = require('../../support').capture();
+const mutator = requirePlugin('state/client/mutator', {
+  Logger: logger
+}, {
+  '../src/define': mutatorDefinedDeps.define
+});
+const afterPhysicsFrame = mutatorDefinedDeps.deps().AfterPhysicsFrame;
+
 
 function newSuite (name, done) {
   return new Benchmark.Suite(name, {

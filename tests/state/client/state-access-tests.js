@@ -1,14 +1,21 @@
 'use strict';
 
-var expect = require('expect');
+const expect = require('expect');
 
-import {plugin} from '../../../src/plugins/plug-n-play';
-var defer = require('../../support').defer;
-var fakeLogger = require('../../fake/logger');
+const fakeLogger = require('../../fake/logger');
 
-var stateMutator = require('../../../src/state/client/mutator').func(defer(fakeLogger));
-var state = plugin('StateAccess');
-var afterPhysicsFrame = plugin('AfterPhysicsFrame');
+const requirePlugin = require('../../support').requirePlugin;
+const mutatorDefinedDeps = require('../../support').capture();
+const stateMutator = requirePlugin('state/client/mutator', {
+  Logger: fakeLogger
+}, {
+  '../src/define': mutatorDefinedDeps.define
+});
+const state = mutatorDefinedDeps.deps().StateAccess();
+const afterPhysicsFrame = mutatorDefinedDeps.deps().AfterPhysicsFrame();
+
+
+
 
 import read from 'ok-selector';
 
@@ -138,21 +145,21 @@ describe('state access on client', function () {
       });
 
       it('should ignore object changes', function () {
-        var value = state.for().get('controller.child.siblings').toJS();
+        const value = state.for().get('controller.child.siblings').toJS();
         value.name = 'Roger';
 
         expect(state.for().get('controller.child.siblings').toJS()).toEqual({ name: 'Geoff' });
       });
 
       it('should ignore array changes', function () {
-        var value = state.for().get('arrayOfThings');
+        const value = state.for().get('arrayOfThings');
         value.push(4);
 
         expect(state.for().get('arrayOfThings').toJS()).toEqual([1, 2, 3]);
       });
 
       it('should ignore nested object changes', function () {
-        var value = state.for().get('controller.child').toJS();
+        const value = state.for().get('controller.child').toJS();
         value.age = 6;
         value.siblings.banana = true;
         value.siblings.name = 'Roger';

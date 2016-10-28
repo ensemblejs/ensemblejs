@@ -4,7 +4,7 @@ const TestDuration = 9000;
 
 const aMinute = 60;
 const aSecond = 1000;
-const KB = 1000;
+// const KB = 1000;
 const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
@@ -29,8 +29,8 @@ const Toggles = {
 
 const now = require('present');
 
-let v8 = require('v8');
-let memwatch = require('memwatch-next');
+const v8 = require('v8');
+const memwatch = require('memwatch-next');
 function memwatchLeakAndStats () {
   if (!Toggles.memwatch) {
     return;
@@ -42,15 +42,15 @@ function memwatchLeakAndStats () {
 
 memwatchLeakAndStats();
 
-const sum = set => set.reduce((t, n) => t + n, 0);
-const average = set => sum(set) / set.length;
+const sum = (set) => set.reduce((t, n) => t + n, 0);
+const average = (set) => sum(set) / set.length;
 
 function preallocatedResultsPool (size, postProcessing) {
   let results = Array(size);
   let index = 0 ;
 
   return {
-    push: value => {
+    push: (value) => {
       if (index < size) {
         results[index] = value;
       } else {
@@ -59,10 +59,10 @@ function preallocatedResultsPool (size, postProcessing) {
 
       index += 1;
     },
-    at: i => results[i],
-    get: () => postProcessing(results.filter(sample => sample !== undefined)),
-    sum: () => sum(results.filter(sample => sample !== undefined)),
-    average: () => average(results.filter(sample => sample !== undefined)),
+    at: (i) => results[i],
+    get: () => postProcessing(results.filter((sample) => sample !== undefined)),
+    sum: () => sum(results.filter((sample) => sample !== undefined)),
+    average: () => average(results.filter((sample) => sample !== undefined)),
     reset: () => {
       results = Array(size);
       index =0 ;
@@ -75,18 +75,18 @@ let gcDurations = {};
 
 if (Toggles.gc) {
   timeBetweenGC = {
-    1: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-    2: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-    4: preallocatedResultsPool(100, samples => samples.map(Math.ceil))
+    1: preallocatedResultsPool(100, (samples) => samples.map(Math.ceil)),
+    2: preallocatedResultsPool(100, (samples) => samples.map(Math.ceil)),
+    4: preallocatedResultsPool(100, (samples) => samples.map(Math.ceil))
   };
 
   gcDurations = {
-    1: preallocatedResultsPool(100, samples => samples),
-    2: preallocatedResultsPool(100, samples => samples),
-    4: preallocatedResultsPool(100, samples => samples)
+    1: preallocatedResultsPool(100, (samples) => samples),
+    2: preallocatedResultsPool(100, (samples) => samples),
+    4: preallocatedResultsPool(100, (samples) => samples)
   };
 
-  var gc = (require('gc-stats'))();
+  const gc = (require('gc-stats'))();
   let gcStart = now();
   let gcStatsDuration;
 
@@ -101,9 +101,13 @@ if (Toggles.gc) {
 
 let usedHeapSize;
 if (Toggles.heapSize) {
-  usedHeapSize = preallocatedResultsPool(500, samples => samples);
+  usedHeapSize = preallocatedResultsPool(500, (samples) => samples);
 }
 
+const trackerDefineDeps = require('../../support').capture();
+const physicsDefineDeps = require('../../support').capture();
+const mutatorDefineDeps = require('../../support').capture();
+const requirePlugin = require('../../support').requirePlugin;
 const expect = require('expect');
 const {sortBy} = require('lodash');
 const histogram = require('ascii-histogram');
@@ -126,19 +130,18 @@ const time = require('../../../src/core/shared/time').func();
 define('Time', () => time);
 
 const defer = require('../../support').defer;
-const trackerPlugins = require('../../support').plugin();
 const processPendingInputPlugins = require('../../support').plugin();
-const mutatorPlugins = require('../../support').plugin();
-const physicsPlugins = require('../../support').plugin();
 
-let beforePhysicsFrame = [];
-let onPhysicsFrame = [];
-let afterPhysicsFrame = [];
-let actionMap = [];
+const beforePhysicsFrame = [];
+const onPhysicsFrame = [];
+const afterPhysicsFrame = [];
+const actionMap = [];
 
 
-const realMutator = require('../../../src/state/server/mutator').func(defer(mutatorPlugins.define));
-const mutatorPluginsDeps = mutatorPlugins.deps();
+const realMutator = requirePlugin('state/server/mutator', {}, {
+  '../src/': mutatorDefineDeps.define
+});
+const mutatorPluginsDeps = mutatorDefineDeps.deps();
 const rawStateAccess = mutatorPluginsDeps.RawStateAccess();
 const stateAccess = mutatorPluginsDeps.StateAccess();
 const applyPendingMerges = mutatorPluginsDeps.ApplyPendingMerges();
@@ -150,7 +153,7 @@ let gameDevTimeForFrame;
 let timeSpendMutating;
 let mutator;
 if (Toggles.measureMutation) {
-  timeSpendMutating = preallocatedResultsPool(250, samples => samples.map(Math.ceil));
+  timeSpendMutating = preallocatedResultsPool(250, (samples) => samples.map(Math.ceil));
 
   mutator = (saveId, result) => {
     const start = now();
@@ -171,23 +174,42 @@ if (Toggles.measureGameDevTime) {
 }
 
 
-require('../../../src/state/server/tracker').func(defer(trackerPlugins.define), defer(rawStateAccess));
+requirePlugin('state/server/tracker', {
+  RawStateAccess: rawStateAccess
+}, {
+  '../src/': trackerDefineDeps.define
+});
 
 
 require('../../../src/input/server/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
-var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame();
+const processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame();
 
-var trackerPluginsDeps = trackerPlugins.deps();
 beforePhysicsFrame.push(processPendingInput);
-afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
+afterPhysicsFrame.push(trackerDefineDeps.deps().AfterPhysicsFrame(defer(rawStateAccess)));
 
 const savesList = {
   loaded: () => ([{id: 1, mode: 'default'}])
 };
 
-var startPhysicsEngine = require('../../../src/core/server/physics').func(defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(stateAccess), defer(mutator), defer(savesList), defer(physicsPlugins.define), defer(time));
+const collisionDetectionBridge = {
+  detectCollisions: () => undefined
+}
 
-var stopPhysicsEngine = physicsPlugins.deps().OnServerStop();
+const startPhysicsEngine = requirePlugin('core/server/physics', {
+  BeforePhysicsFrame: beforePhysicsFrame,
+  OnPhysicsFrame: onPhysicsFrame,
+  AfterPhysicsFrame: afterPhysicsFrame,
+  StateAccess: stateAccess,
+  StateMutator: mutator,
+  SavesList: savesList,
+  CollisionDetectionBridge: collisionDetectionBridge
+}, {
+  '../src/events': {
+    on: physicsDefineDeps.define
+  }
+})
+
+const stopPhysicsEngine = physicsDefineDeps.deps().ServerStop();
 
 let doHardWorkForStart;
 function doHardWorkFor (duration) {
@@ -205,13 +227,13 @@ beforePhysicsFrame.push(() => {
 });
 
 if (Toggles.measureGameDevTime) {
-  totalGameDevTime = preallocatedResultsPool(250, samples => samples.map(Math.ceil));
+  totalGameDevTime = preallocatedResultsPool(250, (samples) => samples.map(Math.ceil));
   gameDevTimeForFrame = 0;
 }
 
 let startTimes;
 if (Toggles.measureTimeSinceLastFrame) {
-  startTimes = preallocatedResultsPool(10000, samples => samples);
+  startTimes = preallocatedResultsPool(10000, (samples) => samples);
 }
 
 function logic (duration) {
@@ -242,7 +264,7 @@ function getPercentile (percentile, values) {
     return 0;
   }
 
-  let i = (percentile/100) * values.length;
+  const i = (percentile/100) * values.length;
 
   if (Math.floor(i) === i) {
     return (values[i-1] + values[i])/2;
@@ -252,7 +274,7 @@ function getPercentile (percentile, values) {
 }
 
 function logDataAboutSamples (name, samples) {
-  const sortedSamples = sortBy(samples.filter(sample => sample !== undefined));
+  const sortedSamples = sortBy(samples.filter((sample) => sample !== undefined));
 
   console.log(name);
 
@@ -262,7 +284,7 @@ function logDataAboutSamples (name, samples) {
   console.log(`99th ${getPercentile(99, sortedSamples)}ms`);
 
   const asHistogram = [];
-  samples.forEach(sample => {
+  samples.forEach((sample) => {
     asHistogram[Math.round(sample)] = asHistogram[Math.round(sample)] || 0;
     asHistogram[Math.round(sample)] += 1;
   });
@@ -273,7 +295,7 @@ function logDataAboutSamples (name, samples) {
 function barChart (name, samples) {
   console.log(name);
 
-  const used = samples.filter(sample => sample !== undefined);
+  const used = samples.filter((sample) => sample !== undefined);
 
   console.log(chart(used, { width: 500, height: 20, tight: true }));
 }
@@ -309,12 +331,12 @@ describe.skip('Server Physics Frames Performance', function () {
       }
 
       if (Toggles.heapSize) {
-        usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
+        usedHeapSize.push(v8.getHeapSpaceStatistics().filter((space) => space.space_name === 'new_space')[0].space_available_size);
       }
     }, HeapSizeSampleHz);
   });
 
-  var hd;
+  let hd;
   beforeEach(() => {
     if (Toggles.memwatch) {
       hd = new memwatch.HeapDiff();
@@ -332,7 +354,7 @@ describe.skip('Server Physics Frames Performance', function () {
     timeTestStarted = undefined;
   });
 
-  let permutations = [];
+  const permutations = [];
 
   const totalDuration = {
     'trivial-ms': 0,
@@ -349,9 +371,9 @@ describe.skip('Server Physics Frames Performance', function () {
     '15ms': 15
   };
 
-  fxCounts.forEach(fx => {
-    effort.forEach(totalMs => {
-      dataSizes.forEach(b => {
+  fxCounts.forEach((fx) => {
+    effort.forEach((totalMs) => {
+      dataSizes.forEach((b) => {
         let fEffort = totalDuration[totalMs];
         if (totalDuration[totalMs] > 0) {
           fEffort /= fx;
@@ -360,7 +382,7 @@ describe.skip('Server Physics Frames Performance', function () {
         const name = `${fx} f(x), ${totalMs}, ${b}b`;
 
         permutations.push({
-          name: name,
+          name,
           code: Array(fx).fill(logic(fEffort)),
           data: data(b === 'minimal-' ? 0 : b),
           fxCount: fx
@@ -371,14 +393,14 @@ describe.skip('Server Physics Frames Performance', function () {
 
   console.log(`There are ${permutations.length} permutations. Settle in as this will take ${Math.ceil((permutations.length * TestDuration) / aSecond / aMinute)} minute(s).`);
 
-  let results = [];
+  const results = [];
 
-  permutations.forEach(permutation => {
+  permutations.forEach((permutation) => {
     describe(`with ${permutation.name} logic`, () => {
       let start;
       let stop;
 
-      before(done => {
+      before((done) => {
         console.log(`Running ${permutation.name}`);
 
         mutator(1, permutation.data);
@@ -411,7 +433,7 @@ describe.skip('Server Physics Frames Performance', function () {
           startTimes.reset();
         }
 
-        permutation.code.forEach(code => (onPhysicsFrame.push(['*', code])));
+        permutation.code.forEach((code) => (onPhysicsFrame.push(['*', code])));
 
         start = now();
         testHasStarted = true;
@@ -433,7 +455,7 @@ describe.skip('Server Physics Frames Performance', function () {
         const durationInSeconds = (stop - start) / 1000;
         const fps = Math.floor(frameCount / durationInSeconds);
 
-        results.push({name: permutation.name, fps: fps});
+        results.push({name: permutation.name, fps});
 
         if (Toggles.gc) {
           logDataAboutSamples('GC Pauses (minor)', gcDurations['1'].get());
@@ -461,7 +483,7 @@ describe.skip('Server Physics Frames Performance', function () {
 
       if (Toggles.measureTimeSinceLastFrame) {
         it.skip('should call the physics loop every ~15ms', () => {
-          let timeSincePrior = [];
+          const timeSincePrior = [];
           for(let i = 0; i < startTimes.get().length; i += 1) {
             if (i === 0) {
               continue;
@@ -483,7 +505,7 @@ describe.skip('Server Physics Frames Performance', function () {
 
   describe('And the results', () => {
     it('are in', () => {
-      results.forEach(result => {
+      results.forEach((result) => {
         const percent = Math.round(result.fps / 60 * 100);
         const padding = Array(3 - String(percent).split('').length).fill(' ').join('');
 

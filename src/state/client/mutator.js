@@ -1,7 +1,8 @@
 'use strict';
 
-import define from '../../plugins/plug-n-play';
+import define from '../../define';
 import theGreatMutator from 'the-great-mutator/immutable';
+import { wrap } from '../../util/breakdown-profiler';
 
 const cache = {};
 function genKey (playerId, namespace, key) {
@@ -43,7 +44,8 @@ function ClientStateMutator () {
     resetTo: (newState) => state.set(newState)
   }));
 
-  return (saveId, result) => state.mutate(result);
+  const mutate = (saveId, result) => state.mutate(result);
+  return wrap(mutate);
 }
 
 module.exports = { type: 'StateMutator', func: ClientStateMutator };

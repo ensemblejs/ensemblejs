@@ -3,6 +3,7 @@
 const forEachMode = require('../../util/modes').forEachMode;
 const { clone } = require('../../util/fast-clone');
 import {join} from '../../util/array';
+import { wrap } from '../../util/breakdown-profiler';
 
 module.exports = {
   type: 'CollisionDetectionBridge',
@@ -26,6 +27,6 @@ module.exports = {
       return changes;
     };
 
-    return { detectCollisions }
+    return { detectCollisions: wrap(detectCollisions) }
   }
 };

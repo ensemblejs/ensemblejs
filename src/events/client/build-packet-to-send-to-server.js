@@ -4,6 +4,7 @@ import {merge} from 'lodash';
 import {execute} from 'royal-sampler';
 import {isArray} from '../../util/is';
 import {join} from '../../util/array';
+import { wrap } from '../../util/breakdown-profiler';
 import read from 'ok-selector';
 
 const sequence = require('distributedlife-sequence');
@@ -48,6 +49,6 @@ module.exports = {
       }
     }
 
-    return execute(buildPacketToSendToServer).every(config().server.pushUpdateFrequency).milliseconds();
+    return execute(wrap(buildPacketToSendToServer)).every(config().server.pushUpdateFrequency).milliseconds();
   }
 };

@@ -2,12 +2,17 @@
 
 const expect = require('expect');
 
-import {plugin} from '../../../src/plugins/plug-n-play';
 import sinon from 'sinon';
 
-const mutate = require('../../../src/state/client/mutator').func();
-const state = plugin('StateAccess');
-const afterPhysicsFrame = plugin('AfterPhysicsFrame');
+const requirePlugin = require('../../support').requirePlugin;
+const mutatorDefinedDeps = require('../../support').capture();
+const mutate = requirePlugin('state/client/mutator', {
+}, {
+  '../src/define': mutatorDefinedDeps.define
+});
+const afterPhysicsFrame = mutatorDefinedDeps.deps().AfterPhysicsFrame();
+const state = mutatorDefinedDeps.deps().StateAccess();
+
 
 describe('state mutation on the client', function () {
 

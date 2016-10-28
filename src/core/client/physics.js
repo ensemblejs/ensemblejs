@@ -8,6 +8,7 @@ const setFixedInterval = require('fixed-setinterval');
 import define from '../../define';
 import read from 'ok-selector';
 import { createFixedTimeStep as createLoop } from 'game-loops';
+import { wrap } from '../../util/breakdown-profiler';
 
 module.exports = {
   type: 'OnClientReady',
@@ -35,9 +36,9 @@ module.exports = {
       }
     }
 
-    const frameStoreProcess = (frameΔ) => frameStore().process(frameΔ, onEachFrame);
+    const frameStoreProcess = (frameΔ) => frameStore().process(frameΔ, wrap(onEachFrame));
 
-    const runLoop = createLoop(Δ, isPaused, frameStoreProcess, maxFrameStep);
+    const runLoop = createLoop(Δ, isPaused, wrap(frameStoreProcess), maxFrameStep);
 
     const onInterval = () => {
       runLoop();
@@ -57,7 +58,7 @@ module.exports = {
 
     return function run () {
       onInterval();
-      ids.push(setFixedInterval(onInterval, Δ));
+      ids.push(setFixedInterval(wrap(onInterval), Δ));
     };
   }
 };

@@ -4,8 +4,9 @@ const { last } = require('lodash');
 const sequence = require('distributedlife-sequence');
 const MemoryPool = require('memory-pool');
 import theGreatMutator from 'the-great-mutator/immutable';
+import { wrap } from '../../util/breakdown-profiler';
 
-const PoolStartSize = 20;
+const PoolStartSize = 50;
 const PoolGrowSize = 10;
 const NoFramesProcessed = { frameId: 0 };
 
@@ -131,7 +132,7 @@ module.exports = {
     function process (Δ, runLogicOnFrame) {
       add();
 
-      function processEachFrame (state, frame) {
+      const processEachFrame = (state, frame) => {
         if (!frame.cached) {
           rawState().resetTo(state.all());
 
@@ -140,13 +141,16 @@ module.exports = {
           queue().clear();
 
           applyPendingMerges()();
+
           frame.cached = rawState().get();
         }
 
         return frame.cached;
       }
 
-      frames.reduce(processEachFrame, fromServer);
+      const wrappedProcessEachFrame = wrap(processEachFrame);
+
+      frames.reduce(wrappedProcessEachFrame, fromServer);
     }
 
     function reset () {
@@ -161,6 +165,10 @@ module.exports = {
     define()('OnOutgoingClientPacket', HandlePacketLocally);
     define()('OnIncomingPeerPacket', HandlePacketLocally);
 
-    return { process, current, reset };
+    return {
+      process: wrap(process),
+      current: wrap(current),
+      reset: wrap(reset)
+    };
   }
 };

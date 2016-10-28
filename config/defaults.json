@@ -9,7 +9,7 @@
     "element": "canvas",
     "inputElement": "input",
     "physicsUpdateLoop": 15,
-    "physicsMaxFrameDelta": 50,
+    "physicsMaxFrameDelta": 10000,
     "clientSidePrediction": true,
     "peerLatencyReduction": true,
     "metrics": false,
@@ -23,7 +23,7 @@
   },
   "server": {
     "physicsUpdateLoop": 15,
-    "physicsMaxFrameDelta": 50,
+    "physicsMaxFrameDelta": 10000,
     "pushUpdateFrequency": 45,
     "metrics": false
   },

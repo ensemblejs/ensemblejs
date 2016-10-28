@@ -10,19 +10,26 @@ const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
 
 // const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1000 * KB];
-// const effort = ['minimal-', '5ms'];//, '10ms', '15ms'];
-// const fxCounts = [1000];//1, 10, 100, 250, 500, 1000];
+// const effort = ['minimal-', '5ms', '10ms', '15ms'];
+// const fxCounts = [1, 10, 100, 250, 500, 1000];
 // const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
-const dataSizes = ['minimal-'];
-const effort = ['10ms'];
+const dataSizes = [0 * KB];
+const effort = ['8ms'];
 const fxCounts = [250];
 const serverStateInterval = [45];
 
 const Toggles = {
   memwatch: false,
   heapSize: false,
-  gc: false
+  gc: false,
+  frameStoreDepth: false,
+  blockedDuration: false,
+  gameDevTime: false,
+  frameStoreDuration: false,
+  mutatorTime: false,
+  fps: false,
+  breakdown: true
 };
 
 const now = require('present');
@@ -47,12 +54,29 @@ function memwatchLeakAndStats () {
 
 memwatchLeakAndStats();
 
-function preallocatedResultsPool (size, postProcessing) {
+const resolutions = {
+  'ps':     (sample) => Math.ceil(sample * 1000000000),
+  '10ps':   (sample) => Math.ceil(sample * 100000000),
+  '100ps':  (sample) => Math.ceil(sample * 10000000),
+  'ns':     (sample) => Math.ceil(sample * 1000000),
+  '10ns':   (sample) => Math.ceil(sample * 100000),
+  '100ns':  (sample) => Math.ceil(sample * 10000),
+  'us':     (sample) => Math.ceil(sample * 1000),
+  '10us':   (sample) => Math.ceil(sample * 100),
+  '100us':  (sample) => Math.ceil(sample * 10),
+  'ms':     (sample) => Math.ceil(sample)
+}
+
+const removeUndefined = (sample) => sample !== undefined;
+
+function preallocatedResultsPool (size, resolution = 'ms', postProcessing = (s) => s) {
   let results = Array(size);
   let index = 0 ;
+  const resolutionTransform = resolutions[resolution];
 
   return {
-    push: value => {
+    resolution,
+    push: (value) => {
       if (index < size) {
         results[index] = value;
       } else {
@@ -61,7 +85,8 @@ function preallocatedResultsPool (size, postProcessing) {
 
       index += 1;
     },
-    get: () => postProcessing(results.filter(sample => sample !== undefined)),
+    get: () => postProcessing(results.filter(removeUndefined).map(resolutionTransform)),
+    raw: () => results,
     reset: () => {
       results = Array(size);
       index =0 ;
@@ -74,18 +99,18 @@ let gcDurations = {};
 
 if (Toggles.gc) {
   timeBetweenGC = {
-    1: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-    2: preallocatedResultsPool(100, samples => samples.map(Math.ceil)),
-    4: preallocatedResultsPool(100, samples => samples.map(Math.ceil))
+    1: preallocatedResultsPool(100, 'ms'),
+    2: preallocatedResultsPool(100, 'ms'),
+    4: preallocatedResultsPool(100, 'ms')
   };
 
   gcDurations = {
-    1: preallocatedResultsPool(100, samples => samples),
-    2: preallocatedResultsPool(100, samples => samples),
-    4: preallocatedResultsPool(100, samples => samples)
+    1: preallocatedResultsPool(100, '100us'),
+    2: preallocatedResultsPool(100, '100us'),
+    4: preallocatedResultsPool(100, '100us')
   };
 
-  var gc = (require('gc-stats'))();
+  const gc = (require('gc-stats'))();
   let gcStart = now();
   let gcStatsDuration;
 
@@ -101,12 +126,21 @@ if (Toggles.gc) {
 
 let usedHeapSize;
 if (Toggles.heapSize) {
-  usedHeapSize = preallocatedResultsPool(500, samples => samples);
+  usedHeapSize = preallocatedResultsPool(500);
 }
 
+let frameRate;
+if (Toggles.fps) {
+  frameRate = preallocatedResultsPool(500);
+}
+
+const trackerDefinedDeps = require('../../support').capture();
+const mutatorDefinedDeps = require('../../support').capture();
+const requirePlugin = require('../../support').requirePlugin;
 const expect = require('expect');
 const each = require('lodash').each;
 const {sortBy} = require('lodash');
+import read from 'ok-selector';
 const histogram = require('ascii-histogram');
 const chart = require('ascii-chart');
 const setFixedInterval = require('fixed-setinterval');
@@ -114,12 +148,21 @@ const logger = require('../../fake/logger');
 import define from '../../../src/plugins/plug-n-play';
 import {configure, plugin} from '../../../src/plugins/plug-n-play';
 configure(logger);
+import { tabular, reset, wrap, configure as configureBreakdown } from '../../../src/util/breakdown-profiler';
+import AsciiTable from 'ascii-data-table'
+
+configureBreakdown({
+  profile: Toggles.breakdown,
+  hz: 10,
+  minimumPercentageOfAll: 15
+});
 
 define('Config', function Config() {
   return {
     client: {
       clientSidePrediction: true,
-      physicsUpdateLoop: 16
+      physicsUpdateLoop: 15,
+      physicsMaxFrameDelta: Infinity
     }
   };
 });
@@ -128,40 +171,66 @@ const time = require('../../../src/core/shared/time').func();
 define('Time', () => time);
 
 const defer = require('../../support').defer;
-const trackerPlugins = require('../../support').plugin();
 const processPendingInputPlugins = require('../../support').plugin();
 const inputQueuePlugins = require('../../support').plugin();
 const frameStorePlugins = require('../../support').plugin();
 
-let onSeedInitialState = [];
-let onOutgoingClientPacket = [];
-let onIncomingServerPacket = [];
-let beforePhysicsFrame = [];
-let onPhysicsFrame = [];
-let afterPhysicsFrame = [];
-let actionMap = [];
+const onSeedInitialState = [];
+const onOutgoingClientPacket = [];
+const onIncomingServerPacket = [];
+const beforePhysicsFrame = [];
+const onPhysicsFrame = [];
+const afterPhysicsFrame = [];
+const actionMap = [];
 
-require('../../../src/state/client/tracker').func(defer(trackerPlugins.define));
-const mutator = require('../../../src/state/client/mutator').func(defer(logger));
+requirePlugin('state/client/tracker', {}, {
+  '../src/': trackerDefinedDeps.define
+});
+const realMutator = requirePlugin('state/client/mutator', {
+  Logger: logger
+}, {
+  '../src/define': mutatorDefinedDeps.define
+});
 
-const rawStateAccess = plugin('RawStateAccess');
-const stateAccess = plugin('StateAccess');
-const realApplyPlendingMerges = plugin('AfterPhysicsFrame');
+const rawStateAccess = mutatorDefinedDeps.deps().RawStateAccess();
+const stateAccess = mutatorDefinedDeps.deps().StateAccess();
+const realApplyPlendingMerges = mutatorDefinedDeps.deps().ApplyPendingMerges();
 
-// let totalMutatorTime;
-// let applyPendingMergesStart;
-// let applyPendingMergesDuration;
+let applyPendingMergesTime;
+let requestMutationTime;
+let mutator;
+if (Toggles.mutatorTime) {
+  applyPendingMergesTime = preallocatedResultsPool(1000, 'us');
+  requestMutationTime = preallocatedResultsPool(1000, '10us');
+
+  mutator = (saveId, result) => {
+    const start = now();
+
+    realMutator(saveId, result);
+
+    requestMutationTime.push(now() - start);
+  }
+} else {
+  mutator = realMutator;
+}
+let applyPendingMergesStart;
+let applyPendingMergesDuration;
 function applyPendingMerges ()  {
   // const memoryBefore = v8.getHeapStatistics().used_heap_size;
   // const newSpaceBefore = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
-  // applyPendingMergesStart = now();
+  if (Toggles.mutatorTime) {
+    applyPendingMergesStart = now();
+  }
 
   realApplyPlendingMerges();
 
-  // applyPendingMergesDuration = now() - applyPendingMergesStart;
   // const memoryAfter = v8.getHeapStatistics().used_heap_size;
   // const newSpaceAfter = v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size;
-  // totalMutatorTime.push(Math.ceil(applyPendingMergesDuration));
+
+  if (Toggles.mutatorTime) {
+    applyPendingMergesDuration = now() - applyPendingMergesStart;
+    applyPendingMergesTime.push(applyPendingMergesDuration);
+  }
 
   // console.log(memoryAfter - memoryBefore);
   // console.log(newSpaceAfter - newSpaceBefore);
@@ -173,34 +242,66 @@ function applyPendingMerges ()  {
 afterPhysicsFrame.push(applyPendingMerges);
 
 const mode = 'default';
-var inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(time), defer(plugin('Config')));
+const inputQueue = require('../../../src/input/client/queue').func(defer(inputQueuePlugins.define), defer(mode), defer(time), defer(plugin('Config')));
 
 require('../../../src/input/client/process_pending_input').func(defer(actionMap), defer(processPendingInputPlugins.define), defer(mutator), defer(logger));
-var processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
+const processPendingInput = processPendingInputPlugins.deps().BeforePhysicsFrame(defer(inputQueue));
 
-var trackerPluginsDeps = trackerPlugins.deps();
-onSeedInitialState.push(trackerPluginsDeps.OnSeedInitialState(defer(rawStateAccess)));
+onSeedInitialState.push(trackerDefinedDeps.deps().OnSeedInitialState(defer(rawStateAccess)));
 // onIncomingServerPacket.push(trackerPluginsDeps.OnIncomingServerPacket(defer(rawStateAccess)));
 beforePhysicsFrame.push(processPendingInput);
-afterPhysicsFrame.push(trackerPluginsDeps.AfterPhysicsFrame(defer(rawStateAccess)));
+afterPhysicsFrame.push(trackerDefinedDeps.deps().AfterPhysicsFrame(defer(rawStateAccess)));
 
-var clientState = { get: () => false };
-var serverState = { get: () => false };
+const clientState = { get: () => false };
 
-var frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(time), defer('default'), defer(applyPendingMerges));
+const frameStore = require('../../../src/core/client/frame-store').func(defer(rawStateAccess), defer(inputQueue), defer(frameStorePlugins.define), defer(time), defer('default'), defer(applyPendingMerges), defer({ id: () => 1 }), defer({ number: () => 1 }));
 
-var frameStorePluginDeps = frameStorePlugins.deps();
+const frameStorePluginDeps = frameStorePlugins.deps();
 onIncomingServerPacket.push(frameStorePluginDeps.OnIncomingServerPacket());
 onOutgoingClientPacket.push(frameStorePluginDeps.OnOutgoingClientPacket());
 onSeedInitialState.push(frameStorePluginDeps.OnSeedInitialState());
 
-var startPhysicsEngine = require('../../../src/core/client/physics').func(defer(clientState), defer(serverState), defer(time), defer(beforePhysicsFrame), defer(onPhysicsFrame), defer(afterPhysicsFrame), defer(mutator), defer(stateAccess), defer(mode), defer(plugin('Config')), defer(frameStore));
-var stopPhysicsEngine = plugin('OnDisconnect');
+const collisionDetectionBridge = {
+  detectCollisions: () => undefined
+};
+
+let framesExecutePerInterval = 0;
+let framesProcessed = [];
+
+const startPhysicsEngine = requirePlugin('core/client/physics', {
+  CurrentState: clientState,
+  BeforePhysicsFrame: beforePhysicsFrame,
+  OnPhysicsFrame: onPhysicsFrame,
+  AfterPhysicsFrame: afterPhysicsFrame,
+  StateMutator: mutator,
+  StateAccess: stateAccess,
+  SaveMode: mode,
+  Config: plugin('Config'),
+  FrameStore: frameStore,
+  CollisionDetectionBridge: collisionDetectionBridge
+}, {
+  'fixed-setinterval': (onInterval, Δ) => {
+    if (Toggles.frameStoreDepth) {
+      return setFixedInterval((...params) => {
+        framesProcessed.push(framesExecutePerInterval);
+        framesExecutePerInterval = 0;
+
+        onInterval(...params);
+      }, Δ);
+    }
+
+    return setFixedInterval(onInterval, Δ);
+  }
+});
+
+const stopPhysicsEngine = plugin('OnDisconnect');
 
 // let startTimes = null;
-let blockedDuration = [];
+let blockedDuration
+if (Toggles.blockedDuration) {
+  blockedDuration = preallocatedResultsPool(200000, 'us');
+}
 // let rawBlockedDuration = [];
-// let framesProcessedThisFrame = 0;
 let doHardWorkForStart;
 function doHardWorkFor (duration) {
   doHardWorkForStart = now();
@@ -209,45 +310,80 @@ function doHardWorkFor (duration) {
     while (now() < doHardWorkForStart + duration); // eslint-disable-line
   }
 
-  // blockedDuration.push(Math.round(now() - doHardWorkForStart));
+  if (Toggles.blockedDuration) {
+    blockedDuration.push(now() - doHardWorkForStart);
+  }
   // rawBlockedDuration.push(Math.round(now() - doHardWorkForStart));
   // rawBlockedDuration.push(now() - start);
-  // framesProcessedThisFrame += 1;
 }
 
+let lastFrameCount = 0;
+let timeSinceStart;
 let frameCount = 0;
-// let frameStoreDurations = [];
-// let framesProcessed = [];
-let totalGameDevTime = [];
+let frameStoreDurations;
+if (Toggles.frameStoreDuration) {
+  frameStoreDurations = preallocatedResultsPool(1000, 'ms');
+}
+let totalGameDevTime;
+if (Toggles.gameDevTime) {
+  totalGameDevTime = preallocatedResultsPool(1000, 'ms');
+}
 let gameDevTimeForFrame = 0;
 const originalFrameStoreProcess = frameStore.process;
 frameStore.process = function countFrames (delta, runLogicOnFrame) {
-  frameCount += 1;
-  gameDevTimeForFrame = 0;
+  const start = now();
 
-  // const start = now ();
+  frameCount += 1;
+
+  if (Toggles.gameDevTime) {
+    gameDevTimeForFrame = 0;
+  }
+
+  // console.log(frameCount);
 
   originalFrameStoreProcess(delta, runLogicOnFrame);
 
-  // framesProcessed.push(framesProcessedThisFrame);
-  // framesProcessedThisFrame = 0;
+  if (Toggles.frameStoreDepth) {
+    framesExecutePerInterval += 1;
+  }
 
-  // frameStoreDurations.push(Math.ceil(now() - start));
-  totalGameDevTime.push(Math.ceil(gameDevTimeForFrame));
+  if (Toggles.gameDevTime) {
+    gameDevTimeForFrame = now() - start;
+    totalGameDevTime.push(gameDevTimeForFrame);
+  }
+
+  if (Toggles.frameStoreDuration) {
+    frameStoreDurations.push(now() - start);
+  }
+
+  if (Toggles.fps) {
+    timeSinceStart = timeSinceStart || start;
+    if ((start - timeSinceStart - aSecond) > 0) {
+      timeSinceStart += aSecond;
+
+      frameRate.push(frameCount - lastFrameCount)
+      lastFrameCount = frameCount;
+    }
+  }
 };
 
 // const response = { namespace: { count: 1 } };
 function logic (duration) {
-  return function whileAwayTheHours (delta, state) {
+  const whileAwayTheHours = (delta, state) => {
     // startTimes.push(now());
 
+    // console.time('doHardWorkFor');
     doHardWorkFor(duration);
+    // console.timeEnd('doHardWorkFor');
 
-    return { namespace: { count: state.namespace.count + 1 } };
-    // return ['namespace.count', state.namespace.count + 1];
-    // return ['namespace.count', old => old + 1];
-    // return response;
+    // return { namespace: { count: read(state, 'namespace.count') + 1 } };
+    // return ['namespace.count', read(state, 'namespace.count') + 1];
+    // return ['namespace.count', (old) => old + 1];
+    return ['namespace.count', 1];
+    // return undefined;
   };
+
+  return wrap(whileAwayTheHours);
 }
 
 
@@ -259,20 +395,20 @@ function logic (duration) {
 
 
 
-function sum (set) {
-  return set.reduce((t, n) => t + n, 0);
-}
+// function sum (set) {
+//   return set.reduce((t, n) => t + n, 0);
+// }
 
-function average (set) {
-  return sum(set) / set.length;
-}
+// function average (set) {
+//   return sum(set) / set.length;
+// }
 
 function getPercentile (percentile, values) {
   if (values.length === 0) {
     return 0;
   }
 
-  let i = (percentile/100) * values.length;
+  const i = (percentile/100) * values.length;
 
   if (Math.floor(i) === i) {
     return (values[i-1] + values[i])/2;
@@ -281,18 +417,18 @@ function getPercentile (percentile, values) {
   return values[Math.floor(i)];
 }
 
-function logDataAboutSamples (name, samples) {
-  const sortedSamples = sortBy(samples.filter(sample => sample !== undefined));
+function logDataAboutSamples (name, samples, resolution = 'ms') {
+  const sortedSamples = sortBy(samples.filter(removeUndefined));
 
   console.log(name);
 
-  console.log(`50th ${getPercentile(50, sortedSamples)}ms`);
-  console.log(`75th ${getPercentile(75, sortedSamples)}ms`);
-  console.log(`95th ${getPercentile(95, sortedSamples)}ms`);
-  console.log(`99th ${getPercentile(99, sortedSamples)}ms`);
+  console.log(`50th ${getPercentile(50, sortedSamples)} (${resolution})`);
+  console.log(`75th ${getPercentile(75, sortedSamples)} (${resolution})`);
+  console.log(`95th ${getPercentile(95, sortedSamples)} (${resolution})`);
+  console.log(`99th ${getPercentile(99, sortedSamples)} (${resolution})`);
 
   const asHistogram = [];
-  samples.forEach(sample => {
+  samples.forEach((sample) => {
     asHistogram[Math.round(sample)] = asHistogram[Math.round(sample)] || 0;
     asHistogram[Math.round(sample)] += 1;
   });
@@ -300,12 +436,15 @@ function logDataAboutSamples (name, samples) {
   console.log(histogram(asHistogram));
 }
 
-function barChart (name, samples) {
+const width = 300;
+function barChart (name, samples, opts) {
   console.log(name);
 
-  const used = samples.filter(sample => sample !== undefined);
+  const used = samples.filter(removeUndefined);
 
-  console.log(chart(used, { width: 500, height: 20, tight: true }));
+  for (let i = 0; i < used.length; i += width) {
+    console.log(chart(used.slice(i, i + width), { width, height: 20, tight: true, ...opts }));
+  }
 }
 
 function data () {
@@ -317,10 +456,12 @@ function data () {
 }
 
 function changes (size) {
-  return [['stuff', !size ? {} : Array(size).fill(1).map(() => Math.floor(Math.random() * 10)).join('')]];
+  return [
+    ['stuff', !size ? {} : Array(size).fill(1).map(() => Math.floor(Math.random() * 10)).join('')]
+  ];
 }
 
-describe.only('Physics Frames Performance', function () {
+describe.only('Client Client Side Prediction Performance', function () {
   this.timeout(MochaTimeout); // eslint-disable-line
 
   let profile;
@@ -343,12 +484,12 @@ describe.only('Physics Frames Performance', function () {
       }
 
       if (Toggles.heapSize && Node) {
-        usedHeapSize.push(v8.getHeapSpaceStatistics().filter(space => space.space_name === 'new_space')[0].space_available_size);
+        usedHeapSize.push(v8.getHeapSpaceStatistics().filter((space) => space.space_name === 'new_space')[0].space_available_size);
       }
     }, HeapSizeSampleHz);
   });
 
-  var hd;
+  let hd;
   beforeEach(() => {
     if (Toggles.memwatch && Node) {
       hd = new memwatch.HeapDiff();
@@ -366,11 +507,19 @@ describe.only('Physics Frames Performance', function () {
     timeTestStarted = undefined;
   });
 
-  let permutations = [];
+  const permutations = [];
 
   const totalDuration = {
     'trivial-ms': 0,
+    '1ms': 1,
+    '2ms': 2,
+    '3ms': 3,
+    '4ms': 4,
     '5ms': 5,
+    '6ms': 6,
+    '7ms': 7,
+    '8ms': 8,
+    '9ms': 9,
     '10ms': 10,
     '11ms': 11,
     '12ms': 12,
@@ -379,10 +528,10 @@ describe.only('Physics Frames Performance', function () {
     '15ms': 15
   };
 
-  fxCounts.forEach(fx => {
-    effort.forEach(totalMs => {
-      dataSizes.forEach(b => {
-        serverStateInterval.forEach(interval => {
+  fxCounts.forEach((fx) => {
+    effort.forEach((totalMs) => {
+      dataSizes.forEach((b) => {
+        serverStateInterval.forEach((interval) => {
           let fEffort = totalDuration[totalMs];
           if (totalDuration[totalMs] > 0) {
             fEffort /= fx;
@@ -391,7 +540,7 @@ describe.only('Physics Frames Performance', function () {
           const name = `${fx} f(x), ${totalMs}, ${b}b, ${interval}ms server refresh`;
 
           permutations.push({
-            name: name,
+            name,
             code: Array(fx).fill(logic(fEffort)),
             initial: data(0),
             changeDeltas: changes(b === 'minimal-' ? 0 : b),
@@ -405,27 +554,39 @@ describe.only('Physics Frames Performance', function () {
 
   console.log(`There are ${permutations.length} permutations. Settle in as this will take ${Math.ceil((permutations.length * TestDuration) / aSecond / aMinute)} minute(s).`);
 
-  let results = [];
+  const results = [];
 
-  permutations.forEach(permutation => {
+  permutations.forEach((permutation) => {
     describe(`with ${permutation.name} logic`, () => {
-      let start;
-      let stop;
+      let startOfTest;
+      let endOfTest;
 
-      before(done => {
+      before((done) => {
         console.log(`Running ${permutation.name}`);
 
-        each(onSeedInitialState, cb => cb(permutation.initial));
+        each(onSeedInitialState, (cb) => cb(permutation.initial));
 
         frameCount = 0;
 
         if (Toggles.heapSize) {
           usedHeapSize.reset();
         }
-        // frameStoreDurations = [];
-        // framesProcessed = [];
-        totalGameDevTime = [];
-        // totalMutatorTime = Array(1000);
+        if (Toggles.frameStoreDuration) {
+          frameStoreDurations.reset();
+        }
+        if (Toggles.fps) {
+          frameRate.reset();
+        }
+        if (Toggles.frameStoreDepth) {
+          framesProcessed = [];
+        }
+        if (Toggles.gameDevTime) {
+          totalGameDevTime.reset();
+        }
+        if (Toggles.mutatorTime) {
+          applyPendingMergesTime.reset();
+          requestMutationTime.reset();
+        }
         // startTimes = Array(150000);
         if (Toggles.gc) {
           gcDurations['1'].reset();
@@ -435,12 +596,16 @@ describe.only('Physics Frames Performance', function () {
           timeBetweenGC['2'].reset();
           timeBetweenGC['4'].reset();
         }
-        blockedDuration = [];
+        if (Toggles.blockedDuration) {
+          blockedDuration.reset();
+        }
         // rawBlockedDuration = [];
 
-        permutation.code.forEach(code => (onPhysicsFrame.push(['*', code])));
+        permutation.code.forEach((code) => (onPhysicsFrame.push(['*', code])));
 
-        start = now();
+        reset();
+
+        startOfTest = now();
         testHasStarted = true;
         startPhysicsEngine();
 
@@ -448,15 +613,20 @@ describe.only('Physics Frames Performance', function () {
         if (permutation.serverRate !== 'never-') {
 
           stopPushServerState = setFixedInterval(() => {
-            onIncomingServerPacket.forEach(cb => cb({
-              changeDeltas: permutation.changeDeltas
+            onIncomingServerPacket.forEach((cb) => cb({
+              changeDeltas: permutation.changeDeltas,
+              highestProcessedMessage: [{
+                frameId: frameCount,
+                playerId: 1,
+                deviceNumber: 1
+              }]
             }));
           }, permutation.serverRate);
 
         }
 
         setTimeout(() => {
-          stop = now();
+          endOfTest = now();
 
           if (stopPushServerState) {
             stopPushServerState();
@@ -472,62 +642,76 @@ describe.only('Physics Frames Performance', function () {
       });
 
       it('should run at 60 fps or better', () => {
-        const durationInSeconds = (stop - start) / 1000;
+        const durationInSeconds = (endOfTest - startOfTest) / aSecond;
         const fps = Math.floor(frameCount / durationInSeconds);
 
-        results.push({name: permutation.name, fps: fps});
+        results.push({name: permutation.name, fps});
 
-        // logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations);
+        if (Toggles.frameStoreDuration) {
+          logDataAboutSamples('FrameStore.process duration (ms)', frameStoreDurations.get(), frameStoreDurations.resolution);
 
-        // let frameworkDuration = [];
-        // for (let i = 0; i < frameStoreDurations.length; i += 1) {
-        //   frameworkDuration.push(frameStoreDurations[i] - totalGameDevTime[i]);
-        // }
+          barChart('Duration of FrameStore.process', frameStoreDurations.get());
+        }
 
-        // barChart('Duration of FrameStore.process', frameStoreDurations);
-        // barChart('Duration of GameDev Logic', totalGameDevTime);
-        // logDataAboutSamples('Duration of Framework Code', frameworkDuration);
-        // logDataAboutSamples('Duration of Mutator Code', totalMutatorTime);
-        // barChart('Mutator Duration', totalMutatorTime);
-        // barChart('f(x) processed per frame', framesProcessed);
+        if (Toggles.gameDevTime) {
+          barChart('Duration of GameDev Logic', totalGameDevTime.get());
+          logDataAboutSamples('GameDev Logic', totalGameDevTime.get(), totalGameDevTime.resolution);
+        }
+
+        if (Toggles.gameDevTime && Toggles.frameStoreDuration) {
+          const rawFrameStoreDuration = frameStoreDurations.raw()
+          const rawTotalGameDevTime = totalGameDevTime.raw()
+
+          let frameworkDuration = preallocatedResultsPool(1000, 'us');
+          for (let i = 0; i < rawFrameStoreDuration.length; i += 1) {
+            frameworkDuration.push(rawFrameStoreDuration[i] - rawTotalGameDevTime[i]);
+          }
+
+          logDataAboutSamples('Duration of Framework Code', frameworkDuration.get(),frameworkDuration.resolution);
+        }
+        if (Toggles.mutatorTime) {
+          logDataAboutSamples('Apply Pending Merges', applyPendingMergesTime.get(), applyPendingMergesTime.resolution);
+          barChart('Apply Pending Merges', applyPendingMergesTime.get());
+
+          logDataAboutSamples('Request Mutation', requestMutationTime.get(), requestMutationTime.resolution);
+          barChart('Request Mutation', requestMutationTime.get());
+        }
+        if (Toggles.frameStoreDepth) {
+          barChart('f(x) processed per frame', framesProcessed, { tight: false });
+          console.log(framesProcessed)
+        }
 
         if (Toggles.gc) {
-          logDataAboutSamples('GC Pauses (minor)', gcDurations['1'].get());
-          logDataAboutSamples('GC Pauses (major)', gcDurations['2'].get());
-          logDataAboutSamples('Time between (minor) GC pauses', timeBetweenGC['1'].get());
-          logDataAboutSamples('Time between (major) GC pauses', timeBetweenGC['2'].get());
+          logDataAboutSamples('GC Pauses (minor)', gcDurations['1'].get(), gcDurations['1'].resolution);
+          logDataAboutSamples('GC Pauses (major)', gcDurations['2'].get(), gcDurations['2'].resolution);
+          logDataAboutSamples('Time between (minor) GC pauses', timeBetweenGC['1'].get(), timeBetweenGC['1'].resolution);
+          logDataAboutSamples('Time between (major) GC pauses', timeBetweenGC['2'].get(), timeBetweenGC['2'].resolution);
         }
 
         if (Toggles.heapSize) {
           barChart('Heap Size', usedHeapSize.get());
         }
 
+        if (Toggles.blockedDuration) {
+          logDataAboutSamples('GameDev Time (ms)', blockedDuration.get(), blockedDuration.resolution);
+        }
+
+        if (Toggles.fps) {
+          barChart('Frame Rate', frameRate.get(), { tight: false });
+        }
+
+        if (Toggles.breakdown) {
+          console.log(AsciiTable.run(tabular()));
+        }
+
         expect(fps).toBeGreaterThanOrEqualTo(60);
-      });
-
-      it.skip('should call the physics loop every ~15ms', () => {
-        // let timeSincePrior = [];
-        // for(let i = 0; i < startTimes.length; i += 1) {
-        //   if (i === 0) {
-        //     continue;
-        //   }
-
-        //   timeSincePrior.push(startTimes[i] - startTimes[i - 1]);
-        // }
-
-        // logDataAboutSamples('Time Since Last (ms)', timeSincePrior);
-        // logDataAboutSamples('Blocked (ms)', blockedDuration);
-
-        // expect(average(timeSincePrior)).toBeLessThanOrEqualTo(16);
-
-        // console.log(`Total blocked duration ${sum(rawBlockedDuration)} for an average of ${average(rawBlockedDuration)}`);
       });
     });
   });
 
   describe('And the results', () => {
     it('are in', () => {
-      results.forEach(result => {
+      results.forEach((result) => {
         const percent = Math.round(result.fps / 60 * 100);
         const padding = Array(3 - String(percent).split('').length).fill(' ').join('');
 
