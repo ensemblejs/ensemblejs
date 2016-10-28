@@ -121,7 +121,7 @@
     "express-session": "^1.11.3",
     "factor-bundle": "^2.5.0",
     "fixed-setinterval": "git+https://github.com/distributedlife/fixed-timeout.git",
-    "frameguard": "^2.0.0",
+    "frameguard": "^3.0.0",
     "game-loops": "^1.1.0",
     "git-repo-info": "^1.1.2",
     "gulp": "^3.9.1",
