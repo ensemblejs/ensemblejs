@@ -63,10 +63,12 @@ module.exports = {
 
 						logger.debug({key: 'nothing'}, 'ActionMap called');
 
-						return mutate()(
-							currentInput.save.id,
-							action.call(state, {}, data)
-						);
+						action.call.forEach((cb) => {
+							return mutate()(
+								currentInput.save.id,
+								cb(state, {}, data)
+							);
+						});
 					});
 				}
 
@@ -78,10 +80,12 @@ module.exports = {
 
 						logger.debug({ key }, 'ActionMap called');
 
-						mutate()(
-							input.save.id,
-							callback(action.call, action.noEventKey, inputData)
-						);
+						action.call.forEach((cb) => {
+							mutate()(
+								input.save.id,
+								callback(cb, action.noEventKey, inputData)
+							);
+						});
 					};
 				}
 

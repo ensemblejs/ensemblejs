@@ -50,6 +50,8 @@ module.exports = {
 						return;
 					}
 
+					const boom = (cb) => cb(state, {}, data);
+
 					const length = actionMap.nothing.length;
 					for (let i = 0; i < length; i+= 1) {
 						const action = actionMap.nothing[i];
@@ -64,7 +66,7 @@ module.exports = {
 
 						mutate()(
 							currentInput.save.id,
-							action.call(state, {}, data)
+							action.call.forEach(boom)
 						);
 					}
 				}
@@ -80,7 +82,7 @@ module.exports = {
 
 						mutate()(
 							input.save.id,
-							callback(action.call, action.noEventKey, inputData)
+							action.call.forEach((cb) => callback(cb, action.noEventKey, inputData))
 						);
 					};
 				}

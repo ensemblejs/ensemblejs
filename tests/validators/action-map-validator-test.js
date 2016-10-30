@@ -1,13 +1,13 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../support').makeTestible;
-var logger = require('../../src/logging/server/logger').logger;
-function empty () {}
+const expect = require('expect');
+const sinon = require('sinon');
+const makeTestible = require('../support').makeTestible;
+const logger = require('../../src/logging/server/logger').logger;
+const empty = () => undefined;
 
 describe('action map validator', function () {
-  var validator;
+  let validator;
 
   it('runs on server start', function () {
     expect(require('../../src/validators/server/action-map').type).toEqual('OnServerStart');
@@ -35,7 +35,7 @@ describe('action map validator', function () {
   });
 
   describe('when there are ack maps', function () {
-    var maps = [{
+    const maps = [{
       'missingTarget': [{}],
       'tab': [
         {call: empty, modifiers: ['ctrl']},
@@ -86,6 +86,11 @@ describe('action map validator', function () {
     it('should convert non-arrays to arrays', function () {
       expect(maps[1].notAnArray).toBeAn(Array);
     });
+
+    it('should convert "call" keys into arrays', () => {
+      console.log(maps[1].notAnArray[0].call[0]);
+      expect(maps[1].notAnArray[0].call).toBeAn(Array);
+    })
 
     it('should report an error when nothing has an ack', function () {
       expect(logger.error.getCall(3).args).toEqual([{key: 'nothing'}, 'ActionMap cannot use the "ack" property']);

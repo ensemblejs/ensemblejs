@@ -1,8 +1,8 @@
 'use strict';
 
-var parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
-var parseTouches = require('../../util/input-common').parseTouches;
-var parseSticks = require('../../util/input-common').parseSticks;
+const parseKeysAndKeypresses = require('../../util/input-common').parseKeysAndKeypresses;
+const parseTouches = require('../../util/input-common').parseTouches;
+const parseSticks = require('../../util/input-common').parseSticks;
 
 module.exports = {
   type: 'InputToAcknowledgementMapper',
@@ -18,7 +18,7 @@ module.exports = {
           acknowledgements().ack(action.ack);
         }
 
-        var currentInput = {
+        const currentInput = {
           rawData: packet,
           playerId: packet.playerId,
           save: {
@@ -26,7 +26,7 @@ module.exports = {
             mode: mode()
           }
         };
-        var waitingForPlayers = state().for().get('ensemble.waitingForPlayers');
+        const waitingForPlayers = state().for().get('ensemble.waitingForPlayers');
 
         parseKeysAndKeypresses(
           actionMaps(),
