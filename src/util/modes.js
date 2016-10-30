@@ -50,19 +50,10 @@ function callForMode (plugins, mode, params) {
 }
 
 function callForModeWithMutation (plugins, mutator, save, params) {
-  // console.time('callForModeWithMutation');
-  // console.time('filter');
   const forMode = filterPluginsByMode(plugins, save.mode);
-  // console.timeEnd('filter');
-
-  // console.time('process');
   const res = forMode.map((plugin) => plugin[1](...params))
-  // console.timeEnd('process');
 
-  // console.time('mutateALL');
-  res.forEach((res) => mutator()(save.id, res));
-  // console.timeEnd('mutateALL');
-  // console.timeEnd('callForModeWithMutation');
+  res.forEach(() => mutator()(save.id, res));
 }
 
 function callForModeWithMutationWithPromises (plugins, mutator, save, params = []) {

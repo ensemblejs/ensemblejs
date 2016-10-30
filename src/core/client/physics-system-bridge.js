@@ -73,14 +73,11 @@ module.exports = {
 
     function OnPhysicsFrame () {
       return function tickPhysicsSimulation (Δ, state) {
-        console.time('tickPhysicsSimulation');
         const changes = physicsSystem().tick(Δ);
         if (!changes) {
-          console.timeEnd('tickPhysicsSimulation');
           return undefined;
         }
         if (changes.length === 0) {
-          console.timeEnd('tickPhysicsSimulation');
           return undefined;
         }
 
@@ -92,7 +89,6 @@ module.exports = {
           set(newState, stateKey, replaceIfPresent(saveState, physicsState));
         });
 
-        console.timeEnd('tickPhysicsSimulation');
         return newState;
       };
     }
