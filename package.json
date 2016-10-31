@@ -118,7 +118,7 @@
     "envify": "^3.4.1",
     "expect": "^1.20.1",
     "express": "^4.13.1",
-    "express-session": "^1.11.3",
+    "express-session": "^1.14.2",
     "factor-bundle": "^2.5.0",
     "fixed-setinterval": "git+https://github.com/distributedlife/fixed-timeout.git",
     "frameguard": "^2.0.0",
