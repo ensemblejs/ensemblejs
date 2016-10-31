@@ -155,7 +155,7 @@
     "jquery-browserify": "^1.8.1",
     "jsdom": "^9.4.5",
     "jshint-stylish": "^2.2.0",
-    "lodash": "^4.13.1",
+    "lodash": "^4.16.5",
     "memory-pool": "^1.2.0",
     "mkdirp": "^0.5.1",
     "mocha": "^3.0.0",
