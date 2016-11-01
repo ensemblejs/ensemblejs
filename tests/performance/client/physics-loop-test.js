@@ -8,6 +8,7 @@ const KB = 1000;
 const HeapSizeSampleHz = 50;
 const MochaTimeout = TestDuration * 2;
 const SkipFirst = 1000;
+const FrameInterval = 1000 / 60;
 
 // const dataSizes = ['minimal-', 1 * KB, 10 * KB, 100 * KB, 1000 * KB];
 // const effort = ['minimal-', '5ms', '10ms', '15ms'];
@@ -15,7 +16,7 @@ const SkipFirst = 1000;
 // const serverStateInterval = ['never-', 5000, 1000, 500, 250, 100, 45];
 
 const dataSizes = [0 * KB];
-const effort = ['8ms'];
+const effort = ['10ms'];
 const fxCounts = [250];
 const serverStateInterval = [45];
 
@@ -29,7 +30,7 @@ const Toggles = {
   frameStoreDuration: false,
   mutatorTime: false,
   fps: false,
-  breakdown: true
+  breakdown: false
 };
 
 const now = require('present');
@@ -105,9 +106,9 @@ if (Toggles.gc) {
   };
 
   gcDurations = {
-    1: preallocatedResultsPool(100, '100us'),
-    2: preallocatedResultsPool(100, '100us'),
-    4: preallocatedResultsPool(100, '100us')
+    1: preallocatedResultsPool(100, 'ms'),
+    2: preallocatedResultsPool(100, 'ms'),
+    4: preallocatedResultsPool(100, 'ms')
   };
 
   const gc = (require('gc-stats'))();
@@ -161,7 +162,7 @@ define('Config', function Config() {
   return {
     client: {
       clientSidePrediction: true,
-      physicsUpdateLoop: 15,
+      physicsUpdateLoop: FrameInterval,
       physicsMaxFrameDelta: Infinity
     }
   };
@@ -662,7 +663,7 @@ describe.only('Client Client Side Prediction Performance', function () {
           const rawFrameStoreDuration = frameStoreDurations.raw()
           const rawTotalGameDevTime = totalGameDevTime.raw()
 
-          let frameworkDuration = preallocatedResultsPool(1000, 'us');
+          const frameworkDuration = preallocatedResultsPool(1000, 'us');
           for (let i = 0; i < rawFrameStoreDuration.length; i += 1) {
             frameworkDuration.push(rawFrameStoreDuration[i] - rawTotalGameDevTime[i]);
           }
@@ -682,10 +683,12 @@ describe.only('Client Client Side Prediction Performance', function () {
         }
 
         if (Toggles.gc) {
-          logDataAboutSamples('GC Pauses (minor)', gcDurations['1'].get(), gcDurations['1'].resolution);
-          logDataAboutSamples('GC Pauses (major)', gcDurations['2'].get(), gcDurations['2'].resolution);
-          logDataAboutSamples('Time between (minor) GC pauses', timeBetweenGC['1'].get(), timeBetweenGC['1'].resolution);
-          logDataAboutSamples('Time between (major) GC pauses', timeBetweenGC['2'].get(), timeBetweenGC['2'].resolution);
+          logDataAboutSamples('GC Pauses (minor), lower is better', gcDurations['1'].get(), gcDurations['1'].resolution);
+          barChart('GC Pauses (minor), lower is better', gcDurations['1'].get());
+          logDataAboutSamples('GC Pauses (major), lower is better', gcDurations['2'].get(), gcDurations['2'].resolution);
+          logDataAboutSamples('Time between (minor) GC pauses, higher is better', timeBetweenGC['1'].get(), timeBetweenGC['1'].resolution);
+          barChart('Time between (minor) GC pauses, higher is better', timeBetweenGC['1'].get());
+          logDataAboutSamples('Time between (major) GC pauses, higher is better', timeBetweenGC['2'].get(), timeBetweenGC['2'].resolution);
         }
 
         if (Toggles.heapSize) {
