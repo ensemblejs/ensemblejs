@@ -13,7 +13,8 @@ describe('action map validator', function () {
 
     makeTestible('validators/shared/action-map', {
       ActionMap: maps,
-      DefinePlugin: capture.define
+      DefinePlugin: capture.define,
+      Logger: logger
     });
 
     return capture.deps();

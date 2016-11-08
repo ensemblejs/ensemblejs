@@ -2,7 +2,6 @@
 
 const isEqual = require('lodash/isEqual');
 const isArray = require('lodash/isArray');
-const logger = require('../../logging/server/logger').logger;
 
 const Call = 'call';
 const Ack = 'ack';
@@ -40,30 +39,30 @@ function checkForShiftCtrlTab (records, key, callback) {
          .forEach(() => callback(key));
 }
 
-function logMissingBothAckAndCall (key) {
-  logger.error({ key }, `ActionMap missing "${Call}" or "${Ack}" property`);
-}
-
-function logNothingAndAck (key) {
-  logger.error({ key }, `ActionMap cannot use the "${Ack}" property`);
-}
-
-function logMouseAndAck (key) {
-  logger.error({ key }, `ActionMap cannot use the "${Ack}" property`);
-}
-
-function logCtrlTabNotSupported (key) {
-  logger.error({ key }, `ActionMap "${Tab}" has "${Control}" modifier. This is not supported`);
-}
-
-function logShiftCtrlTabNotSupported (key) {
-  logger.error({ key }, `ActionMap "${Tab}" has "${Control}+${Shift}" modifier. This is not supported`);
-}
-
 module.exports = {
   type: 'ActionMapValidator',
-  deps: ['ActionMap', 'DefinePlugin'],
-  func: function ActionMapValidator (actionMaps, define) {
+  deps: ['ActionMap', 'DefinePlugin', 'Logger'],
+  func: function ActionMapValidator (actionMaps, define, logger) {
+
+    function logMissingBothAckAndCall (key) {
+      logger().error({ key }, `ActionMap missing "${Call}" or "${Ack}" property`);
+    }
+
+    function logNothingAndAck (key) {
+      logger().error({ key }, `ActionMap cannot use the "${Ack}" property`);
+    }
+
+    function logMouseAndAck (key) {
+      logger().error({ key }, `ActionMap cannot use the "${Ack}" property`);
+    }
+
+    function logCtrlTabNotSupported (key) {
+      logger().error({ key }, `ActionMap "${Tab}" has "${Control}" modifier. This is not supported`);
+    }
+
+    function logShiftCtrlTabNotSupported (key) {
+      logger().error({ key }, `ActionMap "${Tab}" has "${Control}+${Shift}" modifier. This is not supported`);
+    }
 
     function validate () {
       actionMaps().forEach((ackMapDefinition) => {
