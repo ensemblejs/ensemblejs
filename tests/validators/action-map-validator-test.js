@@ -4,25 +4,35 @@ const expect = require('expect');
 const sinon = require('sinon');
 const makeTestible = require('../support').makeTestible;
 const logger = require('../../src/logging/server/logger').logger;
+const capture = require('../support').capture();
 const empty = () => undefined;
 
 describe('action map validator', function () {
-  let validator;
+  function makeValidator(maps = []) {
+    capture.reset();
+
+    makeTestible('validators/shared/action-map', {
+      ActionMap: maps,
+      DefinePlugin: capture.define
+    });
+
+    return capture.deps();
+  }
 
   it('runs on server start', function () {
-    expect(require('../../src/validators/server/action-map').type).toEqual('OnServerStart');
+    expect(makeValidator().OnServerStart).toNotBe(undefined);
+  });
+
+  it('runs on client start', function () {
+    expect(makeValidator().OnClientStart).toNotBe(undefined);
   });
 
   describe('when there are no action maps', function () {
     beforeEach(function ()  {
-      validator = makeTestible('validators/server/action-map', {
-        ActionMap: [],
-        Logger: logger
-      });
-
       sinon.spy(logger, 'error');
 
-      validator[0]();
+      const validator = makeValidator()
+      validator.OnServerStart()();
     });
 
     afterEach(function () {
@@ -57,14 +67,10 @@ describe('action map validator', function () {
     ];
 
     beforeEach(function ()  {
-      validator = makeTestible('validators/server/action-map', {
-        ActionMap: maps,
-        Logger: logger
-      });
-
       sinon.spy(logger, 'error');
 
-      validator[0]();
+      const validator = makeValidator(maps)
+      validator.OnServerStart()();
     });
 
     afterEach(function () {

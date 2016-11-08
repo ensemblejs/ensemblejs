@@ -61,10 +61,11 @@ function logShiftCtrlTabNotSupported (key) {
 }
 
 module.exports = {
-  type: 'OnServerStart',
-  deps: ['ActionMap'],
-  func: function ActionMapValidator (actionMaps) {
-    return function validate () {
+  type: 'ActionMapValidator',
+  deps: ['ActionMap', 'DefinePlugin'],
+  func: function ActionMapValidator (actionMaps, define) {
+
+    function validate () {
       actionMaps().forEach((ackMapDefinition) => {
         const ackMap = isArray(ackMapDefinition) ? ackMapDefinition[1] : ackMapDefinition;
 
@@ -89,6 +90,15 @@ module.exports = {
           }
         });
       });
-    };
+    }
+
+    function RunValidator () {
+      return function validateAll () {
+        actionMaps().forEach((actionMap) => validate(actionMap));
+      };
+    }
+
+    define()('OnServerStart', RunValidator);
+    define()('OnClientStart', RunValidator);
   }
 };
