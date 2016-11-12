@@ -7,8 +7,8 @@ block content
   .call-to-action
     .label Select device mode
   .group
-    each link in links
-      a.box(href=link.uri)
-        img(src=link.icon)
+    each deviceMode in deviceModes
+      a.box(href=deviceMode.uri)
+        img(src=deviceMode.icon)
         .label
-          h2 #{link.label}
+          h2 #{deviceMode.label}

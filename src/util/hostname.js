@@ -1,6 +1,6 @@
 'use strict';
 
-var ip = require('ip');
+const ip = require('ip');
 
 export const port = () => process.env.PORT || 3000;
 

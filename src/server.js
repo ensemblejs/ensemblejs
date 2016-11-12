@@ -4,6 +4,7 @@ import { logger, setLogLevel } from './logging/server/logger';
 
 const frameworkInfo = require('./util/get-framework-info');
 const config = require('./util/config').get();
+const defaultDeviceConfig = require('../config/device-mode-defaults');
 
 setLogLevel(config);
 
@@ -23,15 +24,17 @@ foldersToLoad.forEach(function loadFolder(folder) {
   plugins.loadFrameworkPath(`${__dirname}/${folder}/server`);
 });
 
+function loadDeviceModesFromFile (path) {
+  const fileData = require(`${path}/js/device-modes.json`);
+
+  return (fileData.length === 0) ? [defaultDeviceConfig] : fileData.map((deviceMode) => (
+    { ...defaultDeviceConfig, ...deviceMode}
+  ));
+}
+
 function getDeviceModes (path) {
   const exists = require('fs').existsSync(`${path}/js/device-modes.json`);
-  const defaultDeviceConfig = require('../config/device-mode-defaults');
-
-  return !exists
-    ?  [defaultDeviceConfig]
-    : require(`${path}/js/device-modes.json`).map((deviceMode) => (
-        { ...defaultDeviceConfig, ...deviceMode}
-      ));
+  return !exists ?  [defaultDeviceConfig] : loadDeviceModesFromFile(path)
 }
 
 function runGameAtPath(path) {

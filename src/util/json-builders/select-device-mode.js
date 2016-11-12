@@ -1,26 +1,22 @@
 'use strict';
 
-var urlBuilder = require('../url-builder');
+const urlBuilder = require('../url-builder');
 import {map} from 'lodash';
 
 function buildJson (save, player, hostname, project) {
 
-  const links = map(project.deviceModes, deviceMode => {
+  const deviceModes = map(project.deviceModes, (deviceMode) => {
     const uri = urlBuilder(hostname).saves(save.id).continue({deviceMode: deviceMode.name});
+    const { icon, name, label } = deviceMode;
 
-    return {
-      uri: uri,
-      icon: deviceMode.icon,
-      name: deviceMode.name,
-      label: deviceMode.label
-    };
+    return { uri, icon, name, label };
   });
 
   return {
     game: {
-      name: project.name,
+      name: project.name
     },
-    links: links
+    deviceModes
   };
 }
 
