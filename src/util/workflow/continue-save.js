@@ -1,14 +1,14 @@
 'use strict';
 
-var kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
-var saveCommon = require('../workflow/save-common');
-var buildContinueSaveJson = require('../json-builders/continue-save');
-var urlBuilder = require('../url-builder');
-var redirectTo = require('../workflow/promise').redirectTo;
-var logger = require('../../logging/server/logger').logger;
+const kickstartPromiseChain = require('../workflow/promise').kickstartPromiseChain;
+const saveCommon = require('../workflow/save-common');
+const buildContinueSaveJson = require('../json-builders/continue-save');
+const urlBuilder = require('../url-builder');
+const redirectTo = require('../workflow/promise').redirectTo;
+const logger = require('../../logging/server/logger').logger;
 
 import {hostname} from '../../util/hostname';
-import {includes, map} from 'lodash';
+import {map} from 'lodash';
 
 function continueSave (project, savesList, on) {
   function loadSaveIfNotLoaded (save) {
@@ -25,7 +25,7 @@ function continueSave (project, savesList, on) {
     const deviceMode = req.query.deviceMode;
 
     function redirectIfDeviceModeIsUnsupported (save, player, hostname) {
-      if (!deviceMode || !includes(supportedDeviceModes, deviceMode)) {
+      if (!deviceMode || !supportedDeviceModes.includes(deviceMode)) {
         logger.info({deviceMode}, 'Unsupported device mode.');
         return redirectTo(urlBuilder(hostname).saves(save.id).selectDeviceMode()  , 'Unsupported device mode.');
       }
@@ -35,11 +35,11 @@ function continueSave (project, savesList, on) {
 
     return kickstartPromiseChain(savesList.get(req.params.saveId))
       .then(saveCommon.errorIfSaveDoesNotExist)
-      .then(save => [save, req.player, hostname()])
+      .then((save) => [save, req.player, hostname()])
       .spread(saveCommon.redirectIfPlayerIsNotInSave)
       .spread(redirectIfDeviceModeIsUnsupported)
       .spread(loadSaveIfNotLoaded)
-      .then(save => [save.mode, deviceMode])
+      .then((save) => [save.mode, deviceMode])
       .spread(buildContinueSaveJson);
   };
 }

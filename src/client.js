@@ -1,19 +1,19 @@
 'use strict';
 
-var logging = require('./logging/client/logger');
-var Bluebird = require('bluebird');
-var request = Bluebird.promisifyAll(require('request'));
-var packageInfo = require('../package.json');
+const logging = require('./logging/client/logger');
+const Bluebird = require('bluebird');
+const request = Bluebird.promisifyAll(require('request'));
+const packageInfo = require('../package.json');
 import {each} from 'lodash/collection';
 
-var folders = [];
-var gameFolders = [];
+const folders = [];
+const gameFolders = [];
 
-var plugins = require('./plugins/plug-n-play').configure(logging.logger, require('../config/array-plugins'), require('../config/default-mode-plugins'), require('../config/client-silenced-plugins'));
+const plugins = require('./plugins/plug-n-play').configure(logging.logger, require('../config/array-plugins'), require('../config/default-mode-plugins'), require('../config/client-silenced-plugins'));
 
 plugins.set('Window', window);
 plugins.set('Modernizr', Modernizr);
-plugins.set('DeviceMode', deviceMode || 'observer');
+plugins.set('DeviceMode', deviceMode || { name: 'observer' });
 plugins.set('ServerUrl', plugins.get('Window').location.origin);
 
 function getConfig(response) {
@@ -33,11 +33,11 @@ function setLogLevel() {
 }
 
 function loadFolder(folder, namespace = 'ensemblejs') {
-  folders.push({ items: folder, namespace: namespace });
+  folders.push({ items: folder, namespace });
 }
 
 function loadGameFolder(folder, namespace = 'Game') {
-  gameFolders.push({ items: folder, namespace: namespace });
+  gameFolders.push({ items: folder, namespace });
 }
 
 function runTheClient() {
@@ -46,11 +46,11 @@ function runTheClient() {
 
 function loadModules() {
   each(folders, function loadEachFolder(folder) {
-    each(folder.items, item => plugins.load(item, folder.namespace));
+    each(folder.items, (item) => plugins.load(item, folder.namespace));
   });
 
   each(gameFolders, function loadEachFolder(folder) {
-    each(folder.items, item => plugins.load(item, folder.namespace));
+    each(folder.items, (item) => plugins.load(item, folder.namespace));
   });
 }
 
@@ -95,10 +95,10 @@ export function loadClientFolder(folder) {
   loadGameFolder(folder);
 }
 
-export let set = plugins.set;
+export const set = plugins.set;
 
 export default {
-  loadClientFolder: loadClientFolder,
-  run: run,
+  loadClientFolder,
+  run,
   set: plugins.set
 };

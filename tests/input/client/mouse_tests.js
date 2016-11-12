@@ -30,7 +30,7 @@ describe('the mouse input capture plugin', function () {
 					}
 				},
 				$: fake$wrapper,
-				DeviceMode: 'primary'
+				DeviceMode: { name: 'primary', supportedInput: ['mouse'] }
 			});
 			mouse = sut[0];
 			onClientStart = sut[1].OnClientStart();

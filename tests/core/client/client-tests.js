@@ -1,26 +1,26 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../../support').makeTestible;
-var createFakeDom = require('../../fake/dom');
+const expect = require('expect');
+const sinon = require('sinon');
+const makeTestible = require('../../support').makeTestible;
+const createFakeDom = require('../../fake/dom');
 
-var socket = require('../../fake/socket').socket;
-var io = require('../../fake/socket').fake();
+const socket = require('../../fake/socket').socket;
+const io = require('../../fake/socket').fake();
 
-var fakeTime = require('../../fake/time').at(1000);
-var fakeOn = require('../../fake/on');
+const fakeTime = require('../../fake/time').at(1000);
+const fakeOn = require('../../fake/on');
 
-var fake$ = require('../../fake/jquery').$;
-var fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
+const fake$ = require('../../fake/jquery').$;
+const fake$wrapper = require('../../fake/jquery').fakeWith(fake$);
 
 import {plugin} from '../../../src/plugins/plug-n-play';
 
 describe('the socket client', function () {
-	var sut;
-	var client;
-	var onOutgoingClientPacket;
-	var onIncomingServerPacket;
+	let sut;
+	let client;
+	let onOutgoingClientPacket;
+	let onIncomingServerPacket;
 
 	before(function () {
 		sinon.spy(fake$, 'on');
@@ -29,7 +29,7 @@ describe('the socket client', function () {
 	});
 
 	beforeEach(function (done) {
-		var html = '<html><body><div id="element">With content.</div></body></html>';
+		const html = '<html><body><div id="element">With content.</div></body></html>';
 		createFakeDom(html, function (window) {
 			sut = makeTestible('core/client/socket-client', {
 				Window: window,
@@ -38,7 +38,7 @@ describe('the socket client', function () {
 				On: fakeOn,
 				Time: fakeTime,
 				$: fake$wrapper,
-				DeviceMode: 'primary',
+				DeviceMode: { name: 'primary', supportedInput: ['keyboard'], canPause: true },
 				Config: {
 					logging: {
 						heartbeatInterval: 30000

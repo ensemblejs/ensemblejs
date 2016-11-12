@@ -30,7 +30,7 @@ describe('the touch input capture plugin', function () {
 					}
 				},
 				$: fake$wrapper,
-				DeviceMode: 'primary'
+				DeviceMode: { name: 'primary', supportedInput: ['touch'] }
 			});
 			getCurrentState = sut[0];
 			onClientStart = sut[1].OnClientStart();

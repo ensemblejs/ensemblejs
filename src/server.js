@@ -25,10 +25,13 @@ foldersToLoad.forEach(function loadFolder(folder) {
 
 function getDeviceModes (path) {
   const exists = require('fs').existsSync(`${path}/js/device-modes.json`);
+  const defaultDeviceConfig = require('../config/device-mode-defaults');
 
-  return exists
-    ? require(`${path}/js/device-modes.json`)
-    : require('../config/default-device-modes');
+  return !exists
+    ?  [defaultDeviceConfig]
+    : require(`${path}/js/device-modes.json`).map((deviceMode) => (
+        { ...defaultDeviceConfig, ...deviceMode}
+      ));
 }
 
 function runGameAtPath(path) {

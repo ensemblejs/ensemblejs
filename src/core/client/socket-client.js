@@ -1,11 +1,9 @@
 'use strict';
 
-var io = require('socket.io-client');
-var patch = require('socketio-wildcard')(io.Manager);
-import {last, includes, each} from 'lodash';
+const io = require('socket.io-client');
+const patch = require('socketio-wildcard')(io.Manager);
 import define from '../../plugins/plug-n-play';
 import {plugin, get, set} from '../../plugins/plug-n-play';
-import {supportsInput} from '../../util/device-mode';
 import read from 'ok-selector';
 import determineSaveIdFromPath from '../../util/determine-save-id-from-path';
 
@@ -14,11 +12,11 @@ module.exports = {
   deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode', 'Config'],
   func: function SocketClient (window, mode, host, on, time, $, deviceMode, config) {
 
-    let intervals = [];
-    const url = () => `${host()}/${mode()}/${deviceMode()}`;
+    const intervals = [];
+    const url = () => `${host()}/${mode()}/${deviceMode().name}`;
 
     function disconnect () {
-      each(intervals, function eachInterval (interval) {
+      intervals.forEach(function eachInterval (interval) {
         clearInterval(interval);
       });
 
@@ -26,11 +24,11 @@ module.exports = {
     }
 
     function connect () {
-      var socket = io.connect(url(), { reconnection: false });
+      const socket = io.connect(url(), { reconnection: false });
 
       patch(socket);
 
-      var saveId = determineSaveIdFromPath(window().location.pathname);
+      const saveId = determineSaveIdFromPath(window().location.pathname);
       set('SaveId', saveId);
       socket.emit('saveId', saveId);
 
@@ -43,7 +41,7 @@ module.exports = {
 
       socket.on('playerNumber', function savePlayerId (playerNumber) {
         if (!playerNumber) {
-          window().location.replace('/saves/' + saveId + '/full');
+          window().location.replace(`/saves/${saveId}/full`);
         }
 
         console.info({playerNumber}, 'Assigned player number');
@@ -71,19 +69,19 @@ module.exports = {
       function sendHeartbeat () {
         socket.emit('heartbeat');
       }
-      var id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
+      const id = setInterval(sendHeartbeat, config().logging.heartbeatInterval);
       intervals.push(id);
 
 
       define('PauseBehaviour', function PauseBehaviour () {
         function pause () {
-          if (includes(supportsInput, deviceMode())) {
+          if (deviceMode().canPause) {
             socket.emit('pause');
           }
         }
 
         function unpause () {
-          if (includes(supportsInput, deviceMode())) {
+          if (deviceMode().canPause) {
             socket.emit('unpause');
           }
         }
@@ -92,11 +90,7 @@ module.exports = {
           return read(state, 'ensemble.paused') ? unpause() : pause();
         }
 
-        return {
-          pause: pause,
-          unpause: unpause,
-          toggle: toggle
-        };
+        return { pause, unpause, toggle };
       });
 
       function pauseIfHidden () {
@@ -115,18 +109,20 @@ module.exports = {
         get('PauseBehaviour', 'unpause')();
       }
 
-      if (includes(supportsInput, deviceMode())) {
+      if (deviceMode().canPause) {
         $()(window()).on('blur', pause);
         $()(window()).on('mousedown', unpause);
         $()(window()).on('keydown', unpause);
         $()(window()).on('touchstart', unpause);
 
-        $()(window()).on('beforeunload', disconnect);
-
         $()(window().document).on('visibilitychange', pauseIfHidden);
         $()(window().document).on('mozvisibilitychange', pauseIfHidden);
         $()(window().document).on('msvisibilitychange', pauseIfHidden);
         $()(window().document).on('webkitvisibilitychange', pauseIfHidden);
+      }
+
+      if (deviceMode().supportedInput.length > 0) {
+        $()(window()).on('beforeunload', disconnect);
 
         define('OnOutgoingClientPacket', () => {
           return function sendPacketToServer (packet) {
@@ -142,8 +138,6 @@ module.exports = {
       });
     }
 
-    return {
-      connect: connect
-    };
+    return { connect };
   }
 };

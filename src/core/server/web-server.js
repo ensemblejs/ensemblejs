@@ -92,7 +92,7 @@ module.exports = {
       server = http.createServer(app);
       server.listen(process.env.PORT || 3000);
 
-      socket().start(server, project.modes, session);
+      socket().start(server, project.modes, project.deviceModes, session);
     }
 
     define()('OnServerStop', function () {

@@ -1,7 +1,7 @@
 'use strict';
 
 import {keys, isNumber, isFunction} from 'lodash';
-var returnRequestError = require('./workflow/promise').returnRequestError;
+const returnRequestError = require('./workflow/promise').returnRequestError;
 
 function renderPage (page, opts) {
   return function pageHandler (req, res) {
@@ -22,21 +22,20 @@ function getSupportContentType (req, acceptTypeResponseHandlers) {
 function buildRequestHandler (callbacks) {
   return function handleRequest (req, res) {
     callbacks(req.player, function (acceptTypeResponseHandlers) {
-      var contentType = getSupportContentType(req, acceptTypeResponseHandlers);
+      const contentType = getSupportContentType(req, acceptTypeResponseHandlers);
       if (contentType) {
         return acceptTypeResponseHandlers[contentType](req, res);
-      } else {
-        var msg = 'The following Accept types supported: ' + keys(acceptTypeResponseHandlers).join(', ');
-
-        return res.status(406).send(msg);
       }
+
+      const msg = `The following Accept types supported: ${keys(acceptTypeResponseHandlers).join(', ')}`;
+
+      return res.status(406).send(msg);
     });
   };
 }
 
-function redirect (error) {
-  return error.reason === 'redirect';
-}
+const redirect = (error) => error.reason === 'redirect';
+const getSupportedContentType = (req, acceptsHash) => req.accepts(keys(acceptsHash));
 
 function isRequestError (error) {
   return isNumber(error.reason) && error.reason >= 400 && error.reason <= 499;
@@ -46,17 +45,13 @@ function isServerError (error) {
   return isNumber(error.reason) && error.reason >= 500 && error.reason <= 599;
 }
 
-function getSupportedContentType (req, acceptsHash) {
-  return req.accepts(keys(acceptsHash));
-}
-
 function getAcceptTypeHandler (req, acceptsHash) {
-  var acceptType = getSupportedContentType(req, acceptsHash);
+  const acceptType = getSupportedContentType(req, acceptsHash);
   if (acceptType) {
     return acceptsHash[acceptType];
-  } else {
-    return returnRequestError(406, 'The following Accept types supported: ' + keys(acceptsHash).join());
   }
+
+  return returnRequestError(406, `The following Accept types supported: ${keys(acceptsHash).join()}`);
 }
 
 function buildAcceptHash (page) {
@@ -72,8 +67,8 @@ function get (jsonBuilder, page) {
   return function handleRequest (req, res) {
     jsonBuilder(req)
       .then(buildAcceptHash((isFunction(page) ? page(req) : page)))
-      .then(acceptsHash => getAcceptTypeHandler(req, acceptsHash))
-      .then(handler => handler(req, res))
+      .then((acceptsHash) => getAcceptTypeHandler(req, acceptsHash))
+      .then((handler) => handler(req, res))
       .catch(redirect, function applyRedirect (err) {
         if (err.data.explainationToUser) {
           req.flash('info', err.data.explainationToUser);
@@ -107,15 +102,15 @@ function post (jsonBuilder) {
 }
 
 module.exports = {
-  redirect: redirect,
-  isRequestError: isRequestError,
-  getAcceptTypeHandler: getAcceptTypeHandler,
-  renderPage: renderPage,
-  renderJson: renderJson,
+  redirect,
+  isRequestError,
+  getAcceptTypeHandler,
+  renderPage,
+  renderJson,
   buildJsonHandler: renderJson,
-  buildRequestHandler: buildRequestHandler,
+  buildRequestHandler,
   buildGetRequestHandler: get,
-  get: get,
+  get,
   buildPostRequestHandler: post,
-  post: post
+  post
 };

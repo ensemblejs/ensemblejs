@@ -1,7 +1,5 @@
 'use strict';
 
-import {supportsInput} from '../../util/device-mode';
-
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
@@ -57,10 +55,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function TouchInputCapture () {
-        if (!supportsInput.includes(deviceMode())) {
-          return;
-        }
-        if (deviceMode() === 'virtual-gamepad') {
+        if (!deviceMode().supportedInput.includes('touch')) {
           return;
         }
 

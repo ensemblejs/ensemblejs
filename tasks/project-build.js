@@ -49,8 +49,7 @@ function addTasks (gulp) {
         }
       }
 
-      var i;
-      for(i = 0; i < arr.length; i += 1) {
+      for(let i = 0; i < arr.length; i += 1) {
         generateEntrypointFile(arr[i], copied);
       }
     });
@@ -58,14 +57,14 @@ function addTasks (gulp) {
 
   gulp.task('copy-device-modes', ['project:prep'], function (done) {
     fs.exists('game/js/device-modes.json', function (exists) {
-      var arr;
+      let arr;
       if (!exists) {
-        arr = ['primary', 'gamepad'];
+        arr = [{ name: 'default' }];
       } else {
-        arr = require(process.cwd() + '/game/js/device-modes.json');
+        arr = require(`${process.cwd()}/game/js/device-modes.json`);
       }
 
-      var copyCount = 0;
+      let copyCount = 0;
 
       function copied () {
         copyCount += 1;
@@ -74,8 +73,7 @@ function addTasks (gulp) {
         }
       }
 
-      var i;
-      for(i = 0; i < arr.length; i += 1) {
+      for(let i = 0; i < arr.length; i += 1) {
         generateDeviceModeFile(arr[i], copied);
       }
     });

@@ -1,8 +1,6 @@
 'use strict';
 
-var each = require('lodash').each;
-var includes = require('lodash').includes;
-import {supportsInput} from '../../util/device-mode';
+const each = require('lodash').each;
 
 function mouseMap () {
   return {
@@ -16,10 +14,10 @@ module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, config, define, $, deviceMode) {
-    var x = 0;
-    var y = 0;
-    var keys = {};
-    var singlePressKeys = {};
+    let x = 0;
+    let y = 0;
+    const keys = {};
+    const singlePressKeys = {};
     let receivedInput = false;
 
     function singlePress (key, alt, ctrl, shift) {
@@ -60,7 +58,7 @@ module.exports = {
         receivedInput = true;
       });
 
-      var elementId = `#${config().client.element}`;
+      const elementId = `#${config().client.element}`;
       $()(elementId).on('mousemove', function mousemove (e) {
         x = e.layerX;
         y = e.layerY;
@@ -70,7 +68,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function MouseInputCapture () {
-        if (!includes(supportsInput, deviceMode())) {
+        if (!deviceMode().supportedInput.includes('mouse')) {
           return;
         }
 
@@ -79,26 +77,20 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      var inputData = {
-        mouse: {
-          x: x,
-          y: y
-        },
-        receivedInput: receivedInput
-      };
+      const inputData = { mouse: { x, y }, receivedInput };
 
-      var keysToSend = [];
+      const keysToSend = [];
       each(keys, function (value, key) {
         if (value) {
-          keysToSend.push({key: key, modifiers: value});
+          keysToSend.push({key, modifiers: value});
         }
       });
       inputData.keys = keysToSend;
 
-      var singlePressKeysToSend = [];
+      const singlePressKeysToSend = [];
       each(singlePressKeys, function (value, key) {
         if (value) {
-          singlePressKeysToSend.push({key: key, modifiers: value});
+          singlePressKeysToSend.push({key, modifiers: value});
         }
         singlePressKeys[key] = false;
       });

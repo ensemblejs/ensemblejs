@@ -2,20 +2,20 @@
 
 import {filter} from 'lodash';
 
-var post = require('../../util/request-handling').post;
-var get = require('../../util/request-handling').get;
+const post = require('../../util/request-handling').post;
+const get = require('../../util/request-handling').get;
 
-var newSave = require('../../util/workflow/new-save');
-var addPlayerToSave = require('../../util/workflow/add-player-to-save');
-var continueSave = require('../../util/workflow/continue-save');
-var saveIsFull = require('../../util/workflow/save-is-full');
-var shareSave = require('../../util/workflow/share-save');
-var joinSave = require('../../util/workflow/join-save');
-var selectDeviceMode = require('../../util/workflow/select-device-mode');
+const newSave = require('../../util/workflow/new-save');
+const addPlayerToSave = require('../../util/workflow/add-player-to-save');
+const continueSave = require('../../util/workflow/continue-save');
+const saveIsFull = require('../../util/workflow/save-is-full');
+const shareSave = require('../../util/workflow/share-save');
+const joinSave = require('../../util/workflow/join-save');
+const selectDeviceMode = require('../../util/workflow/select-device-mode');
 
 function pickGameView (project) {
   return function pickUsingDeviceModes (req) {
-    let deviceMode = filter(project.deviceModes, {name: req.query.deviceMode});
+    const deviceMode = filter(project.deviceModes, {name: req.query.deviceMode});
 
     return (deviceMode.length === 0) ? 'game.pug' : deviceMode[0].template;
   };
@@ -52,8 +52,6 @@ module.exports = {
       );
     }
 
-    return {
-      configure: configure
-    };
+    return { configure };
   }
 };

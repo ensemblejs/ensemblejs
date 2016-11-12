@@ -1,16 +1,15 @@
 'use strict';
 
 import {isEmpty, each, includes} from 'lodash';
-import {supportsInput} from '../../util/device-mode';
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, define, $, deviceMode) {
-    var keys = {};
-    var singlePressKeys = {};
+    const keys = {};
+    const singlePressKeys = {};
 
-    var reverseMap = {
+    const reverseMap = {
       'F1': 'f1',
       'F2': 'f2',
       'F3': 'f3',
@@ -25,10 +24,10 @@ module.exports = {
       'F12': 'f12'
     };
 
-    var preventDefault = ['delete', 'f8', 'tab'];
+    const preventDefault = ['delete', 'f8', 'tab'];
 
     function keyMap () {
-      var map = {
+      const map = {
         '8': 'delete',
         '9': 'tab',
         '13': 'enter',
@@ -64,9 +63,8 @@ module.exports = {
         '63246': 'f11',
         '63247': 'f12'
       };
-      var i = 0;
 
-      for (i = 48; i <= 111; i += 1) {
+      for (let i = 48; i <= 111; i += 1) {
         if (i > 57 && i < 65) { continue; }
         if (i > 90 && i < 97) { continue; }
         if (map[i] !== undefined) {
@@ -98,11 +96,11 @@ module.exports = {
       keys[key] = false;
     }
 
-    var ignore = ['Control', 'Shift', 'Alt', 'Meta'];
+    const ignore = ['Control', 'Shift', 'Alt', 'Meta'];
 
     function bindToWindowEvents () {
-      var singlePressState = {};
-      var releasedByBlur = {};
+      const singlePressState = {};
+      const releasedByBlur = {};
 
       $()(window()).on('blur', function fireReleaseEventForPressedKeys () {
         each(singlePressState, function(value, key) {
@@ -117,14 +115,14 @@ module.exports = {
       });
 
       function resolveKey (e) {
-        var key = keyMap()[e.which];
+        const key = keyMap()[e.which];
         return key ? key : reverseMap[e.keyIdentifier];
       }
 
       $()(window().document).keydown(function keydown (e) {
         if (includes(ignore, e.keyIdentifier)) { return; }
 
-        var key = resolveKey(e);
+        const key = resolveKey(e);
         press(key, e.altKey, e.ctrlKey, e.shiftKey);
 
         if (!singlePressState[key]) {
@@ -140,7 +138,7 @@ module.exports = {
       $()(window().document).keyup(function keyup (e) {
         if (includes(ignore, e.keyIdentifier)) { return; }
 
-        var key = resolveKey(e);
+        const key = resolveKey(e);
         if (!releasedByBlur[key]) {
           release(key);
         }
@@ -151,7 +149,7 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function KeyboardInputCapture () {
-        if (!includes(supportsInput, deviceMode())) {
+        if (!deviceMode().supportedInput.includes('keyboard')) {
           return;
         }
 
@@ -160,20 +158,20 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      var inputData = {};
+      const inputData = {};
 
-      var keysToSend = [];
+      const keysToSend = [];
       each(keys, function (value, key) {
         if (value) {
-          keysToSend.push({key: key, force: 1, modifiers: value});
+          keysToSend.push({key, force: 1, modifiers: value});
         }
       });
       inputData.keys = keysToSend;
 
-      var singlePressKeysToSend = [];
+      const singlePressKeysToSend = [];
       each(singlePressKeys, function (value, key) {
         if (value) {
-          singlePressKeysToSend.push({key: key, force: 1, modifiers: value});
+          singlePressKeysToSend.push({key, force: 1, modifiers: value});
         }
         singlePressKeys[key] = false;
       });

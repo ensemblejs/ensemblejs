@@ -1,12 +1,12 @@
 'use strict';
 
-var expect = require('expect');
-var sinon = require('sinon');
-var makeTestible = require('../../support').makeTestible;
-var config = require('../../../src/util/config');
+const expect = require('expect');
+const sinon = require('sinon');
+const makeTestible = require('../../support').makeTestible;
+const config = require('../../../src/util/config');
 
 //Stub out socket.io
-var socket = {
+const socket = {
 	id: '1',
 	on: sinon.spy(),
 	emit: sinon.spy(),
@@ -17,51 +17,48 @@ var socket = {
 		sessionID: '1000'
 	}
 };
-var routeSocket = {};
-var io = {
+const routeSocket = {};
+const io = {
 	use: sinon.spy(),
 	close: sinon.spy(),
-	of: function(route) {
-		return {
-			on: function(name, f) {
-				routeSocket[route] = f;
-			}
-		};
-	}
-};
-var saveState = {
-	hi: 'there',
-};
-
-var server = {};
-var session = sinon.spy();
-
-var modes = ['arcade'];
-var logger = require('../../fake/logger');
-var fakeOn = require('../../fake/on');
-var fakeTime = require('../../fake/time').at(1000);
-
-var sequence = require('distributedlife-sequence');
-
-var sut = makeTestible('core/server/socket-server', {
-	RawStateAccess: {
-		for: function() {
-			return saveState;
+	of: (route) => ({
+		on: (name, f) => {
+			routeSocket[route] = f;
 		}
+	})
+};
+const saveState = {
+	hi: 'there'
+};
+
+const server = {};
+const session = sinon.spy();
+
+const gameModes = ['arcade'];
+const deviceModes = [ { name: 'primary' }]
+const logger = require('../../fake/logger');
+const fakeOn = require('../../fake/on');
+const fakeTime = require('../../fake/time').at(1000);
+
+const sequence = require('distributedlife-sequence');
+
+const sut = makeTestible('core/server/socket-server', {
+	RawStateAccess: {
+		for: () => saveState
 	},
 	Logger: logger,
 	On: fakeOn,
 	Time: fakeTime,
 	SavesList: {
-		get: function () { return { id: 8, mode: 'arcade'}; }
+		get: () => ({ id: 8, mode: 'arcade'})
 	}
 });
 
-var socketServer = sut[0];
+const socketServer = sut[0];
 
 describe('the socket server', function () {
 	beforeEach(function () {
-		var socketIo = require('socket.io');
+		const socketIo = require('socket.io');
 		socketIo.listen = function() { return io; };
 
 		sinon.spy(io, 'of');
@@ -90,28 +87,16 @@ describe('the socket server', function () {
 
 	describe('setting up the socket', function () {
 		beforeEach(function beforeEach () {
-			socketServer.start(server, modes, session);
+			socketServer.start(server, gameModes, deviceModes, session);
 		});
 
 		afterEach(function afterEach () {
 			socketServer.stop();
 		});
 
-		it('should listen on /:mode/primary', function () {
-			expect(io.of.callCount).toEqual(4);
+		it('should listen on /:mode/:deviceMode', function () {
+			expect(io.of.callCount).toEqual(1);
 			expect(io.of.firstCall.args).toEqual(['/arcade/primary']);
-		});
-
-		it('should listen on /:mode/observer', function () {
-			expect(io.of.secondCall.args).toEqual(['/arcade/observer']);
-		});
-
-		it('should listen on /:mode/gamepad', function () {
-			expect(io.of.thirdCall.args).toEqual(['/arcade/gamepad']);
-		});
-
-		it('should listen on /:mode/mobile', function () {
-			expect(io.of.lastCall.args).toEqual(['/arcade/mobile']);
 		});
 	});
 
@@ -121,7 +106,7 @@ describe('the socket server', function () {
 			beforeEach(function (done) {
 				socket.on.reset();
 
-				socketServer.start(server, modes, session);
+				socketServer.start(server, gameModes, deviceModes, session);
 
 				routeSocket['/arcade/primary'](socket);
 
@@ -160,7 +145,7 @@ describe('the socket server', function () {
 			beforeEach(function () {
 				socket.on.reset();
 
-				socketServer.start(server, modes, session);
+				socketServer.start(server, gameModes, deviceModes, session);
 
 				routeSocket['/arcade/primary'](socket);
 
@@ -235,90 +220,6 @@ describe('the socket server', function () {
 
 				it('should call the onIncomingClientInputPacket callback', function () {
 					expect(fakeOn.incomingClientInputPacket.calledOnce).toEqual(true);
-				});
-			});
-		});
-	});
-
-	describe('an observer client', function () {
-		describe('on connect', function () {
-
-			beforeEach(function (done) {
-				saveState = { hi: 'there' };
-
-				socket.on.reset();
-				fakeOn.outgoingServerPacket.reset();
-
-				socketServer.start(server, modes, session);
-
-				routeSocket['/arcade/observer'](socket);
-
-				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]().then(() => done());
-			});
-
-			afterEach(function () {
-				socketServer.stop();
-			});
-
-			it('should setup the socket events', function () {
-				expect(socket.on.getCall(0).args[0]).toEqual('saveId');
-				expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
-				expect(socket.on.getCall(2).args[0]).toEqual('error');
-			});
-
-			it('should send the start time to the client', function () {
-				expect(socket.emit.firstCall.args).toEqual(['startTime', 1000]);
-			});
-
-			it('should emit a local client connect event', function () {
-				expect(fakeOn.clientConnect.callCount).toEqual(1);
-				expect(fakeOn.clientConnect.firstCall.args).toEqual([{
-					id: 8,
-					mode: 'arcade'
-				}, socket]);
-			});
-		});
-
-		describe('after connect', function () {
-			beforeEach(function () {
-				socket.on.reset();
-
-				socketServer.start(server, modes, session);
-
-				routeSocket['/arcade/observer'](socket);
-
-				expect(socket.on.firstCall.args[0]).toEqual('saveId');
-				socket.on.firstCall.args[1]();
-			});
-
-			afterEach(function () {
-				socketServer.stop();
-			});
-
-			describe('on disconnect', function () {
-				beforeEach(function () {
-					fakeOn.pause.reset();
-					fakeOn.clientDisconnect.reset();
-
-					expect(socket.on.getCall(1).args[0]).toEqual('disconnect');
-					socket.on.getCall(1).args[1]();
-				});
-
-				it('should call the clientDisconnect callback', function() {
-					expect(fakeOn.clientDisconnect.calledOnce).toEqual(true);
-				});
-			});
-
-			describe('on error', function () {
-				beforeEach(function () {
-					fakeOn.error.reset();
-					expect(socket.on.getCall(2).args[0]).toEqual('error');
-					socket.on.getCall(2).args[1]();
-				});
-
-				it('should call the error callback', function () {
-					expect(fakeOn.error.callCount).toEqual(1);
 				});
 			});
 		});

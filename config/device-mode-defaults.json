@@ -1,0 +1,10 @@
+{
+  "name": "default",
+  "label": "Default",
+  "icon": "/ensemble/images/device-modes/primary.png",
+  "template": "game.pug",
+  "canPause": true,
+  "supportedInput": ["touch", "mouse", "physical-gamepad", "keyboard", "virtual-gamepad"],
+
+  "supportsOutput": true
+}

@@ -1,15 +1,14 @@
 'use strict';
 
-import {each, includes, isEmpty} from 'lodash';
-let logger = require('../../logging/client/logger').logger;
-import {supportsInput} from '../../util/device-mode';
+import {each, isEmpty} from 'lodash';
+const logger = require('../../logging/client/logger').logger;
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, define, $, deviceMode) {
-    var keys = {};
-    var singlePressKeys = {};
+    const keys = {};
+    const singlePressKeys = {};
 
     function singlePress (key) {
       singlePressKeys[key] = true;
@@ -33,38 +32,42 @@ module.exports = {
       e.stopPropagation();
     }
 
-    function addTouchBindings (element) {
-      const action = element.data('action');
-
-      element.on('touchstart', e => handleClickOrTouch(press, action, e));
-      element.on('touchend', e => handleClickOrTouch(release, action, e));
-      element.on('touchcancel', e => handleClickOrTouch(release, action, e));
-      element.on('touchleave', e => handleClickOrTouch(release, action, e));
-    }
-
-    function addMouseBindings(element) {
-      const action = element.data('action');
-
-      element.on('mousedown', e => handleClickOrTouch(press, action, e));
-      element.on('mouseup', e => handleClickOrTouch(release, action, e));
-      element.on('click', e => handleClickOrTouch(singlePress, action, e));
-    }
-
-    function addBindings() {
+    function addTouchBindings () {
       if (window().ontouchstart !== undefined) {
-        addTouchBindings($()(this)); //jshint ignore:line
-      }
-
-      addMouseBindings($()(this)); //jshint ignore:line
-    }
-
-    function bindToElement (element) {
-      if (!includes(supportsInput, deviceMode())) {
-        logger.warn({element: element}, 'AnchorAction add called on device that does not support input');
         return;
       }
 
-      element.each(addBindings);
+      const element = $()(this);
+      const action = element.data('action');
+
+      element.on('touchstart', (e) => handleClickOrTouch(press, action, e));
+      element.on('touchend', (e) => handleClickOrTouch(release, action, e));
+      element.on('touchcancel', (e) => handleClickOrTouch(release, action, e));
+      element.on('touchleave', (e) => handleClickOrTouch(release, action, e));
+    }
+
+    function addMouseBindings() {
+      const element = $()(this);
+      const action = element.data('action');
+
+      element.on('mousedown', (e) => handleClickOrTouch(press, action, e));
+      element.on('mouseup', (e) => handleClickOrTouch(release, action, e));
+      element.on('click', (e) => handleClickOrTouch(singlePress, action, e));
+    }
+
+    function bindToElement (element) {
+      const supportedInput = deviceMode().supportedInput;
+      if (!supportedInput.includes('touch') && !supportedInput.includes('mouse')) {
+        logger.warn({ element }, 'AnchorAction add called on device that does not support touch or mouse input');
+        return;
+      }
+
+      if (supportedInput.includes('touch')) {
+        element.each(addTouchBindings);
+      }
+      if (supportedInput.includes('mouse')) {
+        element.each(addMouseBindings);
+      }
     }
 
     define()('AnchorAction', function () {
@@ -74,22 +77,22 @@ module.exports = {
     });
 
     return function getCurrentState () {
-      var inputData = {
+      const inputData = {
         receivedInput: false
       };
 
-      var keysToSend = [];
+      const keysToSend = [];
       each(keys, function (value, key) {
         if (value) {
-          keysToSend.push({key: key, modifiers: []});
+          keysToSend.push({ key, modifiers: [] });
         }
       });
       inputData.keys = keysToSend;
 
-      var singlePressKeysToSend = [];
+      const singlePressKeysToSend = [];
       each(singlePressKeys, function (value, key) {
         if (value) {
-          singlePressKeysToSend.push({key: key, modifiers: []});
+          singlePressKeysToSend.push({ key, modifiers: [] });
         }
         singlePressKeys[key] = false;
       });

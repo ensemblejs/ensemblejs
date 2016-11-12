@@ -1,25 +1,24 @@
 'use strict';
 
-import {without, each, map, includes, isEmpty, isEqual} from 'lodash';
+import {without, each, map, isEmpty, isEqual} from 'lodash';
 import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axial, normaliseResult} from 'gamepad-api-mappings';
-import {supportsInput} from '../../util/device-mode';
 import define from '../../plugins/plug-n-play';
 import {get} from '../../plugins/plug-n-play';
 
-let logger = require('../../logging/client/logger').logger;
+const logger = require('../../logging/client/logger').logger;
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Modernizr', 'Window', 'Config', 'DeviceMode'],
-  func: function (modernizr, window, config, deviceMode) {
+  func: (modernizr, window, config, deviceMode) => {
     const hasEvents = ('ongamepadconnected' in window);
 
     let controllers = {};
     let noStickInputCount = 0;
 
     function pollGamepads() {
-      var gamepads = window().navigator.getGamepads();
-      each(without(gamepads, undefined), (gamepad => {
+      const gamepads = window().navigator.getGamepads();
+      each(without(gamepads, undefined), ((gamepad) => {
         controllers[gamepad.index] = gamepad;
       }));
     }
@@ -28,11 +27,11 @@ module.exports = {
       if (!hasEvents) {
         pollGamepads();
       } else {
-        window().addEventListener('gamepadconnected', event => {
+        window().addEventListener('gamepadconnected', (event) => {
           controllers[event.gamepad.index] = event.gamepad;
         }, false);
 
-        window().addEventListener('gamepaddisconnected', event => {
+        window().addEventListener('gamepaddisconnected', (event) => {
           delete controllers[event.gamepad.index];
         }, false);
       }
@@ -43,7 +42,7 @@ module.exports = {
         if (!modernizr().gamepads) {
           return;
         }
-        if (!includes(supportsInput, deviceMode())) {
+        if (!deviceMode().supportedInput.includes('physical-gamepad')) {
           return;
         }
 
@@ -79,41 +78,41 @@ module.exports = {
         pollGamepads();
       }
 
-      let inputData = {
+      const inputData = {
         keys: [],
         'left-stick': {x: 0, y: 0},
         'right-stick': {x: 0, y: 0}
       };
 
       controllers = without(controllers, undefined);
-      each(controllers, (controller => {
-        let deviceMap = getMapping(controller.id, controller.mapping);
-        let deadZones = deadZonesTable[deviceMap.deadZone];
+      each(controllers, ((controller) => {
+        const deviceMap = getMapping(controller.id, controller.mapping);
+        const deadZones = deadZonesTable[deviceMap.deadZone];
 
         each(controller.buttons, (button, index) => {
           if (!button.pressed) {
             return;
           }
 
-          let key = deviceMap.buttons[index];
-          let force = axial(button.value, deadZones[key], normaliseResult);
+          const key = deviceMap.buttons[index];
+          const force = axial(button.value, deadZones[key], normaliseResult);
           inputData.keys.push({
-            key: key,
-            force: force
+            key,
+            force
           });
         });
 
-        var axes = map(controller.axes, axis => axis);
+        const axes = map(controller.axes, (axis) => axis);
 
         each(deviceMap.axes, (axis, index) => {
           if (axis.id === 'left-stick' || axis.id === 'right-stick') {
             inputData[axis.id][axis.prop] = axes[index];
           } else {
-            let force = axial(axes[index], deadZones[axis.id], normaliseResult);
+            const force = axial(axes[index], deadZones[axis.id], normaliseResult);
             if (force > 0) {
               inputData.keys.push({
                 key: axis.id,
-                force: force
+                force
               });
             }
           }

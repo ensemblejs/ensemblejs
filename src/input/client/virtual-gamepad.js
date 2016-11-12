@@ -158,7 +158,7 @@ module.exports = {
 
     define('OnClientStart', function () {
       return function VirtualGamepadInputCapture () {
-        if (deviceMode() !== 'gamepad') {
+        if (!deviceMode().supportedInput.includes('virtual-gamepad')) {
           return;
         }
 
