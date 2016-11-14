@@ -11,7 +11,6 @@ module.exports = {
   type: 'Share',
   deps: ['Window', '$'],
   func: function Share (window, $) {
-
     function seedShareScreenState () {
       return {
         ensemble: {
@@ -39,8 +38,12 @@ module.exports = {
       }
     }
 
-    define('OnClientReady', ['StateTracker', 'AnchorAction'], (tracker, anchorAction) => {
+    define('OnClientReady', ['StateTracker', 'AnchorAction', 'DeviceMode'], (tracker, anchorAction, deviceMode) => {
       return function setup (dims, playerId) {
+        if (deviceMode().supportedInput.length === 0) {
+          return;
+        }
+
         const icon = require('../../../public/partials/share-icon.pug');
         const modal = require('../../../public/views/share-modal.pug');
         const url = `${window().location.origin}${window().location.pathname}`;

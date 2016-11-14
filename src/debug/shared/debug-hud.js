@@ -20,7 +20,7 @@ function OnClientStart ($) {
   };
 }
 
-function OnClientReady ($, anchorAction, tracker) {
+function OnClientReady ($, anchorAction, tracker, deviceMode) {
   function hide () {
     $()('#debug').hide();
     $()('#overlay').show();
@@ -40,6 +40,11 @@ function OnClientReady ($, anchorAction, tracker) {
   }
 
   return function setup (dims, playerId) {
+    if (deviceMode().supportedInput.length === 0) {
+      $()('#debug').hide();
+      return;
+    }
+
     let icon = require('../../../public/partials/debug/debug-icon.pug');
     $()('.icons').append(icon({action: 'open-hud'}));
     $()('#debug').append(icon({action: 'close-hud'}));;
@@ -78,7 +83,7 @@ module.exports = {
     }
 
     define()('OnClientStart', ['$'], OnClientStart);
-    define()('OnClientReady', ['$', 'AnchorAction', 'StateTracker'], OnClientReady);
+    define()('OnClientReady', ['$', 'AnchorAction', 'StateTracker', 'DeviceMode'], OnClientReady);
     define()('PlayerStateSeed', ['Config'], PlayerStateSeed);
     define()('ActionMap', ActionMap);
   }
