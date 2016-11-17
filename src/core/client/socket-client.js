@@ -121,15 +121,13 @@ module.exports = {
         $()(window().document).on('webkitvisibilitychange', pauseIfHidden);
       }
 
-      if (deviceMode().supportedInput.length > 0) {
-        $()(window()).on('beforeunload', disconnect);
+      $()(window()).on('beforeunload', disconnect);
 
-        define('OnOutgoingClientPacket', () => {
-          return function sendPacketToServer (packet) {
-            socket.emit('input', packet);
-          };
-        });
-      }
+      define('OnOutgoingClientPacket', () => {
+        return function sendPacketToServer (packet) {
+          socket.emit('input', packet);
+        };
+      });
 
       define('OnIncomingServerPacket', () => {
         return function ackPacketReceived (packet) {
