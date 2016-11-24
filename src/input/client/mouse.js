@@ -1,6 +1,7 @@
 'use strict';
 
 const each = require('lodash').each;
+import disabledInputHandler from './disabled-input-handler';
 
 function mouseMap () {
   return {
@@ -14,6 +15,10 @@ module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, config, define, $, deviceMode) {
+    if (!deviceMode().supportedInput.includes('mouse')) {
+      return disabledInputHandler;
+    }
+
     let x = 0;
     let y = 0;
     const keys = {};
@@ -68,10 +73,6 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function MouseInputCapture () {
-        if (!deviceMode().supportedInput.includes('mouse')) {
-          return;
-        }
-
         bindToWindowEvents();
       };
     });

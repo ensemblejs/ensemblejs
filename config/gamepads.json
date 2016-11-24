@@ -13,6 +13,7 @@
     "leftSide": [
       "up", "down", "right", "left"
     ],
+    "rightSide": [],
     "class": "virtual-gamepad"
   }
 }

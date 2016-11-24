@@ -1,9 +1,14 @@
 'use strict';
 
+import disabledInputHandler from './disabled-input-handler';
+
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'Config', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, config, define, $, deviceMode) {
+    if (!deviceMode().supportedInput.includes('touch')) {
+      return disabledInputHandler;
+    }
 
     let touches = [];
     let toRemove = [];
@@ -55,10 +60,6 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function TouchInputCapture () {
-        if (!deviceMode().supportedInput.includes('touch')) {
-          return;
-        }
-
         bindToWindowEvents();
       };
     });

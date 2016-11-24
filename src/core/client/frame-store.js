@@ -14,10 +14,10 @@ module.exports = {
   type: 'FrameStore',
   deps: [
     'RawStateAccess', 'InputQueue', 'DefinePlugin', 'Time',
-    'SaveMode', 'ApplyPendingMerges', 'Player', 'Device'
+    'SaveMode', 'ApplyPendingMerges', 'Player', 'Device', 'DeviceMode'
   ],
   func: function FrameStore (
-    rawState, queue, define, time, mode, applyPendingMerges, player, device
+    rawState, queue, define, time, mode, applyPendingMerges, player, device, deviceMode
   ) {
     let fromServer;
     let frames = [];

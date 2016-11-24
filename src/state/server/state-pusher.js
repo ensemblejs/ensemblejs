@@ -8,8 +8,8 @@ import { getBySaveAndPlayer } from '../../util/tracking-device-input-received';
 
 module.exports = {
   type: 'StatePusher',
-  deps: ['RawStateAccess', 'On', 'DefinePlugin', 'Time'],
-  func: function StatePusher (rawStateAccess, on, define, time) {
+  deps: ['RawStateAccess', 'On', 'DefinePlugin', 'Time', 'DeviceModeLens'],
+  func: function StatePusher (rawStateAccess, on, define, time, deviceModeLens) {
     const intervals = {};
 
     const toPush = {};
@@ -38,7 +38,10 @@ module.exports = {
           changeDeltas: toPush[save.id][playerId][deviceNumber].splice(0)
         };
 
-        on().outgoingServerPacket(socket.id, packet);
+        const modeForSocket = 'derp';
+        const lens = deviceModeLens()[modeForSocket];
+
+        on().outgoingServerPacket(socket.id, lens ? lens(packet) : packet);
       }
 
       socket.emit('initialState', rawStateAccess().snapshot(save.id));
@@ -51,9 +54,7 @@ module.exports = {
       console.info({save, playerId, deviceNumber}, 'Stopping State Pusher');
 
       if (
-        !toPush[save.id]
-        || !toPush[save.id][playerId]
-        || !toPush[save.id][playerId][deviceNumber]
+        !toPush[save.id] || !toPush[save.id][playerId] || !toPush[save.id][playerId][deviceNumber]
       ) {
         return;
       }

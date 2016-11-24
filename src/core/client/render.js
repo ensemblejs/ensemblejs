@@ -4,8 +4,8 @@ import read from 'ok-selector';
 
 module.exports = {
   type: 'OnClientReady',
-  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin'],
-  func: function RenderLoop (window, onRenderFrame, currentState, time, define) {
+  deps: ['Window', 'OnRenderFrame', 'CurrentState', 'Time', 'DefinePlugin', 'DeviceMode'],
+  func: function RenderLoop (window, onRenderFrame, currentState, time, define, deviceMode) {
     let disconnected = false;
     let priorStep = time().present();
 

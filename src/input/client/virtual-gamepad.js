@@ -3,6 +3,7 @@
 import {isEqual, remove} from 'lodash';
 import {radial} from 'gamepad-api-mappings';
 import define from '../../plugins/plug-n-play';
+import disabledInputHandler from './disabled-input-handler';
 
 const gamepads = require('../../../config/gamepads.json');
 
@@ -38,15 +39,19 @@ function touchData (touch) {
 
 module.exports = {
   type: 'InputCapture',
-  deps: ['Window', 'Config', '$', 'DeviceMode'],
-  func: function VirtualGamepad (window, config, $, deviceMode) {
+  deps: ['Window', '$', 'DeviceMode'],
+  func: function VirtualGamepad (window, $, deviceMode) {
+    if (!deviceMode().supportedInput.includes('virtual-gamepad')) {
+      return disabledInputHandler;
+    }
+
     let keys = [];
     let singlePressKeys = [];
     const sticks = {
       'left-stick': {x: 0, y: 0},
       'right-stick': {x: 0, y: 0}
     };
-    const layout = gamepads[config().client.input.virtualGamepad];
+    const layout = gamepads[deviceMode().virtualGamepad];
     let receivedInput = false;
 
     function addVisual (stickId, x, y) {
@@ -60,10 +65,16 @@ module.exports = {
     function setupStickBindings (stickId) {
       const domStickId = `#${stickId}`;
 
-      $()(domStickId).on('touchstart touchmove', function (e) {
-        const touches = e.touches.filter((touch) => {
-          return isEqual($()(touch.target).attr('id'), $()(e.target).attr('id'));
-        });
+      const positionStick = (e) => {
+
+        const touches = [];
+        for (let i = 0; i < e.touches.length; i++) {
+          const touch = e.touches[i];
+
+          if (isEqual($()(touch.target).attr('id'), $()(e.target).attr('id'))) {
+            touches.push(touch);
+          }
+        }
 
         touches.forEach((touch) => {
           e.stopPropagation();
@@ -78,15 +89,22 @@ module.exports = {
         });
 
         receivedInput = true;
-      });
+      };
 
-      $()(domStickId).on('touchend touchleave touchcancel', function () {
+      const resetStick = (e) => {
         sticks['left-stick'] = {x: 0, y: 0};
 
         removeVisual(domStickId);
 
         receivedInput = true;
-      });
+      };
+
+      const stick = window().document.getElementById(stickId);
+      stick.addEventListener('touchstart', positionStick, false);
+      stick.addEventListener('touchmove', positionStick, false);
+      stick.addEventListener('touchend', resetStick, false);
+      stick.addEventListener('touchcancel', resetStick, false);
+      stick.addEventListener('touchleave', resetStick, false);
     }
 
     function pressButton (receiver, button) {
@@ -102,33 +120,47 @@ module.exports = {
     }
 
     function setupButtonBindings (buttonId) {
-      const domButtonId = `#${buttonId}`;
-
-      $()(domButtonId).on('touchstart', function (e) {
+      const handleStart = (e) => {
         keys.push(buttonId);
         singlePressKeys.push(buttonId);
 
-        e.touchesforEach((touch) => pressButton(touch.target, buttonId));
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          pressButton(touch.target, buttonId);
+        }
 
         receivedInput = true;
-      });
+      }
 
-      $()(domButtonId).on('touchmove', function (e) {
+      const handleMove = (e) => {
         keys.push(buttonId);
 
-        e.touchesforEach((touch) => pressButton(touch.target, buttonId));
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          pressButton(touch.target, buttonId);
+        }
 
         receivedInput = true;
-      });
+      }
 
-      $()(domButtonId).on('touchend touchleave touchcancel', function (e) {
+      const handleEnd = (e) => {
         keys = remove(keys, buttonId);
         singlePressKeys = remove(singlePressKeys, buttonId);
 
-        e.changedTouches.forEach((touch) => releaseButton(touch.target, buttonId));
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          releaseButton(touch.target, buttonId);
+        }
 
         receivedInput = true;
-      });
+      }
+
+      const button = window().document.getElementById(buttonId);
+      button.addEventListener('touchstart', handleStart, false);
+      button.addEventListener('touchmove', handleMove, false);
+      button.addEventListener('touchend', handleEnd, false);
+      button.addEventListener('touchcancel', handleEnd, false);
+      button.addEventListener('touchleave', handleEnd, false);
     }
 
     function bindToWindowEvents () {
@@ -158,9 +190,7 @@ module.exports = {
 
     define('OnClientStart', function () {
       return function VirtualGamepadInputCapture () {
-        if (!deviceMode().supportedInput.includes('virtual-gamepad')) {
-          return;
-        }
+        console.info('Configuring device as a virtual-gamepad.')
 
         setupController();
         bindToWindowEvents();
@@ -171,21 +201,10 @@ module.exports = {
       const inputData = {
         'left-stick': sticks['left-stick'],
         'right-stick': sticks['right-stick'],
-        receivedInput
+        receivedInput,
+        keys: keys.map((key) => ({key, force: 1, modifiers: []})),
+        singlePressKeys: singlePressKeys.splice(0).map((key) => ({key, force: 1, modifiers: []}))
       };
-
-      const keysToSend = [];
-      keys.forEach((key) => {
-        keysToSend.push({key, force: 1, modifiers: []});
-      });
-      inputData.keys = keysToSend;
-
-      const singlePressKeysToSend = [];
-      singlePressKeys.forEach((key) => {
-        singlePressKeysToSend.push({key, force: 1, modifiers: []});
-      });
-      singlePressKeys = [];
-      inputData.singlePressKeys = singlePressKeysToSend;
 
       receivedInput = false;
 

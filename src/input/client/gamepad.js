@@ -4,6 +4,7 @@ import {without, each, map, isEmpty, isEqual} from 'lodash';
 import {getMapping, deadZones as deadZonesTable, getDeadzoneAlgorithm, axial, normaliseResult} from 'gamepad-api-mappings';
 import define from '../../plugins/plug-n-play';
 import {get} from '../../plugins/plug-n-play';
+import disabledInputHandler from './disabled-input-handler';
 
 const logger = require('../../logging/client/logger').logger;
 
@@ -11,6 +12,10 @@ module.exports = {
   type: 'InputCapture',
   deps: ['Modernizr', 'Window', 'Config', 'DeviceMode'],
   func: (modernizr, window, config, deviceMode) => {
+    if (!deviceMode().supportedInput.includes('physical-gamepad')) {
+      return disabledInputHandler;
+    }
+
     const hasEvents = ('ongamepadconnected' in window);
 
     let controllers = {};
@@ -40,9 +45,6 @@ module.exports = {
     define('OnClientStart', function () {
       return function KeyboardInputCapture () {
         if (!modernizr().gamepads) {
-          return;
-        }
-        if (!deviceMode().supportedInput.includes('physical-gamepad')) {
           return;
         }
 

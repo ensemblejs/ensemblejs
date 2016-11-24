@@ -1,11 +1,16 @@
 'use strict';
 
 import {isEmpty, each, includes} from 'lodash';
+import disabledInputHandler from './disabled-input-handler';
 
 module.exports = {
   type: 'InputCapture',
   deps: ['Window', 'DefinePlugin', '$', 'DeviceMode'],
   func: function InputCapture (window, define, $, deviceMode) {
+    if (!deviceMode().supportedInput.includes('keyboard')) {
+      return disabledInputHandler;
+    }
+
     const keys = {};
     const singlePressKeys = {};
 
@@ -149,10 +154,6 @@ module.exports = {
 
     define()('OnClientStart', function () {
       return function KeyboardInputCapture () {
-        if (!deviceMode().supportedInput.includes('keyboard')) {
-          return;
-        }
-
         bindToWindowEvents();
       };
     });

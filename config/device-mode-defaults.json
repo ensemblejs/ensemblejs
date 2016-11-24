@@ -5,6 +5,5 @@
   "template": "game.pug",
   "canPause": true,
   "supportedInput": ["touch", "mouse", "physical-gamepad", "keyboard", "virtual-gamepad"],
-
-  "supportsOutput": true
+  "virtualGamepad": "debug"
 }

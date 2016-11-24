@@ -7,6 +7,8 @@ import {plugin, get, set} from '../../plugins/plug-n-play';
 import read from 'ok-selector';
 import determineSaveIdFromPath from '../../util/determine-save-id-from-path';
 
+const doNothing = () => undefined;
+
 module.exports = {
   type: 'SocketClient',
   deps: ['Window', 'SaveMode', 'ServerUrl', 'On', 'Time', '$', 'DeviceMode', 'Config'],
@@ -62,7 +64,6 @@ module.exports = {
       socket.on('error', on().error);
       socket.on('playerGroupChange', on().playerGroupChange);
 
-
       socket.on('heartbeat', () => {
         console.info('Heartbeat received from server');
       });
@@ -75,22 +76,22 @@ module.exports = {
 
       define('PauseBehaviour', function PauseBehaviour () {
         function pause () {
-          if (deviceMode().canPause) {
-            socket.emit('pause');
-          }
+          socket.emit('pause');
         }
 
         function unpause () {
-          if (deviceMode().canPause) {
-            socket.emit('unpause');
-          }
+          socket.emit('unpause');
         }
 
         function toggle (state) {
           return read(state, 'ensemble.paused') ? unpause() : pause();
         }
 
-        return { pause, unpause, toggle };
+        return {
+          pause: deviceMode().canPause ? pause : doNothing,
+          unpause: deviceMode().canPause ? unpause : doNothing,
+          toggle: deviceMode().canPause ? toggle : doNothing
+        };
       });
 
       function pauseIfHidden () {

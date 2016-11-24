@@ -309,23 +309,19 @@ p {
   }
 
   .button {
-    color: lightgrey;
-    background-color: grey;
-
     .noselect;
 
+    color: lightgrey;
+    background-color: grey;
     flex: 0 1 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 50%;
     width: 48px;
     height: 48px;
     border: 1px solid black;
-
     font-size: 2rem;
-
     margin: 0;
     padding: 0;
   }
@@ -342,25 +338,48 @@ p {
   .base-face-4 { color: orchid; background-color: darkorchid; }
   .base-face-5 { color: dodgerblue; background-color: skyblue; }
   .base-home { .icon; }
+  .group {
+    display: flex;
+    flex-direction: row;
+  }
+
   .base-up {
     color: dodgerblue;
     background-color: skyblue;
     transform: rotate(-90deg);
+
+    position: relative;
+    left: 10%;
   }
+
   .base-down {
     color: dodgerblue;
     background-color: skyblue;
     transform: rotate(90deg);
+
+    position: relative;
+    left: 10%;
   }
+
   .base-left {
     color: dodgerblue;
     background-color: skyblue;
     transform: rotate(180deg);
+
+    position: relative;
+    left: 0%;
   }
+
   .base-right {
     color: dodgerblue;
     background-color: skyblue;
     transform: rotate(0deg);
+
+    position: relative;
+    left: 10%;
+  }
+  .base-start-forward {
+
   }
   .base-select-back {
     transform: rotate(180deg);
