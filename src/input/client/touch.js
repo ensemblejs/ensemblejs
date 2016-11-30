@@ -73,7 +73,6 @@ module.exports = {
       receivedInput = false;
 
       touches = touches.filter((touch) => !toRemove.includes(touch.id));
-
       toRemove = [];
 
       return inputData;

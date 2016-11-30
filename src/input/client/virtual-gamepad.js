@@ -46,7 +46,9 @@ module.exports = {
     }
 
     let keys = [];
+    let keysToRemove = [];
     let singlePressKeys = [];
+    let singlePressKeysToRemove = [];
     const sticks = {
       'left-stick': {x: 0, y: 0},
       'right-stick': {x: 0, y: 0}
@@ -144,8 +146,8 @@ module.exports = {
       }
 
       const handleEnd = (e) => {
-        keys = remove(keys, buttonId);
-        singlePressKeys = remove(singlePressKeys, buttonId);
+        keysToRemove.push(buttonId);
+        singlePressKeysToRemove.push(buttonId);
 
         for (let i = 0; i < e.changedTouches.length; i++) {
           const touch = e.changedTouches[i];
@@ -207,6 +209,10 @@ module.exports = {
       };
 
       receivedInput = false;
+      keys = keys.filter((key) => !keysToRemove.includes(key));
+      singlePressKeys = singlePressKeys.filter((key) => !singlePressKeysToRemove.includes(key));
+      keysToRemove = [];
+      singlePressKeysToRemove = [];
 
       return inputData;
     };
