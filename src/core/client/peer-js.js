@@ -21,7 +21,7 @@ function reconnectToBroker () {
   // peer.reconnect();
 }
 
-function OnClientReady (eventRouter, SaveId, config) {
+function OnClientReady (eventRouter, SaveId, config, deviceMode) {
   function handleIncomingPacketFromPeer (packet) {
     debug({packet}, 'received data from peer');
 
@@ -34,7 +34,9 @@ function OnClientReady (eventRouter, SaveId, config) {
     connection.on('open', function () {
       connections.push(connection);
 
-      connection.on('data', handleIncomingPacketFromPeer);
+      if (deviceMode().receivesPeerInput) {
+        connection.on('data', handleIncomingPacketFromPeer);
+      }
       connection.on('error', (err) => {
         console.error('Peer connection error', err)
       });
@@ -57,7 +59,9 @@ function OnClientReady (eventRouter, SaveId, config) {
     connection.on('open', function() {
       connections.push(connection);
 
-      connection.on('data', handleIncomingPacketFromPeer);
+      if (deviceMode().receivesPeerInput) {
+        connection.on('data', handleIncomingPacketFromPeer);
+      }
       connection.on('error', (err) => {
         console.error('Peer connection error', err)
       });
@@ -69,8 +73,19 @@ function OnClientReady (eventRouter, SaveId, config) {
     });
   }
 
-  return function connectToBroker (dims, playerNumber, deviceNumber) {
+  const deviceSupportsPeer2PeerLatencyReduction = () => {
     if (!config().client.peerLatencyReduction) {
+      return false;
+    }
+    if (!deviceMode().sendsPeerInput && !deviceMode().receivesPeerInput) {
+      return false;
+    }
+
+    return true;
+  }
+
+  return function connectToBroker (dims, playerNumber, deviceNumber) {
+    if (!deviceSupportsPeer2PeerLatencyReduction()) {
       return;
     }
 
@@ -107,9 +122,12 @@ function OnClientReady (eventRouter, SaveId, config) {
   };
 }
 
-function OnOutgoingClientPacket (config) {
+function OnOutgoingClientPacket (config, deviceMode) {
   return function sendPacketToPeers (packet) {
     if (!config().client.peerLatencyReduction) {
+      return;
+    }
+    if (!deviceMode().sendsPeerInput) {
       return;
     }
 
@@ -127,6 +145,6 @@ function OnDisconnect () {
   };
 }
 
-on('ClientReady', ['On', 'SaveId', 'Config'], OnClientReady);
-on('OutgoingClientPacket', ['Config'], OnOutgoingClientPacket);
+on('ClientReady', ['On', 'SaveId', 'Config', 'DeviceMode'], OnClientReady);
+on('OutgoingClientPacket', ['Config', 'DeviceMode'], OnOutgoingClientPacket);
 on('Disconnect', OnDisconnect);
