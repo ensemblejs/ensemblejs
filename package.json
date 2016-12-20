@@ -224,7 +224,7 @@
     "mocha": "2.4.5",
     "modernizr": "^3.3.1",
     "node-notifier": "^4.6.1",
-    "nodejs-dashboard": "^0.1.0",
+    "nodejs-dashboard": "^0.3.0",
     "require-inject": "^1.4.0",
     "sinon": "^1.15.4"
   }
