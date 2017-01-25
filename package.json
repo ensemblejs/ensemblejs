@@ -101,7 +101,7 @@
     "bitly": "^4.1.1",
     "bluebird": "^3.4.4",
     "body-parser": "^1.15.1",
-    "browserify": "^13.0.1",
+    "browserify": "^14.0.0",
     "browserify-shim": "git://github.com/ensemblejs/browserify-shim.git#master",
     "clipboard": "^1.5.10",
     "compression": "^1.5.1",
