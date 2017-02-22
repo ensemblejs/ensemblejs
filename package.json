@@ -197,7 +197,7 @@
     "babel-preset-es2015-node4": "^2.0.2",
     "benchmark": "^2.1.0",
     "codecov": "^1.0.1",
-    "eslint": "^3.5.0",
+    "eslint": "^3.16.1",
     "expect": "^1.7.0",
     "fs": "0.0.2",
     "gc-stats": "^1.0.0",
