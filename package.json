@@ -103,7 +103,7 @@
     "body-parser": "^1.15.1",
     "browserify": "^13.0.1",
     "browserify-shim": "git://github.com/ensemblejs/browserify-shim.git#master",
-    "clipboard": "^1.5.10",
+    "clipboard": "^1.6.1",
     "compression": "^1.5.1",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.2",
